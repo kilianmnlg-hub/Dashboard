@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kilian – Überblick</title>
+<link rel="stylesheet" href="styles.css" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<meta name="theme-color" content="#0f1115" />
+</head>
+<body>
+
+<div id="shipAlert" class="ship-alert" hidden>
+  <div class="ship-alert-inner">
+    <span class="ship-alert-icon">📦</span>
+    <span id="shipAlertText" class="ship-alert-text"></span>
+    <button type="button" class="ship-alert-dismiss" id="shipAlertDismiss" aria-label="Ausblenden">×</button>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">KM</span>
+      <div>
+        <p class="brand-title">Überblick</p>
+        <p class="brand-sub" id="todayLabel"></p>
+      </div>
+    </div>
+    <nav class="nav" id="mainNav">
+      <a href="#todo">To-Do</a>
+      <a href="#ziele">Ziele</a>
+      <a href="#business">Business</a>
+      <a href="#zeit">Zeit-Balance</a>
+    </nav>
+    <button class="sync-button" id="syncButton" type="button" title="Alle Daten jetzt synchronisieren">
+      <span id="syncButtonIcon">🔄</span> <span id="syncButtonLabel">Sync</span>
+    </button>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Theme wechseln">◑</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <h1 id="greeting">Willkommen zurück</h1>
+    <p class="hero-sub">Bricklink, YouTube-Kanäle, Ziele & Balance auf einen Blick — Stand <span id="lastUpdated"></span></p>
+  </section>
+
+  <section id="todo" class="section">
+    <div class="section-head">
+      <h2><span class="section-icon">✅</span>Tages-To-Do</h2>
+      <p class="section-sub" id="todoDateLabel"></p>
+    </div>
+    <div class="grid todo-grid" id="todoGrid"></div>
+  </section>
+
+  <section id="ziele" class="section">
+    <div class="section-head">
+      <h2><span class="section-icon">🎯</span>Ziele bis Ende 2026</h2>
+    </div>
+    <div class="grid goals-grid" id="goalsGrid"></div>
+  </section>
+
+  <section id="business" class="section">
+    <div class="section-head">
+      <h2><span class="section-icon">📊</span>Business-KPIs</h2>
+    </div>
+    <div class="grid business-grid" id="businessGrid"></div>
+
+    <div class="panel revenue-panel" id="revenuePanel" hidden>
+      <div class="section-head" style="margin-bottom:16px">
+        <h3 class="panel-title"><span class="section-icon">💶</span>Umsatz-Trend (Bricklink)</h3>
+        <p class="section-sub" id="revenueRangeLabel"></p>
+      </div>
+      <div class="chart-wrap chart-wrap-small">
+        <svg id="revenueChart" preserveAspectRatio="none"></svg>
+      </div>
+    </div>
+  </section>
+
+  <section id="zeit" class="section">
+    <div class="section-head">
+      <h2><span class="section-icon">⏱️</span>Zeit-Balance</h2>
+      <p class="section-sub" id="timeRangeLabel"></p>
+    </div>
+    <div class="panel">
+      <div class="time-summary" id="timeSummary"></div>
+      <div class="chart-wrap">
+        <svg id="timeChart" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="chart-legend" id="chartLegend"></div>
+      <p class="sync-note">Automatischer Sync aller Daten täglich um 08:00 Uhr · manuell: Button "Sync" oben rechts, oder GitHub-Repo → Tab "Actions" → Workflow "Sync all dashboard data" → "Run workflow"</p>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p>Daten aus Obsidian, Notion, YouTube & Bricklink · zuletzt synchronisiert <span id="footerUpdated"></span></p>
+</footer>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

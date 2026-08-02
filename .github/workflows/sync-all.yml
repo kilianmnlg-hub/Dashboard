@@ -1,0 +1,45 @@
+# Automatischer Sync: zieht täglich um 08:00 Uhr deutscher Zeit frische Daten aus
+# Notion (Zeittracker), YouTube (Abonnenten) und Bricklink (offene Bestellungen /
+# Versand-Alarm) und committet sie in data.js. Zwei Cron-Einträge, weil GitHub Actions
+# nur UTC kennt und Deutschland zwischen Sommer- (UTC+2) und Winterzeit (UTC+1)
+# wechselt — dadurch trifft's ganzjährig um 08:00 Uhr lokal (rund um die
+# Zeitumstellung im Frühjahr/Herbst maximal einmal doppelt, harmlos da idempotent).
+#
+# Jede Datenquelle ist optional: fehlt ein Secret, wird nur diese Quelle übersprungen
+# (siehe README für Einrichtung von NOTION_TOKEN, YOUTUBE_API_KEY, BRICKLINK_*).
+#
+# Manuell anstoßen: Tab "Actions" -> "Sync all dashboard data" -> "Run workflow",
+# oder per Klick auf den "Jetzt synchronisieren"-Button im Dashboard selbst.
+name: Sync all dashboard data
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 08:00 Uhr Sommerzeit (UTC+2)
+    - cron: "0 7 * * *" # 08:00 Uhr Winterzeit (UTC+1)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: node scripts/sync-all.mjs
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          BRICKLINK_CONSUMER_KEY: ${{ secrets.BRICKLINK_CONSUMER_KEY }}
+          BRICKLINK_CONSUMER_SECRET: ${{ secrets.BRICKLINK_CONSUMER_SECRET }}
+          BRICKLINK_TOKEN_VALUE: ${{ secrets.BRICKLINK_TOKEN_VALUE }}
+          BRICKLINK_TOKEN_SECRET: ${{ secrets.BRICKLINK_TOKEN_SECRET }}
+      - run: |
+          git config user.name "dashboard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data.js
+          git diff --quiet --cached || git commit -m "Automatischer Daten-Sync"
+          git push
