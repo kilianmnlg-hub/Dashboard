@@ -1,5 +1,6 @@
-// Zieht alle automatisierbaren Daten (Notion-Zeittracker, YouTube-Abos, Bricklink-Bestellungen)
-// und schreibt sie in ../data.js. Läuft täglich per GitHub Actions (.github/workflows/sync-all.yml)
+// Zieht alle automatisierbaren Daten (Notion-Zeittracker, YouTube-Abos, TikTok-Follower,
+// Bricklink-Bestellungen) und schreibt sie in ../data.js. Läuft täglich per GitHub Actions
+// (.github/workflows/sync-all.yml)
 // und lässt sich manuell auslösen:
 //   - über den "Jetzt synchronisieren"-Button im Dashboard (löst denselben Workflow aus)
 //   - über den GitHub "Actions"-Tab -> "Run workflow"
@@ -15,6 +16,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { fetchTimeTracker } from "./fetchers/time-tracker.mjs";
 import { fetchYouTube } from "./fetchers/youtube.mjs";
+import { fetchTikTok } from "./fetchers/tiktok.mjs";
 import { fetchBricklink } from "./fetchers/bricklink.mjs";
 
 const require = createRequire(import.meta.url);
@@ -43,23 +45,28 @@ async function main() {
   const DASHBOARD_DATA = require(DATA_FILE);
   let changed = false;
 
-  const results = await Promise.allSettled([
-    fetchTimeTracker(),
-    fetchYouTube(DASHBOARD_DATA),
-    fetchBricklink()
-  ]);
+  // Nacheinander statt parallel, und jeder Patch wird sofort in DASHBOARD_DATA gemergt,
+  // bevor der nächste Fetcher startet. Wichtig, weil sowohl youtube.mjs als auch
+  // tiktok.mjs das goals-Array lesen und schreiben — liefen sie parallel gegen denselben
+  // Ausgangsstand, würde der zuletzt gemergte Patch die Änderungen des anderen überschreiben.
+  const fetchers = [
+    ["time-tracker", () => fetchTimeTracker()],
+    ["youtube", () => fetchYouTube(DASHBOARD_DATA)],
+    ["tiktok", () => fetchTikTok(DASHBOARD_DATA)],
+    ["bricklink", () => fetchBricklink()]
+  ];
 
-  results.forEach((result, i) => {
-    const label = ["time-tracker", "youtube", "bricklink"][i];
-    if (result.status === "rejected") {
-      console.error(`[${label}] fehlgeschlagen:`, result.reason?.message || result.reason);
-      return;
+  for (const [label, run] of fetchers) {
+    try {
+      const patch = await run();
+      if (patch) {
+        deepMerge(DASHBOARD_DATA, patch);
+        changed = true;
+      }
+    } catch (err) {
+      console.error(`[${label}] fehlgeschlagen:`, err.message || err);
     }
-    if (result.value) {
-      deepMerge(DASHBOARD_DATA, result.value);
-      changed = true;
-    }
-  });
+  }
 
   if (!changed) {
     console.warn("Keine einzige Datenquelle war erreichbar/konfiguriert — data.js bleibt unverändert.");
@@ -71,9 +78,9 @@ async function main() {
 
   const output = `// Datenquelle für das Dashboard.
 // timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt),
-// bricklinkOrders und bricklinkRevenue werden automatisch von scripts/sync-all.mjs
-// überschrieben (täglich per GitHub Actions oder manuell über den Sync-Button im
-// Dashboard bzw. "node scripts/sync-all.mjs").
+// goals[tiktok-follower].current, bricklinkOrders und bricklinkRevenue werden automatisch
+// von scripts/sync-all.mjs überschrieben (täglich per GitHub Actions oder manuell über
+// den Sync-Button im Dashboard bzw. "node scripts/sync-all.mjs").
 // Alles andere (goals-Zieltexte, restliche business-Felder, uploadRhythmDays) von
 // Hand pflegen. Siehe README.md für Details.
 

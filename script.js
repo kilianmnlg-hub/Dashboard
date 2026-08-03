@@ -161,7 +161,8 @@
   const accentByProject = {
     bricksOnTheFloor: "var(--accent-bricks)",
     brainwalkers: "var(--accent-brainwalkers)",
-    bricklink: "var(--accent-bricklink)"
+    bricklink: "var(--accent-bricklink)",
+    tiktok: "var(--accent-tiktok)"
   };
 
   const daysUntil = (iso) => {

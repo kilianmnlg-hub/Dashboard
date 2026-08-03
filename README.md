@@ -10,10 +10,12 @@ The Brainwalkers, 2026-Ziele, Zeit-Balance und Tages-To-Do. Installierbar als PW
 - `data.js` — alle Inhalte/Zahlen. Manuelle Felder trägst du hier von Hand ein;
   automatisierte Felder werden von den Skripten überschrieben (siehe unten)
 - `scripts/sync-all.mjs` — zieht **alle** automatisierbaren Daten und schreibt sie
-  in `data.js`. Ruft die drei Fetcher in `scripts/fetchers/` auf:
+  in `data.js`. Ruft die Fetcher in `scripts/fetchers/` nacheinander auf (nicht parallel,
+  da youtube.mjs und tiktok.mjs beide das `goals`-Array aktualisieren):
   - `time-tracker.mjs` — Notion "Zeittracker" (Zeit-Balance-Sektion)
   - `youtube.mjs` — YouTube-Abonnenten/Video-Anzahl/letztes **Longform**-Upload-Datum
     (Bricks On The Floor, The Brainwalkers) → speist auch die Upload-Rhythmus-Ampel
+  - `tiktok.mjs` — TikTok-Follower (@bricksonthefloor) per Profilseiten-Scrape
   - `bricklink.mjs` — offene Bricklink-Bestellungen (Versand-Alarm) + Umsatz pro Woche
     und pro Monat (Umsatz-Trend-Charts)
 - `.github/workflows/sync-all.yml` — automatischer Sync jeden Tag um 08:00 Uhr
@@ -40,9 +42,10 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 | Letztes Longform-Upload-Datum (Upload-Rhythmus-Ampel, Shorts zählen nicht) | YouTube Data API | ✅ automatisch |
 | Offene Bricklink-Bestellungen / Versand-Alarm | Bricklink API | ✅ automatisch |
 | Umsatz-Trend pro Woche & pro Monat (Bricklink) | Bricklink API | ✅ automatisch |
+| TikTok-Follower (@bricksonthefloor) | TikTok-Profilseite (Scrape) | ✅ automatisch, siehe Hinweis unten |
 | Views/Wiedergabezeit/Umsatz (28 Tage) | — | ❌ manuell (siehe unten, warum) |
 | Bricklink Store-Besuche, Feedback gesamt, Drive-Thru-Mails, Ohne Feedback | — | ❌ manuell (siehe unten, warum) |
-| Ziel-Fortschritt (Umsatz, Monetarisierung) | — | ❌ manuell |
+| Ziel-Fortschritt (Umsatz) | — | ❌ manuell |
 | Nächste Video-Idee | — | eigene Notiz, nur im Browser (siehe unten) |
 
 **Warum nicht alles automatisch geht:**
@@ -170,6 +173,21 @@ Zwei kleine Charts nebeneinander unter den Business-KPIs — **Wöchentlich** un
 Wöchentlich zeigt die letzten `BRICKLINK_REVENUE_WEEKS` Kalenderwochen (Default
 8), monatlich die letzten `BRICKLINK_REVENUE_MONTHS` Kalendermonate (Default 6).
 Storniert/nicht bezahlte Bestellungen zählen in beiden nicht mit.
+
+## TikTok-Follower (@bricksonthefloor)
+
+Speist das Ziel "Bricks On The Floor – TikTok-Follower" (10.000er-Marke). Anders als
+YouTube bietet TikTok keine öffentliche Statistik-API mit einfachem API-Key — die
+offizielle API erfordert eine von TikTok geprüfte Developer-App plus OAuth-Login des
+Kontoinhabers. `scripts/fetchers/tiktok.mjs` liest deshalb bewusst die **öffentliche
+Profilseite** von `tiktok.com/@bricksonthefloor` aus (kein Login, kein Secret nötig).
+
+**Bekannte Einschränkung:** Das ist kein von TikTok unterstützter Weg. Ändert TikTok das
+Seitenformat, bricht nur dieser eine Fetcher (mit Warnung im Actions-Log), der Rest des
+Syncs läuft normal weiter — die TikTok-Zahl bleibt dann einfach auf dem letzten Stand,
+bis du sie in `data.js` von Hand nachträgst oder das Skript anpasst. Falls du stattdessen
+die offizielle TikTok-API willst: [developers.tiktok.com](https://developers.tiktok.com)
+→ App registrieren → Review abwarten (kann mehrere Tage dauern) → Login Kit/Display API.
 
 ## Upload-Rhythmus-Ampel
 

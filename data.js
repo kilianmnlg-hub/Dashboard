@@ -46,14 +46,13 @@ const DASHBOARD_DATA = {
       "due": "2026-12-31"
     },
     {
-      "id": "brainwalkers-monetarisierung",
-      "label": "The Brainwalkers – Monetarisierung",
-      "project": "brainwalkers",
+      "id": "tiktok-follower",
+      "label": "Bricks On The Floor – TikTok-Follower",
+      "project": "tiktok",
       "current": 0,
-      "target": 1,
-      "unit": "erreicht",
-      "due": "2026-12-31",
-      "isMilestone": true
+      "target": 10000,
+      "unit": "Follower",
+      "due": "2026-12-31"
     }
   ],
   "bricklinkOrders": {
