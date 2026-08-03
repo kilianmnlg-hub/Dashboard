@@ -75,7 +75,7 @@
     let token = localStorage.getItem("dashboard-gh-token");
     if (!token) {
       token = prompt(
-        "GitHub Personal Access Token (fine-grained, nur 'Actions: Read and write' für dieses Repo). " +
+        "GitHub Personal Access Token (fine-grained, mit 'Actions: Read and write' + 'Contents: Read and write' für dieses Repo, für Sync-Button und Habit-Tracker-Cloud-Sync). " +
           "Wird nur in deinem Browser gespeichert, nie im Code:"
       );
       if (!token) return null;
@@ -92,6 +92,10 @@
     syncButton.disabled = true;
     syncButton.classList.add("spinning");
     syncLabel.textContent = "Synchronisiere…";
+
+    // Habit-Tracker-Stand läuft am selben Klick mit hoch (Contents API, kein Workflow nötig —
+    // sofort fertig, nicht Teil des "läuft 15-30s"-Hinweises unten).
+    pushHabitsToCloud(config);
 
     try {
       const res = await fetch(
@@ -555,6 +559,368 @@
   }
 
   renderTodos();
+
+  // ---------- Habit-Tracker ----------
+  const HABIT_STORAGE_KEY = "dashboard-habits-v1";
+  const HABIT_COLORS = [
+    "var(--accent-bricks)",
+    "var(--accent-privat)",
+    "var(--accent-laden)",
+    "var(--accent-brainwalkers)",
+    "var(--accent-bricklink)",
+    "var(--accent-goal)"
+  ];
+  const HABIT_DEFAULTS = [
+    { id: "gym", label: "Gym" },
+    { id: "rauchfrei", label: "Rauchfreier Tag" },
+    { id: "koffein", label: "<2x Koffein" }
+  ];
+
+  const dateKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const mondayOf = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    const day = d.getDay() || 7;
+    if (day !== 1) d.setDate(d.getDate() - (day - 1));
+    return d;
+  };
+
+  function loadHabitState() {
+    try {
+      const raw = localStorage.getItem(HABIT_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      /* corrupted storage, fall back to defaults */
+    }
+    return { habits: HABIT_DEFAULTS.map((h) => ({ ...h })), log: {} };
+  }
+
+  // ---------- Habit-Tracker: Cloud-Sync über GitHub Contents API ----------
+  // Kein neuer Dienst nötig: läuft am globalen "Sync"-Button oben rechts mit (derselbe
+  // GitHub-Token/Repo wie für den Daten-Sync) und schreibt den Habit-Stand zusätzlich in
+  // habits-data.json im Repo. Notion fiel raus: dessen API blockt direkte Browser-Aufrufe
+  // (kein CORS), GitHub erlaubt das — genau wie beim Sync-Button oben schon genutzt.
+  // Lesen beim Laden geht ohne Token (öffentliche Datei über GitHub Pages), Schreiben
+  // braucht den Token mit Berechtigung "Contents: Read and write".
+  const HABIT_REMOTE_FILE = "habits-data.json";
+  const habitSyncStatusEl = document.getElementById("habitSyncStatus");
+  let habitCloudSha = null;
+
+  function setHabitSyncStatus(state, detail) {
+    if (!habitSyncStatusEl) return;
+    const time = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    const map = {
+      idle: "☁️ Wird beim nächsten Klick auf \"Sync\" oben rechts gesichert",
+      synced: `☁️ Zuletzt mit Sync gesichert · ${time}`,
+      "local-only": "💾 Nur lokal — für Cloud-Sync oben rechts auf \"Sync\" klicken",
+      error: `⚠️ Cloud-Sync fehlgeschlagen${detail ? " — " + detail : ""}`
+    };
+    habitSyncStatusEl.textContent = map[state] || map.idle;
+  }
+
+  function mergeHabitState(local, remote) {
+    const byId = new Map();
+    [...(remote.habits || []), ...(local.habits || [])].forEach((h) => byId.set(h.id, h));
+    const mergedLog = {};
+    [remote.log || {}, local.log || {}].forEach((log) => {
+      Object.entries(log).forEach(([date, entries]) => {
+        mergedLog[date] = { ...(mergedLog[date] || {}), ...entries };
+      });
+    });
+    return { habits: Array.from(byId.values()), log: mergedLog };
+  }
+
+  async function fetchRemoteHabits() {
+    try {
+      const res = await fetch(HABIT_REMOTE_FILE, { cache: "no-store" });
+      if (!res.ok) return;
+      const remote = await res.json();
+      habitState = mergeHabitState(habitState, remote);
+      localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
+      renderHabits();
+    } catch (err) {
+      /* offline, file:// geöffnet, oder Datei existiert noch nicht — lokaler Stand bleibt gültig */
+    }
+  }
+
+  // config optional: wird vom Sync-Button-Klick mitgegeben (ein Prompt statt zwei),
+  // sonst holt sich die Funktion die Zugangsdaten selbst.
+  async function pushHabitsToCloud(config) {
+    config = config || getGithubConfig();
+    if (!config) {
+      setHabitSyncStatus("local-only");
+      return;
+    }
+    const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${HABIT_REMOTE_FILE}`;
+    const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
+    try {
+      if (!habitCloudSha) {
+        const getRes = await fetch(apiUrl, { headers });
+        if (getRes.ok) habitCloudSha = (await getRes.json()).sha;
+      }
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(habitState, null, 2))));
+      const putRes = await fetch(apiUrl, {
+        method: "PUT",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "Habit-Tracker Update", content, ...(habitCloudSha ? { sha: habitCloudSha } : {}) })
+      });
+      if (putRes.ok) {
+        habitCloudSha = (await putRes.json()).content?.sha || habitCloudSha;
+        setHabitSyncStatus("synced");
+      } else if (putRes.status === 401 || putRes.status === 403) {
+        localStorage.removeItem("dashboard-gh-token");
+        setHabitSyncStatus("error", "Token ungültig oder ohne 'Contents'-Berechtigung (entfernt, beim nächsten Mal neu eingeben)");
+      } else if (putRes.status === 409) {
+        habitCloudSha = null; // jemand anders hat parallel geschrieben — sha neu holen beim nächsten Versuch
+        setHabitSyncStatus("error", "Konflikt, bitte erneut versuchen");
+      } else {
+        setHabitSyncStatus("error", `Status ${putRes.status}`);
+      }
+    } catch (err) {
+      setHabitSyncStatus("error", err.message);
+    }
+  }
+
+  const saveHabitState = () => localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
+
+  let habitState = loadHabitState();
+  let habitView = "week";
+  let habitMonthRef = new Date();
+  let habitYearRef = new Date().getFullYear();
+
+  const habitNewInput = document.getElementById("habitNewInput");
+  const habitAddBtn = document.getElementById("habitAddBtn");
+  const habitViews = {
+    week: document.getElementById("habitViewWeek"),
+    month: document.getElementById("habitViewMonth"),
+    year: document.getElementById("habitViewYear")
+  };
+
+  function toggleHabitDay(habitId, key) {
+    habitState.log[key] = habitState.log[key] || {};
+    habitState.log[key][habitId] = !habitState.log[key][habitId];
+    if (!habitState.log[key][habitId]) delete habitState.log[key][habitId];
+    saveHabitState();
+    renderHabits();
+  }
+
+  function removeHabit(habitId) {
+    habitState.habits = habitState.habits.filter((h) => h.id !== habitId);
+    Object.values(habitState.log).forEach((day) => delete day[habitId]);
+    saveHabitState();
+    renderHabits();
+  }
+
+  function addHabit() {
+    const label = habitNewInput.value.trim();
+    if (!label) return;
+    habitState.habits.push({ id: newId(), label });
+    saveHabitState();
+    habitNewInput.value = "";
+    renderHabits();
+  }
+  habitAddBtn.addEventListener("click", addHabit);
+  habitNewInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addHabit();
+  });
+
+  document.querySelectorAll("#habitViewToggle button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      habitView = btn.dataset.view;
+      document.querySelectorAll("#habitViewToggle button").forEach((b) => b.classList.toggle("active", b === btn));
+      Object.entries(habitViews).forEach(([key, el]) => (el.hidden = key !== habitView));
+      renderHabits();
+    });
+  });
+
+  function daycellHtml({ habitId, key, done, today, extraClass, colorIdx }) {
+    const color = HABIT_COLORS[colorIdx % HABIT_COLORS.length];
+    const classes = ["habit-daycell", extraClass || "", done ? "done" : "", today ? "today" : ""].filter(Boolean).join(" ");
+    return `<button type="button" class="${classes}" style="--habit-color:${color}" data-habit="${habitId}" data-date="${key}"></button>`;
+  }
+
+  function wireDaycellClicks(container) {
+    container.querySelectorAll(".habit-daycell[data-habit]").forEach((cell) => {
+      cell.addEventListener("click", () => toggleHabitDay(cell.dataset.habit, cell.dataset.date));
+    });
+  }
+
+  function renderHabitEmptyOr(container, bodyHtml) {
+    container.innerHTML = habitState.habits.length ? bodyHtml : `<p class="habit-empty">Noch keine Gewohnheiten — oben hinzufügen.</p>`;
+  }
+
+  function renderHabitWeek() {
+    const weekStart = mondayOf(new Date());
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(weekStart);
+      d.setDate(d.getDate() + i);
+      return d;
+    });
+    const todayK = dateKey(new Date());
+
+    const headerCells = days
+      .map((d) => `<div class="habit-daycell habit-dayhead">${d.toLocaleDateString("de-DE", { weekday: "short" })}<br>${d.getDate()}.</div>`)
+      .join("");
+
+    const rows = habitState.habits
+      .map((h, idx) => {
+        const cells = days
+          .map((d) => {
+            const key = dateKey(d);
+            const done = !!habitState.log[key]?.[h.id];
+            return daycellHtml({ habitId: h.id, key, done, today: key === todayK, colorIdx: idx });
+          })
+          .join("");
+        const doneCount = days.filter((d) => habitState.log[dateKey(d)]?.[h.id]).length;
+        return `<div class="habit-row">
+          <div class="habit-label">${escapeHtml(h.label)}<span class="habit-count">${doneCount}/7</span></div>
+          <div class="habit-days">${cells}</div>
+          <button type="button" class="habit-remove" data-remove="${h.id}" aria-label="Entfernen">×</button>
+        </div>`;
+      })
+      .join("");
+
+    renderHabitEmptyOr(
+      habitViews.week,
+      `<div class="habit-row habit-header-row"><div class="habit-label"></div><div class="habit-days">${headerCells}</div><span></span></div>${rows}`
+    );
+
+    wireDaycellClicks(habitViews.week);
+    habitViews.week.querySelectorAll(".habit-remove").forEach((btn) => {
+      btn.addEventListener("click", () => removeHabit(btn.dataset.remove));
+    });
+  }
+
+  function renderHabitMonth() {
+    const year = habitMonthRef.getFullYear();
+    const month = habitMonthRef.getMonth();
+    const monthLabel = habitMonthRef.toLocaleDateString("de-DE", { month: "long", year: "numeric" });
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDay = new Date(year, month, 1);
+    const leadingBlanks = (firstDay.getDay() || 7) - 1;
+    const todayK = dateKey(new Date());
+
+    const nav = `<div class="habit-month-nav">
+      <button type="button" id="habitMonthPrev">‹</button>
+      <span>${monthLabel}</span>
+      <button type="button" id="habitMonthNext">›</button>
+    </div>`;
+
+    const rows = habitState.habits
+      .map((h, idx) => {
+        const blanks = Array.from({ length: leadingBlanks }, () => `<span class="habit-daycell blank"></span>`).join("");
+        const cells = Array.from({ length: daysInMonth }, (_, i) => {
+          const d = new Date(year, month, i + 1);
+          const key = dateKey(d);
+          const done = !!habitState.log[key]?.[h.id];
+          return daycellHtml({ habitId: h.id, key, done, today: key === todayK, colorIdx: idx });
+        }).join("");
+        return `<div class="habit-month-row">
+          <div class="habit-month-title">${escapeHtml(h.label)}</div>
+          <div class="habit-month-grid">${blanks}${cells}</div>
+        </div>`;
+      })
+      .join("");
+
+    renderHabitEmptyOr(habitViews.month, `${nav}${rows}`);
+
+    const monthEl = habitViews.month;
+    monthEl.querySelector("#habitMonthPrev")?.addEventListener("click", () => {
+      habitMonthRef.setMonth(habitMonthRef.getMonth() - 1);
+      renderHabits();
+    });
+    monthEl.querySelector("#habitMonthNext")?.addEventListener("click", () => {
+      habitMonthRef.setMonth(habitMonthRef.getMonth() + 1);
+      renderHabits();
+    });
+    wireDaycellClicks(monthEl);
+  }
+
+  function buildYearWeeks(year) {
+    const start = mondayOf(new Date(year, 0, 1));
+    const end = new Date(year, 11, 31);
+    const weeks = [];
+    let cur = new Date(start);
+    while (cur <= end) {
+      const week = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(cur);
+        d.setDate(d.getDate() + i);
+        return d.getFullYear() === year ? d : null;
+      });
+      weeks.push(week);
+      cur.setDate(cur.getDate() + 7);
+    }
+    return weeks;
+  }
+
+  function renderHabitYear() {
+    const weeks = buildYearWeeks(habitYearRef);
+    const todayK = dateKey(new Date());
+
+    const nav = `<div class="habit-year-nav">
+      <button type="button" id="habitYearPrev">‹</button>
+      <span>${habitYearRef}</span>
+      <button type="button" id="habitYearNext">›</button>
+    </div>`;
+
+    let lastMonth = -1;
+    const monthLabels = weeks
+      .map((week) => {
+        const firstReal = week.find(Boolean);
+        const m = firstReal ? firstReal.getMonth() : lastMonth;
+        const label = firstReal && m !== lastMonth ? firstReal.toLocaleDateString("de-DE", { month: "short" }) : "";
+        lastMonth = m;
+        return `<span>${label}</span>`;
+      })
+      .join("");
+
+    const rows = habitState.habits
+      .map((h, idx) => {
+        const cells = weeks
+          .map((week) =>
+            week
+              .map((d) => {
+                if (!d) return `<span class="habit-daycell blank"></span>`;
+                const key = dateKey(d);
+                const done = !!habitState.log[key]?.[h.id];
+                return daycellHtml({ habitId: h.id, key, done, today: key === todayK, colorIdx: idx });
+              })
+              .join("")
+          )
+          .join("");
+        return `<div class="habit-year-row">
+          <div class="habit-year-title">${escapeHtml(h.label)}</div>
+          <div class="habit-year-scroll">
+            <div class="habit-year-months">${monthLabels}</div>
+            <div class="habit-year-grid">${cells}</div>
+          </div>
+        </div>`;
+      })
+      .join("");
+
+    renderHabitEmptyOr(habitViews.year, `${nav}${rows}`);
+
+    const yearEl = habitViews.year;
+    yearEl.querySelector("#habitYearPrev")?.addEventListener("click", () => {
+      habitYearRef -= 1;
+      renderHabits();
+    });
+    yearEl.querySelector("#habitYearNext")?.addEventListener("click", () => {
+      habitYearRef += 1;
+      renderHabits();
+    });
+    wireDaycellClicks(yearEl);
+  }
+
+  function renderHabits() {
+    if (habitView === "week") renderHabitWeek();
+    else if (habitView === "month") renderHabitMonth();
+    else renderHabitYear();
+  }
+
+  renderHabits();
+  setHabitSyncStatus(localStorage.getItem("dashboard-gh-token") ? "idle" : "local-only");
+  fetchRemoteHabits();
 
   // ---------- PWA: Service Worker registrieren ----------
   // Ermöglicht "Zum Homescreen hinzufügen" auf dem Handy. Schlägt lautlos fehl bei

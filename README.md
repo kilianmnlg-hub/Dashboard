@@ -19,6 +19,8 @@ The Brainwalkers, 2026-Ziele, Zeit-Balance und Tages-To-Do. Installierbar als PW
 - `.github/workflows/sync-all.yml` — automatischer Sync jeden Tag um 08:00 Uhr
   (plus manuell auslösbar über den Sync-Button im Dashboard oder den Actions-Tab)
 - `manifest.webmanifest`, `icon.svg`, `sw.js` — machen das Dashboard als PWA installierbar
+- `habits-data.json` — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
+  direkt aus dem Browser aktualisiert (siehe Abschnitt "Habit-Tracker")
 
 ## Lokal ansehen
 
@@ -141,12 +143,16 @@ Access Token** — anlegen unter
 (**fine-grained**, nicht "classic"):
 
 - "Repository access" → nur dein Dashboard-Repo auswählen
-- "Permissions" → "Actions" → **"Read and write"**, sonst nichts
+- "Permissions" → "Actions" → **"Read and write"** (für den Sync-Button)
+- "Permissions" → "Contents" → **"Read and write"** (für den Habit-Tracker-Cloud-Sync,
+  siehe unten) — ohne diese Berechtigung funktioniert der Sync-Button trotzdem, nur der
+  Habit-Stand landet dann nicht in der Cloud
 
 Dieser Token landet **nirgends im Code oder Repo** — er wird nur einmal im
 Browser abgefragt und lokal in `localStorage` auf deinem eigenen Gerät gespeichert.
 Ein Token mit voller Repo-Berechtigung würde ich hier nicht eintragen; die
-fine-grained Variante oben kann wirklich nur Workflows anstoßen, sonst nichts.
+fine-grained Variante oben kann wirklich nur Workflows anstoßen und diese zwei Dateien
+schreiben, sonst nichts.
 
 ## Versand-Alarm (Bricklink)
 
@@ -181,6 +187,32 @@ Limit) als Short. Faustregel für die Ampel: 🟢 im Ziel-Rhythmus, 🟡 bis zum
 Kleines Notizfeld auf den beiden YouTube-Karten. Speichert automatisch (500ms
 nach dem letzten Tastendruck) im Browser (`localStorage`) — bewusst kein
 Sync-Feld in `data.js`, das wäre für eine spontane Notiz zu viel Umweg.
+
+## Habit-Tracker
+
+Wöchentliche Gewohnheiten (z.B. Gym, Rauchfreier Tag, &lt;2x Koffein) mit Tages-Checkboxen,
+plus Monats- und Jahresansicht (GitHub-Style-Heatmap). Eigene Gewohnheiten hinzufügen/
+entfernen über das Eingabefeld direkt über der Wochenansicht.
+
+**Speicherung, zweistufig:**
+1. **Sofort lokal** (`localStorage`) bei jedem Klick — funktioniert immer, auch offline.
+2. **Cloud-Kopie in `habits-data.json`** im Repo, sobald du oben rechts auf **"Sync"**
+   klickst — derselbe Klick, der auch die Business-Daten aktualisiert. Kein separater
+   Button nötig. Voraussetzung: der GitHub-Token (siehe oben) braucht zusätzlich
+   "Contents: Read and write".
+3. Beim Laden der Seite wird `habits-data.json` gelesen (funktioniert ohne Token, da
+   öffentliche Datei über GitHub Pages) und mit dem lokalen Stand **zusammengeführt**
+   (nicht überschrieben): pro Tag/Gewohnheit gilt "erledigt", sobald es lokal *oder*
+   in der Cloud als erledigt markiert ist. Das verhindert Datenverlust zwischen zwei
+   Geräten, kann aber dazu führen, dass ein versehentlich falsch gesetztes Häkchen auf
+   einem Gerät nicht durch Entfernen auf einem anderen Gerät verschwindet — in dem Fall
+   beide Male entfernen.
+
+**Warum GitHub und nicht Notion, obwohl du dort schon einen "Habit Tracker" hast:**
+Notions API blockiert direkte Aufrufe aus dem Browser (kein CORS) — ein Klick im
+Dashboard könnte also gar nicht bei Notion ankommen, ohne einen zusätzlichen Server
+dazwischenzuschalten. GitHubs API erlaubt das (das nutzt der Sync-Button hier schon die
+ganze Zeit), deshalb landet der Habit-Stand als JSON-Datei im selben Repo statt in Notion.
 
 ## Tages-To-Do
 

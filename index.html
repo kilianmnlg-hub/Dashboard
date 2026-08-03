@@ -31,6 +31,7 @@
     </div>
     <nav class="nav" id="mainNav">
       <a href="#todo">To-Do</a>
+      <a href="#habits">Habits</a>
       <a href="#ziele">Ziele</a>
       <a href="#business">Business</a>
       <a href="#zeit">Zeit-Balance</a>
@@ -54,6 +55,30 @@
       <p class="section-sub" id="todoDateLabel"></p>
     </div>
     <div class="grid todo-grid" id="todoGrid"></div>
+  </section>
+
+  <section id="habits" class="section">
+    <div class="section-head">
+      <h2><span class="section-icon">🔥</span>Habit-Tracker</h2>
+      <div class="habit-view-toggle" id="habitViewToggle">
+        <button type="button" data-view="week" class="active">Woche</button>
+        <button type="button" data-view="month">Monat</button>
+        <button type="button" data-view="year">Jahr</button>
+      </div>
+    </div>
+    <div class="panel habit-panel">
+      <div class="habit-add">
+        <input type="text" id="habitNewInput" placeholder="Neue Gewohnheit… (z.B. Gym, Rauchfreier Tag, <2x Koffein)" maxlength="60" />
+        <button type="button" id="habitAddBtn" aria-label="Hinzufügen">+</button>
+      </div>
+      <div id="habitViewWeek" class="habit-view"></div>
+      <div id="habitViewMonth" class="habit-view" hidden></div>
+      <div id="habitViewYear" class="habit-view" hidden></div>
+      <p class="sync-note">
+        <span id="habitSyncStatus">–</span>
+        · lokal immer sofort in diesem Browser gespeichert, Cloud-Kopie in <code>habits-data.json</code> im Repo
+      </p>
+    </div>
   </section>
 
   <section id="ziele" class="section">

@@ -5,7 +5,7 @@
 // hat also immer Vorrang; der Cache greift nur, wenn gar keine Verbindung besteht.
 
 const CACHE_NAME = "dashboard-v1";
-const APP_SHELL = ["./", "index.html", "styles.css", "script.js", "data.js", "manifest.webmanifest", "icon.svg"];
+const APP_SHELL = ["./", "index.html", "styles.css", "script.js", "data.js", "habits-data.json", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));

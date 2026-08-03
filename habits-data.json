@@ -1,0 +1,8 @@
+{
+  "habits": [
+    { "id": "gym", "label": "Gym" },
+    { "id": "rauchfrei", "label": "Rauchfreier Tag" },
+    { "id": "koffein", "label": "<2x Koffein" }
+  ],
+  "log": {}
+}
