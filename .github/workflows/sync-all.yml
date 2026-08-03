@@ -42,4 +42,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git add data.js
           git diff --quiet --cached || git commit -m "Automatischer Daten-Sync"
+          # Rebase gegen den aktuellen Stand, falls in der Zwischenzeit jemand anderes
+          # (z.B. ein manueller Push) main aktualisiert hat, sonst schlägt der Push fehl.
+          git pull --rebase origin main
           git push
