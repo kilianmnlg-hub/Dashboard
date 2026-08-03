@@ -238,6 +238,13 @@ Trägst du direkt im Dashboard ein (drei Spalten: Business, Studium & Job,
 Privates). Wird im Browser gespeichert (`localStorage`) und setzt sich jeden
 Tag automatisch zurück.
 
+## Aufgaben
+
+Direkt unter dem Tages-To-Do, aber bewusst getrennt gespeichert (eigener
+`localStorage`-Key ohne Datum) — im Gegensatz zum Tages-To-Do **kein täglicher
+Reset**. Einträge bleiben stehen, bis du sie abhakst; nach dem Abhaken werden
+sie automatisch (kurz sichtbar durchgestrichen) aus der Liste entfernt.
+
 ## PWA ("Zum Homescreen hinzufügen")
 
 Sobald das Dashboard über GitHub Pages (oder einen anderen https-Server) läuft,

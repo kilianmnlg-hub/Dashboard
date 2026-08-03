@@ -561,6 +561,74 @@
 
   renderTodos();
 
+  // ---------- Aufgaben (persistent, kein täglicher Reset) ----------
+  const TASKS_STORAGE_KEY = "dashboard-tasks-v1";
+
+  const loadTasks = () => {
+    try {
+      const raw = localStorage.getItem(TASKS_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      /* corrupted storage, fall back to empty */
+    }
+    return [];
+  };
+  const saveTasks = (tasks) => localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+
+  let tasks = loadTasks();
+  const taskList = document.getElementById("taskList");
+  const taskInput = document.getElementById("taskInput");
+
+  function renderTasks() {
+    taskList.innerHTML = tasks.length
+      ? tasks
+          .map(
+            (item) => `
+      <li class="todo-item ${item.done ? "done" : ""}" data-id="${item.id}">
+        <input type="checkbox" ${item.done ? "checked" : ""} />
+        <span>${escapeHtml(item.text)}</span>
+        <button type="button" class="todo-remove" aria-label="Entfernen">×</button>
+      </li>`
+          )
+          .join("")
+      : `<li class="todo-empty">Noch nichts eingetragen.</li>`;
+
+    taskList.querySelectorAll(".todo-item").forEach((row) => {
+      const id = row.getAttribute("data-id");
+      row.querySelector("input[type=checkbox]").addEventListener("change", () => {
+        // Abhaken = erledigt: kurz sichtbar durchgestrichen, dann automatisch aus der Liste
+        // entfernt (im Gegensatz zum Tages-To-Do, das bleibt hier nichts dauerhaft "erledigt"
+        // liegen — das ist ja gerade der Sinn dieser Liste, anders als beim täglichen Reset).
+        row.classList.add("done");
+        setTimeout(() => {
+          tasks = tasks.filter((t) => t.id !== id);
+          saveTasks(tasks);
+          renderTasks();
+        }, 400);
+      });
+      row.querySelector(".todo-remove").addEventListener("click", () => {
+        tasks = tasks.filter((t) => t.id !== id);
+        saveTasks(tasks);
+        renderTasks();
+      });
+    });
+  }
+
+  function addTask() {
+    const text = taskInput.value.trim();
+    if (!text) return;
+    tasks.push({ id: newId(), text, done: false });
+    saveTasks(tasks);
+    taskInput.value = "";
+    renderTasks();
+  }
+  document.getElementById("taskAddBtn").addEventListener("click", addTask);
+  taskInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addTask();
+  });
+
+  renderTasks();
+
   // ---------- Habit-Tracker ----------
   const HABIT_STORAGE_KEY = "dashboard-habits-v1";
   const HABIT_COLORS = [

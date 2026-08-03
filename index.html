@@ -31,6 +31,7 @@
     </div>
     <nav class="nav" id="mainNav">
       <a href="#todo">To-Do</a>
+      <a href="#aufgaben">Aufgaben</a>
       <a href="#habits">Habits</a>
       <a href="#ziele">Ziele</a>
       <a href="#business">Business</a>
@@ -55,6 +56,20 @@
       <p class="section-sub" id="todoDateLabel"></p>
     </div>
     <div class="grid todo-grid" id="todoGrid"></div>
+  </section>
+
+  <section id="aufgaben" class="section">
+    <div class="section-head">
+      <h2><span class="section-icon">📌</span>Aufgaben</h2>
+      <p class="section-sub">Bleiben stehen, bis du sie abhakst — kein täglicher Reset</p>
+    </div>
+    <div class="panel">
+      <div class="todo-add" id="taskAdd">
+        <input type="text" id="taskInput" placeholder="Aufgabe hinzufügen…" maxlength="120" />
+        <button type="button" id="taskAddBtn" aria-label="Hinzufügen">+</button>
+      </div>
+      <ul class="todo-list" id="taskList"></ul>
+    </div>
   </section>
 
   <section id="habits" class="section">
