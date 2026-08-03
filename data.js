@@ -9,7 +9,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-08-03",
-    "lastSyncedAt": "2026-08-03T10:26:26.405Z",
+    "lastSyncedAt": "2026-08-03T15:59:00.314Z",
     "owner": "Kilian"
   },
   "github": {
@@ -40,7 +40,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 227,
+      "current": 230,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -56,18 +56,18 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-03T10:26:26.374Z",
+    "checkedAt": "2026-08-03T15:59:00.281Z",
     "openOrdersCount": 253,
     "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-03T10:26:26.405Z",
+    "checkedAt": "2026-08-03T15:59:00.314Z",
     "currency": "EUR",
     "weekly": [
       {
         "weekStart": "2026-06-08",
-        "total": 185.77,
-        "orderCount": 6
+        "total": 162.88,
+        "orderCount": 5
       },
       {
         "weekStart": "2026-06-15",
@@ -108,8 +108,8 @@ const DASHBOARD_DATA = {
     "monthly": [
       {
         "month": "2026-02",
-        "total": 223.9,
-        "orderCount": 6
+        "total": 182.98,
+        "orderCount": 5
       },
       {
         "month": "2026-03",
@@ -204,11 +204,11 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "227"
+          "value": "230"
         },
         {
           "label": "Videos",
-          "value": "54"
+          "value": "55"
         },
         {
           "label": "Rhythmus",
@@ -225,7 +225,7 @@ const DASHBOARD_DATA = {
       "to": "2026-08-03"
     },
     "totalsByCategory": {
-      "YouTube": 2264.49,
+      "YouTube": 2415.78,
       "Bricklink": 564.59
     },
     "daily": [
@@ -276,7 +276,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-08-03",
-        "YouTube": 71.48,
+        "YouTube": 222.77,
         "Bricklink": 0
       }
     ]
