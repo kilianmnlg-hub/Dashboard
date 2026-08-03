@@ -1,15 +1,15 @@
 // Datenquelle für das Dashboard.
 // timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt),
-// bricklinkOrders und bricklinkRevenue werden automatisch von scripts/sync-all.mjs
-// überschrieben (täglich per GitHub Actions oder manuell über den Sync-Button im
-// Dashboard bzw. "node scripts/sync-all.mjs").
+// goals[tiktok-follower].current, bricklinkOrders und bricklinkRevenue werden automatisch
+// von scripts/sync-all.mjs überschrieben (täglich per GitHub Actions oder manuell über
+// den Sync-Button im Dashboard bzw. "node scripts/sync-all.mjs").
 // Alles andere (goals-Zieltexte, restliche business-Felder, uploadRhythmDays) von
 // Hand pflegen. Siehe README.md für Details.
 
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-08-03",
-    "lastSyncedAt": "2026-08-03T08:29:37.983Z",
+    "lastSyncedAt": "2026-08-03T09:59:24.355Z",
     "owner": "Kilian"
   },
   "github": {
@@ -49,19 +49,19 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 0,
+      "current": 2706,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-03T08:29:36.951Z",
+    "checkedAt": "2026-08-03T09:59:24.269Z",
     "openOrdersCount": 253,
     "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-03T08:29:37.242Z",
+    "checkedAt": "2026-08-03T09:59:24.355Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -225,7 +225,7 @@ const DASHBOARD_DATA = {
       "to": "2026-08-03"
     },
     "totalsByCategory": {
-      "YouTube": 2193.9,
+      "YouTube": 2227.93,
       "Bricklink": 564.59
     },
     "daily": [
@@ -276,7 +276,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-08-03",
-        "YouTube": 0.89,
+        "YouTube": 34.92,
         "Bricklink": 0
       }
     ]
