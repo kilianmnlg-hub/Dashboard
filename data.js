@@ -9,7 +9,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-08-03",
-    "lastSyncedAt": "2026-08-03T08:07:08.082Z",
+    "lastSyncedAt": "2026-08-03T08:29:37.983Z",
     "owner": "Kilian"
   },
   "github": {
@@ -57,12 +57,12 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-03T08:07:07.781Z",
+    "checkedAt": "2026-08-03T08:29:36.951Z",
     "openOrdersCount": 253,
     "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-03T08:07:08.082Z",
+    "checkedAt": "2026-08-03T08:29:37.242Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -104,6 +104,38 @@ const DASHBOARD_DATA = {
         "weekStart": "2026-07-27",
         "total": 49.84,
         "orderCount": 2
+      }
+    ],
+    "monthly": [
+      {
+        "month": "2026-02",
+        "total": 223.9,
+        "orderCount": 6
+      },
+      {
+        "month": "2026-03",
+        "total": 855.5,
+        "orderCount": 24
+      },
+      {
+        "month": "2026-04",
+        "total": 770.35,
+        "orderCount": 21
+      },
+      {
+        "month": "2026-05",
+        "total": 1043.82,
+        "orderCount": 30
+      },
+      {
+        "month": "2026-06",
+        "total": 865.55,
+        "orderCount": 22
+      },
+      {
+        "month": "2026-07",
+        "total": 701,
+        "orderCount": 19
       }
     ]
   },
@@ -169,7 +201,7 @@ const DASHBOARD_DATA = {
       "subtitle": "Magic: The Gathering · Nebenprojekt",
       "accent": "brainwalkers",
       "uploadRhythmDays": 14,
-      "lastUploadAt": "2026-08-02T13:55:06Z",
+      "lastUploadAt": "2026-07-29T13:55:39Z",
       "stats": [
         {
           "label": "Abonnenten",
