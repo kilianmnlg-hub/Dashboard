@@ -12,10 +12,10 @@ The Brainwalkers, 2026-Ziele, Zeit-Balance und Tages-To-Do. Installierbar als PW
 - `scripts/sync-all.mjs` — zieht **alle** automatisierbaren Daten und schreibt sie
   in `data.js`. Ruft die drei Fetcher in `scripts/fetchers/` auf:
   - `time-tracker.mjs` — Notion "Zeittracker" (Zeit-Balance-Sektion)
-  - `youtube.mjs` — YouTube-Abonnenten/Video-Anzahl/letztes Upload-Datum (Bricks On The
-    Floor, The Brainwalkers) → speist auch die Upload-Rhythmus-Ampel
+  - `youtube.mjs` — YouTube-Abonnenten/Video-Anzahl/letztes **Longform**-Upload-Datum
+    (Bricks On The Floor, The Brainwalkers) → speist auch die Upload-Rhythmus-Ampel
   - `bricklink.mjs` — offene Bricklink-Bestellungen (Versand-Alarm) + Umsatz pro Woche
-    (Umsatz-Trend-Chart)
+    und pro Monat (Umsatz-Trend-Charts)
 - `.github/workflows/sync-all.yml` — automatischer Sync jeden Tag um 08:00 Uhr
   (plus manuell auslösbar über den Sync-Button im Dashboard oder den Actions-Tab)
 - `manifest.webmanifest`, `icon.svg`, `sw.js` — machen das Dashboard als PWA installierbar
@@ -35,9 +35,9 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 | Zeit-Balance (YouTube/Bricklink-Stunden) | Notion "Zeittracker" | ✅ automatisch |
 | Abonnenten Bricks On The Floor & Brainwalkers | YouTube Data API | ✅ automatisch |
 | Video-Anzahl Brainwalkers | YouTube Data API | ✅ automatisch |
-| Letztes Upload-Datum (Upload-Rhythmus-Ampel) | YouTube Data API | ✅ automatisch |
+| Letztes Longform-Upload-Datum (Upload-Rhythmus-Ampel, Shorts zählen nicht) | YouTube Data API | ✅ automatisch |
 | Offene Bricklink-Bestellungen / Versand-Alarm | Bricklink API | ✅ automatisch |
-| Umsatz-Trend pro Woche (Bricklink) | Bricklink API | ✅ automatisch |
+| Umsatz-Trend pro Woche & pro Monat (Bricklink) | Bricklink API | ✅ automatisch |
 | Views/Wiedergabezeit/Umsatz (28 Tage) | — | ❌ manuell (siehe unten, warum) |
 | Bricklink Store-Besuche, Feedback gesamt, Drive-Thru-Mails, Ohne Feedback | — | ❌ manuell (siehe unten, warum) |
 | Ziel-Fortschritt (Umsatz, Monetarisierung) | — | ❌ manuell |
@@ -87,9 +87,9 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
    Bricklink-Workflow andere Status-Bezeichnungen nutzt, als zusätzliches Secret/Env
    `BRICKLINK_SHIP_STATUSES` mit deiner eigenen kommagetrennten Liste überschreiben
    (z.B. `PAID,PACKED`).
-5. Für den Umsatz-Trend werden zusätzlich archivierte ("filed") Bestellungen
-   abgefragt, standardmäßig die letzten 8 Wochen. Anpassbar über
-   `BRICKLINK_REVENUE_WEEKS` (z.B. `12` für 12 Wochen zurück).
+5. Für die Umsatz-Trends werden zusätzlich archivierte ("filed") Bestellungen
+   abgefragt: standardmäßig die letzten 8 Wochen (Wochenchart) bzw. 6 Kalendermonate
+   (Monatschart). Anpassbar über `BRICKLINK_REVENUE_WEEKS` bzw. `BRICKLINK_REVENUE_MONTHS`.
 
 ### GitHub Secrets hinterlegen
 
@@ -158,18 +158,23 @@ lässt er sich für die aktuelle Browser-Sitzung ausblenden.
 
 ## Umsatz-Trend (Bricklink)
 
-Kleiner Wochenchart unter den Business-KPIs, erscheint automatisch sobald
-`bricklinkRevenue.weekly` (befüllt von `scripts/fetchers/bricklink.mjs`) Daten
-enthält. Zeigt Umsatz pro Kalenderwoche der letzten `BRICKLINK_REVENUE_WEEKS`
-Wochen (Default 8), storniert/nicht bezahlte Bestellungen zählen nicht mit.
+Zwei kleine Charts nebeneinander unter den Business-KPIs — **Wöchentlich** und
+**Monatlich** — erscheinen automatisch sobald `bricklinkRevenue.weekly` bzw.
+`.monthly` (befüllt von `scripts/fetchers/bricklink.mjs`) Daten enthalten.
+Wöchentlich zeigt die letzten `BRICKLINK_REVENUE_WEEKS` Kalenderwochen (Default
+8), monatlich die letzten `BRICKLINK_REVENUE_MONTHS` Kalendermonate (Default 6).
+Storniert/nicht bezahlte Bestellungen zählen in beiden nicht mit.
 
 ## Upload-Rhythmus-Ampel
 
 Auf den Bricks-On-The-Floor- und Brainwalkers-Karten: vergleicht das Datum des
-letzten Uploads mit deinem Zielrhythmus (`uploadRhythmDays` in `data.js`,
-aktuell 7 Tage bzw. 14 Tage) und zeigt 🟢/🟡/🔴. Faustregel: 🟢 im Ziel-Rhythmus,
-🟡 bis zum 1,5-fachen des Zielrhythmus, 🔴 danach. `uploadRhythmDays` änderst du
-direkt in `data.js`, falls sich dein angestrebter Rhythmus mal ändert.
+letzten **Longform**-Uploads mit deinem Zielrhythmus (`uploadRhythmDays` in
+`data.js`, aktuell 7 Tage bzw. 14 Tage) und zeigt 🟢/🟡/🔴. **Shorts zählen
+nicht** — `youtube.mjs` schaut sich die letzten 50 Uploads an, holt deren Länge
+über die Data API und ignoriert alles bis 180 Sekunden (aktuelles YouTube-Short-
+Limit) als Short. Faustregel für die Ampel: 🟢 im Ziel-Rhythmus, 🟡 bis zum
+1,5-fachen des Zielrhythmus, 🔴 danach. `uploadRhythmDays` änderst du direkt in
+`data.js`, falls sich dein angestrebter Rhythmus mal ändert.
 
 ## Nächste Video-Idee
 

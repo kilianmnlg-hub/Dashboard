@@ -72,10 +72,22 @@
     <div class="panel revenue-panel" id="revenuePanel" hidden>
       <div class="section-head" style="margin-bottom:16px">
         <h3 class="panel-title"><span class="section-icon">💶</span>Umsatz-Trend (Bricklink)</h3>
-        <p class="section-sub" id="revenueRangeLabel"></p>
       </div>
-      <div class="chart-wrap chart-wrap-small">
-        <svg id="revenueChart" preserveAspectRatio="none"></svg>
+      <div class="grid revenue-grid">
+        <div class="revenue-sub" id="revenueWeeklyBlock" hidden>
+          <h4 class="revenue-sub-title">Wöchentlich</h4>
+          <p class="section-sub" id="revenueWeeklyRangeLabel"></p>
+          <div class="chart-wrap chart-wrap-small">
+            <svg id="revenueChartWeekly" preserveAspectRatio="none"></svg>
+          </div>
+        </div>
+        <div class="revenue-sub" id="revenueMonthlyBlock" hidden>
+          <h4 class="revenue-sub-title">Monatlich</h4>
+          <p class="section-sub" id="revenueMonthlyRangeLabel"></p>
+          <div class="chart-wrap chart-wrap-small">
+            <svg id="revenueChartMonthly" preserveAspectRatio="none"></svg>
+          </div>
+        </div>
       </div>
     </div>
   </section>

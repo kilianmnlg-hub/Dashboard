@@ -1,5 +1,5 @@
 // Holt Bestelldaten aus der Bricklink API: offene Bestellungen (für den "noch zu
-// verschicken"-Alarm) und einen Umsatz-Wochenchart der letzten Wochen.
+// verschicken"-Alarm) und Umsatz-Trends (wöchentlich und monatlich).
 // Benötigt: BRICKLINK_CONSUMER_KEY, BRICKLINK_CONSUMER_SECRET, BRICKLINK_TOKEN_VALUE,
 // BRICKLINK_TOKEN_SECRET (siehe README für Einrichtung).
 //
@@ -12,6 +12,7 @@ import { buildAuthHeader } from "../lib/oauth1.mjs";
 
 const BASE_URL = "https://api.bricklink.com/api/store/v1";
 const REVENUE_WEEKS = Number(process.env.BRICKLINK_REVENUE_WEEKS || 8);
+const REVENUE_MONTHS = Number(process.env.BRICKLINK_REVENUE_MONTHS || 6);
 
 // Status-Codes, die für dich "bezahlt, aber noch nicht verschickt" bedeuten.
 // Bricklink-Statusfluss (grob): PENDING -> PROCESSING -> PAID -> PACKED -> SHIPPED -> COMPLETED.
@@ -41,6 +42,29 @@ function isoWeekStart(date) {
   const day = d.getUTCDay() || 7;
   if (day !== 1) d.setUTCDate(d.getUTCDate() - (day - 1));
   return d.toISOString().slice(0, 10);
+}
+
+// Kalendermonate zurückrechnen (nicht nur Tage), damit "6 Monate" wirklich 6 Kalendermonate sind.
+function monthsAgo(n) {
+  const d = new Date();
+  d.setUTCMonth(d.getUTCMonth() - n);
+  return d;
+}
+
+function aggregateBy(orders, keyFn) {
+  const totals = {};
+  orders.forEach(({ key, amount }) => {
+    if (!totals[key]) totals[key] = { total: 0, orderCount: 0 };
+    totals[key].total += amount;
+    totals[key].orderCount += 1;
+  });
+  return Object.keys(totals)
+    .sort()
+    .map((k) => ({
+      [keyFn]: k,
+      total: Math.round(totals[k].total * 100) / 100,
+      orderCount: totals[k].orderCount
+    }));
 }
 
 export async function fetchBricklink() {
@@ -84,45 +108,41 @@ export async function fetchBricklink() {
     }
   };
 
-  // Filed = archivierte/abgeschlossene Bestellungen. Für den Umsatz-Trend brauchen wir
-  // auch die, sonst würden abgeschlossene Wochen als 0€ erscheinen. Eigener try/catch,
-  // falls "filed" als Filter in deinem API-Zugang anders/nicht unterstützt wird — dann
-  // läuft der Rest (Versand-Alarm) trotzdem weiter, nur der Umsatzchart bleibt kürzer.
+  // Filed = archivierte/abgeschlossene Bestellungen. Für die Umsatz-Trends brauchen wir
+  // auch die, sonst würden abgeschlossene Wochen/Monate als 0€ erscheinen. Eigener
+  // try/catch, falls "filed" als Filter in deinem API-Zugang anders/nicht unterstützt wird —
+  // dann läuft der Rest (Versand-Alarm) trotzdem weiter, nur die Umsatzcharts bleiben leer.
   try {
     const filedOrders = await bricklinkGet("/orders", { direction: "in", filed: "true" }, creds);
     console.log(`[bricklink] ${filedOrders.length} archivierte (filed) Bestellungen abgerufen.`);
 
     const allOrders = [...unfiledOrders, ...filedOrders];
     const seen = new Set();
-    const cutoff = new Date();
-    cutoff.setUTCDate(cutoff.getUTCDate() - REVENUE_WEEKS * 7);
+    const weeksCutoff = new Date();
+    weeksCutoff.setUTCDate(weeksCutoff.getUTCDate() - REVENUE_WEEKS * 7);
+    const monthsCutoff = monthsAgo(REVENUE_MONTHS);
+    const fetchCutoff = weeksCutoff < monthsCutoff ? weeksCutoff : monthsCutoff;
 
-    const weeklyTotals = {};
+    const weeklyOrders = [];
+    const monthlyOrders = [];
+
     allOrders.forEach((o) => {
       if (seen.has(o.order_id)) return;
       seen.add(o.order_id);
       if (NON_REVENUE_STATUSES.includes(String(o.status).toUpperCase())) return;
       const orderedAt = new Date(o.date_ordered);
-      if (Number.isNaN(orderedAt.getTime()) || orderedAt < cutoff) return;
+      if (Number.isNaN(orderedAt.getTime()) || orderedAt < fetchCutoff) return;
 
-      const weekKey = isoWeekStart(orderedAt);
       const amount = Number(o.cost?.grand_total ?? 0);
-      if (!weeklyTotals[weekKey]) weeklyTotals[weekKey] = { total: 0, orderCount: 0 };
-      weeklyTotals[weekKey].total += amount;
-      weeklyTotals[weekKey].orderCount += 1;
+      if (orderedAt >= weeksCutoff) weeklyOrders.push({ key: isoWeekStart(orderedAt), amount });
+      if (orderedAt >= monthsCutoff) monthlyOrders.push({ key: o.date_ordered.slice(0, 7), amount });
     });
 
-    const weekly = Object.keys(weeklyTotals)
-      .sort()
-      .map((weekStart) => ({
-        weekStart,
-        total: Math.round(weeklyTotals[weekStart].total * 100) / 100,
-        orderCount: weeklyTotals[weekStart].orderCount
-      }));
-
+    const weekly = aggregateBy(weeklyOrders, "weekStart");
+    const monthly = aggregateBy(monthlyOrders, "month");
     const currency = allOrders.find((o) => o.cost?.currency_code)?.cost?.currency_code || "EUR";
 
-    patch.bricklinkRevenue = { checkedAt: new Date().toISOString(), currency, weekly };
+    patch.bricklinkRevenue = { checkedAt: new Date().toISOString(), currency, weekly, monthly };
   } catch (err) {
     console.error("[bricklink] Umsatz-Trend übersprungen (filed-Abfrage fehlgeschlagen):", err.message);
   }

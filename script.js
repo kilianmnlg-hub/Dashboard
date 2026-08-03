@@ -232,12 +232,12 @@
     if (!biz.uploadRhythmDays) return "";
     const days = daysSince(biz.lastUploadAt);
     if (days === null) {
-      return `<p class="rhythm-badge neutral">⏳ Upload-Rhythmus: noch nicht synchronisiert</p>`;
+      return `<p class="rhythm-badge neutral">⏳ Longform-Rhythmus: noch nicht synchronisiert</p>`;
     }
     const status = rhythmStatus(days, biz.uploadRhythmDays);
     const meta = RHYTHM_META[status];
     const dayLabel = days === 0 ? "heute" : days === 1 ? "vor 1 Tag" : `vor ${days} Tagen`;
-    return `<p class="rhythm-badge ${status}">${meta.dot} Letztes Video ${dayLabel} · ${meta.label} (Ziel: alle ${biz.uploadRhythmDays} Tage)</p>`;
+    return `<p class="rhythm-badge ${status}">${meta.dot} Letztes Longform-Video ${dayLabel} · ${meta.label} (Ziel: alle ${biz.uploadRhythmDays} Tage, Shorts zählen nicht)</p>`;
   }
 
   Object.entries(data.business).forEach(([key, biz]) => {
@@ -383,25 +383,53 @@
 
   // ---------- Umsatz-Trend (Bricklink) ----------
   const revenue = data.bricklinkRevenue;
-  if (revenue && revenue.weekly && revenue.weekly.length > 0) {
+  const hasWeekly = revenue?.weekly?.length > 0;
+  const hasMonthly = revenue?.monthly?.length > 0;
+
+  if (hasWeekly || hasMonthly) {
     document.getElementById("revenuePanel").hidden = false;
-    const first = fmtDate(revenue.weekly[0].weekStart);
-    const last = fmtDate(revenue.weekly[revenue.weekly.length - 1].weekStart);
-    document.getElementById("revenueRangeLabel").textContent = `${first} – ${last} · pro Kalenderwoche · Quelle: Bricklink-API`;
-    renderRevenueChart(revenue.weekly, revenue.currency);
   }
 
-  function renderRevenueChart(weekly, currency) {
-    const svg = document.getElementById("revenueChart");
+  if (hasWeekly) {
+    document.getElementById("revenueWeeklyBlock").hidden = false;
+    const first = fmtDate(revenue.weekly[0].weekStart);
+    const last = fmtDate(revenue.weekly[revenue.weekly.length - 1].weekStart);
+    document.getElementById("revenueWeeklyRangeLabel").textContent = `${first} – ${last} · pro Kalenderwoche`;
+    renderRevenueChart({
+      svgId: "revenueChartWeekly",
+      entries: revenue.weekly,
+      currency: revenue.currency,
+      keyField: "weekStart",
+      formatLabel: (key) => new Date(key + "T00:00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }),
+      formatTooltip: (key) => `KW ab ${fmtDate(key)}`
+    });
+  }
+
+  if (hasMonthly) {
+    document.getElementById("revenueMonthlyBlock").hidden = false;
+    const fmtMonth = (key) => new Date(key + "-01T00:00:00").toLocaleDateString("de-DE", { month: "short", year: "2-digit" });
+    document.getElementById("revenueMonthlyRangeLabel").textContent = `${fmtMonth(revenue.monthly[0].month)} – ${fmtMonth(revenue.monthly[revenue.monthly.length - 1].month)} · pro Kalendermonat`;
+    renderRevenueChart({
+      svgId: "revenueChartMonthly",
+      entries: revenue.monthly,
+      currency: revenue.currency,
+      keyField: "month",
+      formatLabel: fmtMonth,
+      formatTooltip: fmtMonth
+    });
+  }
+
+  function renderRevenueChart({ svgId, entries, currency, keyField, formatLabel, formatTooltip }) {
+    const svg = document.getElementById(svgId);
     const W = 800;
     const H = 160;
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
-    const maxTotal = Math.max(1, ...weekly.map((w) => w.total));
+    const maxTotal = Math.max(1, ...entries.map((e) => e.total));
     const padLeft = 42;
     const padBottom = 22;
     const chartH = H - padBottom - 10;
-    const barSlot = (W - padLeft) / weekly.length;
+    const barSlot = (W - padLeft) / entries.length;
     const barWidth = Math.min(40, barSlot * 0.55);
 
     let svgContent = "";
@@ -413,13 +441,13 @@
       svgContent += `<text x="0" y="${y + 4}" font-size="10" fill="var(--text-faint)">${valueLabel}${currency === "EUR" ? "€" : ""}</text>`;
     }
 
-    weekly.forEach((w, i) => {
+    entries.forEach((e, i) => {
+      const key = e[keyField];
       const x = padLeft + i * barSlot + (barSlot - barWidth) / 2;
-      const barH = (w.total / maxTotal) * chartH;
+      const barH = (e.total / maxTotal) * chartH;
       const y = 10 + chartH - barH;
-      svgContent += `<rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="3" fill="var(--accent-bricklink)"><title>KW ab ${fmtDate(w.weekStart)}: ${w.total.toFixed(2)} ${currency} (${w.orderCount} Bestellungen)</title></rect>`;
-      const label = new Date(w.weekStart + "T00:00:00").toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
-      svgContent += `<text x="${x + barWidth / 2}" y="${H - 4}" font-size="10" fill="var(--text-faint)" text-anchor="middle">${label}</text>`;
+      svgContent += `<rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="3" fill="var(--accent-bricklink)"><title>${formatTooltip(key)}: ${e.total.toFixed(2)} ${currency} (${e.orderCount} Bestellungen)</title></rect>`;
+      svgContent += `<text x="${x + barWidth / 2}" y="${H - 4}" font-size="10" fill="var(--text-faint)" text-anchor="middle">${formatLabel(key)}</text>`;
     });
 
     svg.innerHTML = svgContent;
