@@ -43,10 +43,12 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 | Offene Bricklink-Bestellungen / Versand-Alarm | Bricklink API | ✅ automatisch |
 | Umsatz-Trend pro Woche & pro Monat (Bricklink) | Bricklink API | ✅ automatisch |
 | TikTok-Follower (@bricksonthefloor) | TikTok-Profilseite (Scrape) | ✅ automatisch, siehe Hinweis unten |
+| Wochenvergleich-Trendpfeile (Abos, Bricklink-Umsatz) | abgeleitet aus obigen Quellen | ✅ automatisch, siehe Hinweis unten |
 | Views/Wiedergabezeit/Umsatz (28 Tage) | — | ❌ manuell (siehe unten, warum) |
 | Bricklink Store-Besuche, Feedback gesamt, Drive-Thru-Mails, Ohne Feedback | — | ❌ manuell (siehe unten, warum) |
 | Ziel-Fortschritt (Umsatz) | — | ❌ manuell |
 | Nächste Video-Idee | — | eigene Notiz, nur im Browser (siehe unten) |
+| Nächste Prüfung/Abgabe (Studium) | — | eigene Notiz, nur im Browser (siehe unten) |
 
 **Warum nicht alles automatisch geht:**
 - YouTube **Views/Wiedergabezeit/Umsatz** stammen aus YouTube Analytics, nicht aus der
@@ -205,6 +207,32 @@ Limit) als Short. Faustregel für die Ampel: 🟢 im Ziel-Rhythmus, 🟡 bis zum
 Kleines Notizfeld auf den beiden YouTube-Karten. Speichert automatisch (500ms
 nach dem letzten Tastendruck) im Browser (`localStorage`) — bewusst kein
 Sync-Feld in `data.js`, das wäre für eine spontane Notiz zu viel Umweg.
+
+## Wochenvergleich-Trendpfeile
+
+Bei den Ziele-Karten für Bricks-On-The-Floor-Abos, Brainwalkers-Abos und
+TikTok-Follower sowie beim wöchentlichen Bricklink-Umsatz-Chart erscheint ein
+🟢↑/🔴↓/⚪→ neben dem aktuellen Wert: Vergleich zum Stand vor ~7 Tagen
+(bzw. zur Vorwoche beim Umsatz). Dafür schreibt `scripts/sync-all.mjs` bei
+jedem erfolgreichen YouTube-/TikTok-Sync einen Tages-Snapshot in
+`metricsHistory` (60 Tage Rolling-Window) — der Bricklink-Umsatzvergleich
+braucht das nicht extra, der nutzt einfach die letzten zwei Einträge aus dem
+ohnehin vorhandenen `bricklinkRevenue.weekly`.
+
+**Erst nach ein paar Tagen sichtbar:** Direkt nach Einführung dieses Features
+gibt es noch keine 7 Tage Verlauf — die Badge bleibt so lange einfach weg,
+statt mit zu wenig Daten zu raten. "Bricks On The Floor – Umsatz/Monat" hat
+keinen Trendpfeil, weil dieser Wert manuell gepflegt wird und kein
+automatischer Verlauf dafür existiert.
+
+## Studium-Countdown
+
+Kleine Karte in der Ziele-Sektion für die nächste Prüfung/Abgabe (z.B. IU
+Berlin) — bewusst nur eine einzelne editierbare Karte, kein voller
+Termin-Manager und keine Rückkehr zu einer großen "Privat"-Sektion. Bezeichnung
+und Datum trägst du über den "Termin eintragen"/"Ändern"-Link ein (zwei simple
+Eingabefelder), gespeichert nur lokal im Browser (`localStorage`), kein
+Sync nach `data.js` oder in die Cloud.
 
 ## Habit-Tracker
 

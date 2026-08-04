@@ -316,6 +316,24 @@ main {
 
 .goal-pct { font-weight: 600; color: var(--card-accent, var(--accent-goal)); }
 
+.goal-trend { margin: 8px 0 0; }
+.trend-badge { font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.trend-badge.up { color: #10b981; }
+.trend-badge.down { color: #ef4444; }
+.trend-badge.flat { color: var(--text-faint); font-weight: 400; }
+
+.link-button-inline {
+  border: none;
+  background: none;
+  color: var(--card-accent, var(--accent-goal));
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+.link-button-inline:hover { opacity: .8; }
+
 .milestone-badge {
   display: inline-flex;
   align-items: center;

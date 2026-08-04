@@ -41,9 +41,23 @@ function deepMerge(target, patch) {
   return target;
 }
 
+// Hängt einen Tages-Snapshot an den Verlauf einer Kennzahl an (für die Wochenvergleich-
+// Trendpfeile bei Ziele-Karten). Ersetzt einen evtl. schon vorhandenen Eintrag vom selben
+// Tag (z.B. bei mehrfachem manuellem Sync am selben Tag), hält nur die letzten 60 Tage.
+function pushMetricHistory(history, key, value, todayKey) {
+  if (value === undefined || value === null || Number.isNaN(value)) return;
+  const arr = (history[key] || []).filter((h) => h.date !== todayKey);
+  arr.push({ date: todayKey, value });
+  arr.sort((a, b) => a.date.localeCompare(b.date));
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 60);
+  history[key] = arr.filter((h) => new Date(h.date) >= cutoff);
+}
+
 async function main() {
   const DASHBOARD_DATA = require(DATA_FILE);
   let changed = false;
+  const succeeded = {};
 
   // Nacheinander statt parallel, und jeder Patch wird sofort in DASHBOARD_DATA gemergt,
   // bevor der nächste Fetcher startet. Wichtig, weil sowohl youtube.mjs als auch
@@ -62,6 +76,7 @@ async function main() {
       if (patch) {
         deepMerge(DASHBOARD_DATA, patch);
         changed = true;
+        succeeded[label] = true;
       }
     } catch (err) {
       console.error(`[${label}] fehlgeschlagen:`, err.message || err);
@@ -73,14 +88,30 @@ async function main() {
     return;
   }
 
+  // Verlauf für die Wochenvergleich-Trendpfeile fortschreiben — nur mit Werten aus
+  // Fetchern, die heute tatsächlich erfolgreich waren.
+  DASHBOARD_DATA.metricsHistory = DASHBOARD_DATA.metricsHistory || {};
+  const todayKey = new Date().toISOString().slice(0, 10);
+  if (succeeded.youtube) {
+    const bricksAbos = DASHBOARD_DATA.goals.find((g) => g.id === "bricks-abos")?.current;
+    const bwAbos = DASHBOARD_DATA.goals.find((g) => g.id === "brainwalkers-abos")?.current;
+    pushMetricHistory(DASHBOARD_DATA.metricsHistory, "bricksOnTheFloorAbos", bricksAbos, todayKey);
+    pushMetricHistory(DASHBOARD_DATA.metricsHistory, "brainwalkersAbos", bwAbos, todayKey);
+  }
+  if (succeeded.tiktok) {
+    const tiktokFollower = DASHBOARD_DATA.goals.find((g) => g.id === "tiktok-follower")?.current;
+    pushMetricHistory(DASHBOARD_DATA.metricsHistory, "tiktokFollower", tiktokFollower, todayKey);
+  }
+
   DASHBOARD_DATA.meta.lastUpdated = new Date().toISOString().slice(0, 10);
   DASHBOARD_DATA.meta.lastSyncedAt = new Date().toISOString();
 
   const output = `// Datenquelle für das Dashboard.
 // timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt),
-// goals[tiktok-follower].current, bricklinkOrders und bricklinkRevenue werden automatisch
-// von scripts/sync-all.mjs überschrieben (täglich per GitHub Actions oder manuell über
-// den Sync-Button im Dashboard bzw. "node scripts/sync-all.mjs").
+// goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue und metricsHistory
+// (für die Wochenvergleich-Trendpfeile) werden automatisch von scripts/sync-all.mjs
+// überschrieben (täglich per GitHub Actions oder manuell über den Sync-Button im
+// Dashboard bzw. "node scripts/sync-all.mjs").
 // Alles andere (goals-Zieltexte, restliche business-Felder, uploadRhythmDays) von
 // Hand pflegen. Siehe README.md für Details.
 

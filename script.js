@@ -7,6 +7,14 @@
       month: "2-digit",
       year: "numeric"
     });
+  // Früh deklariert (nicht erst beim Tages-To-Do weiter unten), weil auch die
+  // Studium-Countdown-Karte in der Goals-Sektion sie schon braucht.
+  const escapeHtml = (str) => {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  };
+  const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
 
   // ---------- Theme ----------
   const root = document.documentElement;
@@ -171,6 +179,36 @@
     return diff;
   };
 
+  // ---------- Wochenvergleich-Trendpfeile ----------
+  // Vergleicht den aktuellsten Verlaufswert mit dem Wert von vor ~7 Tagen. Braucht dafür
+  // metricsHistory (befüllt von scripts/sync-all.mjs) — in den ersten Tagen nach Einführung
+  // ist noch keine Woche Verlauf da, dann bleibt die Badge einfach leer statt zu raten.
+  const HISTORY_KEY_BY_GOAL = {
+    "bricks-abos": "bricksOnTheFloorAbos",
+    "brainwalkers-abos": "brainwalkersAbos",
+    "tiktok-follower": "tiktokFollower"
+  };
+
+  function computeTrend(history, days = 7) {
+    if (!history || history.length < 2) return null;
+    const sorted = [...history].sort((a, b) => a.date.localeCompare(b.date));
+    const latest = sorted[sorted.length - 1];
+    const cutoff = new Date(latest.date + "T00:00:00");
+    cutoff.setDate(cutoff.getDate() - days);
+    const past = [...sorted].reverse().find((h) => new Date(h.date + "T00:00:00") <= cutoff);
+    if (!past) return null;
+    return latest.value - past.value;
+  }
+
+  function renderTrendBadge(delta, unit, periodLabel = "7 Tage") {
+    if (delta === null || delta === undefined) return "";
+    if (delta === 0) return `<span class="trend-badge flat">→ ±0 (${periodLabel})</span>`;
+    const dir = delta > 0 ? "up" : "down";
+    const arrow = delta > 0 ? "↑" : "↓";
+    const sign = delta > 0 ? "+" : "";
+    return `<span class="trend-badge ${dir}">${arrow} ${sign}${fmtDE.format(delta)} ${unit || ""} (${periodLabel})</span>`;
+  }
+
   const goalsGrid = document.getElementById("goalsGrid");
   data.goals.forEach((goal) => {
     const accent = accentByProject[goal.project] || "var(--accent-goal)";
@@ -191,6 +229,8 @@
         <span class="milestone-badge ${reached ? "done" : ""}">${reached ? "✓ erreicht" : "○ noch offen"}</span>
       `;
     } else {
+      const historyKey = HISTORY_KEY_BY_GOAL[goal.id];
+      const trend = historyKey ? computeTrend(data.metricsHistory?.[historyKey]) : null;
       card.innerHTML = `
         <p class="card-title">${goal.label}</p>
         <div class="goal-values">
@@ -202,10 +242,63 @@
           <span class="goal-pct">${pct.toFixed(1)}%</span>
           <span>${dueLabel}</span>
         </div>
+        ${trend !== null ? `<p class="goal-trend">${renderTrendBadge(trend, goal.unit)}</p>` : ""}
       `;
     }
     goalsGrid.appendChild(card);
   });
+
+  // ---------- Studium-Countdown (nächste Prüfung/Abgabe) ----------
+  // Bewusst klein und nur lokal (localStorage) — kein neuer "Privat"-Bereich, nur ein
+  // einzelner editierbarer Termin als kompakte Karte in der Ziele-Sektion.
+  const STUDIUM_STORAGE_KEY = "dashboard-studium-deadline";
+  const loadStudiumDeadline = () => {
+    try {
+      const raw = localStorage.getItem(STUDIUM_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      /* corrupted storage, fall back to empty */
+    }
+    return { label: "", date: "" };
+  };
+  const saveStudiumDeadline = (d) => localStorage.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(d));
+
+  function renderStudiumCard() {
+    const deadline = loadStudiumDeadline();
+    const card = document.createElement("div");
+    card.className = "card goal-card studium-card";
+    card.style.setProperty("--card-accent", "var(--accent-privat)");
+
+    if (deadline.date) {
+      const remaining = daysUntil(deadline.date);
+      const dueLabel =
+        remaining > 0 ? `noch ${fmtDE.format(remaining)} Tage` : remaining === 0 ? "heute" : "vorbei";
+      card.innerHTML = `
+        <p class="card-title">🎓 ${escapeHtml(deadline.label || "Prüfung/Abgabe")}</p>
+        <p class="card-subtitle">${fmtDate(deadline.date)} · ${dueLabel}</p>
+        <button type="button" class="link-button-inline" id="studiumEditBtn">Ändern</button>
+      `;
+    } else {
+      card.innerHTML = `
+        <p class="card-title">🎓 Studium</p>
+        <p class="card-subtitle">Noch keine nächste Prüfung/Abgabe eingetragen</p>
+        <button type="button" class="link-button-inline" id="studiumEditBtn">Termin eintragen</button>
+      `;
+    }
+
+    card.querySelector("#studiumEditBtn").addEventListener("click", () => {
+      const label = prompt("Bezeichnung (z.B. \"Klausur Marketing\"):", deadline.label || "");
+      if (label === null) return;
+      const dateInput = prompt("Datum (JJJJ-MM-TT):", deadline.date || "");
+      if (dateInput === null) return;
+      saveStudiumDeadline({ label: label.trim(), date: dateInput.trim() });
+      goalsGrid.removeChild(card);
+      renderStudiumCard();
+    });
+
+    goalsGrid.appendChild(card);
+  }
+  renderStudiumCard();
 
   // ---------- Business ----------
   const businessGrid = document.getElementById("businessGrid");
@@ -399,7 +492,12 @@
     document.getElementById("revenueWeeklyBlock").hidden = false;
     const first = fmtDate(revenue.weekly[0].weekStart);
     const last = fmtDate(revenue.weekly[revenue.weekly.length - 1].weekStart);
-    document.getElementById("revenueWeeklyRangeLabel").textContent = `${first} – ${last} · pro Kalenderwoche`;
+    const weekCount = revenue.weekly.length;
+    const revenueTrend =
+      weekCount >= 2 ? revenue.weekly[weekCount - 1].total - revenue.weekly[weekCount - 2].total : null;
+    document.getElementById("revenueWeeklyRangeLabel").innerHTML =
+      `${first} – ${last} · pro Kalenderwoche` +
+      (revenueTrend !== null ? ` · ${renderTrendBadge(Math.round(revenueTrend * 100) / 100, "€", "ggü. Vorwoche")}` : "");
     renderRevenueChart({
       svgId: "revenueChartWeekly",
       entries: revenue.weekly,
@@ -483,12 +581,6 @@
     return empty;
   };
   const saveTodos = (todos) => localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(todos));
-  const escapeHtml = (str) => {
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
-  };
-  const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
 
   let todos = loadTodos();
   const todoGrid = document.getElementById("todoGrid");
