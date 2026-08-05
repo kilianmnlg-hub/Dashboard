@@ -314,11 +314,11 @@
     });
   });
   brainAreaPop.addEventListener("click", (e) => e.stopPropagation());
+  // Klick auf leere Flaeche schliesst nur ein offenes Popover — das Notiz-Modal geht
+  // bewusst ausschliesslich ueber den "Brain"-Kern-Knoten auf, kein zusaetzlicher Button.
   brainSceneWrap.addEventListener("click", () => {
     if (brainActiveId) closeBrainPop();
-    else openNoteModal();
   });
-  document.getElementById("openNoteBtn").addEventListener("click", () => openNoteModal());
 
   // ---------- Notiz-Erfassung: File System Access API (nur Chrome/Edge) ----------
   // Kein Cloud-Umweg: der Vault liegt lokal auf diesem Rechner, also reicht einmalige
