@@ -196,11 +196,23 @@
   brainNodesEl.innerHTML = brainNodesData
     .map(
       (t) => `
-    <div class="node ${t.id === "core" ? "core" : ""}" data-topic="${t.id}" ${brainInteractiveIds.has(t.id) || t.id === "core" ? "data-interactive" : ""} style="left:${t.x}%; top:${t.y}%; --z:${t.z}px; width:${t.r * 2}px; height:${t.r * 2}px;">
+    <div class="node ${t.id === "core" ? "core" : ""}" data-topic="${t.id}" style="left:${t.x}%; top:${t.y}%; --z:${t.z}px; width:${t.r * 2}px; height:${t.r * 2}px;">
       <div class="dotcore" style="--nc:${t.color}"></div>
       ${t.label ? `<div class="node-label">${escapeHtml(t.label)}</div>` : ""}
     </div>`
     )
+    .join("");
+
+  // Flache, nicht 3D-transformierte Klick-/Hover-Flaechen — bewusst getrennt von .node
+  // (siehe CSS-Kommentar): eine 3D-Kipp-Rotation macht Hit-Testing auf den echten Knoten
+  // unzuverlaessig, sobald ihre Tiefe (--z) sie hinter ihren eigenen Container dreht.
+  const brainHitsEl = document.getElementById("brainHits");
+  brainHitsEl.innerHTML = brainNodesData
+    .map((t) => {
+      const isInteractive = brainInteractiveIds.has(t.id) || t.id === "core";
+      const size = Math.max(28, t.r * 2 + 10);
+      return `<div class="hit-target" data-topic="${t.id}" ${isInteractive ? "data-interactive" : ""} style="left:${t.x}%; top:${t.y}%; width:${size}px; height:${size}px;"></div>`;
+    })
     .join("");
 
   function drawBrainLinks() {
@@ -223,9 +235,9 @@
     brainNodesEl.querySelectorAll(".node").forEach((n) => n.classList.toggle("hovered", n.dataset.topic === id));
     brainLinksSvg.querySelectorAll("line").forEach((l) => l.classList.toggle("lit", id !== null && (l.dataset.a === id || l.dataset.b === id)));
   }
-  brainNodesEl.querySelectorAll(".node[data-interactive]").forEach((n) => {
-    n.addEventListener("mouseenter", () => setBrainHover(n.dataset.topic));
-    n.addEventListener("mouseleave", () => setBrainHover(null));
+  brainHitsEl.querySelectorAll(".hit-target[data-interactive]").forEach((h) => {
+    h.addEventListener("mouseenter", () => setBrainHover(h.dataset.topic));
+    h.addEventListener("mouseleave", () => setBrainHover(null));
   });
 
   // Tilt-Parallax: EIN Transform fuer die ganze Szene (nicht pro Knoten) — Knoten und
@@ -300,17 +312,17 @@
     document.getElementById("apClose").addEventListener("click", closeBrainPop);
   }
 
-  brainNodesEl.querySelectorAll(".node[data-interactive]").forEach((n) => {
-    n.addEventListener("click", (e) => {
+  brainHitsEl.querySelectorAll(".hit-target[data-interactive]").forEach((h) => {
+    h.addEventListener("click", (e) => {
       e.stopPropagation();
-      const topic = brainNodesData.find((t) => t.id === n.dataset.topic);
+      const topic = brainNodesData.find((t) => t.id === h.dataset.topic);
       if (topic.id === "core") {
         closeBrainPop();
         openNoteModal();
         return;
       }
       if (brainActiveId === topic.id) closeBrainPop();
-      else openBrainPop(topic, n);
+      else openBrainPop(topic, h);
     });
   });
   brainAreaPop.addEventListener("click", (e) => e.stopPropagation());

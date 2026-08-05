@@ -317,8 +317,14 @@ main { padding: clamp(24px, 3vw, 48px) clamp(20px, 3vw, 48px) 80px; }
 .brain-fade { position: absolute; inset: 0; background: radial-gradient(120% 100% at 78% 50%, transparent 40%, var(--surface) 96%); pointer-events: none; }
 .brain-fade.left { background: radial-gradient(120% 100% at 0% 50%, var(--surface) 0%, transparent 34%); }
 
+/* .node ist reine 3D-Optik, nie klickbar — die Kipp-Rotation kann Knoten je nach Tiefe
+   hinter ihrem eigenen Container verschwinden lassen, das waere fuer Klicks nicht
+   verlaesslich. Klicks laufen stattdessen ueber .brain-hits (flach, ohne 3D-Transform). */
 .node { position: absolute; border-radius: 50%; transform: translate(-50%,-50%) translateZ(var(--z,0px)); transition: transform .18s ease; pointer-events: none; }
-.node[data-interactive] { pointer-events: auto; cursor: pointer; }
+
+.brain-hits { position: absolute; inset: 0; z-index: 5; }
+.hit-target { position: absolute; transform: translate(-50%,-50%); border-radius: 50%; pointer-events: none; }
+.hit-target[data-interactive] { pointer-events: auto; cursor: pointer; }
 .node .dotcore {
   width: 100%; height: 100%; border-radius: 50%; background: var(--nc, var(--accent));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--nc, var(--accent)) 50%, transparent), 0 6px 16px -4px color-mix(in srgb, var(--nc, var(--accent)) 70%, transparent);
@@ -338,7 +344,9 @@ main { padding: clamp(24px, 3vw, 48px) clamp(20px, 3vw, 48px) 80px; }
 
 @keyframes brainPulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.25); } }
 
-svg.links { position: absolute; inset: 0; overflow: visible; }
+/* pointer-events: none ist Absicht — die Linien sind reine Deko und duerfen nie vor einem
+   Knoten liegen und dessen Klick abfangen (kann sonst je nach 3D-Tiefe/-Rotation passieren). */
+svg.links { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
 svg.links line { stroke: var(--border); stroke-width: 1; transition: stroke .18s ease, stroke-width .18s ease; }
 svg.links line.hot { stroke: color-mix(in srgb, var(--accent) 55%, var(--border)); }
 svg.links line.lit { stroke-width: 1.6; }
