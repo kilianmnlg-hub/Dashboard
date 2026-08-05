@@ -11,7 +11,26 @@
     {
       "id": "koffein",
       "label": "<2x Koffein"
+    },
+    {
+      "id": "ba0ab60c-5b39-4842-8060-c464b6e9242b",
+      "label": "Obst/Gemüse"
+    },
+    {
+      "id": "07b53929-622d-4cdf-baf0-47645c841575",
+      "label": "Chalories"
     }
   ],
-  "log": {}
+  "log": {
+    "2026-08-03": {
+      "gym": true,
+      "koffein": true
+    },
+    "2026-08-04": {
+      "gym": true
+    },
+    "2026-08-05": {
+      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true
+    }
+  }
 }
