@@ -439,16 +439,44 @@
     setNoteChip(match ? match.id : DEFAULT_NOTE_CHIP_ID, true);
   });
 
+  const noteConnectionStatus = document.getElementById("noteConnectionStatus");
+
+  // Prueft den Verbindungsstatus OHNE zu prompten (queryPermission fragt nie nach, nur
+  // requestPermission tut das) und macht den Button-Text ehrlich: er sagt "Verbinden", wenn
+  // ein Klick tatsaechlich einen Ordner-Dialog oeffnen wird, und nur "Speichern", wenn der
+  // Klick wirklich sofort speichert — kein ueberraschender Dialog mehr bei "Speichern".
   async function refreshNoteModalState() {
     if (!fsAccessSupported) {
       noteModalSub.textContent = "Direktes Speichern braucht Chrome oder Edge.";
+      noteConnectionStatus.textContent = "";
       noteSaveBtn.disabled = true;
       return;
     }
     const handle = await getStoredVaultHandle();
-    noteModalSub.textContent = handle
-      ? "Landet als Notizen.md im gewählten Themen-Ordner deines Vaults."
-      : "Beim Speichern einmalig deinen Vault-Ordner auswählen.";
+    let permitted = false;
+    if (handle) {
+      try {
+        permitted = (await handle.queryPermission({ mode: "readwrite" })) === "granted";
+      } catch (e) {
+        permitted = false;
+      }
+    }
+    if (permitted) {
+      noteModalSub.textContent = "Landet als Notizen.md im gewählten Themen-Ordner deines Vaults.";
+      noteConnectionStatus.className = "modal-status ok";
+      noteConnectionStatus.innerHTML = `<span class="sdot"></span>Vault verbunden (${escapeHtml(handle.name)})`;
+      noteSaveBtn.textContent = "Speichern";
+    } else if (handle) {
+      noteModalSub.textContent = "Zugriff auf deinen Vault-Ordner wurde zurückgesetzt (z.B. nach Browser-Neustart).";
+      noteConnectionStatus.className = "modal-status pending";
+      noteConnectionStatus.innerHTML = `<span class="sdot"></span>Zugriff erneut bestätigen nötig — kein neuer Ordner-Dialog, nur eine kurze Bestätigung.`;
+      noteSaveBtn.textContent = "Zugriff bestätigen & speichern";
+    } else {
+      noteModalSub.textContent = "Einmalig deinen Vault-Ordner auswählen — danach speichert „Speichern“ immer direkt.";
+      noteConnectionStatus.className = "modal-status pending";
+      noteConnectionStatus.innerHTML = `<span class="sdot"></span>Noch nicht verbunden`;
+      noteSaveBtn.textContent = "Vault verbinden & speichern";
+    }
     noteSaveBtn.disabled = false;
   }
 
@@ -499,7 +527,10 @@
       document.getElementById("noteSavedFile").textContent = savedPath;
       setTimeout(closeNoteModal, 1400);
     } catch (err) {
-      if (err?.name !== "AbortError") alert(`Speichern fehlgeschlagen: ${err.message}`);
+      if (err?.name !== "AbortError") {
+        console.error("Brain-Notiz speichern fehlgeschlagen:", err);
+        alert(`Speichern fehlgeschlagen: ${err.message}`);
+      }
     }
   });
 
@@ -527,7 +558,7 @@
         </li>`;
         })
         .join("")
-    : `<li class="notes-empty">Noch keine Notizen erfasst — klick auf „Brain" in der Grafik oben.</li>`;
+    : `<li class="notes-empty">Noch keine Notizen erfasst — klick auf „Brain“ in der Grafik oben.</li>`;
 
   // ---------- Goals ----------
   const accentByProject = {
