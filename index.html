@@ -45,17 +45,48 @@
 </header>
 
 <main>
-  <section class="hero">
-    <div>
+  <section class="brain-card">
+    <div class="brain-copy">
+      <p class="brain-eyebrow">Brain</p>
       <h1 id="greeting">Willkommen zurück</h1>
       <p class="hero-sub">Bricklink, YouTube-Kanäle, TikTok, Studium & Zeit-Balance auf einen Blick — Stand <span id="lastUpdated"></span></p>
+      <button class="brain-cta" id="openNoteBtn" type="button"><span class="dot"></span>Schnelle Notiz erfassen</button>
+      <p class="brain-hint">…oder auf einen Bereich in der Grafik klicken, um ihn zu erkunden</p>
     </div>
-    <div class="brick-cluster" aria-hidden="true">
-      <div class="brick b1"><span class="stud"></span><div class="f top"></div><div class="f front"></div><div class="f side"></div></div>
-      <div class="brick b2"><span class="stud"></span><div class="f top"></div><div class="f front"></div><div class="f side"></div></div>
-      <div class="brick b3"><span class="stud"></span><div class="f top"></div><div class="f front"></div><div class="f side"></div></div>
+    <div class="brain-scene-wrap" id="brainSceneWrap">
+      <div class="brain-scene">
+        <div class="brain-tilt" id="brainTilt">
+          <svg class="links" id="brainLinks"></svg>
+          <div id="brainNodes"></div>
+        </div>
+      </div>
+      <div class="brain-fade left"></div>
     </div>
+    <div class="area-pop" id="brainAreaPop"></div>
   </section>
+
+  <div class="overlay" id="noteOverlay">
+    <div class="modal">
+      <div id="noteFormState">
+        <div class="modal-head">
+          <h2>Schnelle Notiz</h2>
+          <button class="modal-close" id="noteCloseBtn" type="button">×</button>
+        </div>
+        <p class="modal-sub" id="noteModalSub">Landet automatisch an der richtigen Stelle in deinem Vault.</p>
+        <textarea id="noteText" placeholder="Idee, Gedanke, Aufgabe…"></textarea>
+        <div class="chip-row" id="noteChipRow"></div>
+        <p class="modal-guess" id="noteGuessLabel">Kategorie wird beim Tippen erkannt — oder wähl selbst.</p>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" id="noteCancelBtn" type="button">Abbrechen</button>
+          <button class="btn btn-primary" id="noteSaveBtn" type="button">Speichern</button>
+        </div>
+      </div>
+      <div class="saved-state" id="noteSavedState">
+        <div class="saved-check">✓</div>
+        <p>Gespeichert in <span class="file" id="noteSavedFile"></span></p>
+      </div>
+    </div>
+  </div>
 
   <section id="todo" class="section">
     <div class="section-head">

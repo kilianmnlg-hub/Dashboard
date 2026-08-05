@@ -165,6 +165,333 @@
     sections.forEach((s) => observer.observe(s));
   }
 
+  // ---------- Brain-Map: Vault-Struktur (aus data.brainMap, per lokalem Sync-Skript aktuell
+  // gehalten), Hover/Klick-Interaktion, Notiz-Erfassung über die File System Access API ----------
+
+  function layoutBrainNodes(areas) {
+    const core = { id: "core", label: "Brain", x: 50, y: 50, z: 60, r: 15, color: "var(--accent)" };
+    const nodes = [core];
+    const links = [];
+    const n = areas.length;
+    areas.forEach((a, i) => {
+      const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
+      const x = 50 + Math.cos(angle) * 34;
+      const y = 50 + Math.sin(angle) * 34 * 0.72;
+      const z = (i % 2 === 0 ? 1 : -1) * (10 + ((i * 6) % 24));
+      const noteLabel = a.noteCount === 1 ? "1 Notiz" : `${a.noteCount} Notizen`;
+      nodes.push({ id: a.id, label: a.folder, x, y, z, r: 8 + Math.min(4, a.noteCount * 0.4), color: a.color || "var(--accent)", stat: noteLabel });
+      links.push(["core", a.id]);
+    });
+    return { nodes, links };
+  }
+
+  const brainAreas = data.brainMap?.areas || [];
+  const { nodes: brainNodesData, links: brainLinksData } = layoutBrainNodes(brainAreas);
+  const brainInteractiveIds = new Set(brainAreas.map((a) => a.id));
+
+  const brainNodesEl = document.getElementById("brainNodes");
+  const brainLinksSvg = document.getElementById("brainLinks");
+  const brainSceneWrap = document.getElementById("brainSceneWrap");
+
+  brainNodesEl.innerHTML = brainNodesData
+    .map(
+      (t) => `
+    <div class="node ${t.id === "core" ? "core" : ""}" data-topic="${t.id}" ${brainInteractiveIds.has(t.id) || t.id === "core" ? "data-interactive" : ""} style="left:${t.x}%; top:${t.y}%; --z:${t.z}px; width:${t.r * 2}px; height:${t.r * 2}px;">
+      <div class="dotcore" style="--nc:${t.color}"></div>
+      ${t.label ? `<div class="node-label">${escapeHtml(t.label)}</div>` : ""}
+    </div>`
+    )
+    .join("");
+
+  function drawBrainLinks() {
+    const wrap = brainSceneWrap.getBoundingClientRect();
+    brainLinksSvg.setAttribute("viewBox", `0 0 ${wrap.width} ${wrap.height}`);
+    brainLinksSvg.innerHTML = brainLinksData
+      .map(([a, b]) => {
+        const ta = brainNodesData.find((t) => t.id === a);
+        const tb = brainNodesData.find((t) => t.id === b);
+        return `<line data-a="${a}" data-b="${b}" class="hot" x1="${(ta.x / 100) * wrap.width}" y1="${(ta.y / 100) * wrap.height}" x2="${(tb.x / 100) * wrap.width}" y2="${(tb.y / 100) * wrap.height}" />`;
+      })
+      .join("");
+  }
+  if (brainNodesData.length > 1) {
+    drawBrainLinks();
+    window.addEventListener("resize", drawBrainLinks);
+  }
+
+  function setBrainHover(id) {
+    brainNodesEl.querySelectorAll(".node").forEach((n) => n.classList.toggle("hovered", n.dataset.topic === id));
+    brainLinksSvg.querySelectorAll("line").forEach((l) => l.classList.toggle("lit", id !== null && (l.dataset.a === id || l.dataset.b === id)));
+  }
+  brainNodesEl.querySelectorAll(".node[data-interactive]").forEach((n) => {
+    n.addEventListener("mouseenter", () => setBrainHover(n.dataset.topic));
+    n.addEventListener("mouseleave", () => setBrainHover(null));
+  });
+
+  // Tilt-Parallax: EIN Transform fuer die ganze Szene (nicht pro Knoten) — Knoten und
+  // Verbindungslinien laufen dadurch nie auseinander, unabhaengig von der Mausposition.
+  const brainTilt = document.getElementById("brainTilt");
+  let brainTargetX = 8,
+    brainTargetY = -10,
+    brainCurX = 8,
+    brainCurY = -10;
+  brainSceneWrap.addEventListener("mousemove", (e) => {
+    const r = brainSceneWrap.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    brainTargetY = -10 + px * 16;
+    brainTargetX = 8 - py * 12;
+  });
+  brainSceneWrap.addEventListener("mouseleave", () => {
+    brainTargetX = 8;
+    brainTargetY = -10;
+  });
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!reduceMotion) {
+    (function animateBrainTilt() {
+      brainCurX += (brainTargetX - brainCurX) * 0.08;
+      brainCurY += (brainTargetY - brainCurY) * 0.08;
+      brainTilt.style.transform = `rotateX(${brainCurX}deg) rotateY(${brainCurY}deg)`;
+      requestAnimationFrame(animateBrainTilt);
+    })();
+  }
+
+  // ---------- Bereichs-Popover ----------
+  const brainAreaPop = document.getElementById("brainAreaPop");
+  let brainActiveId = null;
+
+  function closeBrainPop() {
+    brainActiveId = null;
+    brainAreaPop.classList.remove("open");
+    brainNodesEl.querySelectorAll(".node").forEach((n) => n.classList.remove("active"));
+  }
+
+  function openBrainPop(topic, anchorEl) {
+    brainActiveId = topic.id;
+    brainNodesEl.querySelectorAll(".node").forEach((n) => n.classList.toggle("active", n.dataset.topic === topic.id));
+    brainAreaPop.innerHTML = `
+      <p class="ap-title"><span class="ap-dot" style="background:${topic.color}"></span>${escapeHtml(topic.label)}</p>
+      <p class="ap-stat">${topic.stat}</p>
+      <div class="ap-actions">
+        <button type="button" class="ap-btn" id="apClose">Schließen</button>
+        <button type="button" class="ap-btn primary" id="apNote" style="--chip-c:${topic.color}">Notiz erfassen</button>
+      </div>
+    `;
+    brainAreaPop.classList.add("open");
+
+    const cardRect = document.querySelector(".brain-card").getBoundingClientRect();
+    const anchorRect = anchorEl.getBoundingClientRect();
+    const popRect = brainAreaPop.getBoundingClientRect();
+    const margin = 14;
+    let left = anchorRect.left - cardRect.left + anchorRect.width / 2 - popRect.width / 2;
+    left = Math.max(margin, Math.min(left, cardRect.width - popRect.width - margin));
+    let top = anchorRect.bottom - cardRect.top + 14;
+    if (top + popRect.height > cardRect.height - margin) {
+      top = anchorRect.top - cardRect.top - popRect.height - 14;
+    }
+    top = Math.max(margin, top);
+    brainAreaPop.style.left = `${left}px`;
+    brainAreaPop.style.top = `${top}px`;
+
+    document.getElementById("apNote").addEventListener("click", () => {
+      closeBrainPop();
+      openNoteModal(topic.id);
+    });
+    document.getElementById("apClose").addEventListener("click", closeBrainPop);
+  }
+
+  brainNodesEl.querySelectorAll(".node[data-interactive]").forEach((n) => {
+    n.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const topic = brainNodesData.find((t) => t.id === n.dataset.topic);
+      if (topic.id === "core") {
+        closeBrainPop();
+        openNoteModal();
+        return;
+      }
+      if (brainActiveId === topic.id) closeBrainPop();
+      else openBrainPop(topic, n);
+    });
+  });
+  brainAreaPop.addEventListener("click", (e) => e.stopPropagation());
+  brainSceneWrap.addEventListener("click", () => {
+    if (brainActiveId) closeBrainPop();
+    else openNoteModal();
+  });
+  document.getElementById("openNoteBtn").addEventListener("click", () => openNoteModal());
+
+  // ---------- Notiz-Erfassung: File System Access API (nur Chrome/Edge) ----------
+  // Kein Cloud-Umweg: der Vault liegt lokal auf diesem Rechner, also reicht einmalige
+  // Dateisystem-Berechtigung fuer die Inbox-Datei. Das Handle wird in IndexedDB gemerkt
+  // (localStorage kann keine FileSystemHandles speichern).
+  const IDB_NAME = "dashboard-brain";
+  const IDB_STORE = "handles";
+  const IDB_KEY = "inboxFileHandle";
+  const fsAccessSupported = "showSaveFilePicker" in window;
+  let inboxHandle = null;
+
+  function idbOpen() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbGet(key) {
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, "readonly");
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function idbSet(key, value) {
+    const db = await idbOpen();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).put(value, key);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function getStoredInboxHandle() {
+    if (inboxHandle) return inboxHandle;
+    const stored = await idbGet(IDB_KEY).catch(() => null);
+    if (stored) inboxHandle = stored;
+    return inboxHandle;
+  }
+  async function connectVault() {
+    const handle = await window.showSaveFilePicker({
+      suggestedName: data.brainMap?.inboxFile || "Inbox.md",
+      types: [{ description: "Markdown", accept: { "text/markdown": [".md"] } }]
+    });
+    inboxHandle = handle;
+    await idbSet(IDB_KEY, handle);
+    return handle;
+  }
+  async function appendNoteToInbox(handle, text, categoryLabel) {
+    let existing = "";
+    try {
+      const file = await handle.getFile();
+      existing = await file.text();
+    } catch (e) {
+      /* neue/leere Datei, mit leerem Inhalt starten */
+    }
+    const stamp = new Date().toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    const entry = `## ${stamp}${categoryLabel ? " · " + categoryLabel : ""}\n${text.trim()}\n\n`;
+    const body = existing.trim() ? existing.replace(/\n*$/, "\n\n") : "# Inbox\n\n";
+    const writable = await handle.createWritable();
+    await writable.write(body + entry);
+    await writable.close();
+  }
+
+  // ---------- Notiz-Modal ----------
+  const noteOverlay = document.getElementById("noteOverlay");
+  const noteFormState = document.getElementById("noteFormState");
+  const noteSavedState = document.getElementById("noteSavedState");
+  const noteTextEl = document.getElementById("noteText");
+  const noteChipRow = document.getElementById("noteChipRow");
+  const noteGuessLabel = document.getElementById("noteGuessLabel");
+  const noteSaveBtn = document.getElementById("noteSaveBtn");
+  const noteModalSub = document.getElementById("noteModalSub");
+
+  const noteChips = brainAreas.map((a) => ({ id: a.id, label: a.folder, color: a.color || "var(--accent)" }));
+  let noteSelectedChip = null;
+
+  noteChipRow.innerHTML = noteChips
+    .map((c) => `<button type="button" class="chip" data-id="${c.id}" style="--chip-c:${c.color}"><span class="cdot" style="background:${c.color}"></span>${escapeHtml(c.label)}</button>`)
+    .join("");
+
+  function setNoteChip(id, fromGuess) {
+    noteSelectedChip = id;
+    noteChipRow.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c.dataset.id === id));
+    if (fromGuess) {
+      const c = noteChips.find((x) => x.id === id);
+      if (c) noteGuessLabel.textContent = `Erkannt: ${c.label} — du kannst das ändern.`;
+    }
+  }
+  noteChipRow.querySelectorAll(".chip").forEach((btn) => btn.addEventListener("click", () => setNoteChip(btn.dataset.id, false)));
+
+  noteTextEl.addEventListener("input", () => {
+    const val = noteTextEl.value.toLowerCase();
+    if (!val) {
+      noteSelectedChip = null;
+      noteChipRow.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+      noteGuessLabel.textContent = "Kategorie wird beim Tippen erkannt — oder wähl selbst.";
+      return;
+    }
+    const match = noteChips.find((c) => val.includes(c.label.toLowerCase()) || val.includes(c.id));
+    if (match) setNoteChip(match.id, true);
+  });
+
+  async function refreshNoteModalState() {
+    if (!fsAccessSupported) {
+      noteModalSub.textContent = "Direktes Speichern braucht Chrome oder Edge.";
+      noteSaveBtn.disabled = true;
+      return;
+    }
+    const handle = await getStoredInboxHandle();
+    noteModalSub.textContent = handle
+      ? "Landet automatisch in deiner Inbox-Datei im Vault."
+      : "Beim Speichern einmalig deine Inbox-Datei im Vault auswählen.";
+    noteSaveBtn.disabled = false;
+  }
+
+  function openNoteModal(presetId) {
+    noteOverlay.classList.add("open");
+    noteFormState.style.display = "";
+    noteSavedState.classList.remove("show");
+    noteTextEl.value = "";
+    noteSelectedChip = null;
+    noteChipRow.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+    noteGuessLabel.textContent = "Kategorie wird beim Tippen erkannt — oder wähl selbst.";
+    if (presetId) setNoteChip(presetId, true);
+    refreshNoteModalState();
+    setTimeout(() => noteTextEl.focus(), 50);
+  }
+  function closeNoteModal() {
+    noteOverlay.classList.remove("open");
+  }
+
+  document.getElementById("noteCloseBtn").addEventListener("click", closeNoteModal);
+  document.getElementById("noteCancelBtn").addEventListener("click", closeNoteModal);
+  noteOverlay.addEventListener("click", (e) => {
+    if (e.target === noteOverlay) closeNoteModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && noteOverlay.classList.contains("open")) closeNoteModal();
+  });
+
+  noteSaveBtn.addEventListener("click", async () => {
+    if (!fsAccessSupported) return;
+    const text = noteTextEl.value.trim();
+    if (!text) {
+      noteTextEl.focus();
+      return;
+    }
+    try {
+      let handle = await getStoredInboxHandle();
+      if (!handle) handle = await connectVault();
+      const granted =
+        (await handle.queryPermission({ mode: "readwrite" })) === "granted" ||
+        (await handle.requestPermission({ mode: "readwrite" })) === "granted";
+      if (!granted) {
+        await refreshNoteModalState();
+        return;
+      }
+      const categoryLabel = noteChips.find((c) => c.id === noteSelectedChip)?.label || null;
+      await appendNoteToInbox(handle, text, categoryLabel);
+      noteFormState.style.display = "none";
+      noteSavedState.classList.add("show");
+      document.getElementById("noteSavedFile").textContent = handle.name || data.brainMap?.inboxFile || "Inbox.md";
+      setTimeout(closeNoteModal, 1400);
+    } catch (err) {
+      if (err?.name !== "AbortError") alert(`Speichern fehlgeschlagen: ${err.message}`);
+    }
+  });
+
   // ---------- Goals ----------
   const accentByProject = {
     bricksOnTheFloor: "var(--accent-bricks)",
