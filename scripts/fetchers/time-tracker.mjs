@@ -1,8 +1,9 @@
 // Holt Zeiteinträge aus der Notion-"Zeittracker"-Datenbank.
-// Benötigt: NOTION_TOKEN. Optional: NOTION_TIME_DB_ID, DAYS (Default 14).
-
+// Benötigt: NOTION_TOKEN. Optional: NOTION_TIME_DB_ID, DAYS (Default 400 — genug für die
+// Jahresansicht im Dashboard; queryAllPages holt ohnehin die komplette Notion-Historie,
+// DAYS filtert nur, wie viel davon im Dashboard-JSON landet).
 const DB_ID = process.env.NOTION_TIME_DB_ID || "c5d2b5d1-7bb8-41a8-b08c-b51cfea9c34e";
-const DAYS = Number(process.env.DAYS || 14);
+const DAYS = Number(process.env.DAYS || 400);
 
 async function queryAllPages(token) {
   const results = [];

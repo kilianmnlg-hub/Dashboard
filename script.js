@@ -401,65 +401,151 @@
     }
   });
 
-  // ---------- Time tracker: Donut (Kategorie-Split) + Sparkline (Tages-Trend) ----------
+  // ---------- Time tracker: Donut + gestapelte Balken (Woche/Monat/Jahr) ----------
   const tt = data.timeTracker;
-  document.getElementById("timeRangeLabel").textContent = `${fmtDate(tt.range.from)} – ${fmtDate(tt.range.to)} · Quelle: ${tt.source}`;
-
   const toHours = (min) => min / 60;
-  const totalMinutes = Object.values(tt.totalsByCategory).reduce((a, b) => a + b, 0);
   const categoryColors = { YouTube: "var(--accent-bricks)", Bricklink: "var(--accent-bricklink)" };
+  // Lokaler Helfer statt des später deklarierten `dateKey` — sonst Temporal-Dead-Zone-Fehler
+  // (siehe escapeHtml/newId oben: gleiche Falle, hier bewusst vermieden).
+  const timeDateKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
-  document.getElementById("timeDonutTotal").textContent = `${toHours(totalMinutes).toFixed(1)}h`;
+  let timeView = "week";
 
-  let donutCursor = 0;
-  const donutStops = Object.entries(tt.totalsByCategory).map(([cat, min]) => {
-    const from = donutCursor;
-    donutCursor += (min / totalMinutes) * 100;
-    return `${categoryColors[cat] || "var(--surface-3)"} ${from}% ${donutCursor}%`;
-  });
-  donutStops.push(`var(--surface-3) ${donutCursor}% 100%`);
-  document.getElementById("timeDonut").style.background = `conic-gradient(${donutStops.join(", ")})`;
-
-  document.getElementById("timeLegend").innerHTML = Object.entries(tt.totalsByCategory)
-    .map(
-      ([cat, min]) => `
-      <div class="legend-row">
-        <span class="legend-dot" style="background:${categoryColors[cat] || "var(--surface-3)"}"></span>
-        ${cat}
-        <span class="v">${toHours(min).toFixed(1)}h · ${((min / totalMinutes) * 100).toFixed(0)}%</span>
-      </div>`
-    )
-    .join("");
-
-  renderSparkline(tt.daily);
-
-  function renderSparkline(daily) {
-    const svg = document.getElementById("timeSparkline");
-    const totals = daily.map((d) => toHours((d.YouTube || 0) + (d.Bricklink || 0)));
-    const W = 320;
-    const H = 54;
-    const pad = 4;
-    const maxV = Math.max(...totals);
-    const minV = Math.min(...totals);
-    const pts = totals.map((v, i) => {
-      const x = pad + (i / (totals.length - 1 || 1)) * (W - pad * 2);
-      const y = H - pad - ((v - minV) / (maxV - minV || 1)) * (H - pad * 2);
-      return [x, y];
-    });
-    const path = pts.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
-    const area = `${path} L ${pts[pts.length - 1][0]} ${H} L ${pts[0][0]} ${H} Z`;
-    svg.innerHTML = `
-      <defs><linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="var(--accent-bricks)" stop-opacity="0.35" />
-        <stop offset="100%" stop-color="var(--accent-bricks)" stop-opacity="0" />
-      </linearGradient></defs>
-      <path d="${area}" fill="url(#sparkFill)" />
-      <path d="${path}" fill="none" stroke="var(--accent-bricks)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <title>Tages-Gesamtzeit (YouTube + Bricklink)</title>
-      </path>
-      <circle cx="${pts[pts.length - 1][0]}" cy="${pts[pts.length - 1][1]}" r="4" fill="var(--accent-bricks)" stroke="var(--surface)" stroke-width="2" />
-    `;
+  function timeCategoriesOf(rows) {
+    const set = new Set();
+    rows.forEach((row) => Object.keys(row).forEach((k) => k !== "date" && set.add(k)));
+    return [...set];
   }
+
+  function sumByCategory(rows) {
+    const totals = {};
+    rows.forEach((row) => {
+      Object.entries(row).forEach(([k, v]) => {
+        if (k === "date") return;
+        totals[k] = (totals[k] || 0) + v;
+      });
+    });
+    return totals;
+  }
+
+  function aggregateMonthly(daily) {
+    const byMonth = {};
+    daily.forEach((row) => {
+      const key = row.date.slice(0, 7);
+      byMonth[key] = byMonth[key] || { date: key };
+      Object.entries(row).forEach(([k, v]) => {
+        if (k === "date") return;
+        byMonth[key][k] = (byMonth[key][k] || 0) + v;
+      });
+    });
+    return Object.keys(byMonth)
+      .sort()
+      .map((k) => byMonth[k]);
+  }
+
+  function timeViewRows(view) {
+    const today = new Date();
+    if (view === "week") {
+      const cutoff = new Date(today);
+      cutoff.setDate(cutoff.getDate() - 6);
+      const cutoffKey = timeDateKey(cutoff);
+      return { rows: tt.daily.filter((d) => d.date >= cutoffKey), granularity: "day" };
+    }
+    if (view === "month") {
+      const prefix = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+      return { rows: tt.daily.filter((d) => d.date.startsWith(prefix)), granularity: "day" };
+    }
+    const yearRows = tt.daily.filter((d) => d.date.startsWith(String(today.getFullYear())));
+    return { rows: aggregateMonthly(yearRows), granularity: "month" };
+  }
+
+  const timeViewRangeLabel = {
+    week: () => "Letzte 7 Tage",
+    month: () => new Date().toLocaleDateString("de-DE", { month: "long", year: "numeric" }),
+    year: () => `${new Date().getFullYear()}`
+  };
+
+  function renderTimeBalance() {
+    const { rows, granularity } = timeViewRows(timeView);
+    const categories = timeCategoriesOf(rows);
+    const totals = sumByCategory(rows);
+    const totalMinutes = Object.values(totals).reduce((a, b) => a + b, 0);
+
+    document.getElementById("timeRangeLabel").textContent = rows.length
+      ? `${timeViewRangeLabel[timeView]()} · Quelle: ${tt.source}`
+      : `Keine Zeiteinträge für diesen Zeitraum · Quelle: ${tt.source}`;
+
+    document.getElementById("timeDonutTotal").textContent = `${toHours(totalMinutes).toFixed(1)}h`;
+
+    let donutCursor = 0;
+    const donutStops = categories.map((cat) => {
+      const from = donutCursor;
+      donutCursor += totalMinutes ? (totals[cat] / totalMinutes) * 100 : 0;
+      return `${categoryColors[cat] || "var(--surface-3)"} ${from}% ${donutCursor}%`;
+    });
+    donutStops.push(`var(--surface-3) ${donutCursor}% 100%`);
+    document.getElementById("timeDonut").style.background = `conic-gradient(${donutStops.join(", ")})`;
+
+    document.getElementById("timeLegend").innerHTML = categories.length
+      ? categories
+          .map(
+            (cat) => `
+        <div class="legend-row">
+          <span class="legend-dot" style="background:${categoryColors[cat] || "var(--surface-3)"}"></span>
+          ${cat}
+          <span class="v">${toHours(totals[cat]).toFixed(1)}h · ${totalMinutes ? ((totals[cat] / totalMinutes) * 100).toFixed(0) : 0}%</span>
+        </div>`
+          )
+          .join("")
+      : `<p class="habit-empty">Keine Zeiteinträge in diesem Zeitraum.</p>`;
+
+    const rowTotals = rows.map((row) => categories.reduce((sum, c) => sum + (row[c] || 0), 0));
+    const maxRowTotal = Math.max(1, ...rowTotals);
+
+    const labelFor = (row) =>
+      granularity === "month"
+        ? new Date(row.date + "-01T00:00:00").toLocaleDateString("de-DE", { month: "short" })
+        : new Date(row.date + "T00:00:00").toLocaleDateString("de-DE", { weekday: "short" });
+
+    const tooltipFor = (row, dayTotal) => {
+      const dateLabel =
+        granularity === "month"
+          ? new Date(row.date + "-01T00:00:00").toLocaleDateString("de-DE", { month: "long", year: "numeric" })
+          : fmtDate(row.date);
+      const parts = categories.map((c) => `${c}: ${toHours(row[c] || 0).toFixed(1)}h`).join(" · ");
+      return `${dateLabel} — ${toHours(dayTotal).toFixed(1)}h gesamt (${parts})`;
+    };
+
+    document.getElementById("timeBars").innerHTML = rows
+      .map((row, i) => {
+        const dayTotal = rowTotals[i];
+        const h = Math.max(4, Math.round((dayTotal / maxRowTotal) * 130));
+        const segs = categories
+          .map((c) => {
+            const segH = dayTotal > 0 ? Math.round(((row[c] || 0) / dayTotal) * h) : 0;
+            return segH > 0
+              ? `<div class="seg" style="height:${segH}px; background:${categoryColors[c] || "var(--surface-3)"}"></div>`
+              : "";
+          })
+          .join("");
+        return `<div class="iso-bar-col" title="${tooltipFor(row, dayTotal)}">
+          <div class="iso-bar-value">${toHours(dayTotal).toFixed(1)}h</div>
+          <div class="stack-bar" style="height:${h}px">${segs}</div>
+          <div class="iso-bar-label">${labelFor(row)}</div>
+        </div>`;
+      })
+      .join("");
+  }
+
+  document.querySelectorAll("#timeViewToggle button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      timeView = btn.dataset.view;
+      document.querySelectorAll("#timeViewToggle button").forEach((b) => b.classList.toggle("active", b === btn));
+      renderTimeBalance();
+    });
+  });
+
+  renderTimeBalance();
 
   // ---------- Umsatz-Trend (Bricklink) ----------
   const revenue = data.bricklinkRevenue;

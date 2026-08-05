@@ -138,19 +138,22 @@
   <section id="zeit" class="section">
     <div class="section-head">
       <h2><span class="section-marker"></span>Zeit-Balance</h2>
-      <p class="section-sub" id="timeRangeLabel"></p>
+      <div class="habit-view-toggle" id="timeViewToggle">
+        <button type="button" data-view="week" class="active">Woche</button>
+        <button type="button" data-view="month">Monat</button>
+        <button type="button" data-view="year">Jahr</button>
+      </div>
     </div>
     <div class="panel">
+      <p class="section-sub" id="timeRangeLabel"></p>
       <div class="donut-wrap">
         <div class="donut" id="timeDonut">
           <div class="donut-center"><span class="num" id="timeDonutTotal"></span><span class="lbl">gesamt</span></div>
         </div>
         <div class="legend" id="timeLegend"></div>
-        <div class="spark-wrap">
-          <svg id="timeSparkline" viewBox="0 0 320 54" preserveAspectRatio="none"></svg>
-        </div>
       </div>
-      <p class="sync-note">Automatischer Sync aller Daten täglich um 08:00 Uhr · manuell: Button "Sync" oben rechts, oder GitHub-Repo → Tab "Actions" → Workflow "Sync all dashboard data" → "Run workflow"</p>
+      <div class="iso-chart" id="timeBars"></div>
+      <p class="sync-note">Automatischer Sync aller Daten täglich um 08:00 Uhr · manuell: Button "Sync" oben rechts, oder GitHub-Repo → Tab "Actions" → Workflow "Sync all dashboard data" → "Run workflow" · Woche/Monat/Jahr basieren auf den bei Notion erfassten Zeiteinträgen (so weit die Historie zurückreicht)</p>
     </div>
   </section>
 </main>

@@ -573,9 +573,9 @@ main { padding: clamp(24px, 3vw, 48px) clamp(20px, 3vw, 48px) 80px; }
 .iso-bar-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-faint); white-space: nowrap; }
 .iso-bar-value { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
 
-/* ---------- Donut + Sparkline (Zeit-Balance) ---------- */
+/* ---------- Donut (Zeit-Balance) ---------- */
 
-.donut-wrap { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
+.donut-wrap { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; margin-bottom: 22px; }
 .donut {
   width: 148px; height: 148px; border-radius: 50%; position: relative; flex-shrink: 0;
   background: var(--surface-3);
@@ -584,7 +584,9 @@ main { padding: clamp(24px, 3vw, 48px) clamp(20px, 3vw, 48px) 80px; }
 .donut-center {
   position: absolute; inset: 22px; border-radius: 50%; background: var(--surface);
   box-shadow: inset 0 2px 6px rgba(0,0,0,.3);
-  display: grid; place-items: center; text-align: center;
+  /* flex statt grid: garantiert, dass num+lbl als Block sicher mittig sitzen,
+     unabhängig von Zeilenzahl/Inhaltsgröße */
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
 }
 .donut-center .num { font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 21px; line-height: 1; font-variant-numeric: tabular-nums; }
 .donut-center .lbl { font-size: 10.5px; color: var(--text-faint); margin-top: 4px; }
@@ -594,8 +596,15 @@ main { padding: clamp(24px, 3vw, 48px) clamp(20px, 3vw, 48px) 80px; }
 .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; display: inline-block; }
 .legend-row .v { font-family: 'IBM Plex Mono', monospace; font-weight: 600; margin-left: auto; padding-left: 16px; font-variant-numeric: tabular-nums; }
 
-.spark-wrap { flex: 1; min-width: 220px; height: 54px; }
-.spark-wrap svg { width: 100%; height: 100%; overflow: visible; display: block; }
+/* ---------- Gestapelte Balken (Zeit-Balance, pro Tag/Monat) ---------- */
+
+.stack-bar {
+  width: var(--w, 24px); flex-shrink: 0;
+  display: flex; flex-direction: column-reverse;
+  border-radius: 5px 5px 2px 2px; overflow: hidden;
+  background: var(--surface-3);
+}
+.stack-bar .seg { width: 100%; }
 
 .sync-note {
   margin: 20px 0 0; padding-top: 14px; border-top: 1px dashed var(--border);
