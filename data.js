@@ -1,11 +1,11 @@
-// Datenquelle für das Dashboard.
+﻿// Datenquelle fÃ¼r das Dashboard.
 // timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt),
 // goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue und metricsHistory
-// (für die Wochenvergleich-Trendpfeile) werden automatisch von scripts/sync-all.mjs
-// überschrieben (täglich per GitHub Actions oder manuell über den Sync-Button im
+// (fÃ¼r die Wochenvergleich-Trendpfeile) werden automatisch von scripts/sync-all.mjs
+// Ã¼berschrieben (tÃ¤glich per GitHub Actions oder manuell Ã¼ber den Sync-Button im
 // Dashboard bzw. "node scripts/sync-all.mjs").
 // Alles andere (goals-Zieltexte, restliche business-Felder, uploadRhythmDays) von
-// Hand pflegen. Siehe README.md für Details.
+// Hand pflegen. Siehe README.md fÃ¼r Details.
 
 const DASHBOARD_DATA = {
   "meta": {
@@ -17,6 +17,18 @@ const DASHBOARD_DATA = {
     "owner": "kilianmnlg-hub",
     "repo": "Dashboard",
     "workflowFile": "sync-all.yml"
+  },
+  "brainMap": {
+    "syncedAt": "2026-08-05T19:35:58.358Z",
+    "vaultName": "Kilian Obsidian",
+    "inboxFile": "Inbox.md",
+    "areas": [
+      { "id": "bricklink", "folder": "Bricklink", "noteCount": 1, "color": "var(--accent-bricklink)" },
+      { "id": "botf", "folder": "Bricks On The Floor", "noteCount": 1, "color": "var(--accent-bricks)" },
+      { "id": "laden", "folder": "Laden", "noteCount": 1, "color": "var(--node-laden)" },
+      { "id": "privat", "folder": "Privat", "noteCount": 1, "color": "var(--node-privat)" },
+      { "id": "brainwalkers", "folder": "The Brainwalkers", "noteCount": 1, "color": "var(--accent-brainwalkers)" }
+    ]
   },
   "metricsHistory": {
     "bricksOnTheFloorAbos": [
@@ -53,7 +65,7 @@ const DASHBOARD_DATA = {
   "goals": [
     {
       "id": "bricks-abos",
-      "label": "Bricks On The Floor – Abonnenten",
+      "label": "Bricks On The Floor â€“ Abonnenten",
       "project": "bricksOnTheFloor",
       "current": 28300,
       "target": 50000,
@@ -62,16 +74,16 @@ const DASHBOARD_DATA = {
     },
     {
       "id": "bricks-umsatz",
-      "label": "Bricks On The Floor – Umsatz/Monat",
+      "label": "Bricks On The Floor â€“ Umsatz/Monat",
       "project": "bricksOnTheFloor",
       "current": 473.5,
       "target": 1000,
-      "unit": "€/Monat",
+      "unit": "â‚¬/Monat",
       "due": "2026-12-31"
     },
     {
       "id": "brainwalkers-abos",
-      "label": "The Brainwalkers – Abonnenten",
+      "label": "The Brainwalkers â€“ Abonnenten",
       "project": "brainwalkers",
       "current": 251,
       "target": 1000,
@@ -80,7 +92,7 @@ const DASHBOARD_DATA = {
     },
     {
       "id": "tiktok-follower",
-      "label": "Bricks On The Floor – TikTok-Follower",
+      "label": "Bricks On The Floor â€“ TikTok-Follower",
       "project": "tiktok",
       "current": 2710,
       "target": 10000,
@@ -201,13 +213,13 @@ const DASHBOARD_DATA = {
   "business": {
     "bricklink": {
       "title": "Bricklink Store",
-      "subtitle": "BrxOnTheFloor · seit 15.04.2022 · Brandenburg",
+      "subtitle": "BrxOnTheFloor Â· seit 15.04.2022 Â· Brandenburg",
       "accent": "bricklink",
       "stats": [
         {
           "label": "Feedback gesamt",
           "value": "91",
-          "hint": "88 Verkäufer / 3 Käufer, nur Praise"
+          "hint": "88 VerkÃ¤ufer / 3 KÃ¤ufer, nur Praise"
         },
         {
           "label": "Store-Besuche",
@@ -230,7 +242,7 @@ const DASHBOARD_DATA = {
     },
     "bricksOnTheFloor": {
       "title": "Bricks On The Floor",
-      "subtitle": "LEGO-YouTube-Kanal · Hauptprojekt",
+      "subtitle": "LEGO-YouTube-Kanal Â· Hauptprojekt",
       "accent": "bricks",
       "uploadRhythmDays": 7,
       "lastUploadAt": "2026-08-02T15:55:27Z",
@@ -250,14 +262,14 @@ const DASHBOARD_DATA = {
         },
         {
           "label": "Umsatz (28 Tage)",
-          "value": "473,50 €"
+          "value": "473,50 â‚¬"
         }
       ],
-      "note": "Rhythmus: wöchentlich angestrebt, reißt öfter ab, fängt sich aber immer wieder."
+      "note": "Rhythmus: wÃ¶chentlich angestrebt, reiÃŸt Ã¶fter ab, fÃ¤ngt sich aber immer wieder."
     },
     "brainwalkers": {
       "title": "The Brainwalkers",
-      "subtitle": "Magic: The Gathering · Nebenprojekt",
+      "subtitle": "Magic: The Gathering Â· Nebenprojekt",
       "accent": "brainwalkers",
       "uploadRhythmDays": 14,
       "lastUploadAt": "2026-07-29T13:55:39Z",
@@ -275,11 +287,11 @@ const DASHBOARD_DATA = {
           "value": "alle 2 Wochen"
         }
       ],
-      "note": "Fokus: Commander/EDH-Decks & Produkt-Reviews. Kein Studio-Zugriff für Umsatzdaten."
+      "note": "Fokus: Commander/EDH-Decks & Produkt-Reviews. Kein Studio-Zugriff fÃ¼r Umsatzdaten."
     }
   },
   "timeTracker": {
-    "source": "Notion – Zeittracker",
+    "source": "Notion â€“ Zeittracker",
     "range": {
       "from": "2026-07-25",
       "to": "2026-08-05"
