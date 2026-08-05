@@ -19,17 +19,18 @@ const DASHBOARD_DATA = {
     "workflowFile": "sync-all.yml"
   },
   "brainMap": {
-    "syncedAt": "2026-08-05T19:56:31.065Z",
+    "syncedAt": "2026-08-05T20:11:05.302Z",
     "vaultName": "Kilian Obsidian",
-    "inboxFile": "Inbox.md",
     "areas": [
-      { "id": "bricklink", "folder": "Bricklink", "noteCount": 1, "color": "var(--accent-bricklink)" },
+      { "id": "bricklink", "folder": "Bricklink", "noteCount": 2, "color": "var(--accent-bricklink)" },
       { "id": "botf", "folder": "Bricks On The Floor", "noteCount": 1, "color": "var(--accent-bricks)" },
+      { "id": "ideen", "folder": "Ideen", "noteCount": 1, "color": "var(--accent-tiktok)" },
       { "id": "laden", "folder": "Laden", "noteCount": 1, "color": "var(--node-laden)" },
       { "id": "privat", "folder": "Privat", "noteCount": 1, "color": "var(--node-privat)" },
       { "id": "brainwalkers", "folder": "The Brainwalkers", "noteCount": 1, "color": "var(--accent-brainwalkers)" }
     ]
   },
+  "notes": [],
   "metricsHistory": {
     "bricksOnTheFloorAbos": [
       {
