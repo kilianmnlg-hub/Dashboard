@@ -515,7 +515,7 @@
         const h = Math.round((e.total / maxTotal) * 130) + 24;
         return `<div class="iso-bar-col" title="${formatTooltip(key)}: ${e.total.toFixed(2)} ${currency} (${e.orderCount} Bestellungen)">
           <div class="iso-bar-value">${Math.round(e.total)}${currencySign}</div>
-          <div class="iso-bar" style="--h:${h}px"><div class="f top"></div><div class="f front"></div><div class="f side"></div></div>
+          <div class="iso-bar" style="--h:${h}px"></div>
           <div class="iso-bar-label">${formatLabel(key)}</div>
         </div>`;
       })

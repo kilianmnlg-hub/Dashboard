@@ -553,28 +553,22 @@ main { padding: clamp(24px, 3vw, 48px) clamp(20px, 3vw, 48px) 80px; }
 .revenue-grid { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
 .revenue-sub-title { margin: 0 0 4px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
 
-/* ---------- 3D-Isometrie-Balkenchart (Umsatz) ---------- */
+/* ---------- Umsatz-Balkenchart ---------- */
+/* Bewusst ohne CSS-3D-Transform: rotierte Flächen können ihre eigene Box überragen und
+   dabei Nachbarelemente (die Werte-Beschriftung darüber) verdecken. Stattdessen ein
+   massiv gefüllter Balken mit Gradient/Schlagschatten für Tiefe — bleibt garantiert
+   innerhalb seiner eigenen Box, unabhängig von Höhe oder Position in der Reihe. */
 
-.iso-chart { display: flex; align-items: flex-end; gap: 16px; height: 190px; padding: 10px 4px 0; overflow-x: auto; }
-/* Perspective sitzt bewusst pro Spalte (nicht auf .iso-chart), sonst bekommt jeder Balken
-   einen anderen Fluchtpunkt je nach Position in der Reihe und wirkt an den Rändern verzerrt/verschoben. */
-.iso-bar-col { display: flex; flex-direction: column; align-items: center; gap: 10px; flex: 1; min-width: 34px; perspective: 600px; }
+.iso-chart { display: flex; align-items: flex-end; gap: 14px; height: 190px; padding: 10px 4px 0; overflow-x: auto; }
+.iso-bar-col { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; min-width: 30px; }
 .iso-bar {
-  --h: 40px; --w: 28px; width: var(--w); height: var(--h); position: relative;
-  transform-style: preserve-3d; transform: rotateX(-18deg) rotateY(28deg);
-}
-.iso-bar .f { position: absolute; }
-.iso-bar .top {
-  width: var(--w); height: var(--w);
-  background: color-mix(in srgb, var(--accent-bricklink) 100%, white 22%);
-  transform: rotateX(90deg) translateZ(calc(var(--h)/2)) translateY(calc(var(--w)/-2));
-  left: 0; top: calc(var(--w)/2 * -1);
-}
-.iso-bar .front { width: var(--w); height: var(--h); background: var(--accent-bricklink); transform: translateZ(calc(var(--w)/2)); }
-.iso-bar .side {
-  width: var(--w); height: var(--h);
-  background: color-mix(in srgb, var(--accent-bricklink) 100%, black 32%);
-  transform: rotateY(90deg) translateZ(calc(var(--w)/2)); left: 0;
+  --h: 40px; --w: 32px; width: var(--w); height: var(--h); flex-shrink: 0;
+  border-radius: 6px 6px 3px 3px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent-bricklink) 100%, white 30%) 0%, var(--accent-bricklink) 40%, var(--accent-bricklink) 100%);
+  box-shadow:
+    inset -4px 0 0 color-mix(in srgb, var(--accent-bricklink) 100%, black 28%),
+    inset 0 1px 0 rgba(255,255,255,.3);
 }
 .iso-bar-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-faint); white-space: nowrap; }
 .iso-bar-value { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
