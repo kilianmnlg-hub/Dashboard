@@ -36,6 +36,7 @@
       <a href="#ziele">Ziele</a>
       <a href="#business">Business</a>
       <a href="#zeit">Zeit-Balance</a>
+      <a href="#notizen">Notizen</a>
     </nav>
     <button class="sync-button" id="syncButton" type="button" title="Alle Daten jetzt synchronisieren">
       <span id="syncButtonIcon">🔄</span> <span id="syncButtonLabel">Sync</span>
@@ -185,6 +186,16 @@
       </div>
       <div class="iso-chart" id="timeBars"></div>
       <p class="sync-note">Automatischer Sync aller Daten täglich um 08:00 Uhr · manuell: Button "Sync" oben rechts, oder GitHub-Repo → Tab "Actions" → Workflow "Sync all dashboard data" → "Run workflow" · Woche/Monat/Jahr basieren auf den bei Notion erfassten Zeiteinträgen (so weit die Historie zurückreicht)</p>
+    </div>
+  </section>
+
+  <section id="notizen" class="section">
+    <div class="section-head">
+      <h2><span class="section-marker"></span>Notizen</h2>
+      <p class="section-sub">Alle über "Brain" erfassten Notizen, unabhängig vom Themen-Ordner</p>
+    </div>
+    <div class="panel">
+      <ul class="notes-list" id="notesList"></ul>
     </div>
   </section>
 </main>

@@ -334,13 +334,15 @@
 
   // ---------- Notiz-Erfassung: File System Access API (nur Chrome/Edge) ----------
   // Kein Cloud-Umweg: der Vault liegt lokal auf diesem Rechner, also reicht einmalige
-  // Dateisystem-Berechtigung fuer die Inbox-Datei. Das Handle wird in IndexedDB gemerkt
-  // (localStorage kann keine FileSystemHandles speichern).
+  // Dateisystem-Berechtigung fuer den Vault-Ordner. Jede Notiz landet in "Notizen.md" im
+  // jeweils richtigen Themen-Ordner (z.B. Bricklink/Notizen.md) statt in einer Sammeldatei -
+  // "Ideen" ist dabei einfach der Auffang-Ordner fuer alles ohne spezifischere Kategorie.
+  // Das Handle wird in IndexedDB gemerkt (localStorage kann keine FileSystemHandles speichern).
   const IDB_NAME = "dashboard-brain";
   const IDB_STORE = "handles";
-  const IDB_KEY = "inboxFileHandle";
-  const fsAccessSupported = "showSaveFilePicker" in window;
-  let inboxHandle = null;
+  const IDB_KEY = "vaultDirHandle";
+  const fsAccessSupported = "showDirectoryPicker" in window;
+  let vaultDirHandle = null;
 
   function idbOpen() {
     return new Promise((resolve, reject) => {
@@ -368,35 +370,34 @@
       tx.onerror = () => reject(tx.error);
     });
   }
-  async function getStoredInboxHandle() {
-    if (inboxHandle) return inboxHandle;
+  async function getStoredVaultHandle() {
+    if (vaultDirHandle) return vaultDirHandle;
     const stored = await idbGet(IDB_KEY).catch(() => null);
-    if (stored) inboxHandle = stored;
-    return inboxHandle;
+    if (stored) vaultDirHandle = stored;
+    return vaultDirHandle;
   }
   async function connectVault() {
-    const handle = await window.showSaveFilePicker({
-      suggestedName: data.brainMap?.inboxFile || "Inbox.md",
-      types: [{ description: "Markdown", accept: { "text/markdown": [".md"] } }]
-    });
-    inboxHandle = handle;
+    const handle = await window.showDirectoryPicker({ mode: "readwrite" });
+    vaultDirHandle = handle;
     await idbSet(IDB_KEY, handle);
     return handle;
   }
-  async function appendNoteToInbox(handle, text, categoryLabel) {
+  async function appendNoteToFolder(dirHandle, folderName, text) {
+    const folderHandle = await dirHandle.getDirectoryHandle(folderName, { create: true });
+    const fileHandle = await folderHandle.getFileHandle("Notizen.md", { create: true });
     let existing = "";
     try {
-      const file = await handle.getFile();
-      existing = await file.text();
+      existing = await (await fileHandle.getFile()).text();
     } catch (e) {
       /* neue/leere Datei, mit leerem Inhalt starten */
     }
     const stamp = new Date().toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
-    const entry = `## ${stamp}${categoryLabel ? " · " + categoryLabel : ""}\n${text.trim()}\n\n`;
-    const body = existing.trim() ? existing.replace(/\n*$/, "\n\n") : "# Inbox\n\n";
-    const writable = await handle.createWritable();
+    const entry = `## ${stamp}\n${text.trim()}\n\n`;
+    const body = existing.trim() ? existing.replace(/\n*$/, "\n\n") : "# Notizen\n\n";
+    const writable = await fileHandle.createWritable();
     await writable.write(body + entry);
     await writable.close();
+    return `${folderName}/Notizen.md`;
   }
 
   // ---------- Notiz-Modal ----------
@@ -410,6 +411,7 @@
   const noteModalSub = document.getElementById("noteModalSub");
 
   const noteChips = brainAreas.map((a) => ({ id: a.id, label: a.folder, color: a.color || "var(--accent)" }));
+  const DEFAULT_NOTE_CHIP_ID = noteChips.find((c) => c.label.toLowerCase() === "ideen")?.id || noteChips[0]?.id || null;
   let noteSelectedChip = null;
 
   noteChipRow.innerHTML = noteChips
@@ -429,13 +431,12 @@
   noteTextEl.addEventListener("input", () => {
     const val = noteTextEl.value.toLowerCase();
     if (!val) {
-      noteSelectedChip = null;
-      noteChipRow.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
-      noteGuessLabel.textContent = "Kategorie wird beim Tippen erkannt — oder wähl selbst.";
+      setNoteChip(DEFAULT_NOTE_CHIP_ID, false);
+      noteGuessLabel.textContent = "Landet in „Ideen“, wenn keine andere Kategorie passt.";
       return;
     }
-    const match = noteChips.find((c) => val.includes(c.label.toLowerCase()) || val.includes(c.id));
-    if (match) setNoteChip(match.id, true);
+    const match = noteChips.find((c) => c.id !== DEFAULT_NOTE_CHIP_ID && (val.includes(c.label.toLowerCase()) || val.includes(c.id)));
+    setNoteChip(match ? match.id : DEFAULT_NOTE_CHIP_ID, true);
   });
 
   async function refreshNoteModalState() {
@@ -444,10 +445,10 @@
       noteSaveBtn.disabled = true;
       return;
     }
-    const handle = await getStoredInboxHandle();
+    const handle = await getStoredVaultHandle();
     noteModalSub.textContent = handle
-      ? "Landet automatisch in deiner Inbox-Datei im Vault."
-      : "Beim Speichern einmalig deine Inbox-Datei im Vault auswählen.";
+      ? "Landet als Notizen.md im gewählten Themen-Ordner deines Vaults."
+      : "Beim Speichern einmalig deinen Vault-Ordner auswählen.";
     noteSaveBtn.disabled = false;
   }
 
@@ -456,10 +457,8 @@
     noteFormState.style.display = "";
     noteSavedState.classList.remove("show");
     noteTextEl.value = "";
-    noteSelectedChip = null;
-    noteChipRow.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
-    noteGuessLabel.textContent = "Kategorie wird beim Tippen erkannt — oder wähl selbst.";
-    if (presetId) setNoteChip(presetId, true);
+    setNoteChip(presetId || DEFAULT_NOTE_CHIP_ID, false);
+    noteGuessLabel.textContent = "Landet in „Ideen“, wenn keine andere Kategorie passt.";
     refreshNoteModalState();
     setTimeout(() => noteTextEl.focus(), 50);
   }
@@ -484,7 +483,7 @@
       return;
     }
     try {
-      let handle = await getStoredInboxHandle();
+      let handle = await getStoredVaultHandle();
       if (!handle) handle = await connectVault();
       const granted =
         (await handle.queryPermission({ mode: "readwrite" })) === "granted" ||
@@ -493,16 +492,42 @@
         await refreshNoteModalState();
         return;
       }
-      const categoryLabel = noteChips.find((c) => c.id === noteSelectedChip)?.label || null;
-      await appendNoteToInbox(handle, text, categoryLabel);
+      const folder = noteChips.find((c) => c.id === noteSelectedChip)?.label || "Ideen";
+      const savedPath = await appendNoteToFolder(handle, folder, text);
       noteFormState.style.display = "none";
       noteSavedState.classList.add("show");
-      document.getElementById("noteSavedFile").textContent = handle.name || data.brainMap?.inboxFile || "Inbox.md";
+      document.getElementById("noteSavedFile").textContent = savedPath;
       setTimeout(closeNoteModal, 1400);
     } catch (err) {
       if (err?.name !== "AbortError") alert(`Speichern fehlgeschlagen: ${err.message}`);
     }
   });
+
+  // ---------- Notizen-Liste (unten im Dashboard, alle Themen-Ordner zusammengefasst) ----------
+  // Quelle: data.notes, vom lokalen Sync-Skript aus jeder Notizen.md im Vault zusammengetragen.
+  const notesListEl = document.getElementById("notesList");
+  const notesData = data.notes || [];
+  const colorByFolder = new Map(brainAreas.map((a) => [a.folder, a.color || "var(--accent)"]));
+
+  notesListEl.innerHTML = notesData.length
+    ? notesData
+        .map((n) => {
+          const color = colorByFolder.get(n.category) || "var(--accent)";
+          const dateLabel = new Date(n.date).toLocaleString("de-DE", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+          return `<li class="note-row">
+          <span class="note-tag"><span class="cdot" style="background:${color}"></span>${escapeHtml(n.category)}</span>
+          <span class="note-date">${dateLabel}</span>
+          <span class="note-text">${escapeHtml(n.text)}</span>
+        </li>`;
+        })
+        .join("")
+    : `<li class="notes-empty">Noch keine Notizen erfasst — klick auf „Brain" in der Grafik oben.</li>`;
 
   // ---------- Goals ----------
   const accentByProject = {
