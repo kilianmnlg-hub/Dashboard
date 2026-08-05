@@ -1,4 +1,4 @@
-﻿// Datenquelle für das Dashboard.
+// Datenquelle für das Dashboard.
 // timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt),
 // goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue und metricsHistory
 // (für die Wochenvergleich-Trendpfeile) werden automatisch von scripts/sync-all.mjs
@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-08-05",
-    "lastSyncedAt": "2026-08-05T15:53:07.589Z",
+    "lastSyncedAt": "2026-08-05T20:29:40.453Z",
     "owner": "Kilian"
   },
   "github": {
@@ -22,12 +22,42 @@ const DASHBOARD_DATA = {
     "syncedAt": "2026-08-05T20:18:04.427Z",
     "vaultName": "Kilian Obsidian",
     "areas": [
-      { "id": "bricklink", "folder": "Bricklink", "noteCount": 1, "color": "var(--accent-bricklink)" },
-      { "id": "botf", "folder": "Bricks On The Floor", "noteCount": 1, "color": "var(--accent-bricks)" },
-      { "id": "ideen", "folder": "Ideen", "noteCount": 1, "color": "var(--accent-tiktok)" },
-      { "id": "laden", "folder": "Laden", "noteCount": 1, "color": "var(--node-laden)" },
-      { "id": "privat", "folder": "Privat", "noteCount": 1, "color": "var(--node-privat)" },
-      { "id": "brainwalkers", "folder": "The Brainwalkers", "noteCount": 1, "color": "var(--accent-brainwalkers)" }
+      {
+        "id": "bricklink",
+        "folder": "Bricklink",
+        "noteCount": 1,
+        "color": "var(--accent-bricklink)"
+      },
+      {
+        "id": "botf",
+        "folder": "Bricks On The Floor",
+        "noteCount": 1,
+        "color": "var(--accent-bricks)"
+      },
+      {
+        "id": "ideen",
+        "folder": "Ideen",
+        "noteCount": 1,
+        "color": "var(--accent-tiktok)"
+      },
+      {
+        "id": "laden",
+        "folder": "Laden",
+        "noteCount": 1,
+        "color": "var(--node-laden)"
+      },
+      {
+        "id": "privat",
+        "folder": "Privat",
+        "noteCount": 1,
+        "color": "var(--node-privat)"
+      },
+      {
+        "id": "brainwalkers",
+        "folder": "The Brainwalkers",
+        "noteCount": 1,
+        "color": "var(--accent-brainwalkers)"
+      }
     ]
   },
   "notes": [],
@@ -49,7 +79,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-08-05",
-        "value": 251
+        "value": 253
       }
     ],
     "tiktokFollower": [
@@ -86,7 +116,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 251,
+      "current": 253,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -102,7 +132,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-05T15:53:07.435Z",
+    "checkedAt": "2026-08-05T20:29:40.229Z",
     "openOrdersCount": 256,
     "pendingShipments": [
       {
@@ -124,13 +154,13 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-05T15:53:07.588Z",
+    "checkedAt": "2026-08-05T20:29:40.452Z",
     "currency": "EUR",
     "weekly": [
       {
         "weekStart": "2026-06-08",
-        "total": 146.09,
-        "orderCount": 4
+        "total": 89.91,
+        "orderCount": 2
       },
       {
         "weekStart": "2026-06-15",
@@ -277,7 +307,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "251"
+          "value": "253"
         },
         {
           "label": "Videos",
