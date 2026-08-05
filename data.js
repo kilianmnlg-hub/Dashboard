@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-08-05",
-    "lastSyncedAt": "2026-08-05T12:27:09.829Z",
+    "lastSyncedAt": "2026-08-05T13:18:54.870Z",
     "owner": "Kilian"
   },
   "github": {
@@ -89,8 +89,8 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-05T12:27:09.518Z",
-    "openOrdersCount": 255,
+    "checkedAt": "2026-08-05T13:18:54.727Z",
+    "openOrdersCount": 256,
     "pendingShipments": [
       {
         "orderId": 32250811,
@@ -107,11 +107,19 @@ const DASHBOARD_DATA = {
         "orderedDate": "2026-08-04T23:15:31.163Z",
         "total": "42.4717",
         "currency": "EUR"
+      },
+      {
+        "orderId": 32256607,
+        "buyer": "davisito",
+        "status": "PAID",
+        "orderedDate": "2026-08-05T12:33:27.917Z",
+        "total": "23.7725",
+        "currency": "EUR"
       }
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-05T12:27:09.828Z",
+    "checkedAt": "2026-08-05T13:18:54.870Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -156,8 +164,8 @@ const DASHBOARD_DATA = {
       },
       {
         "weekStart": "2026-08-03",
-        "total": 411.16,
-        "orderCount": 2
+        "total": 434.94,
+        "orderCount": 3
       }
     ],
     "monthly": [
@@ -193,8 +201,8 @@ const DASHBOARD_DATA = {
       },
       {
         "month": "2026-08",
-        "total": 411.16,
-        "orderCount": 2
+        "total": 434.94,
+        "orderCount": 3
       }
     ]
   },
