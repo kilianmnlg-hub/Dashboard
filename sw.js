@@ -4,8 +4,11 @@
 // Sync veraltete Zahlen ausliefern, bis der Cache irgendwann abläuft. Das Netzwerk
 // hat also immer Vorrang; der Cache greift nur, wenn gar keine Verbindung besteht.
 
-const CACHE_NAME = "dashboard-v1";
-const APP_SHELL = ["./", "index.html", "styles.css", "script.js", "data.js", "habits-data.json", "manifest.webmanifest", "icon.svg"];
+const CACHE_NAME = "dashboard-v2";
+const APP_SHELL = [
+  "./", "index.html", "styles.css", "script.js", "data.js", "habits-data.json", "manifest.webmanifest", "icon.svg",
+  "fonts/fraunces-var.woff2", "fonts/publicsans-var.woff2", "fonts/plexmono-500.woff2", "fonts/plexmono-600.woff2"
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));

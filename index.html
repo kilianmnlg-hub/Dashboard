@@ -8,7 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="icon.svg" />
-<meta name="theme-color" content="#0f1115" />
+<meta name="theme-color" content="#14120F" />
 </head>
 <body>
 
@@ -46,13 +46,20 @@
 
 <main>
   <section class="hero">
-    <h1 id="greeting">Willkommen zurück</h1>
-    <p class="hero-sub">Bricklink, YouTube-Kanäle, Ziele & Balance auf einen Blick — Stand <span id="lastUpdated"></span></p>
+    <div>
+      <h1 id="greeting">Willkommen zurück</h1>
+      <p class="hero-sub">Bricklink, YouTube-Kanäle, TikTok, Studium & Zeit-Balance auf einen Blick — Stand <span id="lastUpdated"></span></p>
+    </div>
+    <div class="brick-cluster" aria-hidden="true">
+      <div class="brick b1"><span class="stud"></span><div class="f top"></div><div class="f front"></div><div class="f side"></div></div>
+      <div class="brick b2"><span class="stud"></span><div class="f top"></div><div class="f front"></div><div class="f side"></div></div>
+      <div class="brick b3"><span class="stud"></span><div class="f top"></div><div class="f front"></div><div class="f side"></div></div>
+    </div>
   </section>
 
   <section id="todo" class="section">
     <div class="section-head">
-      <h2><span class="section-icon">✅</span>Tages-To-Do</h2>
+      <h2><span class="section-marker"></span>Tages-To-Do</h2>
       <p class="section-sub" id="todoDateLabel"></p>
     </div>
     <div class="grid todo-grid" id="todoGrid"></div>
@@ -60,7 +67,7 @@
 
   <section id="aufgaben" class="section">
     <div class="section-head">
-      <h2><span class="section-icon">📌</span>Aufgaben</h2>
+      <h2><span class="section-marker"></span>Aufgaben</h2>
       <p class="section-sub">Bleiben stehen, bis du sie abhakst — kein täglicher Reset</p>
     </div>
     <div class="panel">
@@ -74,7 +81,7 @@
 
   <section id="habits" class="section">
     <div class="section-head">
-      <h2><span class="section-icon">🔥</span>Habit-Tracker</h2>
+      <h2><span class="section-marker"></span>Habit-Tracker</h2>
       <div class="habit-view-toggle" id="habitViewToggle">
         <button type="button" data-view="week" class="active">Woche</button>
         <button type="button" data-view="month">Monat</button>
@@ -98,35 +105,31 @@
 
   <section id="ziele" class="section">
     <div class="section-head">
-      <h2><span class="section-icon">🎯</span>Ziele bis Ende 2026</h2>
+      <h2><span class="section-marker"></span>Ziele bis Ende 2026</h2>
     </div>
     <div class="grid goals-grid" id="goalsGrid"></div>
   </section>
 
   <section id="business" class="section">
     <div class="section-head">
-      <h2><span class="section-icon">📊</span>Business-KPIs</h2>
+      <h2><span class="section-marker"></span>Business-KPIs</h2>
     </div>
     <div class="grid business-grid" id="businessGrid"></div>
 
-    <div class="panel revenue-panel" id="revenuePanel" hidden>
+    <div class="revenue-panel" id="revenuePanel" hidden>
       <div class="section-head" style="margin-bottom:16px">
-        <h3 class="panel-title"><span class="section-icon">💶</span>Umsatz-Trend (Bricklink)</h3>
+        <h3 class="panel-title"><span class="section-marker"></span>Umsatz-Trend (Bricklink)</h3>
       </div>
-      <div class="grid revenue-grid">
-        <div class="revenue-sub" id="revenueWeeklyBlock" hidden>
-          <h4 class="revenue-sub-title">Wöchentlich</h4>
+      <div class="bento">
+        <div class="card span-6" id="revenueWeeklyBlock" hidden>
+          <p class="revenue-sub-title">Wöchentlich</p>
           <p class="section-sub" id="revenueWeeklyRangeLabel"></p>
-          <div class="chart-wrap chart-wrap-small">
-            <svg id="revenueChartWeekly" preserveAspectRatio="none"></svg>
-          </div>
+          <div class="iso-chart" id="revenueChartWeekly"></div>
         </div>
-        <div class="revenue-sub" id="revenueMonthlyBlock" hidden>
-          <h4 class="revenue-sub-title">Monatlich</h4>
+        <div class="card span-6" id="revenueMonthlyBlock" hidden>
+          <p class="revenue-sub-title">Monatlich</p>
           <p class="section-sub" id="revenueMonthlyRangeLabel"></p>
-          <div class="chart-wrap chart-wrap-small">
-            <svg id="revenueChartMonthly" preserveAspectRatio="none"></svg>
-          </div>
+          <div class="iso-chart" id="revenueChartMonthly"></div>
         </div>
       </div>
     </div>
@@ -134,15 +137,19 @@
 
   <section id="zeit" class="section">
     <div class="section-head">
-      <h2><span class="section-icon">⏱️</span>Zeit-Balance</h2>
+      <h2><span class="section-marker"></span>Zeit-Balance</h2>
       <p class="section-sub" id="timeRangeLabel"></p>
     </div>
     <div class="panel">
-      <div class="time-summary" id="timeSummary"></div>
-      <div class="chart-wrap">
-        <svg id="timeChart" preserveAspectRatio="none"></svg>
+      <div class="donut-wrap">
+        <div class="donut" id="timeDonut">
+          <div class="donut-center"><span class="num" id="timeDonutTotal"></span><span class="lbl">gesamt</span></div>
+        </div>
+        <div class="legend" id="timeLegend"></div>
+        <div class="spark-wrap">
+          <svg id="timeSparkline" viewBox="0 0 320 54" preserveAspectRatio="none"></svg>
+        </div>
       </div>
-      <div class="chart-legend" id="chartLegend"></div>
       <p class="sync-note">Automatischer Sync aller Daten täglich um 08:00 Uhr · manuell: Button "Sync" oben rechts, oder GitHub-Repo → Tab "Actions" → Workflow "Sync all dashboard data" → "Run workflow"</p>
     </div>
   </section>

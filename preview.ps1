@@ -7,7 +7,7 @@ Write-Host "Serving $root on http://localhost:8934/"
 $mime = @{
   ".html" = "text/html"; ".css" = "text/css"; ".js" = "application/javascript";
   ".json" = "application/json"; ".svg" = "image/svg+xml"; ".md" = "text/plain";
-  ".webmanifest" = "application/manifest+json"
+  ".webmanifest" = "application/manifest+json"; ".woff2" = "font/woff2"
 }
 
 while ($listener.IsListening) {

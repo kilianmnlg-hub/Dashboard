@@ -233,16 +233,15 @@
       const trend = historyKey ? computeTrend(data.metricsHistory?.[historyKey]) : null;
       card.innerHTML = `
         <p class="card-title">${goal.label}</p>
-        <div class="goal-values">
-          <span class="goal-current">${fmtDE.format(goal.current)} ${goal.unit}</span>
-          <span>Ziel: ${fmtDE.format(goal.target)} ${goal.unit}</span>
+        <div class="gauge-row">
+          <div class="gauge" style="--pct:${pct}; --gc:${accent}"><span>${pct.toFixed(0)}%</span></div>
+          <div class="gauge-meta">
+            <span class="num">${fmtDE.format(goal.current)} ${goal.unit}</span>
+            <span class="lbl">Ziel ${fmtDE.format(goal.target)} ${goal.unit}</span>
+            <span class="due">${dueLabel}</span>
+          </div>
         </div>
-        <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
-        <div class="goal-meta">
-          <span class="goal-pct">${pct.toFixed(1)}%</span>
-          <span>${dueLabel}</span>
-        </div>
-        ${trend !== null ? `<p class="goal-trend">${renderTrendBadge(trend, goal.unit)}</p>` : ""}
+        ${trend !== null ? `<div class="goal-trend">${renderTrendBadge(trend, goal.unit)}</div>` : ""}
       `;
     }
     goalsGrid.appendChild(card);
@@ -402,81 +401,64 @@
     }
   });
 
-  // ---------- Time tracker ----------
+  // ---------- Time tracker: Donut (Kategorie-Split) + Sparkline (Tages-Trend) ----------
   const tt = data.timeTracker;
   document.getElementById("timeRangeLabel").textContent = `${fmtDate(tt.range.from)} – ${fmtDate(tt.range.to)} · Quelle: ${tt.source}`;
 
   const toHours = (min) => min / 60;
   const totalMinutes = Object.values(tt.totalsByCategory).reduce((a, b) => a + b, 0);
-
-  const timeSummary = document.getElementById("timeSummary");
   const categoryColors = { YouTube: "var(--accent-bricks)", Bricklink: "var(--accent-bricklink)" };
-  timeSummary.innerHTML =
-    Object.entries(tt.totalsByCategory)
-      .map(
-        ([cat, min]) => `
-      <div class="time-stat">
-        <div class="time-stat-value" style="color:${categoryColors[cat] || "var(--text)"}">${toHours(min).toFixed(1)} h</div>
-        <div class="time-stat-label">${cat} (${((min / totalMinutes) * 100).toFixed(0)}%)</div>
-      </div>`
-      )
-      .join("") +
-    `<div class="time-stat">
-      <div class="time-stat-value">${toHours(totalMinutes).toFixed(1)} h</div>
-      <div class="time-stat-label">Gesamt erfasst</div>
-    </div>`;
 
-  document.getElementById("chartLegend").innerHTML = Object.keys(tt.totalsByCategory)
-    .map((cat) => `<span><span class="legend-dot" style="background:${categoryColors[cat]}"></span>${cat}</span>`)
+  document.getElementById("timeDonutTotal").textContent = `${toHours(totalMinutes).toFixed(1)}h`;
+
+  let donutCursor = 0;
+  const donutStops = Object.entries(tt.totalsByCategory).map(([cat, min]) => {
+    const from = donutCursor;
+    donutCursor += (min / totalMinutes) * 100;
+    return `${categoryColors[cat] || "var(--surface-3)"} ${from}% ${donutCursor}%`;
+  });
+  donutStops.push(`var(--surface-3) ${donutCursor}% 100%`);
+  document.getElementById("timeDonut").style.background = `conic-gradient(${donutStops.join(", ")})`;
+
+  document.getElementById("timeLegend").innerHTML = Object.entries(tt.totalsByCategory)
+    .map(
+      ([cat, min]) => `
+      <div class="legend-row">
+        <span class="legend-dot" style="background:${categoryColors[cat] || "var(--surface-3)"}"></span>
+        ${cat}
+        <span class="v">${toHours(min).toFixed(1)}h · ${((min / totalMinutes) * 100).toFixed(0)}%</span>
+      </div>`
+    )
     .join("");
 
-  renderChart(tt.daily, categoryColors);
+  renderSparkline(tt.daily);
 
-  function renderChart(daily, colors) {
-    const svg = document.getElementById("timeChart");
-    const W = 800;
-    const H = 220;
-    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-
-    const categories = Object.keys(colors);
-    const maxTotal = Math.max(
-      1,
-      ...daily.map((d) => categories.reduce((sum, c) => sum + (d[c] || 0), 0))
-    );
-
-    const padLeft = 34;
-    const padBottom = 24;
-    const chartH = H - padBottom - 10;
-    const barSlot = (W - padLeft) / daily.length;
-    const barWidth = Math.min(34, barSlot * 0.55);
-
-    let svgContent = "";
-
-    // gridlines
-    const gridSteps = 4;
-    for (let i = 0; i <= gridSteps; i++) {
-      const y = 10 + (chartH / gridSteps) * i;
-      const hoursLabel = (toHours(maxTotal) * (1 - i / gridSteps)).toFixed(0);
-      svgContent += `<line x1="${padLeft}" y1="${y}" x2="${W}" y2="${y}" stroke="var(--border)" stroke-width="1" />`;
-      svgContent += `<text x="0" y="${y + 4}" font-size="10" fill="var(--text-faint)">${hoursLabel}h</text>`;
-    }
-
-    daily.forEach((d, i) => {
-      const x = padLeft + i * barSlot + (barSlot - barWidth) / 2;
-      let yCursor = 10 + chartH;
-      categories.forEach((cat) => {
-        const val = d[cat] || 0;
-        const barH = (val / maxTotal) * chartH;
-        yCursor -= barH;
-        if (val > 0) {
-          svgContent += `<rect x="${x}" y="${yCursor}" width="${barWidth}" height="${barH}" rx="3" fill="${colors[cat]}"><title>${cat}: ${toHours(val).toFixed(1)}h</title></rect>`;
-        }
-      });
-      const label = new Date(d.date + "T00:00:00").toLocaleDateString("de-DE", { weekday: "short" });
-      svgContent += `<text x="${x + barWidth / 2}" y="${H - 4}" font-size="10" fill="var(--text-faint)" text-anchor="middle">${label}</text>`;
+  function renderSparkline(daily) {
+    const svg = document.getElementById("timeSparkline");
+    const totals = daily.map((d) => toHours((d.YouTube || 0) + (d.Bricklink || 0)));
+    const W = 320;
+    const H = 54;
+    const pad = 4;
+    const maxV = Math.max(...totals);
+    const minV = Math.min(...totals);
+    const pts = totals.map((v, i) => {
+      const x = pad + (i / (totals.length - 1 || 1)) * (W - pad * 2);
+      const y = H - pad - ((v - minV) / (maxV - minV || 1)) * (H - pad * 2);
+      return [x, y];
     });
-
-    svg.innerHTML = svgContent;
+    const path = pts.map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+    const area = `${path} L ${pts[pts.length - 1][0]} ${H} L ${pts[0][0]} ${H} Z`;
+    svg.innerHTML = `
+      <defs><linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--accent-bricks)" stop-opacity="0.35" />
+        <stop offset="100%" stop-color="var(--accent-bricks)" stop-opacity="0" />
+      </linearGradient></defs>
+      <path d="${area}" fill="url(#sparkFill)" />
+      <path d="${path}" fill="none" stroke="var(--accent-bricks)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <title>Tages-Gesamtzeit (YouTube + Bricklink)</title>
+      </path>
+      <circle cx="${pts[pts.length - 1][0]}" cy="${pts[pts.length - 1][1]}" r="4" fill="var(--accent-bricks)" stroke="var(--surface)" stroke-width="2" />
+    `;
   }
 
   // ---------- Umsatz-Trend (Bricklink) ----------
@@ -523,37 +505,21 @@
   }
 
   function renderRevenueChart({ svgId, entries, currency, keyField, formatLabel, formatTooltip }) {
-    const svg = document.getElementById(svgId);
-    const W = 800;
-    const H = 160;
-    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-
+    const container = document.getElementById(svgId);
     const maxTotal = Math.max(1, ...entries.map((e) => e.total));
-    const padLeft = 42;
-    const padBottom = 22;
-    const chartH = H - padBottom - 10;
-    const barSlot = (W - padLeft) / entries.length;
-    const barWidth = Math.min(40, barSlot * 0.55);
+    const currencySign = currency === "EUR" ? "€" : "";
 
-    let svgContent = "";
-    const gridSteps = 3;
-    for (let i = 0; i <= gridSteps; i++) {
-      const y = 10 + (chartH / gridSteps) * i;
-      const valueLabel = Math.round(maxTotal * (1 - i / gridSteps));
-      svgContent += `<line x1="${padLeft}" y1="${y}" x2="${W}" y2="${y}" stroke="var(--border)" stroke-width="1" />`;
-      svgContent += `<text x="0" y="${y + 4}" font-size="10" fill="var(--text-faint)">${valueLabel}${currency === "EUR" ? "€" : ""}</text>`;
-    }
-
-    entries.forEach((e, i) => {
-      const key = e[keyField];
-      const x = padLeft + i * barSlot + (barSlot - barWidth) / 2;
-      const barH = (e.total / maxTotal) * chartH;
-      const y = 10 + chartH - barH;
-      svgContent += `<rect x="${x}" y="${y}" width="${barWidth}" height="${barH}" rx="3" fill="var(--accent-bricklink)"><title>${formatTooltip(key)}: ${e.total.toFixed(2)} ${currency} (${e.orderCount} Bestellungen)</title></rect>`;
-      svgContent += `<text x="${x + barWidth / 2}" y="${H - 4}" font-size="10" fill="var(--text-faint)" text-anchor="middle">${formatLabel(key)}</text>`;
-    });
-
-    svg.innerHTML = svgContent;
+    container.innerHTML = entries
+      .map((e) => {
+        const key = e[keyField];
+        const h = Math.round((e.total / maxTotal) * 130) + 24;
+        return `<div class="iso-bar-col" title="${formatTooltip(key)}: ${e.total.toFixed(2)} ${currency} (${e.orderCount} Bestellungen)">
+          <div class="iso-bar-value">${Math.round(e.total)}${currencySign}</div>
+          <div class="iso-bar" style="--h:${h}px"><div class="f top"></div><div class="f front"></div><div class="f side"></div></div>
+          <div class="iso-bar-label">${formatLabel(key)}</div>
+        </div>`;
+      })
+      .join("");
   }
 
   // ---------- Tages-To-Do ----------
