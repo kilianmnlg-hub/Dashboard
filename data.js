@@ -1,4 +1,4 @@
-// Datenquelle für das Dashboard.
+﻿// Datenquelle für das Dashboard.
 // timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt),
 // goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue und metricsHistory
 // (für die Wochenvergleich-Trendpfeile) werden automatisch von scripts/sync-all.mjs
@@ -19,48 +19,21 @@ const DASHBOARD_DATA = {
     "workflowFile": "sync-all.yml"
   },
   "brainMap": {
-    "syncedAt": "2026-08-05T20:18:04.427Z",
+    "syncedAt": "2026-08-06T15:18:53.030Z",
     "vaultName": "Kilian Obsidian",
     "areas": [
-      {
-        "id": "bricklink",
-        "folder": "Bricklink",
-        "noteCount": 1,
-        "color": "var(--accent-bricklink)"
-      },
-      {
-        "id": "botf",
-        "folder": "Bricks On The Floor",
-        "noteCount": 1,
-        "color": "var(--accent-bricks)"
-      },
-      {
-        "id": "ideen",
-        "folder": "Ideen",
-        "noteCount": 1,
-        "color": "var(--accent-tiktok)"
-      },
-      {
-        "id": "laden",
-        "folder": "Laden",
-        "noteCount": 1,
-        "color": "var(--node-laden)"
-      },
-      {
-        "id": "privat",
-        "folder": "Privat",
-        "noteCount": 1,
-        "color": "var(--node-privat)"
-      },
-      {
-        "id": "brainwalkers",
-        "folder": "The Brainwalkers",
-        "noteCount": 1,
-        "color": "var(--accent-brainwalkers)"
-      }
+      { "id": "bricklink", "folder": "Bricklink", "noteCount": 1, "color": "var(--accent-bricklink)" },
+      { "id": "botf", "folder": "Bricks On The Floor", "noteCount": 1, "color": "var(--accent-bricks)" },
+      { "id": "ideen", "folder": "Ideen", "noteCount": 2, "color": "var(--accent-tiktok)" },
+      { "id": "laden", "folder": "Laden", "noteCount": 1, "color": "var(--node-laden)" },
+      { "id": "privat", "folder": "Privat", "noteCount": 1, "color": "var(--node-privat)" },
+      { "id": "brainwalkers", "folder": "The Brainwalkers", "noteCount": 1, "color": "var(--accent-brainwalkers)" }
     ]
   },
-  "notes": [],
+  "notes": [
+    { "date": "2026-08-05T22:31:00", "category": "Ideen", "text": "Bodycam for YouTube" },
+    { "date": "2026-08-05T22:29:00", "category": "Ideen", "text": "Bodycam for Youtube" }
+  ],
   "metricsHistory": {
     "bricksOnTheFloorAbos": [
       {
