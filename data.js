@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-08-07",
-    "lastSyncedAt": "2026-08-07T06:12:02.312Z",
+    "lastSyncedAt": "2026-08-07T06:12:51.522Z",
     "owner": "Kilian"
   },
   "github": {
