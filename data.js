@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-08-11",
-    "lastSyncedAt": "2026-08-11T09:34:34.881Z",
+    "lastSyncedAt": "2026-08-11T10:14:42.506Z",
     "owner": "Kilian"
   },
   "github": {
@@ -215,7 +215,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-11T09:34:34.574Z",
+    "checkedAt": "2026-08-11T10:14:42.394Z",
     "openOrdersCount": 259,
     "pendingShipments": [
       {
@@ -229,7 +229,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-11T09:34:34.880Z",
+    "checkedAt": "2026-08-11T10:14:42.505Z",
     "currency": "EUR",
     "weekly": [
       {
