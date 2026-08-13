@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-08-12",
-    "lastSyncedAt": "2026-08-12T10:41:05.178Z",
+    "lastUpdated": "2026-08-13",
+    "lastSyncedAt": "2026-08-13T09:46:40.372Z",
     "owner": "Kilian"
   },
   "github": {
@@ -109,6 +109,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-12",
         "value": 28400
+      },
+      {
+        "date": "2026-08-13",
+        "value": 28400
       }
     ],
     "brainwalkersAbos": [
@@ -147,6 +151,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-12",
         "value": 258
+      },
+      {
+        "date": "2026-08-13",
+        "value": 259
       }
     ],
     "tiktokFollower": [
@@ -185,6 +193,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-12",
         "value": 2725
+      },
+      {
+        "date": "2026-08-13",
+        "value": 2725
       }
     ]
   },
@@ -211,7 +223,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 258,
+      "current": 259,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -227,7 +239,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-12T10:41:04.850Z",
+    "checkedAt": "2026-08-13T09:46:40.114Z",
     "openOrdersCount": 259,
     "pendingShipments": [
       {
@@ -241,7 +253,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-12T10:41:05.177Z",
+    "checkedAt": "2026-08-13T09:46:40.371Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -385,15 +397,15 @@ const DASHBOARD_DATA = {
       "subtitle": "Magic: The Gathering · Nebenprojekt",
       "accent": "brainwalkers",
       "uploadRhythmDays": 14,
-      "lastUploadAt": "2026-07-29T13:55:39Z",
+      "lastUploadAt": "2026-08-12T14:05:01Z",
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "258"
+          "value": "259"
         },
         {
           "label": "Videos",
-          "value": "59"
+          "value": "60"
         },
         {
           "label": "Rhythmus",
@@ -407,10 +419,10 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-08-11"
+      "to": "2026-08-12"
     },
     "totalsByCategory": {
-      "YouTube": 3958.97,
+      "YouTube": 4692.65,
       "Bricklink": 854.86
     },
     "daily": [
@@ -501,7 +513,12 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-08-11",
-        "YouTube": 165.24,
+        "YouTube": 435.24,
+        "Bricklink": 0
+      },
+      {
+        "date": "2026-08-12",
+        "YouTube": 463.68,
         "Bricklink": 0
       }
     ]
