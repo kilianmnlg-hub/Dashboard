@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-08-13",
-    "lastSyncedAt": "2026-08-13T10:43:37.583Z",
+    "lastUpdated": "2026-08-14",
+    "lastSyncedAt": "2026-08-14T09:41:18.577Z",
     "owner": "Kilian"
   },
   "github": {
@@ -113,6 +113,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-13",
         "value": 28400
+      },
+      {
+        "date": "2026-08-14",
+        "value": 28400
       }
     ],
     "brainwalkersAbos": [
@@ -155,6 +159,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-13",
         "value": 259
+      },
+      {
+        "date": "2026-08-14",
+        "value": 261
       }
     ],
     "tiktokFollower": [
@@ -197,6 +205,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-13",
         "value": 2725
+      },
+      {
+        "date": "2026-08-14",
+        "value": 2728
       }
     ]
   },
@@ -223,7 +235,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 259,
+      "current": 261,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -232,14 +244,14 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2725,
+      "current": 2728,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-13T10:43:37.289Z",
+    "checkedAt": "2026-08-14T09:41:18.414Z",
     "openOrdersCount": 259,
     "pendingShipments": [
       {
@@ -253,7 +265,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-13T10:43:37.582Z",
+    "checkedAt": "2026-08-14T09:41:18.576Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -300,8 +312,8 @@ const DASHBOARD_DATA = {
     "monthly": [
       {
         "month": "2026-02",
-        "total": 153.74,
-        "orderCount": 4
+        "total": 136.9,
+        "orderCount": 3
       },
       {
         "month": "2026-03",
@@ -401,11 +413,11 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "259"
+          "value": "261"
         },
         {
           "label": "Videos",
-          "value": "60"
+          "value": "61"
         },
         {
           "label": "Rhythmus",
