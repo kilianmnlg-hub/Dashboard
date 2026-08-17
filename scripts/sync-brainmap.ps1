@@ -138,6 +138,29 @@ if (-not $diff) {
   exit 0
 }
 git commit -m "Brain-Map Sync (automatisch)" | Out-Null
-git pull --rebase origin main
-git push origin main
+
+# Wiederholung mit Wartezeit: dieses Skript und der GitHub-Actions-Sync laufen beide um
+# 08:00 Uhr und pushen gelegentlich zeitgleich - dann schlaegt der Rebase mit einem
+# Konflikt fehl. Statt sofort aufzugeben: Rebase abbrechen, kurz warten, mit frischem
+# Stand erneut versuchen. Der Abbruch selbst wird bewusst nicht als fataler Fehler
+# behandelt (kann fehlschlagen, wenn gar kein Rebase mehr laeuft) - das darf den
+# Wiederholungsversuch nicht abwuergen.
+$pushed = $false
+for ($i = 1; $i -le 5; $i++) {
+  git pull --rebase origin main
+  if ($LASTEXITCODE -eq 0) {
+    git push origin main
+    if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
+  }
+  Write-Host "Push fehlgeschlagen (Versuch $i/5), vermutlich zeitgleicher anderer Push - erneut versuchen..."
+  if (Test-Path ".git\rebase-merge") {
+    try { git rebase --abort 2>$null } catch { }
+    if (Test-Path ".git\rebase-merge") { Remove-Item ".git\rebase-merge" -Recurse -Force -ErrorAction SilentlyContinue }
+  }
+  Start-Sleep -Seconds (Get-Random -Minimum 3 -Maximum 11)
+}
+if (-not $pushed) {
+  Write-Error "Push nach 5 Versuchen weiterhin fehlgeschlagen."
+  exit 1
+}
 Write-Host "Gepusht."

@@ -43,6 +43,20 @@ jobs:
           git add data.js
           git diff --quiet --cached || git commit -m "Automatischer Daten-Sync"
           # Rebase gegen den aktuellen Stand, falls in der Zwischenzeit jemand anderes
-          # (z.B. ein manueller Push) main aktualisiert hat, sonst schlägt der Push fehl.
-          git pull --rebase origin main
-          git push
+          # main aktualisiert hat (z.B. ein manueller Push, oder der lokale Brain-Map-Sync,
+          # der zufällig zur selben Zeit läuft) - sonst schlägt der Push fehl. Mit
+          # Wiederholung: bei einem echten Konflikt (beide ändern dieselbe Stelle in
+          # data.js) bricht der Rebase ab, dann kurz warten und mit frischem Stand erneut
+          # versuchen, statt den ganzen Lauf sofort scheitern zu lassen.
+          n=0
+          until [ $n -ge 5 ]; do
+            git pull --rebase origin main && git push && break
+            n=$((n+1))
+            echo "Push fehlgeschlagen (Versuch $n/5), vermutlich zeitgleicher anderer Push - erneut versuchen..."
+            git rebase --abort 2>/dev/null || true
+            sleep $((RANDOM % 8 + 3))
+          done
+          if [ $n -ge 5 ]; then
+            echo "Push nach 5 Versuchen weiterhin fehlgeschlagen."
+            exit 1
+          fi
