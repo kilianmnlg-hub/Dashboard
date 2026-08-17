@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-08-16",
-    "lastSyncedAt": "2026-08-16T07:56:15.967Z",
+    "lastUpdated": "2026-08-17",
+    "lastSyncedAt": "2026-08-17T07:53:53.749Z",
     "owner": "Kilian"
   },
   "github": {
@@ -125,6 +125,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-16",
         "value": 28500
+      },
+      {
+        "date": "2026-08-17",
+        "value": 28500
       }
     ],
     "brainwalkersAbos": [
@@ -179,6 +183,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-16",
         "value": 267
+      },
+      {
+        "date": "2026-08-17",
+        "value": 268
       }
     ],
     "tiktokFollower": [
@@ -233,6 +241,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-16",
         "value": 2725
+      },
+      {
+        "date": "2026-08-17",
+        "value": 2725
       }
     ]
   },
@@ -259,7 +271,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 267,
+      "current": 268,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -275,8 +287,8 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-16T07:56:15.893Z",
-    "openOrdersCount": 259,
+    "checkedAt": "2026-08-17T07:53:53.635Z",
+    "openOrdersCount": 260,
     "pendingShipments": [
       {
         "orderId": 32256607,
@@ -285,18 +297,21 @@ const DASHBOARD_DATA = {
         "orderedDate": "2026-08-05T12:33:27.917Z",
         "total": "23.7725",
         "currency": "EUR"
+      },
+      {
+        "orderId": 32347123,
+        "buyer": "ALFP",
+        "status": "PAID",
+        "orderedDate": "2026-08-16T21:10:34.937Z",
+        "total": "13.2186",
+        "currency": "EUR"
       }
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-16T07:56:15.966Z",
+    "checkedAt": "2026-08-17T07:53:53.748Z",
     "currency": "EUR",
     "weekly": [
-      {
-        "weekStart": "2026-06-15",
-        "total": 21.76,
-        "orderCount": 1
-      },
       {
         "weekStart": "2026-06-22",
         "total": 297.43,
@@ -331,6 +346,11 @@ const DASHBOARD_DATA = {
         "weekStart": "2026-08-03",
         "total": 497.95,
         "orderCount": 6
+      },
+      {
+        "weekStart": "2026-08-10",
+        "total": 13.22,
+        "orderCount": 1
       }
     ],
     "monthly": [
@@ -366,8 +386,8 @@ const DASHBOARD_DATA = {
       },
       {
         "month": "2026-08",
-        "total": 497.95,
-        "orderCount": 6
+        "total": 511.17,
+        "orderCount": 7
       }
     ]
   },
@@ -406,7 +426,7 @@ const DASHBOARD_DATA = {
       "subtitle": "LEGO-YouTube-Kanal · Hauptprojekt",
       "accent": "bricks",
       "uploadRhythmDays": 7,
-      "lastUploadAt": "2026-08-09T13:55:13Z",
+      "lastUploadAt": "2026-08-16T13:55:39Z",
       "stats": [
         {
           "label": "Abonnenten",
@@ -437,11 +457,11 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "267"
+          "value": "268"
         },
         {
           "label": "Videos",
-          "value": "63"
+          "value": "64"
         },
         {
           "label": "Rhythmus",
@@ -458,13 +478,13 @@ const DASHBOARD_DATA = {
       "to": "2026-08-12"
     },
     "totalsByCategory": {
-      "YouTube": 4692.65,
+      "YouTube": 37520.81,
       "Bricklink": 854.86
     },
     "daily": [
       {
         "date": "2026-07-25",
-        "YouTube": 246.75,
+        "YouTube": 33074.91,
         "Bricklink": 0
       },
       {
