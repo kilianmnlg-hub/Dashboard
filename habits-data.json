@@ -27,6 +27,10 @@
     {
       "id": "e9d7a0a6-7834-4bc9-aeba-044f02061eda",
       "label": "Intervallfasten"
+    },
+    {
+      "id": "756c951f-2999-4b1f-b235-6beb97e5b67f",
+      "label": "Meditation"
     }
   ],
   "log": {
@@ -51,6 +55,11 @@
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
       "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true
+    },
+    "2026-08-10": {
+      "gym": true,
+      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
+      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
     }
   }
 }
