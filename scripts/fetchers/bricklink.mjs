@@ -67,30 +67,19 @@ function aggregateBy(orders, keyFn) {
     }));
 }
 
-// Summiert die Stückzahl aller Teile über alle nicht-stornierten Bestellungen (offen +
-// archiviert) hinweg — Grundlage für das "100.000 Teile"-Lebenszeit-Ziel. Braucht einen
-// eigenen API-Aufruf pro Bestellung (Bricklink liefert Artikel nicht bestellübergreifend
-// in einem Rutsch), das kann bei vielen Bestellungen eine Weile dauern. Einzelne
-// fehlschlagende Bestellungen werden übersprungen statt den ganzen Sync abzubrechen.
-async function fetchTotalPartsSold(orders, creds) {
+// Summiert "total_count" (Gesamtstückzahl aller Teile in der Bestellung, liefert Bricklink
+// direkt am Order-Objekt mit) über alle nicht-stornierten Bestellungen (offen + archiviert)
+// hinweg — Grundlage für das "100.000 Teile"-Lebenszeit-Ziel. Braucht keinen zusätzlichen
+// API-Aufruf, da total_count schon in der ohnehin geladenen Order-Liste steckt.
+function sumTotalItems(orders) {
+  const seen = new Set();
   let total = 0;
-  let failedCount = 0;
-  for (const o of orders) {
-    if (NON_REVENUE_STATUSES.includes(String(o.status).toUpperCase())) continue;
-    try {
-      const batches = await bricklinkGet(`/orders/${o.order_id}/items`, {}, creds);
-      (batches || []).forEach((batch) => {
-        (batch || []).forEach((item) => {
-          total += Number(item.quantity) || 0;
-        });
-      });
-    } catch (err) {
-      failedCount += 1;
-    }
-  }
-  if (failedCount > 0) {
-    console.warn(`[bricklink] Teile-Summe: ${failedCount} von ${orders.length} Bestellungen übersprungen (Abruf fehlgeschlagen).`);
-  }
+  orders.forEach((o) => {
+    if (seen.has(o.order_id)) return;
+    seen.add(o.order_id);
+    if (NON_REVENUE_STATUSES.includes(String(o.status).toUpperCase())) return;
+    total += Number(o.total_count) || 0;
+  });
   return total;
 }
 
@@ -177,7 +166,7 @@ export async function fetchBricklink(currentData) {
     // beim letzten bekannten Stand, statt fälschlich auf nur die offenen Bestellungen
     // zurückzufallen.
     if (currentData?.goals?.some((g) => g.id === "bricklink-parts")) {
-      const totalParts = await fetchTotalPartsSold(allOrders, creds);
+      const totalParts = sumTotalItems(allOrders);
       console.log(`[bricklink] ${totalParts} Teile insgesamt über ${allOrders.length} Bestellungen summiert.`);
       patch.goals = (patch.goals || currentData.goals).map((g) =>
         g.id === "bricklink-parts" ? { ...g, current: totalParts } : g
