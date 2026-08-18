@@ -67,7 +67,7 @@ async function main() {
     ["time-tracker", () => fetchTimeTracker()],
     ["youtube", () => fetchYouTube(DASHBOARD_DATA)],
     ["tiktok", () => fetchTikTok(DASHBOARD_DATA)],
-    ["bricklink", () => fetchBricklink()]
+    ["bricklink", () => fetchBricklink(DASHBOARD_DATA)]
   ];
 
   for (const [label, run] of fetchers) {

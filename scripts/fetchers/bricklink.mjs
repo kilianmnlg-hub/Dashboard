@@ -67,7 +67,34 @@ function aggregateBy(orders, keyFn) {
     }));
 }
 
-export async function fetchBricklink() {
+// Summiert die Stückzahl aller Teile über alle nicht-stornierten Bestellungen (offen +
+// archiviert) hinweg — Grundlage für das "100.000 Teile"-Lebenszeit-Ziel. Braucht einen
+// eigenen API-Aufruf pro Bestellung (Bricklink liefert Artikel nicht bestellübergreifend
+// in einem Rutsch), das kann bei vielen Bestellungen eine Weile dauern. Einzelne
+// fehlschlagende Bestellungen werden übersprungen statt den ganzen Sync abzubrechen.
+async function fetchTotalPartsSold(orders, creds) {
+  let total = 0;
+  let failedCount = 0;
+  for (const o of orders) {
+    if (NON_REVENUE_STATUSES.includes(String(o.status).toUpperCase())) continue;
+    try {
+      const batches = await bricklinkGet(`/orders/${o.order_id}/items`, {}, creds);
+      (batches || []).forEach((batch) => {
+        (batch || []).forEach((item) => {
+          total += Number(item.quantity) || 0;
+        });
+      });
+    } catch (err) {
+      failedCount += 1;
+    }
+  }
+  if (failedCount > 0) {
+    console.warn(`[bricklink] Teile-Summe: ${failedCount} von ${orders.length} Bestellungen übersprungen (Abruf fehlgeschlagen).`);
+  }
+  return total;
+}
+
+export async function fetchBricklink(currentData) {
   const creds = {
     consumerKey: process.env.BRICKLINK_CONSUMER_KEY,
     consumerSecret: process.env.BRICKLINK_CONSUMER_SECRET,
@@ -143,8 +170,21 @@ export async function fetchBricklink() {
     const currency = allOrders.find((o) => o.cost?.currency_code)?.cost?.currency_code || "EUR";
 
     patch.bricklinkRevenue = { checkedAt: new Date().toISOString(), currency, weekly, monthly };
+
+    // "100.000 Teile"-Lebenszeit-Ziel: Stückzahl über alle Bestellungen (offen + archiviert)
+    // hinweg summieren. Nur innerhalb dieses try-Blocks, weil dafür beide Bestell-Listen
+    // (unfiled + filed) gebraucht werden - schlägt die filed-Abfrage fehl, bleibt das Ziel
+    // beim letzten bekannten Stand, statt fälschlich auf nur die offenen Bestellungen
+    // zurückzufallen.
+    if (currentData?.goals?.some((g) => g.id === "bricklink-parts")) {
+      const totalParts = await fetchTotalPartsSold(allOrders, creds);
+      console.log(`[bricklink] ${totalParts} Teile insgesamt über ${allOrders.length} Bestellungen summiert.`);
+      patch.goals = (patch.goals || currentData.goals).map((g) =>
+        g.id === "bricklink-parts" ? { ...g, current: totalParts } : g
+      );
+    }
   } catch (err) {
-    console.error("[bricklink] Umsatz-Trend übersprungen (filed-Abfrage fehlgeschlagen):", err.message);
+    console.error("[bricklink] Umsatz-Trend/Teile-Summe übersprungen (filed-Abfrage fehlgeschlagen):", err.message);
   }
 
   return patch;

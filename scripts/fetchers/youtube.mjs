@@ -7,8 +7,8 @@
 // erfordern) und bleiben deshalb weiterhin manuell in data.js gepflegt.
 
 const CHANNELS = [
-  { handle: "bricksonthefloor610", key: "bricksOnTheFloor", goalId: "bricks-abos" },
-  { handle: "thebrainwalkers", key: "brainwalkers", goalId: "brainwalkers-abos" }
+  { handle: "bricksonthefloor610", key: "bricksOnTheFloor", goalId: "bricks-abos", longformGoalId: "bricks-longform-2026" },
+  { handle: "thebrainwalkers", key: "brainwalkers", goalId: "brainwalkers-abos", longformGoalId: "brainwalkers-longform-2026" }
 ];
 
 // YouTube erlaubt Shorts inzwischen bis zu 3 Minuten. Die Data API kennzeichnet Videos nicht
@@ -71,6 +71,52 @@ async function fetchLastLongformUploadDate(playlistId, apiKey) {
   return longformDates[0];
 }
 
+// Zählt Longform-Uploads seit dem 1. Januar des laufenden Jahres — für das "X Longform-
+// Videos in [Jahr]"-Ziel. Blättert die Uploads-Playlist (neueste zuerst) seitenweise durch
+// und bricht ab, sobald ein Video vor dem Jahresanfang liegt, statt den ganzen Kanal-
+// Verlauf zu laden.
+async function fetchLongformCountThisYear(playlistId, apiKey) {
+  const yearStart = new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1));
+  let count = 0;
+  let pageToken = "";
+  let reachedLastYear = false;
+
+  while (!reachedLastYear) {
+    const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${playlistId}&maxResults=50&key=${apiKey}${pageToken ? `&pageToken=${pageToken}` : ""}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`YouTube API Fehler ${res.status} bei Uploads-Playlist ${playlistId}: ${await res.text()}`);
+    const json = await res.json();
+    const items = json.items || [];
+    if (items.length === 0) break;
+
+    const inYear = [];
+    for (const item of items) {
+      const publishedAt = item.contentDetails.videoPublishedAt;
+      if (publishedAt && new Date(publishedAt) < yearStart) {
+        reachedLastYear = true;
+        break;
+      }
+      inYear.push(item.contentDetails.videoId);
+    }
+
+    // Dauer der Videos dieser Seite abfragen (max. 50 IDs pro Aufruf erlaubt, passt hier immer).
+    if (inYear.length > 0) {
+      const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${inYear.join(",")}&key=${apiKey}`;
+      const videosRes = await fetch(videosUrl);
+      if (!videosRes.ok) throw new Error(`YouTube API Fehler ${videosRes.status} bei Video-Details: ${await videosRes.text()}`);
+      const videosJson = await videosRes.json();
+      (videosJson.items || []).forEach((v) => {
+        if (parseIsoDuration(v.contentDetails.duration) > SHORTS_MAX_SECONDS) count += 1;
+      });
+    }
+
+    pageToken = json.nextPageToken;
+    if (!pageToken) break;
+  }
+
+  return count;
+}
+
 export async function fetchYouTube(currentData) {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) {
@@ -80,7 +126,7 @@ export async function fetchYouTube(currentData) {
 
   const patch = { business: {}, goals: [...currentData.goals] };
 
-  for (const { handle, key, goalId } of CHANNELS) {
+  for (const { handle, key, goalId, longformGoalId } of CHANNELS) {
     try {
       const stats = await fetchChannelStats(handle, apiKey);
       const lastUploadAt = await fetchLastLongformUploadDate(stats.uploadsPlaylistId, apiKey);
@@ -95,6 +141,12 @@ export async function fetchYouTube(currentData) {
       }
       biz.lastUploadAt = lastUploadAt;
       patch.business[key] = biz;
+
+      if (longformGoalId && patch.goals.some((g) => g.id === longformGoalId)) {
+        const longformCount = await fetchLongformCountThisYear(stats.uploadsPlaylistId, apiKey);
+        console.log(`[youtube] @${handle}: ${longformCount} Longform-Videos seit Jahresanfang.`);
+        patch.goals = patch.goals.map((g) => (g.id === longformGoalId ? { ...g, current: longformCount } : g));
+      }
 
       patch.goals = patch.goals.map((g) => (g.id === goalId ? { ...g, current: stats.subscriberCount } : g));
     } catch (err) {

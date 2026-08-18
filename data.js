@@ -311,6 +311,33 @@ const DASHBOARD_DATA = {
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
+    },
+    {
+      "id": "bricklink-parts",
+      "label": "Bricklink – Teile verkauft",
+      "project": "bricklink",
+      "current": 0,
+      "target": 100000,
+      "unit": "Teile",
+      "due": "2026-12-31"
+    },
+    {
+      "id": "bricks-longform-2026",
+      "label": "Bricks On The Floor – Longform-Videos 2026",
+      "project": "bricksOnTheFloor",
+      "current": 0,
+      "target": 52,
+      "unit": "Videos",
+      "due": "2026-12-31"
+    },
+    {
+      "id": "brainwalkers-longform-2026",
+      "label": "The Brainwalkers – Longform-Videos 2026",
+      "project": "brainwalkers",
+      "current": 0,
+      "target": 26,
+      "unit": "Videos",
+      "due": "2026-12-31"
     }
   ],
   "bricklinkOrders": {
