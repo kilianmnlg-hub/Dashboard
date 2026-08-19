@@ -1,12 +1,14 @@
 // Holt Bestelldaten aus der Bricklink API: offene Bestellungen (für den "noch zu
-// verschicken"-Alarm) und Umsatz-Trends (wöchentlich und monatlich).
+// verschicken"-Alarm), Umsatz-Trends (wöchentlich und monatlich) sowie den aktuellen
+// Inventar-Bestand ("Total Items" für das 100.000-Teile-Ziel).
 // Benötigt: BRICKLINK_CONSUMER_KEY, BRICKLINK_CONSUMER_SECRET, BRICKLINK_TOKEN_VALUE,
 // BRICKLINK_TOKEN_SECRET (siehe README für Einrichtung).
 //
 // Wichtig: Bricklink bietet über die API keine "Store-Besuche", kein aggregiertes
 // "Feedback gesamt" und keine "Drive-Thru-Mail"-Zähler an — diese Werte bleiben
 // weiterhin manuell in data.js gepflegt. Automatisiert wird hier gezielt das, was die
-// Order-API tatsächlich hergibt: offene Bestellungen, deren Versandstatus und Beträge.
+// Order- und Inventory-API tatsächlich hergeben: offene Bestellungen, deren
+// Versandstatus und Beträge, sowie die Gesamtstückzahl im Store-Inventar.
 
 import { buildAuthHeader } from "../lib/oauth1.mjs";
 
@@ -67,20 +69,13 @@ function aggregateBy(orders, keyFn) {
     }));
 }
 
-// Summiert "total_count" (Gesamtstückzahl aller Teile in der Bestellung, liefert Bricklink
-// direkt am Order-Objekt mit) über alle nicht-stornierten Bestellungen (offen + archiviert)
-// hinweg — Grundlage für das "100.000 Teile"-Lebenszeit-Ziel. Braucht keinen zusätzlichen
-// API-Aufruf, da total_count schon in der ohnehin geladenen Order-Liste steckt.
-function sumTotalItems(orders) {
-  const seen = new Set();
-  let total = 0;
-  orders.forEach((o) => {
-    if (seen.has(o.order_id)) return;
-    seen.add(o.order_id);
-    if (NON_REVENUE_STATUSES.includes(String(o.status).toUpperCase())) return;
-    total += Number(o.total_count) || 0;
-  });
-  return total;
+// "Total Items" = aktueller Lagerbestand im Store (Summe der Stückzahl über alle Lots in
+// deinem Inventar), NICHT die Stückzahl verkaufter Teile — entspricht der "Total Items"-
+// Kennzahl, die Bricklink dir selbst in den Store-Statistiken zeigt. Eigener, von den
+// Bestellungen unabhängiger API-Aufruf.
+async function fetchTotalInventoryItems(creds) {
+  const inventory = await bricklinkGet("/inventories", {}, creds);
+  return (inventory || []).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
 }
 
 export async function fetchBricklink(currentData) {
@@ -159,21 +154,23 @@ export async function fetchBricklink(currentData) {
     const currency = allOrders.find((o) => o.cost?.currency_code)?.cost?.currency_code || "EUR";
 
     patch.bricklinkRevenue = { checkedAt: new Date().toISOString(), currency, weekly, monthly };
-
-    // "100.000 Teile"-Lebenszeit-Ziel: Stückzahl über alle Bestellungen (offen + archiviert)
-    // hinweg summieren. Nur innerhalb dieses try-Blocks, weil dafür beide Bestell-Listen
-    // (unfiled + filed) gebraucht werden - schlägt die filed-Abfrage fehl, bleibt das Ziel
-    // beim letzten bekannten Stand, statt fälschlich auf nur die offenen Bestellungen
-    // zurückzufallen.
-    if (currentData?.goals?.some((g) => g.id === "bricklink-parts")) {
-      const totalParts = sumTotalItems(allOrders);
-      console.log(`[bricklink] ${totalParts} Teile insgesamt über ${allOrders.length} Bestellungen summiert.`);
-      patch.goals = (patch.goals || currentData.goals).map((g) =>
-        g.id === "bricklink-parts" ? { ...g, current: totalParts } : g
-      );
-    }
   } catch (err) {
-    console.error("[bricklink] Umsatz-Trend/Teile-Summe übersprungen (filed-Abfrage fehlgeschlagen):", err.message);
+    console.error("[bricklink] Umsatz-Trend übersprungen (filed-Abfrage fehlgeschlagen):", err.message);
+  }
+
+  // "100.000 Teile"-Ziel = aktueller Inventar-Bestand, unabhängig von den Bestellungen oben.
+  // Eigener try/catch, damit ein Fehler hier weder den Versand-Alarm noch die Umsatzcharts
+  // mitreißt (und umgekehrt) - das Ziel bleibt dann einfach beim letzten bekannten Stand.
+  if (currentData?.goals?.some((g) => g.id === "bricklink-parts")) {
+    try {
+      const totalItems = await fetchTotalInventoryItems(creds);
+      console.log(`[bricklink] ${totalItems} Teile im Inventar (Total Items).`);
+      patch.goals = (patch.goals || currentData.goals).map((g) =>
+        g.id === "bricklink-parts" ? { ...g, current: totalItems } : g
+      );
+    } catch (err) {
+      console.error("[bricklink] Inventar-Teile-Summe übersprungen:", err.message);
+    }
   }
 
   return patch;
