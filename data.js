@@ -19,7 +19,7 @@ const DASHBOARD_DATA = {
     "workflowFile": "sync-all.yml"
   },
   "brainMap": {
-    "syncedAt": "2026-08-23T06:07:09.470Z",
+    "syncedAt": "2026-08-24T06:07:26.369Z",
     "vaultName": "Kilian Obsidian",
     "areas": [
       {
