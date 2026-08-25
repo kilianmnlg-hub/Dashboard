@@ -1,4 +1,4 @@
-﻿// Datenquelle für das Dashboard.
+// Datenquelle für das Dashboard.
 // timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt),
 // goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue und metricsHistory
 // (für die Wochenvergleich-Trendpfeile) werden automatisch von scripts/sync-all.mjs
@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-08-24",
-    "lastSyncedAt": "2026-08-24T07:52:01.889Z",
+    "lastUpdated": "2026-08-25",
+    "lastSyncedAt": "2026-08-25T06:35:29.444Z",
     "owner": "Kilian"
   },
   "github": {
@@ -22,22 +22,80 @@ const DASHBOARD_DATA = {
     "syncedAt": "2026-08-25T06:07:03.883Z",
     "vaultName": "Kilian Obsidian",
     "areas": [
-      { "id": "bricklink", "folder": "Bricklink", "noteCount": 2, "color": "var(--accent-bricklink)" },
-      { "id": "botf", "folder": "Bricks On The Floor", "noteCount": 1, "color": "var(--accent-bricks)" },
-      { "id": "ideen", "folder": "Ideen", "noteCount": 2, "color": "var(--accent-tiktok)" },
-      { "id": "laden", "folder": "Laden", "noteCount": 1, "color": "var(--node-laden)" },
-      { "id": "privat", "folder": "Privat", "noteCount": 1, "color": "var(--node-privat)" },
-      { "id": "brainwalkers", "folder": "The Brainwalkers", "noteCount": 1, "color": "var(--accent-brainwalkers)" }
+      {
+        "id": "bricklink",
+        "folder": "Bricklink",
+        "noteCount": 2,
+        "color": "var(--accent-bricklink)"
+      },
+      {
+        "id": "botf",
+        "folder": "Bricks On The Floor",
+        "noteCount": 1,
+        "color": "var(--accent-bricks)"
+      },
+      {
+        "id": "ideen",
+        "folder": "Ideen",
+        "noteCount": 2,
+        "color": "var(--accent-tiktok)"
+      },
+      {
+        "id": "laden",
+        "folder": "Laden",
+        "noteCount": 1,
+        "color": "var(--node-laden)"
+      },
+      {
+        "id": "privat",
+        "folder": "Privat",
+        "noteCount": 1,
+        "color": "var(--node-privat)"
+      },
+      {
+        "id": "brainwalkers",
+        "folder": "The Brainwalkers",
+        "noteCount": 1,
+        "color": "var(--accent-brainwalkers)"
+      }
     ]
   },
   "notes": [
-    { "date": "2026-08-18T11:43:00", "category": "Ideen", "text": "Habittracker verbessern" },
-    { "date": "2026-08-18T11:43:00", "category": "Ideen", "text": "Habittracker verbessern" },
-    { "date": "2026-08-07T08:45:00", "category": "Bricklink", "text": "100k Artikel auf Bricklink als Ziel für dieses Jahr" },
-    { "date": "2026-08-07T08:42:00", "category": "Ideen", "text": "52 Bricks Vids und 26 Brain Vids in Ziele" },
-    { "date": "2026-08-07T08:41:00", "category": "Ideen", "text": "Calendar ins Dashboard" },
-    { "date": "2026-08-05T22:31:00", "category": "Ideen", "text": "Bodycam for YouTube" },
-    { "date": "2026-08-05T22:29:00", "category": "Ideen", "text": "Bodycam for Youtube" }
+    {
+      "date": "2026-08-18T11:43:00",
+      "category": "Ideen",
+      "text": "Habittracker verbessern"
+    },
+    {
+      "date": "2026-08-18T11:43:00",
+      "category": "Ideen",
+      "text": "Habittracker verbessern"
+    },
+    {
+      "date": "2026-08-07T08:45:00",
+      "category": "Bricklink",
+      "text": "100k Artikel auf Bricklink als Ziel für dieses Jahr"
+    },
+    {
+      "date": "2026-08-07T08:42:00",
+      "category": "Ideen",
+      "text": "52 Bricks Vids und 26 Brain Vids in Ziele"
+    },
+    {
+      "date": "2026-08-07T08:41:00",
+      "category": "Ideen",
+      "text": "Calendar ins Dashboard"
+    },
+    {
+      "date": "2026-08-05T22:31:00",
+      "category": "Ideen",
+      "text": "Bodycam for YouTube"
+    },
+    {
+      "date": "2026-08-05T22:29:00",
+      "category": "Ideen",
+      "text": "Bodycam for Youtube"
+    }
   ],
   "metricsHistory": {
     "bricksOnTheFloorAbos": [
@@ -124,6 +182,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-24",
         "value": 28700
+      },
+      {
+        "date": "2026-08-25",
+        "value": 28800
       }
     ],
     "brainwalkersAbos": [
@@ -210,6 +272,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-24",
         "value": 354
+      },
+      {
+        "date": "2026-08-25",
+        "value": 361
       }
     ],
     "tiktokFollower": [
@@ -296,6 +362,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-24",
         "value": 2736
+      },
+      {
+        "date": "2026-08-25",
+        "value": 2735
       }
     ]
   },
@@ -304,7 +374,7 @@ const DASHBOARD_DATA = {
       "id": "bricks-abos",
       "label": "Bricks On The Floor – Abonnenten",
       "project": "bricksOnTheFloor",
-      "current": 28700,
+      "current": 28800,
       "target": 50000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -322,7 +392,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 354,
+      "current": 361,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -331,7 +401,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2736,
+      "current": 2735,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -340,7 +410,7 @@ const DASHBOARD_DATA = {
       "id": "bricklink-parts",
       "label": "Bricklink – Teile verkauft",
       "project": "bricklink",
-      "current": 72685,
+      "current": 72593,
       "target": 100000,
       "unit": "Teile",
       "due": "2026-12-31"
@@ -349,7 +419,7 @@ const DASHBOARD_DATA = {
       "id": "bricks-longform-2026",
       "label": "Bricks On The Floor – Longform-Videos 2026",
       "project": "bricksOnTheFloor",
-      "current": 22,
+      "current": 23,
       "target": 52,
       "unit": "Videos",
       "due": "2026-12-31"
@@ -365,8 +435,8 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-24T07:52:01.236Z",
-    "openOrdersCount": 266,
+    "checkedAt": "2026-08-25T06:35:28.771Z",
+    "openOrdersCount": 268,
     "pendingShipments": [
       {
         "orderId": 32391043,
@@ -383,17 +453,33 @@ const DASHBOARD_DATA = {
         "orderedDate": "2026-08-23T15:00:08.040Z",
         "total": "131.0625",
         "currency": "EUR"
+      },
+      {
+        "orderId": 32406645,
+        "buyer": "dzuzo",
+        "status": "PAID",
+        "orderedDate": "2026-08-24T10:00:50.420Z",
+        "total": "138.7222",
+        "currency": "EUR"
+      },
+      {
+        "orderId": 32406842,
+        "buyer": "Merlin888",
+        "status": "PAID",
+        "orderedDate": "2026-08-24T10:33:02.077Z",
+        "total": "22.0950",
+        "currency": "EUR"
       }
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-24T07:52:01.272Z",
+    "checkedAt": "2026-08-25T06:35:28.864Z",
     "currency": "EUR",
     "weekly": [
       {
         "weekStart": "2026-06-29",
-        "total": 57.92,
-        "orderCount": 2
+        "total": 48.25,
+        "orderCount": 1
       },
       {
         "weekStart": "2026-07-06",
@@ -429,6 +515,11 @@ const DASHBOARD_DATA = {
         "weekStart": "2026-08-17",
         "total": 222.12,
         "orderCount": 6
+      },
+      {
+        "weekStart": "2026-08-24",
+        "total": 160.82,
+        "orderCount": 2
       }
     ],
     "monthly": [
@@ -464,8 +555,8 @@ const DASHBOARD_DATA = {
       },
       {
         "month": "2026-08",
-        "total": 733.29,
-        "orderCount": 13
+        "total": 894.1,
+        "orderCount": 15
       }
     ]
   },
@@ -504,11 +595,11 @@ const DASHBOARD_DATA = {
       "subtitle": "LEGO-YouTube-Kanal · Hauptprojekt",
       "accent": "bricks",
       "uploadRhythmDays": 7,
-      "lastUploadAt": "2026-08-16T13:55:39Z",
+      "lastUploadAt": "2026-08-24T13:55:04Z",
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "28.700",
+          "value": "28.800",
           "hint": "+397 letzte 28 Tage"
         },
         {
@@ -535,7 +626,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "354"
+          "value": "361"
         },
         {
           "label": "Videos",
@@ -556,144 +647,144 @@ const DASHBOARD_DATA = {
       "to": "2026-08-24"
     },
     "totalsByCategory": {
-      "YouTube": 39900.37,
-      "Bricklink": 1060.96
+      "YouTube": 39989.24,
+      "Bricklink": 1090.96
     },
     "daily": [
       {
         "date": "2026-07-25",
-        "YouTube": 33074.91,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 33074.91
       },
       {
         "date": "2026-07-26",
-        "YouTube": 155.56,
-        "Bricklink": 100.71
+        "Bricklink": 100.71,
+        "YouTube": 155.56
       },
       {
         "date": "2026-07-27",
-        "YouTube": 443.89,
-        "Bricklink": 185.8
+        "Bricklink": 185.8,
+        "YouTube": 443.89
       },
       {
         "date": "2026-07-28",
-        "YouTube": 359.29,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 359.29
       },
       {
         "date": "2026-07-29",
-        "YouTube": 150,
-        "Bricklink": 89.7
+        "Bricklink": 89.7,
+        "YouTube": 150
       },
       {
         "date": "2026-07-30",
-        "YouTube": 238.79,
-        "Bricklink": 15
+        "Bricklink": 15,
+        "YouTube": 238.79
       },
       {
         "date": "2026-07-31",
-        "YouTube": 134.64,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 134.64
       },
       {
         "date": "2026-08-01",
-        "YouTube": 183.78,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 183.78
       },
       {
         "date": "2026-08-02",
-        "YouTube": 280.31,
-        "Bricklink": 173.38
+        "Bricklink": 173.38,
+        "YouTube": 280.31
       },
       {
         "date": "2026-08-03",
-        "YouTube": 273.2,
-        "Bricklink": 90.04
+        "Bricklink": 90.04,
+        "YouTube": 273.2
       },
       {
         "date": "2026-08-04",
-        "YouTube": 108.98,
-        "Bricklink": 41.16
+        "Bricklink": 41.16,
+        "YouTube": 108.98
       },
       {
         "date": "2026-08-05",
-        "YouTube": 194.69,
-        "Bricklink": 25
+        "Bricklink": 25,
+        "YouTube": 194.69
       },
       {
         "date": "2026-08-06",
-        "YouTube": 150,
-        "Bricklink": 76.04
+        "Bricklink": 76.04,
+        "YouTube": 150
       },
       {
         "date": "2026-08-07",
-        "YouTube": 60,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 60
       },
       {
         "date": "2026-08-08",
-        "YouTube": 273.99,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 273.99
       },
       {
         "date": "2026-08-09",
-        "YouTube": 157.5,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 157.5
       },
       {
         "date": "2026-08-10",
-        "YouTube": 382.36,
-        "Bricklink": 58.03
+        "Bricklink": 58.03,
+        "YouTube": 382.36
       },
       {
         "date": "2026-08-11",
-        "YouTube": 435.24,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 435.24
       },
       {
         "date": "2026-08-12",
-        "YouTube": 463.68,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 463.68
       },
       {
         "date": "2026-08-17",
-        "YouTube": 218.41,
-        "Bricklink": 126.94
+        "Bricklink": 126.94,
+        "YouTube": 218.41
       },
       {
         "date": "2026-08-18",
-        "YouTube": 276.93,
-        "Bricklink": 79.16
+        "Bricklink": 79.16,
+        "YouTube": 276.93
       },
       {
         "date": "2026-08-19",
-        "YouTube": 184.49,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 184.49
       },
       {
         "date": "2026-08-20",
-        "YouTube": 199.02,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 199.02
       },
       {
         "date": "2026-08-21",
-        "YouTube": 480,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 480
       },
       {
         "date": "2026-08-22",
-        "YouTube": 480,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 480
       },
       {
         "date": "2026-08-23",
-        "YouTube": 480,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 480
       },
       {
         "date": "2026-08-24",
-        "YouTube": 60.71,
-        "Bricklink": 0
+        "Bricklink": 30,
+        "YouTube": 149.58
       }
     ]
   }
