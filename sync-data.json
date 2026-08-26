@@ -22,12 +22,17 @@
           "id": "51e4e06e-7525-42cd-a124-02232e276ffb",
           "text": "4+ Thumbnail upgraden",
           "done": false
+        },
+        {
+          "id": "9b002448-a36f-4d65-96aa-f25a5138725d",
+          "text": "Buchhaltung",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787729737048
+    "updatedAt": 1787730441494
   },
   "tasks": {
     "items": [
