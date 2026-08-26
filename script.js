@@ -1305,10 +1305,17 @@
     "var(--accent-goal)"
   ];
   const HABIT_DEFAULTS = [
-    { id: "gym", label: "Gym" },
-    { id: "rauchfrei", label: "Rauchfreier Tag" },
-    { id: "koffein", label: "<2x Koffein" }
+    { id: "gym", label: "Gym", targetPerWeek: 7 },
+    { id: "rauchfrei", label: "Rauchfreier Tag", targetPerWeek: 7 },
+    { id: "koffein", label: "<2x Koffein", targetPerWeek: 7 }
   ];
+  // Faellt jede Gewohnheit standardmaessig auf "taeglich" (7/7) zurueck - fuer Alt-Eintraege
+  // (lokal oder aus der Cloud) ohne targetPerWeek, und schuetzt vor kaputten/leeren Werten.
+  const normalizeHabit = (h) => ({
+    id: h.id,
+    label: h.label,
+    targetPerWeek: Number.isInteger(h.targetPerWeek) && h.targetPerWeek >= 1 && h.targetPerWeek <= 7 ? h.targetPerWeek : 7
+  });
 
   const dateKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const mondayOf = (date) => {
@@ -1329,6 +1336,7 @@
         // Gleichstand mit der Cloud NICHT automatisch die Cloud gewinnen laesst
         // und so echte, noch nicht gepushte lokale Aenderungen ueberschreibt.
         if (typeof parsed.updatedAt !== "number") parsed.updatedAt = 0;
+        parsed.habits = (parsed.habits || []).map(normalizeHabit);
         return parsed;
       }
     } catch (e) {
@@ -1380,7 +1388,7 @@
       const remote = await res.json();
       const remoteUpdatedAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
       if (remoteWins(remoteUpdatedAt, habitState.updatedAt, habitHasContent(remote), habitHasContent(habitState))) {
-        habitState = { habits: remote.habits || [], log: remote.log || {}, updatedAt: remoteUpdatedAt };
+        habitState = { habits: (remote.habits || []).map(normalizeHabit), log: remote.log || {}, updatedAt: remoteUpdatedAt };
         localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
         renderHabits();
       }
@@ -1413,7 +1421,7 @@
           const remote = JSON.parse(decodeURIComponent(escape(atob(meta.content.replace(/\n/g, "")))));
           const remoteUpdatedAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
           if (remoteWins(remoteUpdatedAt, habitState.updatedAt, habitHasContent(remote), habitHasContent(habitState))) {
-            habitState = { habits: remote.habits || [], log: remote.log || {}, updatedAt: remoteUpdatedAt };
+            habitState = { habits: (remote.habits || []).map(normalizeHabit), log: remote.log || {}, updatedAt: remoteUpdatedAt };
             localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
             renderHabits();
           }
@@ -1483,9 +1491,21 @@
   function addHabit() {
     const label = habitNewInput.value.trim();
     if (!label) return;
-    habitState.habits.push({ id: newId(), label });
+    habitState.habits.push({ id: newId(), label, targetPerWeek: 7 });
     saveHabitState();
     habitNewInput.value = "";
+    renderHabits();
+  }
+
+  function editHabitTarget(habitId) {
+    const habit = habitState.habits.find((h) => h.id === habitId);
+    if (!habit) return;
+    const input = prompt(`Wie oft pro Woche soll "${habit.label}" erfuellt sein, damit die Woche zaehlt? (1-7)`, String(habit.targetPerWeek));
+    if (input === null) return;
+    const n = parseInt(input.trim(), 10);
+    if (!Number.isInteger(n) || n < 1 || n > 7) return;
+    habit.targetPerWeek = n;
+    saveHabitState();
     renderHabits();
   }
   habitAddBtn.addEventListener("click", addHabit);
@@ -1541,8 +1561,10 @@
           })
           .join("");
         const doneCount = days.filter((d) => habitState.log[dateKey(d)]?.[h.id]).length;
+        const target = h.targetPerWeek;
+        const weekDone = doneCount >= target;
         return `<div class="habit-row">
-          <div class="habit-label">${escapeHtml(h.label)}<span class="habit-count">${doneCount}/7</span></div>
+          <div class="habit-label">${escapeHtml(h.label)}<button type="button" class="habit-count${weekDone ? " done" : ""}" data-target="${h.id}" title="Wochenziel aendern">${weekDone ? "✓ " : ""}${doneCount}/${target}</button></div>
           <div class="habit-days">${cells}</div>
           <button type="button" class="habit-remove" data-remove="${h.id}" aria-label="Entfernen">×</button>
         </div>`;
@@ -1557,6 +1579,9 @@
     wireDaycellClicks(habitViews.week);
     habitViews.week.querySelectorAll(".habit-remove").forEach((btn) => {
       btn.addEventListener("click", () => removeHabit(btn.dataset.remove));
+    });
+    habitViews.week.querySelectorAll(".habit-count[data-target]").forEach((btn) => {
+      btn.addEventListener("click", () => editHabitTarget(btn.dataset.target));
     });
   }
 

@@ -247,6 +247,12 @@ Wöchentliche Gewohnheiten (z.B. Gym, Rauchfreier Tag, &lt;2x Koffein) mit Tages
 plus Monats- und Jahresansicht (GitHub-Style-Heatmap). Eigene Gewohnheiten hinzufügen/
 entfernen über das Eingabefeld direkt über der Wochenansicht.
 
+**Wochenziel statt "jeden Tag":** Jede Gewohnheit hat ein Wochenziel (Default 7 = täglich).
+Klick in der Wochenansicht auf die kleine Zähler-Badge (z.B. "3/7") neben dem Namen, um es
+zu ändern (1–7) — z.B. Sport auf 3× pro Woche. Sobald so oft abgehakt wurde, färbt sich die
+Badge ein (✓ 3/3) und die Woche zählt als erledigt, auch wenn nicht jeder Tag angekreuzt ist.
+Das Ziel wird pro Gewohnheit mitgespeichert und läuft über denselben Cloud-Sync mit.
+
 **Speicherung, zweistufig:**
 1. **Sofort lokal** (`localStorage`) bei jedem Klick — funktioniert immer, auch offline.
 2. **Cloud-Kopie in `habits-data.json`** im Repo, sobald du oben rechts auf **"Sync"**

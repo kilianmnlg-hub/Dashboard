@@ -778,7 +778,13 @@ svg.links line.lit { stroke-width: 1.6; }
   display: flex; align-items: center; gap: 6px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.habit-count { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-size: 11px; color: var(--text-faint); font-weight: 500; flex-shrink: 0; }
+.habit-count {
+  font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-size: 11px;
+  color: var(--text-faint); font-weight: 500; flex-shrink: 0;
+  border: none; background: none; padding: 2px 5px; border-radius: 5px; cursor: pointer;
+}
+.habit-count:hover { background: var(--surface-2); color: var(--text); }
+.habit-count.done { color: var(--status-good); font-weight: 700; }
 .habit-remove {
   margin-left: auto; flex-shrink: 0; border: none; background: none; color: var(--text-faint);
   cursor: pointer; font-size: 15px; padding: 2px 6px; border-radius: 6px;
