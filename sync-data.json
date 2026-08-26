@@ -1,9 +1,30 @@
 {
   "ideas": {
-    "bricksOnTheFloor": { "text": "", "updatedAt": 0 },
-    "brainwalkers": { "text": "", "updatedAt": 0 }
+    "bricksOnTheFloor": {
+      "text": "-Sind Lego Dinosaurier wirklich schlechter geworden?",
+      "updatedAt": 1787728289373
+    },
+    "brainwalkers": {
+      "text": "",
+      "updatedAt": 1787728289373
+    }
   },
-  "studiumDeadline": { "label": "", "date": "", "updatedAt": 0 },
-  "todos": { "date": "", "items": {}, "updatedAt": 0 },
-  "tasks": { "items": [], "updatedAt": 0 }
+  "studiumDeadline": {
+    "label": "",
+    "date": "",
+    "updatedAt": 1787728289373
+  },
+  "todos": {
+    "date": "2026-08-26",
+    "items": {
+      "business": [],
+      "studium": [],
+      "privat": []
+    },
+    "updatedAt": 1787728289373
+  },
+  "tasks": {
+    "items": [],
+    "updatedAt": 1787728289373
+  }
 }
