@@ -4,9 +4,14 @@
 // Sync veraltete Zahlen ausliefern, bis der Cache irgendwann abläuft. Das Netzwerk
 // hat also immer Vorrang; der Cache greift nur, wenn gar keine Verbindung besteht.
 
-const CACHE_NAME = "dashboard-v2";
+// Hochzaehlen bei jedem Deploy, der fuer alle Geraete ankommen MUSS (Bugfixes o.ae.):
+// beim Aktivieren der neuen Version werden alle Caches mit abweichendem Namen geloescht
+// (siehe "activate" unten) - sonst kann ein Geraet mit wackliger Verbindung (v.a. Handy im
+// Mobilfunknetz) nach einem fehlgeschlagenen Netzwerk-Request beliebig lange auf einer
+// alten, im Cache haengengebliebenen script.js/index.html sitzen bleiben.
+const CACHE_NAME = "dashboard-v3";
 const APP_SHELL = [
-  "./", "index.html", "styles.css", "script.js", "data.js", "habits-data.json", "manifest.webmanifest", "icon.svg",
+  "./", "index.html", "styles.css", "script.js", "data.js", "habits-data.json", "sync-data.json", "manifest.webmanifest", "icon.svg",
   "fonts/fraunces-var.woff2", "fonts/publicsans-var.woff2", "fonts/plexmono-500.woff2", "fonts/plexmono-600.woff2"
 ];
 
