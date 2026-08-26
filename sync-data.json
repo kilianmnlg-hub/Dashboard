@@ -2,29 +2,46 @@
   "ideas": {
     "bricksOnTheFloor": {
       "text": "-Sind Lego Dinosaurier wirklich schlechter geworden?",
-      "updatedAt": 1787728656081
+      "updatedAt": 1787729737048
     },
     "brainwalkers": {
       "text": "",
-      "updatedAt": 1787728656081
+      "updatedAt": 1787729737048
     }
   },
   "studiumDeadline": {
     "label": "",
     "date": "",
-    "updatedAt": 1787728656081
+    "updatedAt": 1787729737048
   },
   "todos": {
     "date": "2026-08-26",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "51e4e06e-7525-42cd-a124-02232e276ffb",
+          "text": "4+ Thumbnail upgraden",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787728656081
+    "updatedAt": 1787729737048
   },
   "tasks": {
-    "items": [],
-    "updatedAt": 1787728656081
+    "items": [
+      {
+        "id": "2ab70bd5-ac1c-4836-a0a4-6f9376231296",
+        "text": "Kanalbanner upgraden",
+        "done": false
+      },
+      {
+        "id": "55b88e0e-c8b5-4484-ba98-01dda03e99f9",
+        "text": "Amsterdam mit Nele planen",
+        "done": false
+      }
+    ],
+    "updatedAt": 1787729737048
   }
 }
