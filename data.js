@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-08-26",
-    "lastSyncedAt": "2026-08-26T06:50:56.965Z",
+    "lastSyncedAt": "2026-08-26T06:54:06.146Z",
     "owner": "Kilian"
   },
   "github": {
@@ -283,7 +283,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-08-26",
-        "value": 366
+        "value": 367
       }
     ],
     "tiktokFollower": [
@@ -377,7 +377,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-08-26",
-        "value": 2739
+        "value": 2740
       }
     ]
   },
@@ -404,7 +404,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 366,
+      "current": 367,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -413,7 +413,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2739,
+      "current": 2740,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -447,7 +447,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-26T06:50:55.842Z",
+    "checkedAt": "2026-08-26T06:54:05.517Z",
     "openOrdersCount": 269,
     "pendingShipments": [
       {
@@ -469,7 +469,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-26T06:50:56.045Z",
+    "checkedAt": "2026-08-26T06:54:05.555Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -617,7 +617,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "366"
+          "value": "367"
         },
         {
           "label": "Videos",
