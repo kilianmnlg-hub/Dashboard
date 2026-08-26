@@ -23,6 +23,9 @@ The Brainwalkers, 2026-Ziele, Zeit-Balance und Tages-To-Do. Installierbar als PW
 - `manifest.webmanifest`, `icon.svg`, `sw.js` — machen das Dashboard als PWA installierbar
 - `habits-data.json` — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
   direkt aus dem Browser aktualisiert (siehe Abschnitt "Habit-Tracker")
+- `sync-data.json` — Cloud-Kopie von Video-Ideen, Studium-Termin, Tages-To-Do und
+  Aufgaben, ebenfalls vom Sync-Button direkt aus dem Browser aktualisiert (siehe
+  Abschnitt "Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben")
 
 ## Lokal ansehen
 
@@ -47,8 +50,10 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 | Views/Wiedergabezeit/Umsatz (28 Tage) | — | ❌ manuell (siehe unten, warum) |
 | Bricklink Store-Besuche, Feedback gesamt, Drive-Thru-Mails, Ohne Feedback | — | ❌ manuell (siehe unten, warum) |
 | Ziel-Fortschritt (Umsatz) | — | ❌ manuell |
-| Nächste Video-Idee | — | eigene Notiz, nur im Browser (siehe unten) |
-| Nächste Prüfung/Abgabe (Studium) | — | eigene Notiz, nur im Browser (siehe unten) |
+| Nächste Video-Idee | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
+| Nächste Prüfung/Abgabe (Studium) | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
+| Tages-To-Do | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
+| Aufgaben (persistent) | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
 
 **Warum nicht alles automatisch geht:**
 - YouTube **Views/Wiedergabezeit/Umsatz** stammen aus YouTube Analytics, nicht aus der
@@ -205,8 +210,10 @@ Limit) als Short. Faustregel für die Ampel: 🟢 im Ziel-Rhythmus, 🟡 bis zum
 ## Nächste Video-Idee
 
 Kleines Notizfeld auf den beiden YouTube-Karten. Speichert automatisch (500ms
-nach dem letzten Tastendruck) im Browser (`localStorage`) — bewusst kein
-Sync-Feld in `data.js`, das wäre für eine spontane Notiz zu viel Umweg.
+nach dem letzten Tastendruck) im Browser (`localStorage`) und zusätzlich in der
+Cloud beim nächsten Klick auf "Sync" (siehe Abschnitt "Cloud-Sync: Video-Ideen /
+Studium-Termin / Tages-To-Do / Aufgaben" unten) — bewusst kein Sync-Feld in
+`data.js`, das läuft über eine eigene, kleinere Datei (`sync-data.json`).
 
 ## Wochenvergleich-Trendpfeile
 
@@ -231,8 +238,8 @@ Kleine Karte in der Ziele-Sektion für die nächste Prüfung/Abgabe (z.B. IU
 Berlin) — bewusst nur eine einzelne editierbare Karte, kein voller
 Termin-Manager und keine Rückkehr zu einer großen "Privat"-Sektion. Bezeichnung
 und Datum trägst du über den "Termin eintragen"/"Ändern"-Link ein (zwei simple
-Eingabefelder), gespeichert nur lokal im Browser (`localStorage`), kein
-Sync nach `data.js` oder in die Cloud.
+Eingabefelder), gespeichert lokal im Browser (`localStorage`) und per
+Cloud-Sync geräteübergreifend (siehe unten).
 
 ## Habit-Tracker
 
@@ -247,12 +254,14 @@ entfernen über das Eingabefeld direkt über der Wochenansicht.
    Button nötig. Voraussetzung: der GitHub-Token (siehe oben) braucht zusätzlich
    "Contents: Read and write".
 3. Beim Laden der Seite wird `habits-data.json` gelesen (funktioniert ohne Token, da
-   öffentliche Datei über GitHub Pages) und mit dem lokalen Stand **zusammengeführt**
-   (nicht überschrieben): pro Tag/Gewohnheit gilt "erledigt", sobald es lokal *oder*
-   in der Cloud als erledigt markiert ist. Das verhindert Datenverlust zwischen zwei
-   Geräten, kann aber dazu führen, dass ein versehentlich falsch gesetztes Häkchen auf
-   einem Gerät nicht durch Entfernen auf einem anderen Gerät verschwindet — in dem Fall
-   beide Male entfernen.
+   öffentliche Datei über GitHub Pages) und mit dem lokalen Stand abgeglichen: beide
+   Seiten tragen einen Zeitstempel (`updatedAt`), der bei jeder Änderung aktualisiert
+   wird — beim Laden gewinnt schlicht der neuere komplette Stand. Dadurch synct auch
+   ein **Entfernen** eines Häkchens korrekt auf andere Geräte (vorheriges Verhalten:
+   ein additiver Merge, bei dem ein einmal gesetztes Häkchen nie wieder verschwinden
+   konnte). Einzige Einschränkung: ändert man auf zwei Geräten annähernd gleichzeitig
+   etwas, ohne zwischendurch zu syncen, gewinnt der Stand mit dem späteren Zeitstempel
+   vollständig — die dazwischen verpasste Änderung des anderen Geräts geht verloren.
 
 **Warum GitHub und nicht Notion, obwohl du dort schon einen "Habit Tracker" hast:**
 Notions API blockiert direkte Aufrufe aus dem Browser (kein CORS) — ein Klick im
@@ -264,14 +273,52 @@ ganze Zeit), deshalb landet der Habit-Stand als JSON-Datei im selben Repo statt 
 
 Trägst du direkt im Dashboard ein (drei Spalten: Business, Studium & Job,
 Privates). Wird im Browser gespeichert (`localStorage`) und setzt sich jeden
-Tag automatisch zurück.
+Tag automatisch zurück. Der aktuelle Tagesstand wird zusätzlich per Cloud-Sync
+geräteübergreifend gehalten (siehe unten) — ein Reset auf einem Gerät um
+Mitternacht überschreibt dabei nicht den Stand eines anderen Geräts, das den
+Tag noch nicht gewechselt hat: die Cloud-Kopie trägt das jeweilige Datum und
+wird nur übernommen, wenn es mit dem heutigen Datum übereinstimmt.
+
+**Nicht abgehakte Punkte verfallen nicht** — beim nächsten Laden des
+Dashboards an einem neuen Tag wandert jeder noch offene (nicht abgehakte)
+Punkt aus dem alten Tages-To-Do automatisch nach "Aufgaben" (siehe unten), wo
+er dauerhaft stehen bleibt statt zu verschwinden. Abgehakte Punkte verfallen
+wie bisher einfach mit dem Tageswechsel.
 
 ## Aufgaben
 
 Direkt unter dem Tages-To-Do, aber bewusst getrennt gespeichert (eigener
 `localStorage`-Key ohne Datum) — im Gegensatz zum Tages-To-Do **kein täglicher
 Reset**. Einträge bleiben stehen, bis du sie abhakst; nach dem Abhaken werden
-sie automatisch (kurz sichtbar durchgestrichen) aus der Liste entfernt.
+sie automatisch (kurz sichtbar durchgestrichen) aus der Liste entfernt. Läuft
+ebenfalls über den Cloud-Sync (siehe unten). Sammelt zusätzlich automatisch
+alles, was aus dem Tages-To-Do vergangener Tage nicht abgehakt wurde (siehe
+oben).
+
+## Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben
+
+Diese vier kleinen, unabhängigen Felder teilen sich eine gemeinsame Cloud-Datei
+(`sync-data.json`) und funktionieren nach demselben Prinzip wie der
+Habit-Tracker oben:
+
+1. **Sofort lokal** (`localStorage`) bei jeder Änderung — funktioniert immer,
+   auch offline.
+2. **Cloud-Kopie in `sync-data.json`** im Repo, sobald du oben rechts auf
+   **"Sync"** klickst — derselbe Klick, der auch Business-Daten und
+   Habit-Tracker aktualisiert. Voraussetzung: der GitHub-Token braucht
+   "Contents: Read and write" (siehe Abschnitt "Sync-Button" oben).
+3. Beim Laden der Seite wird `sync-data.json` gelesen (kein Token nötig) und
+   pro Feld einzeln mit dem lokalen Stand abgeglichen: jedes Feld trägt einen
+   eigenen Zeitstempel (`updatedAt`), und der jeweils neuere komplette Stand
+   gewinnt. Beim Tages-To-Do zählt zusätzlich das Datum — ein Cloud-Stand von
+   einem anderen Tag wird ignoriert, da der tägliche Reset ohnehin lokal über
+   den datumsbasierten Storage-Key läuft.
+
+**Einschränkung:** wie beim Habit-Tracker gilt "neuester Zeitstempel gewinnt
+komplett" pro Feld — änderst du z.B. dieselbe Video-Idee auf zwei Geräten
+annähernd gleichzeitig, ohne dazwischen zu syncen, geht eine der beiden
+Fassungen verloren. Bei normaler Nutzung (ein Gerät nach dem anderen) fällt
+das nicht ins Gewicht.
 
 ## PWA ("Zum Homescreen hinzufügen")
 

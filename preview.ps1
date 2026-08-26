@@ -1,4 +1,4 @@
-$root = "C:\Users\kilia\OneDrive\Claude\Dashboard"
+$root = $PSScriptRoot
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add("http://localhost:8934/")
 $listener.Start()

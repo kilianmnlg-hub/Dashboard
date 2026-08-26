@@ -101,9 +101,11 @@
     syncButton.classList.add("spinning");
     syncLabel.textContent = "Synchronisiere…";
 
-    // Habit-Tracker-Stand läuft am selben Klick mit hoch (Contents API, kein Workflow nötig —
-    // sofort fertig, nicht Teil des "läuft 15-30s"-Hinweises unten).
+    // Habit-Tracker- und Video-Ideen/Studium/To-Do/Aufgaben-Stand laufen am selben Klick
+    // mit hoch (Contents API, kein Workflow nötig — sofort fertig, nicht Teil des
+    // "läuft 15-30s"-Hinweises unten).
     pushHabitsToCloud(config);
+    pushSyncDataToCloud(config);
 
     try {
       const res = await fetch(
@@ -643,21 +645,31 @@
   });
 
   // ---------- Studium-Countdown (nächste Prüfung/Abgabe) ----------
-  // Bewusst klein und nur lokal (localStorage) — kein neuer "Privat"-Bereich, nur ein
-  // einzelner editierbarer Termin als kompakte Karte in der Ziele-Sektion.
+  // Bewusst klein — kein neuer "Privat"-Bereich, nur ein einzelner editierbarer Termin
+  // als kompakte Karte in der Ziele-Sektion. Cloud-Sync ueber sync-data.json (siehe
+  // Abschnitt "Cloud-Sync: Video-Ideen / Studium-Termin / To-Do / Aufgaben" unten),
+  // gleiches Zeitstempel-Prinzip wie beim Habit-Tracker.
   const STUDIUM_STORAGE_KEY = "dashboard-studium-deadline";
   const loadStudiumDeadline = () => {
     try {
       const raw = localStorage.getItem(STUDIUM_STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed.updatedAt !== "number") parsed.updatedAt = 0;
+        return parsed;
+      }
     } catch (e) {
       /* corrupted storage, fall back to empty */
     }
-    return { label: "", date: "" };
+    return { label: "", date: "", updatedAt: -1 };
   };
-  const saveStudiumDeadline = (d) => localStorage.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(d));
+  const saveStudiumDeadline = (d) => {
+    const state = { label: d.label || "", date: d.date || "", updatedAt: Date.now() };
+    localStorage.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(state));
+    return state;
+  };
 
-  function renderStudiumCard() {
+  function buildStudiumCard() {
     const deadline = loadStudiumDeadline();
     const card = document.createElement("div");
     card.className = "card goal-card studium-card";
@@ -686,13 +698,25 @@
       const dateInput = prompt("Datum (JJJJ-MM-TT):", deadline.date || "");
       if (dateInput === null) return;
       saveStudiumDeadline({ label: label.trim(), date: dateInput.trim() });
-      goalsGrid.removeChild(card);
-      renderStudiumCard();
+      refreshStudiumCard();
     });
 
-    goalsGrid.appendChild(card);
+    return card;
   }
-  renderStudiumCard();
+  // Eigene Funktion statt direkt in buildStudiumCard, da diese Karte auch nach einem
+  // Remote-Fetch (neuerer Cloud-Stand) neu gebaut wird, ohne die Position der anderen
+  // Ziel-Karten in goalsGrid zu verschieben (replaceChild statt remove+append).
+  let studiumCardEl = null;
+  function refreshStudiumCard() {
+    const newCard = buildStudiumCard();
+    if (studiumCardEl && studiumCardEl.parentNode) {
+      studiumCardEl.parentNode.replaceChild(newCard, studiumCardEl);
+    } else {
+      goalsGrid.appendChild(newCard);
+    }
+    studiumCardEl = newCard;
+  }
+  refreshStudiumCard();
 
   // ---------- Business ----------
   const businessGrid = document.getElementById("businessGrid");
@@ -731,6 +755,31 @@
     const dayLabel = days === 0 ? "heute" : days === 1 ? "vor 1 Tag" : `vor ${days} Tagen`;
     return `<p class="rhythm-badge ${status}">${meta.dot} Letztes Longform-Video ${dayLabel} · ${meta.label} (Ziel: alle ${biz.uploadRhythmDays} Tage, Shorts zählen nicht)</p>`;
   }
+
+  // Cloud-Sync ueber sync-data.json, gleiches Zeitstempel-Prinzip wie beim Habit-Tracker
+  // (siehe Abschnitt weiter unten). Altformat vor Einfuehrung des Sync war ein purer
+  // String ohne Wrapper - JSON.parse schlaegt dafuer fehl oder liefert kein {text:...}
+  // zurueck, dann als Altformat-String behandeln statt zu verwerfen.
+  const loadIdeaState = (key) => {
+    const raw = localStorage.getItem(`dashboard-idea-${key}`);
+    if (raw === null) return { text: "", updatedAt: -1 };
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && typeof parsed.text === "string") {
+        if (typeof parsed.updatedAt !== "number") parsed.updatedAt = 0;
+        return parsed;
+      }
+    } catch (e) {
+      /* Altformat: purer String vor Einfuehrung des Cloud-Sync */
+    }
+    return { text: raw, updatedAt: 0 };
+  };
+  const saveIdeaState = (key, text) => {
+    const state = { text, updatedAt: Date.now() };
+    localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(state));
+    return state;
+  };
+  const ideaTextareas = {};
 
   Object.entries(data.business).forEach(([key, biz]) => {
     const card = document.createElement("div");
@@ -779,16 +828,16 @@
     businessGrid.appendChild(card);
 
     if (isYoutubeChannel) {
-      const storageKey = `dashboard-idea-${key}`;
       const textarea = card.querySelector(`#idea-${key}`);
       const savedTag = card.querySelector(`#idea-saved-${key}`);
-      textarea.value = localStorage.getItem(storageKey) || "";
+      ideaTextareas[key] = textarea;
+      textarea.value = loadIdeaState(key).text;
 
       let saveTimer;
       textarea.addEventListener("input", () => {
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
-          localStorage.setItem(storageKey, textarea.value);
+          saveIdeaState(key, textarea.value);
           savedTag.classList.add("show");
           setTimeout(() => savedTag.classList.remove("show"), 1500);
         }, 500);
@@ -1016,22 +1065,41 @@
   };
   const TODO_STORAGE_KEY = `dashboard-todo-${todayKey()}`;
 
-  const loadTodos = () => {
+  // Cloud-Sync ueber sync-data.json, gleiches Zeitstempel-Prinzip wie beim Habit-Tracker
+  // (siehe Abschnitt weiter unten). loadTodosState() liefert den Wrapper mit Zeitstempel
+  // (fuer den Abgleich mit der Cloud), loadTodos() nur die Kategorien-Items (fuer die UI).
+  // parseTodosPayload() ist von migrateStaleTodosToTasks() weiter unten mitbenutzt, um auch
+  // die Tages-To-Do-Eintraege VERGANGENER Tage (eigener Storage-Key pro Tag) einlesen zu
+  // koennen, nicht nur den heutigen TODO_STORAGE_KEY.
+  const parseTodosPayload = (raw) => {
     try {
-      const raw = localStorage.getItem(TODO_STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && parsed.items) {
+        if (typeof parsed.updatedAt !== "number") parsed.updatedAt = 0;
+        return parsed;
+      }
+      // Altformat: Kategorien-Objekt direkt ohne Wrapper (vor Einfuehrung des Cloud-Sync)
+      return { items: parsed, updatedAt: 0 };
     } catch (e) {
-      /* corrupted storage, fall back to empty */
+      return null;
+    }
+  };
+  const loadTodosState = () => {
+    const raw = localStorage.getItem(TODO_STORAGE_KEY);
+    if (raw) {
+      const parsed = parseTodosPayload(raw);
+      if (parsed) return parsed;
     }
     const empty = {};
     TODO_CATEGORIES.forEach((c) => (empty[c.id] = []));
-    return empty;
+    return { items: empty, updatedAt: -1 };
   };
-  const saveTodos = (todos) => localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(todos));
+  const loadTodos = () => loadTodosState().items;
+  const saveTodos = (items) => localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify({ items, updatedAt: Date.now() }));
 
   let todos = loadTodos();
   const todoGrid = document.getElementById("todoGrid");
-  document.getElementById("todoDateLabel").textContent = `Setzt sich täglich automatisch zurück · ${now.toLocaleDateString("de-DE", { weekday: "long", day: "2-digit", month: "long" })}`;
+  document.getElementById("todoDateLabel").textContent = `Setzt sich täglich automatisch zurück, offene Punkte wandern in „Aufgaben“ · ${now.toLocaleDateString("de-DE", { weekday: "long", day: "2-digit", month: "long" })}`;
 
   function renderTodos() {
     todoGrid.innerHTML = "";
@@ -1103,16 +1171,25 @@
   // ---------- Aufgaben (persistent, kein täglicher Reset) ----------
   const TASKS_STORAGE_KEY = "dashboard-tasks-v1";
 
-  const loadTasks = () => {
+  // Cloud-Sync ueber sync-data.json, gleiches Zeitstempel-Prinzip wie beim Habit-Tracker.
+  const loadTasksState = () => {
     try {
       const raw = localStorage.getItem(TASKS_STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return { items: parsed, updatedAt: 0 }; // Altformat: reines Array
+        if (parsed && Array.isArray(parsed.items)) {
+          if (typeof parsed.updatedAt !== "number") parsed.updatedAt = 0;
+          return parsed;
+        }
+      }
     } catch (e) {
       /* corrupted storage, fall back to empty */
     }
-    return [];
+    return { items: [], updatedAt: -1 };
   };
-  const saveTasks = (tasks) => localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasks));
+  const loadTasks = () => loadTasksState().items;
+  const saveTasks = (items) => localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify({ items, updatedAt: Date.now() }));
 
   let tasks = loadTasks();
   const taskList = document.getElementById("taskList");
@@ -1168,6 +1245,42 @@
 
   renderTasks();
 
+  // Nicht abgehakte Tages-To-Dos VERGANGENER Tage nach "Aufgaben" uebernehmen, bevor der
+  // alte Tages-Eintrag verworfen wird. Jeder Tag hat einen eigenen Storage-Key
+  // (dashboard-todo-JJJJ-MM-TT) - ein neuer Tag bedeutet bisher einfach einen neuen, leeren
+  // Key (TODO_STORAGE_KEY oben), der alte blieb bislang ungenutzt liegen. Jetzt: offene
+  // Punkte wandern automatisch rueber, erledigte verfallen wie gehabt, und der alte
+  // Tages-Key wird danach geloescht (idempotent - beim naechsten Laden ist nichts mehr da,
+  // was nochmal migriert werden koennte).
+  function migrateStaleTodosToTasks() {
+    const todayK = todayKey();
+    let moved = false;
+    Object.keys(localStorage)
+      .filter((k) => /^dashboard-todo-\d{4}-\d{2}-\d{2}$/.test(k) && k !== TODO_STORAGE_KEY)
+      .forEach((key) => {
+        const dateStr = key.slice("dashboard-todo-".length);
+        if (dateStr >= todayK) return; // heute oder in der Zukunft (Zeitzonen-Kuriosum): unberuehrt lassen
+        const raw = localStorage.getItem(key);
+        const state = raw ? parseTodosPayload(raw) : null;
+        if (state) {
+          TODO_CATEGORIES.forEach((cat) => {
+            (state.items[cat.id] || []).forEach((item) => {
+              if (!item.done) {
+                tasks.push({ id: newId(), text: item.text, done: false });
+                moved = true;
+              }
+            });
+          });
+        }
+        localStorage.removeItem(key);
+      });
+    if (moved) {
+      saveTasks(tasks);
+      renderTasks();
+    }
+  }
+  migrateStaleTodosToTasks();
+
   // ---------- Habit-Tracker ----------
   const HABIT_STORAGE_KEY = "dashboard-habits-v1";
   const HABIT_COLORS = [
@@ -1196,11 +1309,22 @@
   function loadHabitState() {
     try {
       const raw = localStorage.getItem(HABIT_STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Stand existiert schon lokal (ggf. aus der Zeit vor Einfuehrung von
+        // "updatedAt") - auf 0 statt -1 defaulten, damit ein reiner Zeitstempel-
+        // Gleichstand mit der Cloud NICHT automatisch die Cloud gewinnen laesst
+        // und so echte, noch nicht gepushte lokale Aenderungen ueberschreibt.
+        if (typeof parsed.updatedAt !== "number") parsed.updatedAt = 0;
+        return parsed;
+      }
     } catch (e) {
       /* corrupted storage, fall back to defaults */
     }
-    return { habits: HABIT_DEFAULTS.map((h) => ({ ...h })), log: {} };
+    // Kein lokaler Stand vorhanden (frisches Geraet/Browser): -1 statt 0, damit der
+    // erste fetchRemoteHabits()-Aufruf beim Laden IMMER den Cloud-Stand uebernimmt,
+    // auch wenn habits-data.json selbst noch kein "updatedAt" hat (dann 0, siehe unten).
+    return { habits: HABIT_DEFAULTS.map((h) => ({ ...h })), log: {}, updatedAt: -1 };
   }
 
   // ---------- Habit-Tracker: Cloud-Sync über GitHub Contents API ----------
@@ -1226,26 +1350,23 @@
     habitSyncStatusEl.textContent = map[state] || map.idle;
   }
 
-  function mergeHabitState(local, remote) {
-    const byId = new Map();
-    [...(remote.habits || []), ...(local.habits || [])].forEach((h) => byId.set(h.id, h));
-    const mergedLog = {};
-    [remote.log || {}, local.log || {}].forEach((log) => {
-      Object.entries(log).forEach(([date, entries]) => {
-        mergedLog[date] = { ...(mergedLog[date] || {}), ...entries };
-      });
-    });
-    return { habits: Array.from(byId.values()), log: mergedLog };
-  }
-
+  // Frueher wurde hier pro Tag/Gewohnheit additiv gemergt ("erledigt, sobald lokal ODER
+  // Cloud erledigt") - das konnte ein Häkchen nie wieder entfernen: sobald ein Zustand
+  // einmal in die Cloud gepusht war, kam er bei jedem Laden auf jedem Geraet automatisch
+  // zurueck, auch nach bewusstem Entfernen. Jetzt gewinnt schlicht der neuere Zeitstempel
+  // (ganzer Zustand, nicht pro Eintrag) - kein Zombie-Haekchen mehr, dafuer im seltenen
+  // Fall zeitgleicher Aenderungen auf zwei Geraeten verliert die aeltere.
   async function fetchRemoteHabits() {
     try {
       const res = await fetch(HABIT_REMOTE_FILE, { cache: "no-store" });
       if (!res.ok) return;
       const remote = await res.json();
-      habitState = mergeHabitState(habitState, remote);
-      localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
-      renderHabits();
+      const remoteUpdatedAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
+      if (remoteUpdatedAt > habitState.updatedAt) {
+        habitState = { habits: remote.habits || [], log: remote.log || {}, updatedAt: remoteUpdatedAt };
+        localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
+        renderHabits();
+      }
     } catch (err) {
       /* offline, file:// geöffnet, oder Datei existiert noch nicht — lokaler Stand bleibt gültig */
     }
@@ -1289,7 +1410,10 @@
     }
   }
 
-  const saveHabitState = () => localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
+  const saveHabitState = () => {
+    habitState.updatedAt = Date.now();
+    localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
+  };
 
   let habitState = loadHabitState();
   let habitView = "week";
@@ -1529,6 +1653,120 @@
   renderHabits();
   setHabitSyncStatus(localStorage.getItem("dashboard-gh-token") ? "idle" : "local-only");
   fetchRemoteHabits();
+
+  // ---------- Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben ----------
+  // Gleiches Prinzip wie beim Habit-Tracker weiter oben (GitHub Contents API, Zeitstempel-
+  // basiertes "neuerer Stand gewinnt komplett" statt additivem Merge), nur in einer eigenen
+  // Datei gebuendelt, da es vier kleine, unabhaengige Felder statt eines einzelnen Zustands
+  // sind. Lesen beim Laden geht ohne Token (oeffentliche Datei ueber GitHub Pages), Schreiben
+  // laeuft am selben "Sync"-Klick mit wie Habit-Tracker und Business-Daten.
+  const SYNC_DATA_REMOTE_FILE = "sync-data.json";
+  let syncDataCloudSha = null;
+
+  async function pushSyncDataToCloud(config) {
+    config = config || getGithubConfig();
+    if (!config) return;
+    const payload = {
+      ideas: Object.keys(ideaTextareas).reduce((acc, key) => {
+        acc[key] = loadIdeaState(key);
+        return acc;
+      }, {}),
+      studiumDeadline: loadStudiumDeadline(),
+      todos: { date: todayKey(), ...loadTodosState() },
+      tasks: loadTasksState()
+    };
+    const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${SYNC_DATA_REMOTE_FILE}`;
+    const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
+    try {
+      if (!syncDataCloudSha) {
+        const getRes = await fetch(apiUrl, { headers });
+        if (getRes.ok) syncDataCloudSha = (await getRes.json()).sha;
+      }
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+      const putRes = await fetch(apiUrl, {
+        method: "PUT",
+        headers: { ...headers, "Content-Type": "application/json" },
+        body: JSON.stringify({ message: "Sync-Daten Update", content, ...(syncDataCloudSha ? { sha: syncDataCloudSha } : {}) })
+      });
+      if (putRes.ok) {
+        syncDataCloudSha = (await putRes.json()).content?.sha || syncDataCloudSha;
+      } else if (putRes.status === 401 || putRes.status === 403) {
+        localStorage.removeItem("dashboard-gh-token");
+        console.warn("Cloud-Sync (Video-Ideen/Studium/To-Do/Aufgaben) fehlgeschlagen: Token ungültig oder ohne 'Contents'-Berechtigung.");
+      } else if (putRes.status === 409) {
+        syncDataCloudSha = null; // jemand anders hat parallel geschrieben — sha neu holen beim naechsten Versuch
+      } else {
+        console.warn(`Cloud-Sync (Video-Ideen/Studium/To-Do/Aufgaben) fehlgeschlagen: Status ${putRes.status}`);
+      }
+    } catch (err) {
+      console.warn("Cloud-Sync (Video-Ideen/Studium/To-Do/Aufgaben) fehlgeschlagen:", err.message);
+    }
+  }
+
+  function applyRemoteIdeas(remoteIdeas) {
+    if (!remoteIdeas) return;
+    Object.entries(remoteIdeas).forEach(([key, remoteIdea]) => {
+      const textarea = ideaTextareas[key];
+      if (!textarea) return;
+      const local = loadIdeaState(key);
+      const remoteUpdatedAt = typeof remoteIdea?.updatedAt === "number" ? remoteIdea.updatedAt : 0;
+      if (remoteUpdatedAt > local.updatedAt) {
+        const merged = { text: remoteIdea.text || "", updatedAt: remoteUpdatedAt };
+        localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(merged));
+        textarea.value = merged.text;
+      }
+    });
+  }
+
+  function applyRemoteStudium(remoteStudium) {
+    if (!remoteStudium) return;
+    const local = loadStudiumDeadline();
+    const remoteUpdatedAt = typeof remoteStudium.updatedAt === "number" ? remoteStudium.updatedAt : 0;
+    if (remoteUpdatedAt > local.updatedAt) {
+      const merged = { label: remoteStudium.label || "", date: remoteStudium.date || "", updatedAt: remoteUpdatedAt };
+      localStorage.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(merged));
+      refreshStudiumCard();
+    }
+  }
+
+  function applyRemoteTodos(remoteTodos) {
+    // Andere/aeltere Tagesdaten aus der Cloud ignorieren — der taegliche Reset laeuft
+    // ueber den datumsbasierten Storage-Key ohnehin lokal von selbst.
+    if (!remoteTodos || remoteTodos.date !== todayKey()) return;
+    const localState = loadTodosState();
+    const remoteUpdatedAt = typeof remoteTodos.updatedAt === "number" ? remoteTodos.updatedAt : 0;
+    if (remoteUpdatedAt > localState.updatedAt) {
+      todos = remoteTodos.items || {};
+      saveTodos(todos);
+      renderTodos();
+    }
+  }
+
+  function applyRemoteTasks(remoteTasks) {
+    if (!remoteTasks) return;
+    const localState = loadTasksState();
+    const remoteUpdatedAt = typeof remoteTasks.updatedAt === "number" ? remoteTasks.updatedAt : 0;
+    if (remoteUpdatedAt > localState.updatedAt) {
+      tasks = remoteTasks.items || [];
+      saveTasks(tasks);
+      renderTasks();
+    }
+  }
+
+  async function fetchRemoteSyncData() {
+    try {
+      const res = await fetch(SYNC_DATA_REMOTE_FILE, { cache: "no-store" });
+      if (!res.ok) return;
+      const remote = await res.json();
+      applyRemoteIdeas(remote.ideas);
+      applyRemoteStudium(remote.studiumDeadline);
+      applyRemoteTodos(remote.todos);
+      applyRemoteTasks(remote.tasks);
+    } catch (err) {
+      /* offline, file:// geöffnet, oder Datei existiert noch nicht — lokaler Stand bleibt gültig */
+    }
+  }
+  fetchRemoteSyncData();
 
   // ---------- PWA: Service Worker registrieren ----------
   // Ermöglicht "Zum Homescreen hinzufügen" auf dem Handy. Schlägt lautlos fehl bei
