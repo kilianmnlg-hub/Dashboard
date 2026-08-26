@@ -16,6 +16,19 @@
   };
   const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
 
+  // Sicherheitsnetz fuer alle Cloud-Sync-Felder (Habit-Tracker, Video-Ideen, Studium-Termin,
+  // Tages-To-Do, Aufgaben): ein Cloud-Stand darf einen nicht-leeren lokalen Stand NIE durch
+  // einen leeren ersetzen, selbst wenn er laut Zeitstempel neuer ist. Sonst kann ein Geraet,
+  // das ein Feld einfach nie befuellt hat (z.B. noch nie eine Aufgabe eingetragen), beim
+  // blossen Sync-Klick echte Daten auf einem anderen Geraet loeschen — genau das ist einmal
+  // passiert (leere Todos/Aufgaben von einem ungenutzten Geraet haben echte Eintraege auf
+  // einem anderen Geraet ueberschrieben).
+  const remoteWins = (remoteUpdatedAt, localUpdatedAt, remoteHasContent, localHasContent) => {
+    if (remoteUpdatedAt <= localUpdatedAt) return false;
+    if (localHasContent && !remoteHasContent) return false;
+    return true;
+  };
+
   // ---------- Theme ----------
   const root = document.documentElement;
   const themeToggle = document.getElementById("themeToggle");
@@ -1355,14 +1368,18 @@
   // einmal in die Cloud gepusht war, kam er bei jedem Laden auf jedem Geraet automatisch
   // zurueck, auch nach bewusstem Entfernen. Jetzt gewinnt schlicht der neuere Zeitstempel
   // (ganzer Zustand, nicht pro Eintrag) - kein Zombie-Haekchen mehr, dafuer im seltenen
-  // Fall zeitgleicher Aenderungen auf zwei Geraeten verliert die aeltere.
+  // Fall zeitgleicher Aenderungen auf zwei Geraeten verliert die aeltere. habitHasContent()
+  // + remoteWins() (oben) verhindern zusaetzlich, dass ein leerer/frischer Stand einen
+  // bereits befuellten grundlos ersetzt.
+  const habitHasContent = (state) => (state?.habits?.length || 0) > 0 || Object.keys(state?.log || {}).length > 0;
+
   async function fetchRemoteHabits() {
     try {
       const res = await fetch(HABIT_REMOTE_FILE, { cache: "no-store" });
       if (!res.ok) return;
       const remote = await res.json();
       const remoteUpdatedAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
-      if (remoteUpdatedAt > habitState.updatedAt) {
+      if (remoteWins(remoteUpdatedAt, habitState.updatedAt, habitHasContent(remote), habitHasContent(habitState))) {
         habitState = { habits: remote.habits || [], log: remote.log || {}, updatedAt: remoteUpdatedAt };
         localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
         renderHabits();
@@ -1380,21 +1397,34 @@
       setHabitSyncStatus("local-only");
       return;
     }
-    // Klick auf "Sync" bumpt den Zeitstempel IMMER, auch ohne zwischenzeitliche Aenderung -
-    // sonst haengen zwei Geraete, die beide noch nie editiert haben (updatedAt beide 0, siehe
-    // loadHabitState), nach dem Sync weiterhin bei einem 0/0-Unentschieden fest und keiner
-    // uebernimmt je den Stand des anderen. Ein bewusster Sync-Klick ist selbst schon ein
-    // Signal "mein aktueller Stand soll jetzt gelten".
-    habitState.updatedAt = Date.now();
-    localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${HABIT_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
     try {
-      if (!habitCloudSha) {
-        const getRes = await fetch(apiUrl, { headers });
-        if (getRes.ok) habitCloudSha = (await getRes.json()).sha;
+      // Immer frisch abrufen (nicht nur beim allerersten Push cachen) und, falls die Cloud
+      // inzwischen einen ECHT neueren UND inhaltlich mindestens gleichwertigen Stand hat
+      // (anderes, fast zeitgleich synchronisierendes Geraet), diesen zuerst uebernehmen.
+      // Sonst kann ein Push blind einen neueren Cloud-Stand mit einem aelteren lokalen
+      // ueberschreiben — beobachtet bei mehreren Sync-Klicks kurz hintereinander.
+      const getRes = await fetch(apiUrl, { headers });
+      if (getRes.ok) {
+        const meta = await getRes.json();
+        habitCloudSha = meta.sha;
+        try {
+          const remote = JSON.parse(decodeURIComponent(escape(atob(meta.content.replace(/\n/g, "")))));
+          const remoteUpdatedAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
+          if (remoteWins(remoteUpdatedAt, habitState.updatedAt, habitHasContent(remote), habitHasContent(habitState))) {
+            habitState = { habits: remote.habits || [], log: remote.log || {}, updatedAt: remoteUpdatedAt };
+            localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
+            renderHabits();
+          }
+        } catch (e) {
+          /* Datei leer/kein valides JSON — mit lokalem Stand weitermachen */
+        }
       }
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(habitState, null, 2))));
+      // -1 ist nur ein interner Marker fuer "noch nie lokal gespeichert" (siehe loadHabitState())
+      // und wuerde extern nur verwirren - beim Export auf 0 normalisieren.
+      const exportState = { ...habitState, updatedAt: Math.max(0, habitState.updatedAt) };
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(exportState, null, 2))));
       const putRes = await fetch(apiUrl, {
         method: "PUT",
         headers: { ...headers, "Content-Type": "application/json" },
@@ -1673,29 +1703,28 @@
   async function pushSyncDataToCloud(config) {
     config = config || getGithubConfig();
     if (!config) return;
-    // Wie beim Habit-Tracker: Zeitstempel bei jedem Sync-Klick bumpen, nicht nur bei einer
-    // echten Aenderung - sonst bleiben zwei nie editierte Geraete (beide updatedAt 0) auch
-    // nach dem Sync bei einem Unentschieden haengen. Lokal persistieren, damit der neue
-    // Zeitstempel auch nach einem Reload bestehen bleibt statt beim naechsten Laden wieder
-    // auf den alten (ggf. 0er-) Stand zurueckzufallen.
-    const now = Date.now();
+    // Vor dem Push erst den aktuellen Cloud-Stand ziehen (mit denselben Sicherheitsregeln
+    // wie beim Laden, siehe applyRemote* unten): falls ein anderes Geraet zwischenzeitlich
+    // einen echt neueren UND inhaltlich nicht-leeren Stand gepusht hat, den zuerst
+    // uebernehmen. Sonst kann ein Push blind einen neueren Cloud-Stand ueberschreiben.
+    await fetchRemoteSyncData();
+    // -1 ist nur ein interner Marker fuer "noch nie lokal gespeichert" (siehe load*State()-
+    // Funktionen) und wuerde extern nur verwirren - beim Export auf 0 normalisieren.
+    const clampedAt = (v) => Math.max(0, v);
     const ideas = {};
     Object.keys(ideaTextareas).forEach((key) => {
-      const state = { text: loadIdeaState(key).text, updatedAt: now };
-      localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(state));
-      ideas[key] = state;
+      const state = loadIdeaState(key);
+      ideas[key] = { text: state.text, updatedAt: clampedAt(state.updatedAt) };
     });
-    const studiumDeadline = { ...loadStudiumDeadline(), updatedAt: now };
-    localStorage.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(studiumDeadline));
-    const todosItems = loadTodosState().items;
-    localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify({ items: todosItems, updatedAt: now }));
-    const tasksItems = loadTasksState().items;
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify({ items: tasksItems, updatedAt: now }));
+    const studium = loadStudiumDeadline();
+    const studiumDeadline = { label: studium.label, date: studium.date, updatedAt: clampedAt(studium.updatedAt) };
+    const todosState = loadTodosState();
+    const tasksState = loadTasksState();
     const payload = {
       ideas,
       studiumDeadline,
-      todos: { date: todayKey(), items: todosItems, updatedAt: now },
-      tasks: { items: tasksItems, updatedAt: now }
+      todos: { date: todayKey(), items: todosState.items, updatedAt: clampedAt(todosState.updatedAt) },
+      tasks: { items: tasksState.items, updatedAt: clampedAt(tasksState.updatedAt) }
     };
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${SYNC_DATA_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
@@ -1732,8 +1761,9 @@
       if (!textarea) return;
       const local = loadIdeaState(key);
       const remoteUpdatedAt = typeof remoteIdea?.updatedAt === "number" ? remoteIdea.updatedAt : 0;
-      if (remoteUpdatedAt > local.updatedAt) {
-        const merged = { text: remoteIdea.text || "", updatedAt: remoteUpdatedAt };
+      const remoteText = remoteIdea.text || "";
+      if (remoteWins(remoteUpdatedAt, local.updatedAt, !!remoteText.trim(), !!local.text.trim())) {
+        const merged = { text: remoteText, updatedAt: remoteUpdatedAt };
         localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(merged));
         textarea.value = merged.text;
       }
@@ -1744,12 +1774,14 @@
     if (!remoteStudium) return;
     const local = loadStudiumDeadline();
     const remoteUpdatedAt = typeof remoteStudium.updatedAt === "number" ? remoteStudium.updatedAt : 0;
-    if (remoteUpdatedAt > local.updatedAt) {
+    if (remoteWins(remoteUpdatedAt, local.updatedAt, !!remoteStudium.date, !!local.date)) {
       const merged = { label: remoteStudium.label || "", date: remoteStudium.date || "", updatedAt: remoteUpdatedAt };
       localStorage.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(merged));
       refreshStudiumCard();
     }
   }
+
+  const todosHaveContent = (items) => TODO_CATEGORIES.some((c) => (items?.[c.id]?.length || 0) > 0);
 
   function applyRemoteTodos(remoteTodos) {
     // Andere/aeltere Tagesdaten aus der Cloud ignorieren — der taegliche Reset laeuft
@@ -1757,7 +1789,7 @@
     if (!remoteTodos || remoteTodos.date !== todayKey()) return;
     const localState = loadTodosState();
     const remoteUpdatedAt = typeof remoteTodos.updatedAt === "number" ? remoteTodos.updatedAt : 0;
-    if (remoteUpdatedAt > localState.updatedAt) {
+    if (remoteWins(remoteUpdatedAt, localState.updatedAt, todosHaveContent(remoteTodos.items), todosHaveContent(localState.items))) {
       todos = remoteTodos.items || {};
       saveTodos(todos);
       renderTodos();
@@ -1768,8 +1800,9 @@
     if (!remoteTasks) return;
     const localState = loadTasksState();
     const remoteUpdatedAt = typeof remoteTasks.updatedAt === "number" ? remoteTasks.updatedAt : 0;
-    if (remoteUpdatedAt > localState.updatedAt) {
-      tasks = remoteTasks.items || [];
+    const remoteItems = remoteTasks.items || [];
+    if (remoteWins(remoteUpdatedAt, localState.updatedAt, remoteItems.length > 0, localState.items.length > 0)) {
+      tasks = remoteItems;
       saveTasks(tasks);
       renderTasks();
     }
