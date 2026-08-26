@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-08-26",
-    "lastSyncedAt": "2026-08-26T07:46:18.745Z",
+    "lastSyncedAt": "2026-08-26T07:58:40.449Z",
     "owner": "Kilian"
   },
   "github": {
@@ -447,7 +447,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-26T07:46:18.046Z",
+    "checkedAt": "2026-08-26T07:58:38.895Z",
     "openOrdersCount": 269,
     "pendingShipments": [
       {
@@ -469,7 +469,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-26T07:46:18.153Z",
+    "checkedAt": "2026-08-26T07:58:39.182Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -635,152 +635,157 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-08-25"
+      "to": "2026-08-26"
     },
     "totalsByCategory": {
       "YouTube": 40310.14,
-      "Bricklink": 1352.85
+      "Bricklink": 1378.92
     },
     "daily": [
       {
         "date": "2026-07-25",
-        "YouTube": 33074.91,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 33074.91
       },
       {
         "date": "2026-07-26",
-        "YouTube": 155.56,
-        "Bricklink": 100.71
+        "Bricklink": 100.71,
+        "YouTube": 155.56
       },
       {
         "date": "2026-07-27",
-        "YouTube": 443.89,
-        "Bricklink": 185.8
+        "Bricklink": 185.8,
+        "YouTube": 443.89
       },
       {
         "date": "2026-07-28",
-        "YouTube": 359.29,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 359.29
       },
       {
         "date": "2026-07-29",
-        "YouTube": 150,
-        "Bricklink": 89.7
+        "Bricklink": 89.7,
+        "YouTube": 150
       },
       {
         "date": "2026-07-30",
-        "YouTube": 238.79,
-        "Bricklink": 15
+        "Bricklink": 15,
+        "YouTube": 238.79
       },
       {
         "date": "2026-07-31",
-        "YouTube": 134.64,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 134.64
       },
       {
         "date": "2026-08-01",
-        "YouTube": 183.78,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 183.78
       },
       {
         "date": "2026-08-02",
-        "YouTube": 280.31,
-        "Bricklink": 173.38
+        "Bricklink": 173.38,
+        "YouTube": 280.31
       },
       {
         "date": "2026-08-03",
-        "YouTube": 273.2,
-        "Bricklink": 90.04
+        "Bricklink": 90.04,
+        "YouTube": 273.2
       },
       {
         "date": "2026-08-04",
-        "YouTube": 108.98,
-        "Bricklink": 41.16
+        "Bricklink": 41.16,
+        "YouTube": 108.98
       },
       {
         "date": "2026-08-05",
-        "YouTube": 194.69,
-        "Bricklink": 25
+        "Bricklink": 25,
+        "YouTube": 194.69
       },
       {
         "date": "2026-08-06",
-        "YouTube": 150,
-        "Bricklink": 76.04
+        "Bricklink": 76.04,
+        "YouTube": 150
       },
       {
         "date": "2026-08-07",
-        "YouTube": 60,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 60
       },
       {
         "date": "2026-08-08",
-        "YouTube": 273.99,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 273.99
       },
       {
         "date": "2026-08-09",
-        "YouTube": 157.5,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 157.5
       },
       {
         "date": "2026-08-10",
-        "YouTube": 382.36,
-        "Bricklink": 58.03
+        "Bricklink": 58.03,
+        "YouTube": 382.36
       },
       {
         "date": "2026-08-11",
-        "YouTube": 435.24,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 435.24
       },
       {
         "date": "2026-08-12",
-        "YouTube": 463.68,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 463.68
       },
       {
         "date": "2026-08-17",
-        "YouTube": 218.41,
-        "Bricklink": 126.94
+        "Bricklink": 126.94,
+        "YouTube": 218.41
       },
       {
         "date": "2026-08-18",
-        "YouTube": 276.93,
-        "Bricklink": 79.16
+        "Bricklink": 79.16,
+        "YouTube": 276.93
       },
       {
         "date": "2026-08-19",
-        "YouTube": 184.49,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 184.49
       },
       {
         "date": "2026-08-20",
-        "YouTube": 199.02,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 199.02
       },
       {
         "date": "2026-08-21",
-        "YouTube": 480,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 480
       },
       {
         "date": "2026-08-22",
-        "YouTube": 480,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 480
       },
       {
         "date": "2026-08-23",
-        "YouTube": 480,
-        "Bricklink": 0
+        "Bricklink": 0,
+        "YouTube": 480
       },
       {
         "date": "2026-08-24",
-        "YouTube": 179.58,
-        "Bricklink": 180
+        "Bricklink": 180,
+        "YouTube": 179.58
       },
       {
         "date": "2026-08-25",
-        "YouTube": 290.9,
-        "Bricklink": 111.89
+        "Bricklink": 111.89,
+        "YouTube": 290.9
+      },
+      {
+        "date": "2026-08-26",
+        "Bricklink": 26.07,
+        "YouTube": 0
       }
     ]
   }
