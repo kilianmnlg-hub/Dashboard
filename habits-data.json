@@ -2,35 +2,43 @@
   "habits": [
     {
       "id": "gym",
-      "label": "Gym"
+      "label": "Gym",
+      "targetPerWeek": 3
     },
     {
       "id": "rauchfrei",
-      "label": "Rauchfreier Tag"
+      "label": "Rauchfreier Tag",
+      "targetPerWeek": 1
     },
     {
       "id": "koffein",
-      "label": "<2x Koffein"
+      "label": "<2x Koffein",
+      "targetPerWeek": 7
     },
     {
       "id": "ba0ab60c-5b39-4842-8060-c464b6e9242b",
-      "label": "Obst/Gemüse"
+      "label": "Obst/Gemüse",
+      "targetPerWeek": 7
     },
     {
       "id": "07b53929-622d-4cdf-baf0-47645c841575",
-      "label": "Chalories"
+      "label": "Chalories",
+      "targetPerWeek": 7
     },
     {
       "id": "5f32178a-636b-448a-9c3e-0fb1708cebc7",
-      "label": "5k Steps"
+      "label": "5k Steps",
+      "targetPerWeek": 7
     },
     {
       "id": "e9d7a0a6-7834-4bc9-aeba-044f02061eda",
-      "label": "Intervallfasten"
+      "label": "Intervallfasten",
+      "targetPerWeek": 7
     },
     {
       "id": "756c951f-2999-4b1f-b235-6beb97e5b67f",
-      "label": "Meditation"
+      "label": "Meditation",
+      "targetPerWeek": 7
     }
   ],
   "log": {
@@ -90,5 +98,5 @@
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true
     }
   },
-  "updatedAt": 1787729737047
+  "updatedAt": 1787731531135
 }
