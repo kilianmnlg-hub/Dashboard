@@ -1380,6 +1380,13 @@
       setHabitSyncStatus("local-only");
       return;
     }
+    // Klick auf "Sync" bumpt den Zeitstempel IMMER, auch ohne zwischenzeitliche Aenderung -
+    // sonst haengen zwei Geraete, die beide noch nie editiert haben (updatedAt beide 0, siehe
+    // loadHabitState), nach dem Sync weiterhin bei einem 0/0-Unentschieden fest und keiner
+    // uebernimmt je den Stand des anderen. Ein bewusster Sync-Klick ist selbst schon ein
+    // Signal "mein aktueller Stand soll jetzt gelten".
+    habitState.updatedAt = Date.now();
+    localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${HABIT_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
     try {
@@ -1666,14 +1673,29 @@
   async function pushSyncDataToCloud(config) {
     config = config || getGithubConfig();
     if (!config) return;
+    // Wie beim Habit-Tracker: Zeitstempel bei jedem Sync-Klick bumpen, nicht nur bei einer
+    // echten Aenderung - sonst bleiben zwei nie editierte Geraete (beide updatedAt 0) auch
+    // nach dem Sync bei einem Unentschieden haengen. Lokal persistieren, damit der neue
+    // Zeitstempel auch nach einem Reload bestehen bleibt statt beim naechsten Laden wieder
+    // auf den alten (ggf. 0er-) Stand zurueckzufallen.
+    const now = Date.now();
+    const ideas = {};
+    Object.keys(ideaTextareas).forEach((key) => {
+      const state = { text: loadIdeaState(key).text, updatedAt: now };
+      localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(state));
+      ideas[key] = state;
+    });
+    const studiumDeadline = { ...loadStudiumDeadline(), updatedAt: now };
+    localStorage.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(studiumDeadline));
+    const todosItems = loadTodosState().items;
+    localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify({ items: todosItems, updatedAt: now }));
+    const tasksItems = loadTasksState().items;
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify({ items: tasksItems, updatedAt: now }));
     const payload = {
-      ideas: Object.keys(ideaTextareas).reduce((acc, key) => {
-        acc[key] = loadIdeaState(key);
-        return acc;
-      }, {}),
-      studiumDeadline: loadStudiumDeadline(),
-      todos: { date: todayKey(), ...loadTodosState() },
-      tasks: loadTasksState()
+      ideas,
+      studiumDeadline,
+      todos: { date: todayKey(), items: todosItems, updatedAt: now },
+      tasks: { items: tasksItems, updatedAt: now }
     };
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${SYNC_DATA_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
