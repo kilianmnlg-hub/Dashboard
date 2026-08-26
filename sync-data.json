@@ -22,12 +22,17 @@
           "id": "51e4e06e-7525-42cd-a124-02232e276ffb",
           "text": "4+ Thumbnail upgraden",
           "done": false
+        },
+        {
+          "id": "3e10a649-e3c8-4c2b-bd7e-4c6e14effcec",
+          "text": "Dino thumbnail",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787729737048
+    "updatedAt": 1787730135226
   },
   "tasks": {
     "items": [
@@ -42,6 +47,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1787729737048
+    "updatedAt": 1787729870121
   }
 }
