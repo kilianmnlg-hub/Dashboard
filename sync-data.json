@@ -2,17 +2,17 @@
   "ideas": {
     "bricksOnTheFloor": {
       "text": "-Sind Lego Dinosaurier wirklich schlechter geworden?",
-      "updatedAt": 1787728289373
+      "updatedAt": 1787728348743
     },
     "brainwalkers": {
       "text": "",
-      "updatedAt": 1787728289373
+      "updatedAt": 1787728348743
     }
   },
   "studiumDeadline": {
     "label": "",
     "date": "",
-    "updatedAt": 1787728289373
+    "updatedAt": 1787728348743
   },
   "todos": {
     "date": "2026-08-26",
@@ -21,10 +21,10 @@
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787728289373
+    "updatedAt": 1787728348743
   },
   "tasks": {
     "items": [],
-    "updatedAt": 1787728289373
+    "updatedAt": 1787728348743
   }
 }
