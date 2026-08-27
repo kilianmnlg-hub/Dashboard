@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="icon.svg" />
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <meta name="theme-color" content="#14120F" />
 </head>
 <body>
@@ -30,6 +31,7 @@
       </div>
     </div>
     <nav class="nav" id="mainNav">
+      <a href="#kalender">Kalender</a>
       <a href="#todo">To-Do</a>
       <a href="#aufgaben">Aufgaben</a>
       <a href="#habits">Habits</a>
@@ -89,6 +91,43 @@
       </div>
     </div>
   </div>
+
+  <div class="overlay" id="calendarOverlay">
+    <div class="modal modal-wide">
+      <div class="modal-head">
+        <h2>Kalender</h2>
+        <button class="modal-close" id="calendarModalCloseBtn" type="button">×</button>
+      </div>
+      <p class="modal-sub">Dein voller Google-Kalender — dafür musst du in diesem Browser bei Google eingeloggt sein.</p>
+      <div class="calendar-embed-wrap">
+        <iframe id="calendarEmbedFrame" title="Google Kalender" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <section id="kalender" class="section">
+    <div class="section-head">
+      <h2><span class="section-marker"></span>Kalender</h2>
+      <p class="section-sub" id="calendarDateLabel"></p>
+    </div>
+    <div class="panel">
+      <div id="calendarConnectState">
+        <p class="habit-empty" id="calendarConnectHint">Google Kalender noch nicht verbunden.</p>
+        <button type="button" class="btn btn-primary" id="calendarConnectBtn">Kalender verbinden</button>
+      </div>
+      <div id="calendarConnectedState" hidden>
+        <div class="todo-add" id="calendarAdd">
+          <input type="text" id="calendarQuickAddInput" placeholder="Termin hinzufügen… (z.B. „Zahnarzt morgen 10 Uhr“)" maxlength="200" />
+          <button type="button" id="calendarQuickAddBtn" aria-label="Hinzufügen">+</button>
+        </div>
+        <ul class="todo-list" id="calendarEventList"></ul>
+        <p class="sync-note">
+          <span id="calendarSyncStatus">–</span>
+          · <button type="button" class="link-button-inline" id="calendarOpenFullBtn">Ganzen Kalender ansehen</button>
+        </p>
+      </div>
+    </div>
+  </section>
 
   <section id="todo" class="section">
     <div class="section-head">

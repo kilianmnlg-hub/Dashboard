@@ -1,8 +1,8 @@
 # Kilian – Dashboard
 
 Statisches HTML/CSS/JS-Dashboard mit Überblick über Bricklink, Bricks On The Floor,
-The Brainwalkers, 2026-Ziele, Zeit-Balance und Tages-To-Do. Installierbar als PWA
-("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
+The Brainwalkers, 2026-Ziele, Zeit-Balance, Google Kalender und Tages-To-Do. Installierbar
+als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 
 ## Dateien
 
@@ -274,6 +274,52 @@ Notions API blockiert direkte Aufrufe aus dem Browser (kein CORS) — ein Klick 
 Dashboard könnte also gar nicht bei Notion ankommen, ohne einen zusätzlichen Server
 dazwischenzuschalten. GitHubs API erlaubt das (das nutzt der Sync-Button hier schon die
 ganze Zeit), deshalb landet der Habit-Stand als JSON-Datei im selben Repo statt in Notion.
+
+## Google Kalender
+
+Karte direkt über dem Tages-To-Do: zeigt die heutigen Termine deines Google-Kalenders,
+lässt dich per Kurztext neue Termine anlegen ("Zahnarzt morgen 10 Uhr" — Google parst
+Datum/Uhrzeit selbst über den `quickAdd`-Endpunkt) und öffnet über "Ganzen Kalender
+ansehen" ein Overlay mit deinem echten, eingebetteten Google-Kalender (offizielles
+Google-Embed, alle Ansichten inklusive).
+
+**Läuft komplett im Browser, kein Server nötig:** Anders als Notion erlaubt Googles
+Calendar-API direkte Aufrufe aus dem Browser (CORS ist erlaubt), dafür läuft die
+Autorisierung über einen waschechten OAuth2-Consent-Popup (Google Identity Services)
+statt eines simplen API-Keys.
+
+**Speicherung:** Der Access-Token lebt nur ~1 Stunde und wird lokal (`localStorage`)
+zwischengespeichert, aber bewusst **nicht** automatisch im Hintergrund erneuert — das
+würde einen Popup ohne Klick brauchen, den die meisten Browser sowieso blockieren.
+Läuft ein Token ab, reicht ein erneuter Klick auf "Kalender verbinden".
+
+### Einrichtung
+
+1. [console.cloud.google.com](https://console.cloud.google.com) → Projekt anlegen (oder
+   ein bestehendes nutzen) → "APIs & Services" → "Library" → **"Google Calendar API"**
+   aktivieren.
+2. "APIs & Services" → "OAuth consent screen" → Typ "External" (für ein privates
+   Google-Konto) → Namen/E-Mail eintragen → Scope `.../auth/calendar.events` hinzufügen
+   → dich selbst unter "Test users" eintragen. Im Status "Testing" reicht das für den
+   persönlichen Gebrauch, eine Google-Verifizierung ist nicht nötig.
+3. "APIs & Services" → "Credentials" → "Create Credentials" → **"OAuth client ID"** →
+   Anwendungstyp **"Web application"** → unter "Authorized JavaScript origins" die
+   Dashboard-URL eintragen (z.B. `https://kilianmnlg-hub.github.io`, für lokales Testen
+   zusätzlich `http://localhost:8934`) → erstellen. Du bekommst eine **Client-ID**
+   (`....apps.googleusercontent.com`) — kein Client-Secret nötig, das ist ein reiner
+   Browser-Client.
+4. Beim ersten Klick auf "Kalender verbinden" im Dashboard fragt dich ein Prompt einmalig
+   nach dieser Client-ID und merkt sie sich pro Browser/Gerät in `localStorage` — genauso
+   wie beim GitHub-Token für den Sync-Button. Alternativ direkt in `data.js` unter
+   `googleCalendar: { clientId: "..." }` eintragen, dann entfällt der Prompt.
+5. Direkt danach öffnet sich Googles Consent-Popup (Login + Berechtigung erteilen) —
+   danach lädt das Dashboard deine heutigen Termine.
+
+**Kalender-ID für den eingebetteten "Ganzer Kalender"-Link:** wird nach dem Verbinden
+automatisch über die API ermittelt (deine `primary`-Kalender-ID, meist deine
+Gmail-Adresse) und lokal gemerkt. Optional in `data.js` unter
+`googleCalendar: { calendarId: "du@gmail.com" }` fest eintragen, falls du einen anderen
+Kalender als deinen Haupt-Kalender einbetten willst.
 
 ## Tages-To-Do
 

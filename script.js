@@ -1848,6 +1848,246 @@
   }
   fetchRemoteSyncData();
 
+  // ---------- Google Kalender ----------
+  // Laeuft komplett im Browser (kein Backend noetig, passt zum Rest des Dashboards):
+  // Google Identity Services (GIS, aus dem <script>-Tag in index.html) fuer den OAuth2-
+  // Token-Client, Google Calendar API direkt per fetch() mit dem erhaltenen Access-Token.
+  // Der Access-Token lebt nur ~1 Std und wird bewusst NICHT automatisch im Hintergrund
+  // erneuert (das wuerde einen Popup-Aufruf ohne Nutzer-Klick brauchen, was Browser meist
+  // blockieren) - stattdessen einfach erneut auf "Kalender verbinden" klicken, wenn eine
+  // Anfrage mit 401 fehlschlaegt. Einrichtung siehe README, Abschnitt "Google Kalender".
+  const GCAL_SCOPE = "https://www.googleapis.com/auth/calendar.events";
+  const GCAL_TOKEN_KEY = "dashboard-gcal-token";
+  const GCAL_CLIENT_ID_KEY = "dashboard-gcal-clientid";
+  const GCAL_CALENDAR_ID_KEY = "dashboard-gcal-calendarid";
+
+  let gcalTokenClient = null;
+  let gcalAccessToken = null;
+  let gcalCalendarId = data.googleCalendar?.calendarId || localStorage.getItem(GCAL_CALENDAR_ID_KEY) || null;
+
+  const calendarConnectState = document.getElementById("calendarConnectState");
+  const calendarConnectHint = document.getElementById("calendarConnectHint");
+  const calendarConnectedState = document.getElementById("calendarConnectedState");
+  const calendarConnectBtn = document.getElementById("calendarConnectBtn");
+  const calendarEventList = document.getElementById("calendarEventList");
+  const calendarQuickAddInput = document.getElementById("calendarQuickAddInput");
+  const calendarQuickAddBtn = document.getElementById("calendarQuickAddBtn");
+  const calendarSyncStatusEl = document.getElementById("calendarSyncStatus");
+  const calendarDateLabelEl = document.getElementById("calendarDateLabel");
+  const calendarOpenFullBtn = document.getElementById("calendarOpenFullBtn");
+  const calendarOverlay = document.getElementById("calendarOverlay");
+  const calendarEmbedFrame = document.getElementById("calendarEmbedFrame");
+  const calendarModalCloseBtn = document.getElementById("calendarModalCloseBtn");
+
+  if (calendarDateLabelEl) {
+    calendarDateLabelEl.textContent = now.toLocaleDateString("de-DE", { weekday: "long", day: "2-digit", month: "long" });
+  }
+
+  function setCalendarStatus(state, detail) {
+    if (!calendarSyncStatusEl) return;
+    const time = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    const map = {
+      loading: "⏳ Lade Termine…",
+      ok: `☁️ Aktualisiert · ${time}`,
+      error: `⚠️ Fehler${detail ? " — " + detail : ""}`
+    };
+    calendarSyncStatusEl.textContent = map[state] || "";
+  }
+
+  function showCalendarConnected(show) {
+    if (calendarConnectState) calendarConnectState.hidden = show;
+    if (calendarConnectedState) calendarConnectedState.hidden = !show;
+  }
+
+  function loadCachedGcalToken() {
+    try {
+      const raw = localStorage.getItem(GCAL_TOKEN_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // 30s Sicherheitsmarge, damit ein Request nicht mitten in der Ausfuehrung abläuft
+      if (typeof parsed.expiresAt === "number" && parsed.expiresAt > Date.now() + 30000) return parsed;
+    } catch (e) {
+      /* corrupted storage, fall back to null */
+    }
+    return null;
+  }
+  function saveGcalToken(accessToken, expiresInSeconds) {
+    const state = { access_token: accessToken, expiresAt: Date.now() + expiresInSeconds * 1000 };
+    localStorage.setItem(GCAL_TOKEN_KEY, JSON.stringify(state));
+    return state;
+  }
+
+  function getGcalClientId() {
+    let clientId = data.googleCalendar?.clientId || localStorage.getItem(GCAL_CLIENT_ID_KEY) || "";
+    if (!clientId) {
+      const input = prompt(
+        "Google OAuth Client-ID für den Kalender (siehe README, Abschnitt \"Google Kalender\" für die Einrichtung):"
+      );
+      if (!input) return null;
+      clientId = input.trim();
+      localStorage.setItem(GCAL_CLIENT_ID_KEY, clientId);
+    }
+    return clientId;
+  }
+
+  async function gcalFetch(path, options) {
+    const res = await fetch(`https://www.googleapis.com/calendar/v3/${path}`, {
+      ...options,
+      headers: { ...((options && options.headers) || {}), Authorization: `Bearer ${gcalAccessToken}` }
+    });
+    if (res.status === 401) {
+      // Token abgelaufen/ungueltig — lokal verwerfen, UI faellt zurueck auf "Verbinden".
+      localStorage.removeItem(GCAL_TOKEN_KEY);
+      gcalAccessToken = null;
+      showCalendarConnected(false);
+    }
+    return res;
+  }
+
+  async function resolveCalendarId() {
+    if (gcalCalendarId) return gcalCalendarId;
+    try {
+      const res = await gcalFetch("calendars/primary");
+      if (res.ok) {
+        const cal = await res.json();
+        gcalCalendarId = cal.id;
+        localStorage.setItem(GCAL_CALENDAR_ID_KEY, gcalCalendarId);
+      }
+    } catch (e) {
+      /* Embed-Link bleibt dann leer, bis data.googleCalendar.calendarId gesetzt wird */
+    }
+    return gcalCalendarId;
+  }
+
+  function renderCalendarEvents(events) {
+    if (!calendarEventList) return;
+    calendarEventList.innerHTML = events.length
+      ? events
+          .map((ev) => {
+            const title = escapeHtml(ev.summary || "(ohne Titel)");
+            const timeLabel = ev.start?.dateTime
+              ? new Date(ev.start.dateTime).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })
+              : "Ganztägig";
+            return `<li class="todo-item">
+              <span class="calendar-event-time">${timeLabel}</span>
+              <span>${title}</span>
+              ${ev.htmlLink ? `<a class="link-button-inline" href="${ev.htmlLink}" target="_blank" rel="noopener">Öffnen</a>` : ""}
+            </li>`;
+          })
+          .join("")
+      : `<li class="todo-empty">Keine Termine heute.</li>`;
+  }
+
+  async function fetchTodayEvents() {
+    if (!gcalAccessToken) return;
+    setCalendarStatus("loading");
+    try {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+      const end = new Date();
+      end.setHours(23, 59, 59, 999);
+      const params = new URLSearchParams({
+        timeMin: start.toISOString(),
+        timeMax: end.toISOString(),
+        singleEvents: "true",
+        orderBy: "startTime",
+        maxResults: "20"
+      });
+      const res = await gcalFetch(`calendars/${encodeURIComponent(gcalCalendarId || "primary")}/events?${params}`);
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+      const payload = await res.json();
+      renderCalendarEvents(payload.items || []);
+      setCalendarStatus("ok");
+    } catch (err) {
+      setCalendarStatus("error", err.message);
+    }
+  }
+
+  async function quickAddEvent(text) {
+    if (!gcalAccessToken || !text.trim()) return;
+    try {
+      const res = await gcalFetch(
+        `calendars/${encodeURIComponent(gcalCalendarId || "primary")}/events/quickAdd?text=${encodeURIComponent(text.trim())}`,
+        { method: "POST" }
+      );
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+      calendarQuickAddInput.value = "";
+      await fetchTodayEvents();
+    } catch (err) {
+      setCalendarStatus("error", err.message);
+    }
+  }
+  calendarQuickAddBtn?.addEventListener("click", () => quickAddEvent(calendarQuickAddInput.value));
+  calendarQuickAddInput?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") quickAddEvent(calendarQuickAddInput.value);
+  });
+
+  function ensureGcalTokenClient(clientId) {
+    if (gcalTokenClient) return gcalTokenClient;
+    if (!window.google?.accounts?.oauth2) return null;
+    gcalTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: GCAL_SCOPE,
+      callback: async (resp) => {
+        if (resp.error) {
+          setCalendarStatus("error", resp.error);
+          return;
+        }
+        gcalAccessToken = resp.access_token;
+        saveGcalToken(resp.access_token, resp.expires_in);
+        showCalendarConnected(true);
+        await resolveCalendarId();
+        await fetchTodayEvents();
+      }
+    });
+    return gcalTokenClient;
+  }
+
+  calendarConnectBtn?.addEventListener("click", () => {
+    const clientId = getGcalClientId();
+    if (!clientId) return;
+    const client = ensureGcalTokenClient(clientId);
+    if (!client) {
+      alert("Google-Anmeldedienst ist noch nicht geladen — bitte kurz warten und nochmal klicken.");
+      return;
+    }
+    client.requestAccessToken({ prompt: "consent" });
+  });
+
+  calendarOpenFullBtn?.addEventListener("click", async () => {
+    const calId = await resolveCalendarId();
+    if (!calId) {
+      alert('Kalender-ID noch nicht bekannt — erst auf "Kalender verbinden" klicken, oder googleCalendar.calendarId in data.js eintragen.');
+      return;
+    }
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    calendarEmbedFrame.src = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(calId)}&ctz=${encodeURIComponent(tz)}`;
+    calendarOverlay.classList.add("open");
+  });
+  calendarModalCloseBtn?.addEventListener("click", () => calendarOverlay.classList.remove("open"));
+  calendarOverlay?.addEventListener("click", (e) => {
+    if (e.target === calendarOverlay) calendarOverlay.classList.remove("open");
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && calendarOverlay?.classList.contains("open")) calendarOverlay.classList.remove("open");
+  });
+
+  // Beim Laden: nur einsteigen, wenn schon ein gueltiger (nicht abgelaufener) Token
+  // gecacht ist — bewusst KEIN automatischer Popup-Versuch ohne Klick, den wuerden die
+  // meisten Browser ohnehin als ungewollten Popup blockieren.
+  (function initGoogleCalendarOnLoad() {
+    const cached = loadCachedGcalToken();
+    if (!cached) {
+      if (!data.googleCalendar?.clientId && !localStorage.getItem(GCAL_CLIENT_ID_KEY) && calendarConnectHint) {
+        calendarConnectHint.textContent = 'Noch nicht eingerichtet — siehe README, Abschnitt "Google Kalender".';
+      }
+      return;
+    }
+    gcalAccessToken = cached.access_token;
+    showCalendarConnected(true);
+    resolveCalendarId().then(fetchTodayEvents);
+  })();
+
   // ---------- PWA: Service Worker registrieren ----------
   // Ermöglicht "Zum Homescreen hinzufügen" auf dem Handy. Schlägt lautlos fehl bei
   // lokalem file://-Öffnen (Service Worker brauchen http/https) — kein Problem, der
