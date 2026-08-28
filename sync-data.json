@@ -3,7 +3,7 @@
     "bricksOnTheFloor": {
       "items": [
         {
-          "id": "a77368d6-a8d8-466e-9709-ccd402772a7a",
+          "id": "dc72cde0-7e3d-45e8-968a-c7d279a22a60",
           "text": "-Sind Lego Dinosaurier wirklich schlechter geworden?"
         }
       ],
@@ -14,9 +14,13 @@
         {
           "id": "0f69e56d-4866-4ad4-877b-98b0fa2bf06d",
           "text": "- 10 Tips zum MTG Profie"
+        },
+        {
+          "id": "37b472f5-8a3f-478f-9d16-d88629ee8b32",
+          "text": "Die Besten Budget Commander Karten"
         }
       ],
-      "updatedAt": 1787920255279
+      "updatedAt": 1787920269297
     }
   },
   "studiumDeadline": {
