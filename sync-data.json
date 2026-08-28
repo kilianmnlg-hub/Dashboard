@@ -11,18 +11,14 @@
       "updatedAt": 1787920920430
     },
     "brainwalkers": {
-      "nextId": "0f69e56d-4866-4ad4-877b-98b0fa2bf06d",
+      "nextId": null,
       "items": [
-        {
-          "id": "0f69e56d-4866-4ad4-877b-98b0fa2bf06d",
-          "text": "- 10 Tips zum MTG Profie"
-        },
         {
           "id": "37b472f5-8a3f-478f-9d16-d88629ee8b32",
           "text": "Die Besten Budget Commander Karten"
         }
       ],
-      "updatedAt": 1787920269297
+      "updatedAt": 1787920928240
     }
   },
   "studiumDeadline": {
