@@ -30,9 +30,9 @@
     }
   },
   "studiumDeadline": {
-    "label": "",
-    "date": "",
-    "updatedAt": 1787729737048
+    "label": "Klausur PM",
+    "date": "2026-08-12",
+    "updatedAt": 0
   },
   "todos": {
     "date": "2026-08-28",
@@ -62,16 +62,36 @@
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787920900720
+    "updatedAt": 1787930962675
   },
   "tasks": {
     "items": [
       {
-        "id": "55b88e0e-c8b5-4484-ba98-01dda03e99f9",
-        "text": "Amsterdam mit Nele planen",
+        "id": "f606c0b0-daa3-4d90-a9e1-45c4d5fbf148",
+        "text": "Lego Tour reservieren",
+        "done": false
+      },
+      {
+        "id": "389b863d-de76-4827-ab0d-e6975c1f7596",
+        "text": "Gewinnspiel versenden",
+        "done": false
+      },
+      {
+        "id": "7f476424-1a77-4661-be2d-0ed163f68e90",
+        "text": "lego face",
+        "done": false
+      },
+      {
+        "id": "81f95b79-e4d5-48c1-b0ca-e5decd909608",
+        "text": "4+ Thumbnail upgraden",
+        "done": false
+      },
+      {
+        "id": "e2189df9-cf30-47ac-8a4f-4bec9099cc50",
+        "text": "Buchhaltung",
         "done": false
       }
     ],
-    "updatedAt": 1787920900723
+    "updatedAt": 1787930960959
   }
 }
