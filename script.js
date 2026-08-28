@@ -1856,7 +1856,11 @@
   // erneuert (das wuerde einen Popup-Aufruf ohne Nutzer-Klick brauchen, was Browser meist
   // blockieren) - stattdessen einfach erneut auf "Kalender verbinden" klicken, wenn eine
   // Anfrage mit 401 fehlschlaegt. Einrichtung siehe README, Abschnitt "Google Kalender".
-  const GCAL_SCOPE = "https://www.googleapis.com/auth/calendar.events";
+  // calendar.events allein deckt Termine lesen/schreiben ab, aber NICHT den
+  // calendars.get-Aufruf (Kalender-Metadaten inkl. echter Kalender-ID fuers Embed) - dafuer
+  // ist ein breiterer Scope noetig. calendar.readonly deckt beides ab (Kalenderliste +
+  // Termine lesen), calendar.events bleibt fuers Schreiben (quickAdd) zusaetzlich noetig.
+  const GCAL_SCOPE = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
   const GCAL_TOKEN_KEY = "dashboard-gcal-token";
   const GCAL_CLIENT_ID_KEY = "dashboard-gcal-clientid";
   const GCAL_CALENDAR_ID_KEY = "dashboard-gcal-calendarid";
