@@ -1,12 +1,26 @@
 {
   "ideas": {
     "bricksOnTheFloor": {
-      "text": "-Sind Lego Dinosaurier wirklich schlechter geworden?",
+      "items": [
+        {
+          "id": "a6488717-d733-45f2-bf14-ae4af27c62a0",
+          "text": "-Sind Lego Dinosaurier wirklich schlechter geworden?"
+        }
+      ],
       "updatedAt": 1787729737048
     },
     "brainwalkers": {
-      "text": "- 10 Tips zum MTG Profi\n- Die besten budget Commander Karten",
-      "updatedAt": 1787919078347
+      "items": [
+        {
+          "id": "84c943af-73b7-4130-a409-c8a311f4774f",
+          "text": "- 10 Tips zum MTG Profi\n- Die besten budget Commander Karten"
+        },
+        {
+          "id": "0f69e56d-4866-4ad4-877b-98b0fa2bf06d",
+          "text": "- 10 Tips zum MTG Profie"
+        }
+      ],
+      "updatedAt": 1787920251560
     }
   },
   "studiumDeadline": {
