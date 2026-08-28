@@ -822,30 +822,92 @@
   }
 
   // Cloud-Sync ueber sync-data.json, gleiches Zeitstempel-Prinzip wie beim Habit-Tracker
-  // (siehe Abschnitt weiter unten). Altformat vor Einfuehrung des Sync war ein purer
-  // String ohne Wrapper - JSON.parse schlaegt dafuer fehl oder liefert kein {text:...}
-  // zurueck, dann als Altformat-String behandeln statt zu verwerfen.
+  // (siehe Abschnitt weiter unten). "Naechste Video-Idee" ist eine Liste (items[0] ist die
+  // aktuelle naechste Idee) statt eines einzelnen Textfelds - Klick auf eine Idee weiter
+  // unten befoerdert sie an Position 0, Abhaken entfernt eine Idee (Video ist fertig).
+  // Migriert zwei Altformate transparent: {text, updatedAt} (Einzelidee vor der Liste) und
+  // einen purem String (vor jeglichem Wrapper).
   const loadIdeaState = (key) => {
     const raw = localStorage.getItem(`dashboard-idea-${key}`);
-    if (raw === null) return { text: "", updatedAt: -1 };
+    if (raw === null) return { items: [], updatedAt: -1 };
     try {
       const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object" && typeof parsed.text === "string") {
+      if (parsed && typeof parsed === "object" && Array.isArray(parsed.items)) {
         if (typeof parsed.updatedAt !== "number") parsed.updatedAt = 0;
         return parsed;
       }
+      if (parsed && typeof parsed === "object" && typeof parsed.text === "string") {
+        const items = parsed.text.trim() ? [{ id: newId(), text: parsed.text }] : [];
+        return { items, updatedAt: typeof parsed.updatedAt === "number" ? parsed.updatedAt : 0 };
+      }
     } catch (e) {
-      /* Altformat: purer String vor Einfuehrung des Cloud-Sync */
+      /* Alt-Alt-Format: purer String vor jeglichem Wrapper */
+      return raw.trim() ? { items: [{ id: newId(), text: raw }], updatedAt: 0 } : { items: [], updatedAt: 0 };
     }
-    return { text: raw, updatedAt: 0 };
+    return { items: [], updatedAt: -1 };
   };
-  const saveIdeaState = (key, text) => {
-    const state = { text, updatedAt: Date.now() };
+  const saveIdeaState = (key, items) => {
+    const state = { items, updatedAt: Date.now() };
     localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(state));
     scheduleAutoSync("syncdata");
     return state;
   };
-  const ideaTextareas = {};
+  const ideaWidgets = {};
+
+  function renderIdeaWidget(key) {
+    const widget = ideaWidgets[key];
+    if (!widget) return;
+    const items = loadIdeaState(key).items;
+    const [first, ...rest] = items;
+
+    widget.nextEl.classList.remove("done");
+    widget.nextEl.innerHTML = first
+      ? `<input type="checkbox" aria-label="Video ist fertig — Idee entfernen" />
+         <span class="idea-next-text">${escapeHtml(first.text)}</span>`
+      : `<span class="idea-next-empty">Noch keine Idee eingetragen.</span>`;
+    if (first) {
+      widget.nextEl.querySelector("input[type=checkbox]").addEventListener("change", () => {
+        removeIdeaItem(key, first.id, widget.nextEl);
+      });
+    }
+
+    widget.backlogEl.innerHTML = rest
+      .map(
+        (item) => `
+        <li class="idea-row" data-id="${item.id}">
+          <input type="checkbox" aria-label="Video ist fertig — Idee entfernen" />
+          <span class="idea-row-text">${escapeHtml(item.text)}</span>
+          <button type="button" class="idea-promote" aria-label="Nach oben, als nächste Idee">↑</button>
+        </li>`
+      )
+      .join("");
+    widget.backlogEl.querySelectorAll(".idea-row").forEach((row) => {
+      const id = row.dataset.id;
+      row.querySelector("input[type=checkbox]").addEventListener("change", () => removeIdeaItem(key, id, row));
+      row.querySelector(".idea-row-text").addEventListener("click", () => promoteIdea(key, id));
+      row.querySelector(".idea-promote").addEventListener("click", () => promoteIdea(key, id));
+    });
+  }
+
+  function promoteIdea(key, id) {
+    const items = loadIdeaState(key).items;
+    const idx = items.findIndex((i) => i.id === id);
+    if (idx <= 0) return;
+    const [item] = items.splice(idx, 1);
+    items.unshift(item);
+    saveIdeaState(key, items);
+    renderIdeaWidget(key);
+  }
+
+  function removeIdeaItem(key, id, rowEl) {
+    // Kurz sichtbar durchgestrichen wie bei Aufgaben, dann erst entfernen.
+    rowEl.classList.add("done");
+    setTimeout(() => {
+      const items = loadIdeaState(key).items.filter((i) => i.id !== id);
+      saveIdeaState(key, items);
+      renderIdeaWidget(key);
+    }, 400);
+  }
 
   Object.entries(data.business).forEach(([key, biz]) => {
     const card = document.createElement("div");
@@ -884,9 +946,13 @@
       ${
         isYoutubeChannel
           ? `<div class="idea-note">
-              <label for="idea-${key}">Nächste Video-Idee</label>
-              <textarea id="idea-${key}" rows="2" placeholder="Notiz…"></textarea>
-              <span class="idea-saved" id="idea-saved-${key}">Gespeichert ✓</span>
+              <p class="idea-note-label">Nächste Video-Idee</p>
+              <div class="idea-next" id="idea-next-${key}"></div>
+              <ul class="idea-backlog" id="idea-backlog-${key}"></ul>
+              <div class="idea-add">
+                <textarea id="idea-input-${key}" rows="3" placeholder="Neue Video-Idee… (Enter zum Hinzufügen, Shift+Enter für Zeilenumbruch)" maxlength="300"></textarea>
+                <button type="button" id="idea-add-btn-${key}" aria-label="Idee hinzufügen">+</button>
+              </div>
             </div>`
           : ""
       }
@@ -894,19 +960,28 @@
     businessGrid.appendChild(card);
 
     if (isYoutubeChannel) {
-      const textarea = card.querySelector(`#idea-${key}`);
-      const savedTag = card.querySelector(`#idea-saved-${key}`);
-      ideaTextareas[key] = textarea;
-      textarea.value = loadIdeaState(key).text;
+      const nextEl = card.querySelector(`#idea-next-${key}`);
+      const backlogEl = card.querySelector(`#idea-backlog-${key}`);
+      const addInput = card.querySelector(`#idea-input-${key}`);
+      const addBtn = card.querySelector(`#idea-add-btn-${key}`);
+      ideaWidgets[key] = { nextEl, backlogEl };
+      renderIdeaWidget(key);
 
-      let saveTimer;
-      textarea.addEventListener("input", () => {
-        clearTimeout(saveTimer);
-        saveTimer = setTimeout(() => {
-          saveIdeaState(key, textarea.value);
-          savedTag.classList.add("show");
-          setTimeout(() => savedTag.classList.remove("show"), 1500);
-        }, 500);
+      const addIdea = () => {
+        const text = addInput.value.trim();
+        if (!text) return;
+        const items = loadIdeaState(key).items;
+        items.push({ id: newId(), text });
+        saveIdeaState(key, items);
+        addInput.value = "";
+        renderIdeaWidget(key);
+      };
+      addBtn.addEventListener("click", addIdea);
+      addInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          addIdea();
+        }
       });
     }
   });
@@ -1808,9 +1883,9 @@
     // Funktionen) und wuerde extern nur verwirren - beim Export auf 0 normalisieren.
     const clampedAt = (v) => Math.max(0, v);
     const ideas = {};
-    Object.keys(ideaTextareas).forEach((key) => {
+    Object.keys(ideaWidgets).forEach((key) => {
       const state = loadIdeaState(key);
-      ideas[key] = { text: state.text, updatedAt: clampedAt(state.updatedAt) };
+      ideas[key] = { items: state.items, updatedAt: clampedAt(state.updatedAt) };
     });
     const studium = loadStudiumDeadline();
     const studiumDeadline = { label: studium.label, date: studium.date, updatedAt: clampedAt(studium.updatedAt) };
@@ -1858,15 +1933,21 @@
   function applyRemoteIdeas(remoteIdeas) {
     if (!remoteIdeas) return;
     Object.entries(remoteIdeas).forEach(([key, remoteIdea]) => {
-      const textarea = ideaTextareas[key];
-      if (!textarea) return;
+      if (!ideaWidgets[key]) return;
       const local = loadIdeaState(key);
       const remoteUpdatedAt = typeof remoteIdea?.updatedAt === "number" ? remoteIdea.updatedAt : 0;
-      const remoteText = remoteIdea.text || "";
-      if (remoteWins(remoteUpdatedAt, local.updatedAt, !!remoteText.trim(), !!local.text.trim())) {
-        const merged = { text: remoteText, updatedAt: remoteUpdatedAt };
+      // Altformat-Kompatibilitaet: vor der Listen-Umstellung war "ideas.<kanal>" ein
+      // einzelnes {text, updatedAt} statt {items, updatedAt} - eine noch nicht neu
+      // gepushte Cloud-Datei kann das uebergangsweise noch enthalten.
+      const remoteItems = Array.isArray(remoteIdea?.items)
+        ? remoteIdea.items
+        : typeof remoteIdea?.text === "string" && remoteIdea.text.trim()
+        ? [{ id: newId(), text: remoteIdea.text }]
+        : [];
+      if (remoteWins(remoteUpdatedAt, local.updatedAt, remoteItems.length > 0, local.items.length > 0)) {
+        const merged = { items: remoteItems, updatedAt: remoteUpdatedAt };
         localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(merged));
-        textarea.value = merged.text;
+        renderIdeaWidget(key);
       }
     });
   }

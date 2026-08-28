@@ -209,11 +209,19 @@ Limit) als Short. Faustregel für die Ampel: 🟢 im Ziel-Rhythmus, 🟡 bis zum
 
 ## Nächste Video-Idee
 
-Kleines Notizfeld auf den beiden YouTube-Karten. Speichert automatisch (500ms
-nach dem letzten Tastendruck) im Browser (`localStorage`) und zusätzlich in der
-Cloud beim nächsten Klick auf "Sync" (siehe Abschnitt "Cloud-Sync: Video-Ideen /
-Studium-Termin / Tages-To-Do / Aufgaben" unten) — bewusst kein Sync-Feld in
-`data.js`, das läuft über eine eigene, kleinere Datei (`sync-data.json`).
+Auf beiden YouTube-Karten: eine kleine Ideen-Liste statt eines einzelnen
+Notizfelds. Die oberste Idee ist farblich hervorgehoben und gilt als "die
+nächste Video-Idee"; darunter der Rest als Backlog. Klick auf eine Idee im
+Backlog (oder auf den ↑-Pfeil) befördert sie an Position 1. Häkchen setzen
+(oben oder im Backlog) markiert eine Idee als erledigt (Video ist fertig) —
+sie verschwindet kurz durchgestrichen aus der Liste. Neue Ideen über das
+größere Textfeld darunter eintragen (Enter fügt hinzu, Shift+Enter für einen
+Zeilenumbruch).
+
+Speichert sofort im Browser (`localStorage`) und läuft automatisch in die
+Cloud (siehe Abschnitt "Auto-Sync" unten) sowie zusätzlich beim nächsten Klick
+auf "Sync" — bewusst kein Sync-Feld in `data.js`, das läuft über eine eigene,
+kleinere Datei (`sync-data.json`).
 
 ## Wochenvergleich-Trendpfeile
 

@@ -587,24 +587,50 @@ svg.links line.lit { stroke-width: 1.6; }
 .rhythm-badge.red { background: color-mix(in srgb, var(--status-critical) 16%, var(--surface)); color: var(--status-critical); }
 .rhythm-badge.neutral { color: var(--text-faint); font-weight: 400; }
 
-/* Content-Idee-Notizfeld */
+/* Content-Idee-Liste ("Naechste Video-Idee" + Backlog) */
 
-.idea-note { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); position: relative; }
-.idea-note label {
-  display: block; font-size: 11px; font-weight: 600; color: var(--text-faint);
-  text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px;
+.idea-note { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+.idea-note-label {
+  font-size: 11px; font-weight: 600; color: var(--text-faint);
+  text-transform: uppercase; letter-spacing: .05em; margin: 0 0 6px;
 }
-.idea-note textarea {
-  width: 100%; resize: vertical;
+
+.idea-next {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: color-mix(in srgb, var(--card-accent, var(--accent)) 14%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--accent)) 40%, var(--border));
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 13.5px; line-height: 1.4;
+}
+.idea-next input[type="checkbox"] { margin-top: 2px; flex-shrink: 0; accent-color: var(--card-accent, var(--accent)); cursor: pointer; }
+.idea-next-text { flex: 1; word-break: break-word; }
+.idea-next-empty { font-size: 12.5px; color: var(--text-faint); }
+.idea-next.done .idea-next-text { text-decoration: line-through; color: var(--text-faint); }
+
+.idea-backlog { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 3px; }
+.idea-backlog .idea-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: 6px; font-size: 12.5px; }
+.idea-backlog .idea-row:hover { background: var(--surface-2); }
+.idea-backlog input[type="checkbox"] { flex-shrink: 0; accent-color: var(--card-accent, var(--accent)); cursor: pointer; }
+.idea-row-text { flex: 1; cursor: pointer; word-break: break-word; }
+.idea-row-text:hover { color: var(--card-accent, var(--accent)); }
+.idea-row.done .idea-row-text { text-decoration: line-through; color: var(--text-faint); }
+.idea-promote {
+  flex-shrink: 0; border: none; background: none; color: var(--text-faint);
+  cursor: pointer; padding: 2px 6px; border-radius: 6px; font-size: 13px;
+}
+.idea-promote:hover { background: var(--surface); color: var(--card-accent, var(--accent)); }
+
+.idea-add { display: flex; gap: 8px; align-items: flex-end; }
+.idea-add textarea {
+  flex: 1; resize: vertical; min-height: 56px;
   background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
   padding: 8px 10px; font-size: 13px; font-family: inherit; color: var(--text);
 }
-.idea-note textarea:focus { outline: 2px solid var(--card-accent, var(--accent)); outline-offset: 1px; }
-.idea-saved {
-  position: absolute; top: 12px; right: 0; font-size: 11px; color: var(--status-good);
-  opacity: 0; transition: opacity .2s ease;
+.idea-add textarea:focus { outline: 2px solid var(--card-accent, var(--accent)); outline-offset: 1px; }
+.idea-add button {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 8px; border: none;
+  background: var(--card-accent, var(--accent)); color: var(--accent-ink); font-size: 16px; font-weight: 700; cursor: pointer;
 }
-.idea-saved.show { opacity: 1; }
+.idea-add button:hover { filter: brightness(1.08); }
 
 /* ---------- To-Do-Karte ---------- */
 
