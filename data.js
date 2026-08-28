@@ -18,6 +18,9 @@ const DASHBOARD_DATA = {
     "repo": "Dashboard",
     "workflowFile": "sync-all.yml"
   },
+  "googleCalendar": {
+    "clientId": "864080911617-s0mr2dif1ftilon7fpcejdu7brjnqubr.apps.googleusercontent.com"
+  },
   "brainMap": {
     "syncedAt": "2026-08-27T14:45:14.993Z",
     "vaultName": "Kilian Obsidian",
