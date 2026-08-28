@@ -210,11 +210,16 @@ Limit) als Short. Faustregel für die Ampel: 🟢 im Ziel-Rhythmus, 🟡 bis zum
 ## Nächste Video-Idee
 
 Auf beiden YouTube-Karten: eine kleine Ideen-Liste statt eines einzelnen
-Notizfelds. Die oberste Idee ist farblich hervorgehoben und gilt als "die
-nächste Video-Idee"; darunter der Rest als Backlog. Klick auf eine Idee im
-Backlog (oder auf den ↑-Pfeil) befördert sie an Position 1. Häkchen setzen
-(oben oder im Backlog) markiert eine Idee als erledigt (Video ist fertig) —
-sie verschwindet kurz durchgestrichen aus der Liste. Neue Ideen über das
+Notizfelds. Eine Idee ist farblich hervorgehoben als "die nächste
+Video-Idee"; darunter der Rest als "Weitere Ideen". Welche Idee oben steht,
+wird **ausschließlich manuell** per Klick festgelegt (Text oder ↑-Pfeil in
+"Weitere Ideen") — es rutscht nichts automatisch nach. Hakst du die aktuelle
+"nächste Idee" ab (Video ist fertig), bleibt der Platz bewusst **leer**, bis
+du selbst eine neue auswählst; die übrigen Ideen in "Weitere Ideen" bleiben
+dabei unverändert stehen. Neue Ideen landen immer in "Weitere Ideen" (auch
+wenn der Platz oben gerade leer ist) und werden nie automatisch befördert.
+Häkchen setzen (oben wie unten) markiert eine Idee als erledigt — sie
+verschwindet kurz durchgestrichen aus der Liste. Neue Ideen über das
 größere Textfeld darunter eintragen (Enter fügt hinzu, Shift+Enter für einen
 Zeilenumbruch).
 

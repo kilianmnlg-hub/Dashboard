@@ -604,6 +604,7 @@ svg.links line.lit { stroke-width: 1.6; }
 .idea-next input[type="checkbox"] { margin-top: 2px; flex-shrink: 0; accent-color: var(--card-accent, var(--accent)); cursor: pointer; }
 .idea-next-text { flex: 1; word-break: break-word; }
 .idea-next-empty { font-size: 12.5px; color: var(--text-faint); }
+.idea-next.empty { background: var(--surface-2); border-color: var(--border); border-style: dashed; }
 .idea-next.done .idea-next-text { text-decoration: line-through; color: var(--text-faint); }
 
 .idea-backlog { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 3px; }

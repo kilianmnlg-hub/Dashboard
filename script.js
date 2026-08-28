@@ -822,32 +822,43 @@
   }
 
   // Cloud-Sync ueber sync-data.json, gleiches Zeitstempel-Prinzip wie beim Habit-Tracker
-  // (siehe Abschnitt weiter unten). "Naechste Video-Idee" ist eine Liste (items[0] ist die
-  // aktuelle naechste Idee) statt eines einzelnen Textfelds - Klick auf eine Idee weiter
-  // unten befoerdert sie an Position 0, Abhaken entfernt eine Idee (Video ist fertig).
-  // Migriert zwei Altformate transparent: {text, updatedAt} (Einzelidee vor der Liste) und
-  // einen purem String (vor jeglichem Wrapper).
+  // (siehe Abschnitt weiter unten). "Naechste Video-Idee" wird ueber ein explizites
+  // nextId bestimmt statt ueber die Listenposition: wird die aktuelle naechste Idee
+  // abgehakt/entfernt, bleibt der Platz bewusst LEER, statt automatisch die naechste aus
+  // "Weitere Ideen" nachrutschen zu lassen - befoerdert wird ausschliesslich per Klick.
+  // Migriert drei Altformate transparent: {items, updatedAt} ohne nextId (Zwischenversion,
+  // wo Position 0 implizit "naechste Idee" war), {text, updatedAt} (Einzelidee vor jeglicher
+  // Liste) und ein purer String (vor jeglichem Wrapper).
   const loadIdeaState = (key) => {
     const raw = localStorage.getItem(`dashboard-idea-${key}`);
-    if (raw === null) return { items: [], updatedAt: -1 };
+    if (raw === null) return { nextId: null, items: [], updatedAt: -1 };
     try {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === "object" && Array.isArray(parsed.items)) {
         if (typeof parsed.updatedAt !== "number") parsed.updatedAt = 0;
+        if (!("nextId" in parsed)) parsed.nextId = parsed.items[0]?.id ?? null;
         return parsed;
       }
       if (parsed && typeof parsed === "object" && typeof parsed.text === "string") {
-        const items = parsed.text.trim() ? [{ id: newId(), text: parsed.text }] : [];
-        return { items, updatedAt: typeof parsed.updatedAt === "number" ? parsed.updatedAt : 0 };
+        const item = parsed.text.trim() ? { id: newId(), text: parsed.text } : null;
+        return {
+          nextId: item ? item.id : null,
+          items: item ? [item] : [],
+          updatedAt: typeof parsed.updatedAt === "number" ? parsed.updatedAt : 0
+        };
       }
     } catch (e) {
       /* Alt-Alt-Format: purer String vor jeglichem Wrapper */
-      return raw.trim() ? { items: [{ id: newId(), text: raw }], updatedAt: 0 } : { items: [], updatedAt: 0 };
+      if (raw.trim()) {
+        const item = { id: newId(), text: raw };
+        return { nextId: item.id, items: [item], updatedAt: 0 };
+      }
+      return { nextId: null, items: [], updatedAt: 0 };
     }
-    return { items: [], updatedAt: -1 };
+    return { nextId: null, items: [], updatedAt: -1 };
   };
-  const saveIdeaState = (key, items) => {
-    const state = { items, updatedAt: Date.now() };
+  const saveIdeaState = (key, nextId, items) => {
+    const state = { nextId, items, updatedAt: Date.now() };
     localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(state));
     scheduleAutoSync("syncdata");
     return state;
@@ -857,27 +868,29 @@
   function renderIdeaWidget(key) {
     const widget = ideaWidgets[key];
     if (!widget) return;
-    const items = loadIdeaState(key).items;
-    const [first, ...rest] = items;
+    const state = loadIdeaState(key);
+    const nextItem = state.items.find((i) => i.id === state.nextId) || null;
+    const backlogItems = state.items.filter((i) => i.id !== state.nextId);
 
     widget.nextEl.classList.remove("done");
-    widget.nextEl.innerHTML = first
+    widget.nextEl.classList.toggle("empty", !nextItem);
+    widget.nextEl.innerHTML = nextItem
       ? `<input type="checkbox" aria-label="Video ist fertig — Idee entfernen" />
-         <span class="idea-next-text">${escapeHtml(first.text)}</span>`
-      : `<span class="idea-next-empty">Noch keine Idee eingetragen.</span>`;
-    if (first) {
+         <span class="idea-next-text">${escapeHtml(nextItem.text)}</span>`
+      : `<span class="idea-next-empty">Noch keine Idee ausgewählt — eine aus „Weitere Ideen“ wählen.</span>`;
+    if (nextItem) {
       widget.nextEl.querySelector("input[type=checkbox]").addEventListener("change", () => {
-        removeIdeaItem(key, first.id, widget.nextEl);
+        removeIdeaItem(key, nextItem.id, widget.nextEl);
       });
     }
 
-    widget.backlogEl.innerHTML = rest
+    widget.backlogEl.innerHTML = backlogItems
       .map(
         (item) => `
         <li class="idea-row" data-id="${item.id}">
           <input type="checkbox" aria-label="Video ist fertig — Idee entfernen" />
           <span class="idea-row-text">${escapeHtml(item.text)}</span>
-          <button type="button" class="idea-promote" aria-label="Nach oben, als nächste Idee">↑</button>
+          <button type="button" class="idea-promote" aria-label="Als nächste Idee auswählen">↑</button>
         </li>`
       )
       .join("");
@@ -890,12 +903,9 @@
   }
 
   function promoteIdea(key, id) {
-    const items = loadIdeaState(key).items;
-    const idx = items.findIndex((i) => i.id === id);
-    if (idx <= 0) return;
-    const [item] = items.splice(idx, 1);
-    items.unshift(item);
-    saveIdeaState(key, items);
+    const state = loadIdeaState(key);
+    if (!state.items.some((i) => i.id === id)) return;
+    saveIdeaState(key, id, state.items);
     renderIdeaWidget(key);
   }
 
@@ -903,8 +913,12 @@
     // Kurz sichtbar durchgestrichen wie bei Aufgaben, dann erst entfernen.
     rowEl.classList.add("done");
     setTimeout(() => {
-      const items = loadIdeaState(key).items.filter((i) => i.id !== id);
-      saveIdeaState(key, items);
+      const state = loadIdeaState(key);
+      const items = state.items.filter((i) => i.id !== id);
+      // War die entfernte Idee gerade "naechste Idee": Platz bewusst leer lassen statt
+      // automatisch eine andere nachrutschen zu lassen (siehe Kommentar oben).
+      const nextId = state.nextId === id ? null : state.nextId;
+      saveIdeaState(key, nextId, items);
       renderIdeaWidget(key);
     }, 400);
   }
@@ -970,9 +984,11 @@
       const addIdea = () => {
         const text = addInput.value.trim();
         if (!text) return;
-        const items = loadIdeaState(key).items;
-        items.push({ id: newId(), text });
-        saveIdeaState(key, items);
+        const state = loadIdeaState(key);
+        // Neue Ideen landen immer in "Weitere Ideen" - auch wenn der "naechste Idee"-Platz
+        // gerade leer ist, wird er nicht automatisch befuellt (nur per Klick, siehe oben).
+        const items = [...state.items, { id: newId(), text }];
+        saveIdeaState(key, state.nextId, items);
         addInput.value = "";
         renderIdeaWidget(key);
       };
@@ -1885,7 +1901,7 @@
     const ideas = {};
     Object.keys(ideaWidgets).forEach((key) => {
       const state = loadIdeaState(key);
-      ideas[key] = { items: state.items, updatedAt: clampedAt(state.updatedAt) };
+      ideas[key] = { nextId: state.nextId, items: state.items, updatedAt: clampedAt(state.updatedAt) };
     });
     const studium = loadStudiumDeadline();
     const studiumDeadline = { label: studium.label, date: studium.date, updatedAt: clampedAt(studium.updatedAt) };
@@ -1936,16 +1952,24 @@
       if (!ideaWidgets[key]) return;
       const local = loadIdeaState(key);
       const remoteUpdatedAt = typeof remoteIdea?.updatedAt === "number" ? remoteIdea.updatedAt : 0;
-      // Altformat-Kompatibilitaet: vor der Listen-Umstellung war "ideas.<kanal>" ein
-      // einzelnes {text, updatedAt} statt {items, updatedAt} - eine noch nicht neu
-      // gepushte Cloud-Datei kann das uebergangsweise noch enthalten.
-      const remoteItems = Array.isArray(remoteIdea?.items)
-        ? remoteIdea.items
-        : typeof remoteIdea?.text === "string" && remoteIdea.text.trim()
-        ? [{ id: newId(), text: remoteIdea.text }]
-        : [];
+      // Altformat-Kompatibilitaet: sowohl die Zwischenversion (items[], Position 0 = naechste
+      // Idee, kein nextId) als auch die urspruengliche Einzelidee ({text, updatedAt}) koennen
+      // in einer noch nicht neu gepushten Cloud-Datei stecken.
+      let remoteItems;
+      let remoteNextId;
+      if (Array.isArray(remoteIdea?.items)) {
+        remoteItems = remoteIdea.items;
+        remoteNextId = "nextId" in remoteIdea ? remoteIdea.nextId : remoteItems[0]?.id ?? null;
+      } else if (typeof remoteIdea?.text === "string" && remoteIdea.text.trim()) {
+        const item = { id: newId(), text: remoteIdea.text };
+        remoteItems = [item];
+        remoteNextId = item.id;
+      } else {
+        remoteItems = [];
+        remoteNextId = null;
+      }
       if (remoteWins(remoteUpdatedAt, local.updatedAt, remoteItems.length > 0, local.items.length > 0)) {
-        const merged = { items: remoteItems, updatedAt: remoteUpdatedAt };
+        const merged = { nextId: remoteNextId, items: remoteItems, updatedAt: remoteUpdatedAt };
         localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(merged));
         renderIdeaWidget(key);
       }
