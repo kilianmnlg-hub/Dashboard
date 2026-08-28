@@ -15,38 +15,43 @@
     "updatedAt": 1787729737048
   },
   "todos": {
-    "date": "2026-08-26",
+    "date": "2026-08-28",
     "items": {
       "business": [
         {
-          "id": "51e4e06e-7525-42cd-a124-02232e276ffb",
-          "text": "4+ Thumbnail upgraden",
+          "id": "8f97a0fd-c036-4e98-bcf7-1b79aec7432b",
+          "text": "lego tour logo",
+          "done": true
+        },
+        {
+          "id": "055933d2-7fee-413d-8c05-baf0561ec700",
+          "text": "x spell Video fertig cutten",
           "done": false
         },
         {
-          "id": "9b002448-a36f-4d65-96aa-f25a5138725d",
-          "text": "Buchhaltung",
+          "id": "e2319b6d-3402-4300-ae76-d96ac7903473",
+          "text": "buchhaltung",
+          "done": false
+        },
+        {
+          "id": "2e9e6ab9-b5d9-41f1-8edc-8c9a3f8ba4e5",
+          "text": "video Idee fürs nächste BW video",
           "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787730441494
+    "updatedAt": 1787918452494
   },
   "tasks": {
     "items": [
-      {
-        "id": "2ab70bd5-ac1c-4836-a0a4-6f9376231296",
-        "text": "Kanalbanner upgraden",
-        "done": false
-      },
       {
         "id": "55b88e0e-c8b5-4484-ba98-01dda03e99f9",
         "text": "Amsterdam mit Nele planen",
         "done": false
       }
     ],
-    "updatedAt": 1787729737048
+    "updatedAt": 1787900964851
   }
 }
