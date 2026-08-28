@@ -1108,7 +1108,7 @@
     container.innerHTML = entries
       .map((e) => {
         const key = e[keyField];
-        const h = Math.round((e.total / maxTotal) * 130) + 24;
+        const h = Math.round((e.total / maxTotal) * 150) + 24;
         return `<div class="iso-bar-col" title="${formatTooltip(key)}: ${e.total.toFixed(2)} ${currency} (${e.orderCount} Bestellungen)">
           <div class="iso-bar-value">${Math.round(e.total)}${currencySign}</div>
           <div class="iso-bar" style="--h:${h}px"></div>

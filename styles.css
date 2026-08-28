@@ -685,6 +685,15 @@ svg.links line.lit { stroke-width: 1.6; }
    innerhalb seiner eigenen Box, unabhängig von Höhe oder Position in der Reihe. */
 
 .iso-chart { display: flex; align-items: flex-end; gap: 14px; height: 190px; padding: 10px 4px 0; overflow-x: auto; }
+/* Umsatz-Charts (Bricklink) bekommen mehr Hoehe als die generische .iso-chart-Basis:
+   die Balkenhoehe skaliert bis zum jeweils hoechsten Wert (siehe renderRevenueChart()),
+   und bei hohen Umsaetzen ragten Balken samt Werte-Beschriftung ueber die alten 190px
+   hinaus - "overflow-x: auto" macht "overflow-y" dabei implizit auch "auto" statt
+   "visible" (CSS-Spec-Verhalten bei gemischtem overflow-x/-y), wodurch der obere Teil
+   schlicht abgeschnitten wurde statt sichtbar ueberzustehen. Eigene, groessere Hoehe
+   plus mehr Platz oben statt die geteilte Basisklasse zu aendern (die nutzt auch die
+   Zeit-Balance-Balken, die dieses Problem nicht haben). */
+#revenueChartWeekly, #revenueChartMonthly { height: 240px; padding-top: 20px; }
 .iso-bar-col { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; min-width: 30px; }
 .iso-bar {
   --h: 40px; --w: 32px; width: var(--w); height: var(--h); flex-shrink: 0;
