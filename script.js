@@ -29,6 +29,55 @@
     return true;
   };
 
+  // ---------- Auto-Sync ----------
+  // Statt jedes Mal auf "Sync" klicken zu muessen: jede Aenderung an Habit-Tracker,
+  // Video-Ideen, Studium-Termin, Tages-To-Do oder Aufgaben stoesst nach kurzer Pause
+  // (debounced, damit z.B. mehrere Habit-Klicks hintereinander nur EINEN Push ausloesen)
+  // automatisch einen Push an - aber NUR fuer die eine Datei, die den geaenderten Bereich
+  // enthaelt (habits-data.json ODER sync-data.json), nicht beide zusammen. Eigener Timer
+  // pro "kind", damit z.B. ein Habit-Klick kurz nach einer Todo-Aenderung deren noch
+  // ausstehenden Push nicht versehentlich verwirft (ein gemeinsamer Timer wuerde das tun).
+  // Bewusst NUR, wenn schon ein GitHub-Token hinterlegt ist - sonst wuerde die allererste
+  // Kleinigkeit (ein Haekchen, ein Todo) einen ueberraschenden Token-Prompt ausloesen,
+  // obwohl der Nutzer nur etwas eintragen wollte. Ohne Token bleibt es beim bisherigen
+  // Verhalten: alles landet trotzdem sofort in localStorage, die Cloud wird erst beim
+  // naechsten manuellen Sync-Klick aktuell. Die "Sync"-Button-Aktion selbst (Business-
+  // Daten-Workflow) bleibt bewusst manuell/taeglich - eine Habit-Aenderung soll nicht
+  // nebenbei einen 15-30s-GitHub-Actions-Lauf samt YouTube-/Bricklink-API-Aufrufen anstossen.
+  const autoSyncStatusEl = document.getElementById("autoSyncStatus");
+  function setAutoSyncStatus(state, detail) {
+    if (!autoSyncStatusEl) return;
+    const time = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    const map = {
+      saving: "☁️ Speichere…",
+      saved: `☁️ Automatisch gesichert · ${time}`,
+      error: `⚠️ Auto-Sync fehlgeschlagen${detail ? " — " + detail : ""}`
+    };
+    autoSyncStatusEl.hidden = false;
+    autoSyncStatusEl.textContent = map[state] || "";
+  }
+
+  const autoSyncTimers = {};
+  const AUTO_SYNC_PUSHERS = { habits: () => pushHabitsToCloud(), syncdata: () => pushSyncDataToCloud() };
+  function scheduleAutoSync(kind) {
+    if (!localStorage.getItem("dashboard-gh-token")) return;
+    clearTimeout(autoSyncTimers[kind]);
+    autoSyncTimers[kind] = setTimeout(async () => {
+      setAutoSyncStatus("saving");
+      try {
+        // pushHabitsToCloud/pushSyncDataToCloud fangen ihre eigenen Fehler bereits intern ab
+        // (Detail-Status ueber setHabitSyncStatus bzw. console.warn) und werfen NIE - ihr
+        // Rueckgabewert (true/false) ist deshalb die einzige Quelle, um den uebergeordneten
+        // Indikator hier ehrlich zu halten (sonst wuerde er bei einem Fehlschlag faelschlich
+        // "gesichert" zeigen, obwohl z.B. der Token ungueltig war).
+        const ok = await AUTO_SYNC_PUSHERS[kind]();
+        setAutoSyncStatus(ok ? "saved" : "error");
+      } catch (err) {
+        setAutoSyncStatus("error", err.message);
+      }
+    }, 2500);
+  }
+
   // ---------- Theme ----------
   const root = document.documentElement;
   const themeToggle = document.getElementById("themeToggle");
@@ -117,8 +166,10 @@
     // Habit-Tracker- und Video-Ideen/Studium/To-Do/Aufgaben-Stand laufen am selben Klick
     // mit hoch (Contents API, kein Workflow nötig — sofort fertig, nicht Teil des
     // "läuft 15-30s"-Hinweises unten).
-    pushHabitsToCloud(config);
-    pushSyncDataToCloud(config);
+    setAutoSyncStatus("saving");
+    Promise.all([pushHabitsToCloud(config), pushSyncDataToCloud(config)])
+      .then(([habitsOk, syncDataOk]) => setAutoSyncStatus(habitsOk && syncDataOk ? "saved" : "error"))
+      .catch((err) => setAutoSyncStatus("error", err.message));
 
     try {
       const res = await fetch(
@@ -679,6 +730,7 @@
   const saveStudiumDeadline = (d) => {
     const state = { label: d.label || "", date: d.date || "", updatedAt: Date.now() };
     localStorage.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(state));
+    scheduleAutoSync("syncdata");
     return state;
   };
 
@@ -790,6 +842,7 @@
   const saveIdeaState = (key, text) => {
     const state = { text, updatedAt: Date.now() };
     localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(state));
+    scheduleAutoSync("syncdata");
     return state;
   };
   const ideaTextareas = {};
@@ -1108,7 +1161,10 @@
     return { items: empty, updatedAt: -1 };
   };
   const loadTodos = () => loadTodosState().items;
-  const saveTodos = (items) => localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify({ items, updatedAt: Date.now() }));
+  const saveTodos = (items) => {
+    localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify({ items, updatedAt: Date.now() }));
+    scheduleAutoSync("syncdata");
+  };
 
   let todos = loadTodos();
   const todoGrid = document.getElementById("todoGrid");
@@ -1202,7 +1258,10 @@
     return { items: [], updatedAt: -1 };
   };
   const loadTasks = () => loadTasksState().items;
-  const saveTasks = (items) => localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify({ items, updatedAt: Date.now() }));
+  const saveTasks = (items) => {
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify({ items, updatedAt: Date.now() }));
+    scheduleAutoSync("syncdata");
+  };
 
   let tasks = loadTasks();
   const taskList = document.getElementById("taskList");
@@ -1399,11 +1458,15 @@
 
   // config optional: wird vom Sync-Button-Klick mitgegeben (ein Prompt statt zwei),
   // sonst holt sich die Funktion die Zugangsdaten selbst.
+  // Gibt true/false zurueck (nicht nur Statustext), damit scheduleAutoSync() den
+  // uebergeordneten Auto-Sync-Indikator in der Topbar ehrlich halten kann - die Funktion
+  // faengt ihre Fehler intern ab (siehe setHabitSyncStatus-Aufrufe) und wuerde sonst nie
+  // reject()en, wodurch ein await/.catch() aussen den Fehlschlag nie mitbekommen wuerde.
   async function pushHabitsToCloud(config) {
     config = config || getGithubConfig();
     if (!config) {
       setHabitSyncStatus("local-only");
-      return;
+      return false;
     }
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${HABIT_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
@@ -1441,23 +1504,29 @@
       if (putRes.ok) {
         habitCloudSha = (await putRes.json()).content?.sha || habitCloudSha;
         setHabitSyncStatus("synced");
+        return true;
       } else if (putRes.status === 401 || putRes.status === 403) {
         localStorage.removeItem("dashboard-gh-token");
         setHabitSyncStatus("error", "Token ungültig oder ohne 'Contents'-Berechtigung (entfernt, beim nächsten Mal neu eingeben)");
+        return false;
       } else if (putRes.status === 409) {
         habitCloudSha = null; // jemand anders hat parallel geschrieben — sha neu holen beim nächsten Versuch
         setHabitSyncStatus("error", "Konflikt, bitte erneut versuchen");
+        return false;
       } else {
         setHabitSyncStatus("error", `Status ${putRes.status}`);
+        return false;
       }
     } catch (err) {
       setHabitSyncStatus("error", err.message);
+      return false;
     }
   }
 
   const saveHabitState = () => {
     habitState.updatedAt = Date.now();
     localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
+    scheduleAutoSync("habits");
   };
 
   let habitState = loadHabitState();
@@ -1725,9 +1794,11 @@
   const SYNC_DATA_REMOTE_FILE = "sync-data.json";
   let syncDataCloudSha = null;
 
+  // Gibt true/false zurueck (nicht nur console.warn), damit scheduleAutoSync() den
+  // uebergeordneten Auto-Sync-Indikator in der Topbar ehrlich halten kann.
   async function pushSyncDataToCloud(config) {
     config = config || getGithubConfig();
-    if (!config) return;
+    if (!config) return false;
     // Vor dem Push erst den aktuellen Cloud-Stand ziehen (mit denselben Sicherheitsregeln
     // wie beim Laden, siehe applyRemote* unten): falls ein anderes Geraet zwischenzeitlich
     // einen echt neueren UND inhaltlich nicht-leeren Stand gepusht hat, den zuerst
@@ -1766,16 +1837,21 @@
       });
       if (putRes.ok) {
         syncDataCloudSha = (await putRes.json()).content?.sha || syncDataCloudSha;
+        return true;
       } else if (putRes.status === 401 || putRes.status === 403) {
         localStorage.removeItem("dashboard-gh-token");
         console.warn("Cloud-Sync (Video-Ideen/Studium/To-Do/Aufgaben) fehlgeschlagen: Token ungültig oder ohne 'Contents'-Berechtigung.");
+        return false;
       } else if (putRes.status === 409) {
         syncDataCloudSha = null; // jemand anders hat parallel geschrieben — sha neu holen beim naechsten Versuch
+        return false;
       } else {
         console.warn(`Cloud-Sync (Video-Ideen/Studium/To-Do/Aufgaben) fehlgeschlagen: Status ${putRes.status}`);
+        return false;
       }
     } catch (err) {
       console.warn("Cloud-Sync (Video-Ideen/Studium/To-Do/Aufgaben) fehlgeschlagen:", err.message);
+      return false;
     }
   }
 

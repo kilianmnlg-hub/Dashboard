@@ -264,6 +264,13 @@ a { color: inherit; }
 }
 .theme-toggle:hover { background: var(--surface-2); }
 
+.auto-sync-status {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
 .sync-button {
   flex-shrink: 0;
   display: flex;
@@ -865,4 +872,5 @@ svg.links line.lit { stroke-width: 1.6; }
 @media (max-width: 460px) {
   #syncButtonLabel { display: none; }
   .sync-button { padding: 0 10px; }
+  .auto-sync-status { display: none; }
 }

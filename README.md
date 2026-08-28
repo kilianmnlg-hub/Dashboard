@@ -255,10 +255,11 @@ Das Ziel wird pro Gewohnheit mitgespeichert und läuft über denselben Cloud-Syn
 
 **Speicherung, zweistufig:**
 1. **Sofort lokal** (`localStorage`) bei jedem Klick — funktioniert immer, auch offline.
-2. **Cloud-Kopie in `habits-data.json`** im Repo, sobald du oben rechts auf **"Sync"**
-   klickst — derselbe Klick, der auch die Business-Daten aktualisiert. Kein separater
-   Button nötig. Voraussetzung: der GitHub-Token (siehe oben) braucht zusätzlich
-   "Contents: Read and write".
+2. **Cloud-Kopie in `habits-data.json`** im Repo — automatisch, ca. 2,5 Sekunden nach
+   der letzten Änderung (siehe Abschnitt "Auto-Sync" unten), sobald einmal ein
+   GitHub-Token hinterlegt ist. Zusätzlich laufen alle Habit-/Sync-Daten-Aenderungen
+   auch am "Sync"-Button oben rechts mit, der daneben noch die Business-Daten
+   aktualisiert. Voraussetzung: der GitHub-Token braucht "Contents: Read and write".
 3. Beim Laden der Seite wird `habits-data.json` gelesen (funktioniert ohne Token, da
    öffentliche Datei über GitHub Pages) und mit dem lokalen Stand abgeglichen: beide
    Seiten tragen einen Zeitstempel (`updatedAt`), der bei jeder Änderung aktualisiert
@@ -355,10 +356,11 @@ Habit-Tracker oben:
 
 1. **Sofort lokal** (`localStorage`) bei jeder Änderung — funktioniert immer,
    auch offline.
-2. **Cloud-Kopie in `sync-data.json`** im Repo, sobald du oben rechts auf
-   **"Sync"** klickst — derselbe Klick, der auch Business-Daten und
-   Habit-Tracker aktualisiert. Voraussetzung: der GitHub-Token braucht
-   "Contents: Read and write" (siehe Abschnitt "Sync-Button" oben).
+2. **Cloud-Kopie in `sync-data.json`** im Repo — automatisch, ca. 2,5 Sekunden
+   nach der letzten Änderung (siehe Abschnitt "Auto-Sync" unten), sobald einmal
+   ein GitHub-Token hinterlegt ist. Läuft daneben auch am "Sync"-Button oben
+   rechts mit. Voraussetzung: der GitHub-Token braucht "Contents: Read and
+   write" (siehe Abschnitt "Sync-Button" oben).
 3. Beim Laden der Seite wird `sync-data.json` gelesen (kein Token nötig) und
    pro Feld einzeln mit dem lokalen Stand abgeglichen: jedes Feld trägt einen
    eigenen Zeitstempel (`updatedAt`), und der jeweils neuere komplette Stand
@@ -371,6 +373,39 @@ komplett" pro Feld — änderst du z.B. dieselbe Video-Idee auf zwei Geräten
 annähernd gleichzeitig, ohne dazwischen zu syncen, geht eine der beiden
 Fassungen verloren. Bei normaler Nutzung (ein Gerät nach dem anderen) fällt
 das nicht ins Gewicht.
+
+## Auto-Sync
+
+Damit du nicht nach jeder Kleinigkeit auf "Sync" klicken musst: jede Änderung
+am Habit-Tracker, an Video-Ideen, Studium-Termin, Tages-To-Do oder Aufgaben
+löst automatisch (debounced, ca. 2,5s nach der letzten Änderung in genau
+diesem Bereich) einen Push in die Cloud aus — **aber nur für die eine Datei,
+die den geänderten Bereich enthält** (`habits-data.json` *oder*
+`sync-data.json`, nie beide auf einmal, wenn sich nur ein Bereich geändert
+hat). Der aktuelle Stand steht klein oben rechts neben dem "Sync"-Button
+("☁️ Automatisch gesichert · HH:MM").
+
+**Voraussetzungen und Einschränkungen:**
+- Läuft nur, wenn auf diesem Gerät **schon einmal ein GitHub-Token hinterlegt
+  wurde** (z.B. durch einen früheren manuellen Sync-Klick). Ohne Token bleibt
+  alles beim Alten: sofort lokal gespeichert, Cloud erst beim nächsten
+  manuellen Klick. So gibt es beim allerersten Eintrag auf einem neuen Gerät
+  keinen überraschenden Token-Prompt mitten in der Nutzung.
+- Der **"Sync"-Button selbst bleibt bewusst manuell/täglich** — er stößt
+  zusätzlich den GitHub-Actions-Workflow für die Business-Daten an
+  (Bricklink/YouTube/TikTok/Notion, 15–30s Laufzeit, externe API-Aufrufe).
+  Eine Habit-Änderung soll nicht nebenbei diesen Workflow mit anstoßen.
+- **Mehr Commits im Repo:** da jede Änderung (statt gesammelt beim
+  Sync-Klick) einen eigenen Commit erzeugt, wächst die Commit-Historie von
+  `habits-data.json`/`sync-data.json` entsprechend schneller — funktional
+  unproblematisch, aber sichtbar in der Historie.
+- **GitHub-API-Limit:** 5.000 Anfragen/Stunde pro Token — bei normaler
+  persönlicher Nutzung (auch bei reger Habit-/To-Do-Pflege) realistisch nie
+  erreichbar.
+- Schließt du den Tab **innerhalb der 2,5s-Wartezeit**, bevor der Push
+  rausgegangen ist, geht die letzte Änderung nur cloud-seitig verloren (lokal
+  bleibt sie immer erhalten) — betrifft nur den seltenen Fall "Änderung, dann
+  sofort Tab schließen".
 
 ## PWA ("Zum Homescreen hinzufügen")
 
