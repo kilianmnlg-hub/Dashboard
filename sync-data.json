@@ -37,11 +37,17 @@
   "todos": {
     "date": "2026-08-29",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "9dc6fff1-bcae-4ccb-9f95-7657caba236d",
+          "text": "X Spells Hochladen",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787993408310
+    "updatedAt": 1787993462746
   },
   "tasks": {
     "items": [
