@@ -61,13 +61,13 @@
         {
           "id": "8815f312-ec8f-474b-8cfa-c47e8ba05928",
           "text": "bricklink Bestellung versenden",
-          "done": false
+          "done": true
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1788019274713
+    "updatedAt": 1788019278539
   },
   "tasks": {
     "items": [
