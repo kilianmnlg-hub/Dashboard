@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-08-28",
-    "lastSyncedAt": "2026-08-28T19:11:01.521Z",
+    "lastUpdated": "2026-08-29",
+    "lastSyncedAt": "2026-08-29T08:52:37.764Z",
     "owner": "Kilian"
   },
   "github": {
@@ -201,6 +201,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-28",
         "value": 28800
+      },
+      {
+        "date": "2026-08-29",
+        "value": 28900
       }
     ],
     "brainwalkersAbos": [
@@ -303,6 +307,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-28",
         "value": 373
+      },
+      {
+        "date": "2026-08-29",
+        "value": 377
       }
     ],
     "tiktokFollower": [
@@ -405,6 +413,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-28",
         "value": 2737
+      },
+      {
+        "date": "2026-08-29",
+        "value": 2737
       }
     ]
   },
@@ -413,7 +425,7 @@ const DASHBOARD_DATA = {
       "id": "bricks-abos",
       "label": "Bricks On The Floor – Abonnenten",
       "project": "bricksOnTheFloor",
-      "current": 28800,
+      "current": 28900,
       "target": 50000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -431,7 +443,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 373,
+      "current": 377,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -474,7 +486,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-28T19:11:00.621Z",
+    "checkedAt": "2026-08-29T08:52:36.729Z",
     "openOrdersCount": 270,
     "pendingShipments": [
       {
@@ -488,7 +500,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-28T19:11:00.654Z",
+    "checkedAt": "2026-08-29T08:52:36.893Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -604,7 +616,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "28.800",
+          "value": "28.900",
           "hint": "+397 letzte 28 Tage"
         },
         {
@@ -631,7 +643,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "373"
+          "value": "377"
         },
         {
           "label": "Videos",
