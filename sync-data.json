@@ -57,12 +57,17 @@
           "id": "3c765966-4781-43a5-9c02-54d54a57ec00",
           "text": "hälfte erster Vlog cutten",
           "done": false
+        },
+        {
+          "id": "8815f312-ec8f-474b-8cfa-c47e8ba05928",
+          "text": "bricklink Bestellung versenden",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787993500043
+    "updatedAt": 1787993597183
   },
   "tasks": {
     "items": [
