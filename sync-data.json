@@ -75,8 +75,13 @@
         "id": "e2189df9-cf30-47ac-8a4f-4bec9099cc50",
         "text": "Buchhaltung",
         "done": false
+      },
+      {
+        "id": "e67b88f8-e446-4b95-a782-da4083af1e6b",
+        "text": "Pakete Unboxen",
+        "done": false
       }
     ],
-    "updatedAt": 1787993412288
+    "updatedAt": 1787993516393
   }
 }
