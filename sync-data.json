@@ -30,9 +30,9 @@
     }
   },
   "studiumDeadline": {
-    "label": "Klausur PM",
-    "date": "2026-08-12",
-    "updatedAt": 0
+    "label": "",
+    "date": "",
+    "updatedAt": 1787729737048
   },
   "todos": {
     "date": "2026-08-29",
@@ -67,26 +67,31 @@
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787993597183
+    "updatedAt": 1788019267791
   },
   "tasks": {
     "items": [
       {
-        "id": "389b863d-de76-4827-ab0d-e6975c1f7596",
-        "text": "Gewinnspiel versenden",
+        "id": "55b88e0e-c8b5-4484-ba98-01dda03e99f9",
+        "text": "Amsterdam mit Nele planen",
         "done": false
       },
       {
-        "id": "e2189df9-cf30-47ac-8a4f-4bec9099cc50",
-        "text": "Buchhaltung",
+        "id": "0c176f5a-b52f-4754-8bdd-76d3bbc50097",
+        "text": "x spell Video fertig cutten",
         "done": false
       },
       {
-        "id": "e67b88f8-e446-4b95-a782-da4083af1e6b",
-        "text": "Pakete Unboxen",
+        "id": "c9528d05-6972-4a48-9103-a0e40f30a877",
+        "text": "buchhaltung",
+        "done": false
+      },
+      {
+        "id": "754b311b-4869-489f-a481-1e9b51a385e6",
+        "text": "video Idee fürs nächste BW video",
         "done": false
       }
     ],
-    "updatedAt": 1787993516393
+    "updatedAt": 1788019267578
   }
 }
