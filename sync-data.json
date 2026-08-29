@@ -42,12 +42,17 @@
           "id": "9dc6fff1-bcae-4ccb-9f95-7657caba236d",
           "text": "X Spells Hochladen",
           "done": false
+        },
+        {
+          "id": "1cffd702-c50c-49be-be14-dcb1da42732c",
+          "text": "Paket unboxen",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787993462746
+    "updatedAt": 1787993475058
   },
   "tasks": {
     "items": [
