@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-08-29",
-    "lastSyncedAt": "2026-08-29T08:52:37.764Z",
+    "lastSyncedAt": "2026-08-29T12:06:57.071Z",
     "owner": "Kilian"
   },
   "github": {
@@ -416,7 +416,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-08-29",
-        "value": 2737
+        "value": 2738
       }
     ]
   },
@@ -452,7 +452,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2737,
+      "current": 2738,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -461,7 +461,7 @@ const DASHBOARD_DATA = {
       "id": "bricklink-parts",
       "label": "Bricklink – Teile verkauft",
       "project": "bricklink",
-      "current": 72534,
+      "current": 72533,
       "target": 100000,
       "unit": "Teile",
       "due": "2026-12-31"
@@ -486,21 +486,12 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-29T08:52:36.729Z",
+    "checkedAt": "2026-08-29T12:06:55.782Z",
     "openOrdersCount": 270,
-    "pendingShipments": [
-      {
-        "orderId": 32406842,
-        "buyer": "Merlin888",
-        "status": "PAID",
-        "orderedDate": "2026-08-24T10:33:02.077Z",
-        "total": "22.0950",
-        "currency": "EUR"
-      }
-    ]
+    "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-29T08:52:36.893Z",
+    "checkedAt": "2026-08-29T12:06:56.018Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -661,10 +652,10 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-08-28"
+      "to": "2026-08-29"
     },
     "totalsByCategory": {
-      "YouTube": 40917.96,
+      "YouTube": 40985.79,
       "Bricklink": 1514.9
     },
     "daily": [
@@ -821,6 +812,11 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-28",
         "YouTube": 148.87,
+        "Bricklink": 0
+      },
+      {
+        "date": "2026-08-29",
+        "YouTube": 67.83,
         "Bricklink": 0
       }
     ]
