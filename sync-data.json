@@ -77,11 +77,6 @@
         "done": false
       },
       {
-        "id": "0c176f5a-b52f-4754-8bdd-76d3bbc50097",
-        "text": "x spell Video fertig cutten",
-        "done": false
-      },
-      {
         "id": "c9528d05-6972-4a48-9103-a0e40f30a877",
         "text": "buchhaltung",
         "done": false
@@ -92,6 +87,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1788019267578
+    "updatedAt": 1788019283343
   }
 }
