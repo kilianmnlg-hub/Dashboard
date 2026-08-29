@@ -41,7 +41,7 @@
         {
           "id": "9dc6fff1-bcae-4ccb-9f95-7657caba236d",
           "text": "X Spells Hochladen",
-          "done": false
+          "done": true
         },
         {
           "id": "1cffd702-c50c-49be-be14-dcb1da42732c",
@@ -67,7 +67,7 @@
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1788019267791
+    "updatedAt": 1788019274713
   },
   "tasks": {
     "items": [
