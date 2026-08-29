@@ -52,12 +52,17 @@
           "id": "dcaaf8b8-e6dc-48db-bdd5-db8f43b0b904",
           "text": "Minifiguren hochladen",
           "done": false
+        },
+        {
+          "id": "3c765966-4781-43a5-9c02-54d54a57ec00",
+          "text": "hälfte erster Vlog cutten",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787993483036
+    "updatedAt": 1787993500043
   },
   "tasks": {
     "items": [
