@@ -47,12 +47,17 @@
           "id": "1cffd702-c50c-49be-be14-dcb1da42732c",
           "text": "Paket unboxen",
           "done": false
+        },
+        {
+          "id": "dcaaf8b8-e6dc-48db-bdd5-db8f43b0b904",
+          "text": "Minifiguren hochladen",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787993475058
+    "updatedAt": 1787993483036
   },
   "tasks": {
     "items": [
