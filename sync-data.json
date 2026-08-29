@@ -35,34 +35,13 @@
     "updatedAt": 0
   },
   "todos": {
-    "date": "2026-08-28",
+    "date": "2026-08-29",
     "items": {
-      "business": [
-        {
-          "id": "8f97a0fd-c036-4e98-bcf7-1b79aec7432b",
-          "text": "lego tour logo",
-          "done": true
-        },
-        {
-          "id": "055933d2-7fee-413d-8c05-baf0561ec700",
-          "text": "x spell Video fertig cutten",
-          "done": false
-        },
-        {
-          "id": "e2319b6d-3402-4300-ae76-d96ac7903473",
-          "text": "buchhaltung",
-          "done": false
-        },
-        {
-          "id": "2e9e6ab9-b5d9-41f1-8edc-8c9a3f8ba4e5",
-          "text": "video Idee fürs nächste BW video",
-          "done": false
-        }
-      ],
+      "business": [],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1787930962675
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -90,8 +69,23 @@
         "id": "e2189df9-cf30-47ac-8a4f-4bec9099cc50",
         "text": "Buchhaltung",
         "done": false
+      },
+      {
+        "id": "a9a6f753-6b0d-47a0-81c5-7c26e990d7e3",
+        "text": "x spell Video fertig cutten",
+        "done": false
+      },
+      {
+        "id": "349bcba5-535c-414f-9d54-a76102a5e429",
+        "text": "buchhaltung",
+        "done": false
+      },
+      {
+        "id": "f55e31c3-4112-4056-8a25-493e0417b111",
+        "text": "video Idee fürs nächste BW video",
+        "done": false
       }
     ],
-    "updatedAt": 1787930960959
+    "updatedAt": 1787993283678
   }
 }
