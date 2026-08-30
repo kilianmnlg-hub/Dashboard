@@ -30,58 +30,62 @@
     }
   },
   "studiumDeadline": {
-    "label": "",
-    "date": "",
-    "updatedAt": 1787729737048
+    "label": "Klausur PM",
+    "date": "2026-08-12",
+    "updatedAt": 0
   },
   "todos": {
-    "date": "2026-08-29",
+    "date": "2026-08-30",
     "items": {
-      "business": [
-        {
-          "id": "9dc6fff1-bcae-4ccb-9f95-7657caba236d",
-          "text": "X Spells Hochladen",
-          "done": true
-        },
-        {
-          "id": "1cffd702-c50c-49be-be14-dcb1da42732c",
-          "text": "Paket unboxen",
-          "done": false
-        },
-        {
-          "id": "dcaaf8b8-e6dc-48db-bdd5-db8f43b0b904",
-          "text": "Minifiguren hochladen",
-          "done": false
-        },
-        {
-          "id": "3c765966-4781-43a5-9c02-54d54a57ec00",
-          "text": "hälfte erster Vlog cutten",
-          "done": false
-        },
-        {
-          "id": "8815f312-ec8f-474b-8cfa-c47e8ba05928",
-          "text": "bricklink Bestellung versenden",
-          "done": true
-        }
-      ],
+      "business": [],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1788019278539
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
       {
-        "id": "55b88e0e-c8b5-4484-ba98-01dda03e99f9",
-        "text": "Amsterdam mit Nele planen",
+        "id": "389b863d-de76-4827-ab0d-e6975c1f7596",
+        "text": "Gewinnspiel versenden",
         "done": false
       },
       {
-        "id": "c9528d05-6972-4a48-9103-a0e40f30a877",
-        "text": "buchhaltung",
+        "id": "e2189df9-cf30-47ac-8a4f-4bec9099cc50",
+        "text": "Buchhaltung",
+        "done": false
+      },
+      {
+        "id": "e67b88f8-e446-4b95-a782-da4083af1e6b",
+        "text": "Pakete Unboxen",
+        "done": false
+      },
+      {
+        "id": "8305c12b-5f93-48a9-9802-f95d1cc1adee",
+        "text": "X Spells Hochladen",
+        "done": false
+      },
+      {
+        "id": "f642a78e-9072-4d24-ae16-1fb688e1190f",
+        "text": "Paket unboxen",
+        "done": false
+      },
+      {
+        "id": "a887d791-9576-4ef2-b64b-16487efabcb0",
+        "text": "Minifiguren hochladen",
+        "done": false
+      },
+      {
+        "id": "044e7952-2b9b-46a7-aa4a-a1ebbeda60c4",
+        "text": "hälfte erster Vlog cutten",
+        "done": false
+      },
+      {
+        "id": "abb0b089-8376-407b-8e9d-d0340e3fb59a",
+        "text": "bricklink Bestellung versenden",
         "done": false
       }
     ],
-    "updatedAt": 1788019288382
+    "updatedAt": 1788106601713
   }
 }
