@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-08-29",
-    "lastSyncedAt": "2026-08-29T12:54:46.797Z",
+    "lastUpdated": "2026-08-30",
+    "lastSyncedAt": "2026-08-30T11:02:34.929Z",
     "owner": "Kilian"
   },
   "github": {
@@ -205,6 +205,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-29",
         "value": 28900
+      },
+      {
+        "date": "2026-08-30",
+        "value": 28900
       }
     ],
     "brainwalkersAbos": [
@@ -311,6 +315,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-29",
         "value": 377
+      },
+      {
+        "date": "2026-08-30",
+        "value": 386
       }
     ],
     "tiktokFollower": [
@@ -417,6 +425,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-08-29",
         "value": 2738
+      },
+      {
+        "date": "2026-08-30",
+        "value": 2737
       }
     ]
   },
@@ -443,7 +455,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 377,
+      "current": 386,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -452,7 +464,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2738,
+      "current": 2737,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -479,19 +491,19 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-longform-2026",
       "label": "The Brainwalkers – Longform-Videos 2026",
       "project": "brainwalkers",
-      "current": 8,
+      "current": 9,
       "target": 26,
       "unit": "Videos",
       "due": "2026-12-31"
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-08-29T12:54:45.414Z",
+    "checkedAt": "2026-08-30T11:02:33.546Z",
     "openOrdersCount": 270,
     "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-08-29T12:54:45.684Z",
+    "checkedAt": "2026-08-30T11:02:33.798Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -630,15 +642,15 @@ const DASHBOARD_DATA = {
       "subtitle": "Magic: The Gathering · Nebenprojekt",
       "accent": "brainwalkers",
       "uploadRhythmDays": 14,
-      "lastUploadAt": "2026-08-12T14:05:01Z",
+      "lastUploadAt": "2026-08-29T13:55:30Z",
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "377"
+          "value": "386"
         },
         {
           "label": "Videos",
-          "value": "64"
+          "value": "65"
         },
         {
           "label": "Rhythmus",
@@ -655,7 +667,7 @@ const DASHBOARD_DATA = {
       "to": "2026-08-29"
     },
     "totalsByCategory": {
-      "YouTube": 41045.79,
+      "YouTube": 41116.51,
       "Bricklink": 1514.9
     },
     "daily": [
@@ -816,7 +828,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-08-29",
-        "YouTube": 127.83,
+        "YouTube": 198.55,
         "Bricklink": 0
       }
     ]
