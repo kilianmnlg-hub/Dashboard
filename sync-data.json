@@ -52,6 +52,11 @@
           "id": "a9017fa1-43b3-4c0b-9564-753a64de2b75",
           "text": "Pakete unboxen",
           "done": false
+        },
+        {
+          "id": "edf5eb52-7b69-4117-9400-2f32f1d684f2",
+          "text": "Teile hochladen",
+          "done": false
         }
       ],
       "studium": [],
@@ -63,7 +68,7 @@
         }
       ]
     },
-    "updatedAt": 1788158123693
+    "updatedAt": 1788158138671
   },
   "tasks": {
     "items": [
