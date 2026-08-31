@@ -41,7 +41,7 @@
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1788157989456
   },
   "tasks": {
     "items": [
@@ -69,13 +69,8 @@
         "id": "a887d791-9576-4ef2-b64b-16487efabcb0",
         "text": "Minifiguren hochladen",
         "done": false
-      },
-      {
-        "id": "044e7952-2b9b-46a7-aa4a-a1ebbeda60c4",
-        "text": "hälfte erster Vlog cutten",
-        "done": false
       }
     ],
-    "updatedAt": 1788157982735
+    "updatedAt": 1788157986799
   }
 }
