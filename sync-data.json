@@ -35,7 +35,7 @@
     "updatedAt": 0
   },
   "todos": {
-    "date": "2026-08-30",
+    "date": "2026-08-31",
     "items": {
       "business": [],
       "studium": [],
@@ -61,11 +61,6 @@
         "done": false
       },
       {
-        "id": "8305c12b-5f93-48a9-9802-f95d1cc1adee",
-        "text": "X Spells Hochladen",
-        "done": false
-      },
-      {
         "id": "f642a78e-9072-4d24-ae16-1fb688e1190f",
         "text": "Paket unboxen",
         "done": false
@@ -86,6 +81,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1788106601713
+    "updatedAt": 1788157946254
   }
 }
