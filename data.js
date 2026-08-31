@@ -22,7 +22,7 @@ const DASHBOARD_DATA = {
     "clientId": "864080911617-s0mr2dif1ftilon7fpcejdu7brjnqubr.apps.googleusercontent.com"
   },
   "brainMap": {
-    "syncedAt": "2026-08-29T06:07:04.675Z",
+    "syncedAt": "2026-08-31T06:37:52.433Z",
     "vaultName": "Kilian Obsidian",
     "areas": [
       { "id": "bricklink", "folder": "Bricklink", "noteCount": 2, "color": "var(--accent-bricklink)" },
