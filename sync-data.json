@@ -59,7 +59,13 @@
           "done": false
         }
       ],
-      "studium": [],
+      "studium": [
+        {
+          "id": "8187f73b-de9d-4d50-b051-011a480599f5",
+          "text": "erste Arbeit, erste Übersicht erstellen",
+          "done": false
+        }
+      ],
       "privat": [
         {
           "id": "90455f3f-98fa-405a-91a5-0f0a4bbd8af2",
@@ -68,7 +74,7 @@
         }
       ]
     },
-    "updatedAt": 1788158138671
+    "updatedAt": 1788158158857
   },
   "tasks": {
     "items": [
