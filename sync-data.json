@@ -57,6 +57,11 @@
           "id": "edf5eb52-7b69-4117-9400-2f32f1d684f2",
           "text": "Teile hochladen",
           "done": false
+        },
+        {
+          "id": "651b6851-6c1d-4c78-bea7-2e88da8b777c",
+          "text": "Dino Audio aufnehmen",
+          "done": false
         }
       ],
       "studium": [
@@ -74,7 +79,7 @@
         }
       ]
     },
-    "updatedAt": 1788158158857
+    "updatedAt": 1788158177555
   },
   "tasks": {
     "items": [
