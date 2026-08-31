@@ -42,12 +42,17 @@
           "id": "d2fb8358-2f4e-4233-81ea-0e9edcf2f179",
           "text": "Vlog fertig cutten",
           "done": false
+        },
+        {
+          "id": "8f144b4e-3f5e-4a8d-bbbf-dbd1e2748706",
+          "text": "vlog hochladen",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1788158077581
+    "updatedAt": 1788158085245
   },
   "tasks": {
     "items": [
