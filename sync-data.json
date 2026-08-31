@@ -61,16 +61,11 @@
         "done": false
       },
       {
-        "id": "f642a78e-9072-4d24-ae16-1fb688e1190f",
-        "text": "Paket unboxen",
-        "done": false
-      },
-      {
         "id": "a887d791-9576-4ef2-b64b-16487efabcb0",
         "text": "Minifiguren hochladen",
         "done": false
       }
     ],
-    "updatedAt": 1788157986799
+    "updatedAt": 1788157993224
   }
 }
