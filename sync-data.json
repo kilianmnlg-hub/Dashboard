@@ -47,6 +47,11 @@
           "id": "8f144b4e-3f5e-4a8d-bbbf-dbd1e2748706",
           "text": "vlog hochladen",
           "done": false
+        },
+        {
+          "id": "a9017fa1-43b3-4c0b-9564-753a64de2b75",
+          "text": "Pakete unboxen",
+          "done": false
         }
       ],
       "studium": [],
@@ -58,7 +63,7 @@
         }
       ]
     },
-    "updatedAt": 1788158090231
+    "updatedAt": 1788158123693
   },
   "tasks": {
     "items": [
