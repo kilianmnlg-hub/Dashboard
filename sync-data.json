@@ -50,9 +50,15 @@
         }
       ],
       "studium": [],
-      "privat": []
+      "privat": [
+        {
+          "id": "90455f3f-98fa-405a-91a5-0f0a4bbd8af2",
+          "text": "gym",
+          "done": false
+        }
+      ]
     },
-    "updatedAt": 1788158085245
+    "updatedAt": 1788158090231
   },
   "tasks": {
     "items": [
