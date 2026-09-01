@@ -62,12 +62,17 @@
           "id": "a0d47b59-8e24-49b9-82a6-3ecac289b2ef",
           "text": "Lego Tour Haul",
           "done": false
+        },
+        {
+          "id": "79ca3c18-f83b-4263-bf11-8d261efc8089",
+          "text": "bricklink bestellung packen",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1788245575166
+    "updatedAt": 1788245591599
   },
   "tasks": {
     "items": [
