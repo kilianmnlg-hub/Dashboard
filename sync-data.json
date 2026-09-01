@@ -102,11 +102,6 @@
         "done": false
       },
       {
-        "id": "522671e0-0e43-49a6-9dcb-261ffe2972b3",
-        "text": "Teile hochladen",
-        "done": false
-      },
-      {
         "id": "cf99d9bb-e0a3-42d6-b322-4dea8cf75db9",
         "text": "Dino Audio aufnehmen",
         "done": false
@@ -115,13 +110,8 @@
         "id": "b84b2452-c45c-4e5e-b76e-845c891dbaeb",
         "text": "erste Arbeit, erste Übersicht erstellen",
         "done": false
-      },
-      {
-        "id": "d0422fe2-7f96-4c76-8a9e-60a2e5a6d610",
-        "text": "gym",
-        "done": false
       }
     ],
-    "updatedAt": 1788245165050
+    "updatedAt": 1788245522846
   }
 }
