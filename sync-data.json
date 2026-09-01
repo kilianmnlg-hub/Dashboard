@@ -37,11 +37,17 @@
   "todos": {
     "date": "2026-09-01",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "354e796f-95b9-40ba-b177-5d3e4e507525",
+          "text": "Lego Dino Hochladen",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1788245479322
   },
   "tasks": {
     "items": [
