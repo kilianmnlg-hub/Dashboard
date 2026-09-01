@@ -35,51 +35,13 @@
     "updatedAt": 0
   },
   "todos": {
-    "date": "2026-08-31",
+    "date": "2026-09-01",
     "items": {
-      "business": [
-        {
-          "id": "d2fb8358-2f4e-4233-81ea-0e9edcf2f179",
-          "text": "Vlog fertig cutten",
-          "done": false
-        },
-        {
-          "id": "8f144b4e-3f5e-4a8d-bbbf-dbd1e2748706",
-          "text": "vlog hochladen",
-          "done": false
-        },
-        {
-          "id": "a9017fa1-43b3-4c0b-9564-753a64de2b75",
-          "text": "Pakete unboxen",
-          "done": false
-        },
-        {
-          "id": "edf5eb52-7b69-4117-9400-2f32f1d684f2",
-          "text": "Teile hochladen",
-          "done": false
-        },
-        {
-          "id": "651b6851-6c1d-4c78-bea7-2e88da8b777c",
-          "text": "Dino Audio aufnehmen",
-          "done": false
-        }
-      ],
-      "studium": [
-        {
-          "id": "8187f73b-de9d-4d50-b051-011a480599f5",
-          "text": "erste Arbeit, erste Übersicht erstellen",
-          "done": false
-        }
-      ],
-      "privat": [
-        {
-          "id": "90455f3f-98fa-405a-91a5-0f0a4bbd8af2",
-          "text": "gym",
-          "done": false
-        }
-      ]
+      "business": [],
+      "studium": [],
+      "privat": []
     },
-    "updatedAt": 1788158177555
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -102,8 +64,43 @@
         "id": "a887d791-9576-4ef2-b64b-16487efabcb0",
         "text": "Minifiguren hochladen",
         "done": false
+      },
+      {
+        "id": "f763d773-caf1-401f-a003-bf822a4dc73a",
+        "text": "Vlog fertig cutten",
+        "done": false
+      },
+      {
+        "id": "238a804d-e9b2-498b-9c9c-aa58b3c36704",
+        "text": "vlog hochladen",
+        "done": false
+      },
+      {
+        "id": "57af99ac-cece-487b-8ce5-609000ec9819",
+        "text": "Pakete unboxen",
+        "done": false
+      },
+      {
+        "id": "522671e0-0e43-49a6-9dcb-261ffe2972b3",
+        "text": "Teile hochladen",
+        "done": false
+      },
+      {
+        "id": "cf99d9bb-e0a3-42d6-b322-4dea8cf75db9",
+        "text": "Dino Audio aufnehmen",
+        "done": false
+      },
+      {
+        "id": "b84b2452-c45c-4e5e-b76e-845c891dbaeb",
+        "text": "erste Arbeit, erste Übersicht erstellen",
+        "done": false
+      },
+      {
+        "id": "d0422fe2-7f96-4c76-8a9e-60a2e5a6d610",
+        "text": "gym",
+        "done": false
       }
     ],
-    "updatedAt": 1788157993224
+    "updatedAt": 1788245165050
   }
 }
