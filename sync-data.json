@@ -42,12 +42,17 @@
           "id": "354e796f-95b9-40ba-b177-5d3e4e507525",
           "text": "Lego Dino Hochladen",
           "done": false
+        },
+        {
+          "id": "264aa9dc-1603-4a06-b5ed-009d74a3f665",
+          "text": "Video audio",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1788245479322
+    "updatedAt": 1788245487691
   },
   "tasks": {
     "items": [
