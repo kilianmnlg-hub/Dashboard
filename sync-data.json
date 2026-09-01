@@ -47,12 +47,17 @@
           "id": "264aa9dc-1603-4a06-b5ed-009d74a3f665",
           "text": "Video audio",
           "done": false
+        },
+        {
+          "id": "5cf6aa07-4967-4950-b583-98175b1c4d2b",
+          "text": "video cut",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1788245487691
+    "updatedAt": 1788245492259
   },
   "tasks": {
     "items": [
