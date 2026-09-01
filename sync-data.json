@@ -57,12 +57,17 @@
           "id": "f3152e56-181c-4921-85b7-a2799c25f627",
           "text": "video hochladen",
           "done": false
+        },
+        {
+          "id": "a0d47b59-8e24-49b9-82a6-3ecac289b2ef",
+          "text": "Lego Tour Haul",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1788245501283
+    "updatedAt": 1788245575166
   },
   "tasks": {
     "items": [
