@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-09-01",
-    "lastSyncedAt": "2026-09-01T12:16:34.424Z",
+    "lastUpdated": "2026-09-02",
+    "lastSyncedAt": "2026-09-02T10:23:42.644Z",
     "owner": "Kilian"
   },
   "github": {
@@ -217,6 +217,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-01",
         "value": 28900
+      },
+      {
+        "date": "2026-09-02",
+        "value": 28900
       }
     ],
     "brainwalkersAbos": [
@@ -335,6 +339,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-01",
         "value": 396
+      },
+      {
+        "date": "2026-09-02",
+        "value": 405
       }
     ],
     "tiktokFollower": [
@@ -453,6 +461,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-01",
         "value": 2739
+      },
+      {
+        "date": "2026-09-02",
+        "value": 2740
       }
     ]
   },
@@ -479,7 +491,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 396,
+      "current": 405,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -488,7 +500,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2739,
+      "current": 2740,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -506,7 +518,7 @@ const DASHBOARD_DATA = {
       "id": "bricks-longform-2026",
       "label": "Bricks On The Floor – Longform-Videos 2026",
       "project": "bricksOnTheFloor",
-      "current": 23,
+      "current": 24,
       "target": 52,
       "unit": "Videos",
       "due": "2026-12-31"
@@ -522,12 +534,12 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-01T12:16:32.555Z",
+    "checkedAt": "2026-09-02T10:23:41.368Z",
     "openOrdersCount": 272,
     "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-01T12:16:32.792Z",
+    "checkedAt": "2026-09-02T10:23:41.603Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -649,7 +661,7 @@ const DASHBOARD_DATA = {
       "subtitle": "LEGO-YouTube-Kanal · Hauptprojekt",
       "accent": "bricks",
       "uploadRhythmDays": 7,
-      "lastUploadAt": "2026-08-24T13:55:04Z",
+      "lastUploadAt": "2026-09-01T13:55:03Z",
       "stats": [
         {
           "label": "Abonnenten",
@@ -680,11 +692,11 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "396"
+          "value": "405"
         },
         {
           "label": "Videos",
-          "value": "65"
+          "value": "66"
         },
         {
           "label": "Rhythmus",
@@ -698,10 +710,10 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-09-01"
+      "to": "2026-09-02"
     },
     "totalsByCategory": {
-      "YouTube": 42137.94,
+      "YouTube": 42443.48,
       "Bricklink": 1729.69
     },
     "daily": [
@@ -877,8 +889,13 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-09-01",
-        "YouTube": 122.23,
+        "YouTube": 409.69,
         "Bricklink": 46.05
+      },
+      {
+        "date": "2026-09-02",
+        "YouTube": 18.08,
+        "Bricklink": 0
       }
     ]
   }
