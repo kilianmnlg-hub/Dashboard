@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-09-02",
-    "lastSyncedAt": "2026-09-02T11:53:41.078Z",
+    "lastUpdated": "2026-09-03",
+    "lastSyncedAt": "2026-09-03T10:32:12.543Z",
     "owner": "Kilian"
   },
   "github": {
@@ -221,6 +221,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-02",
         "value": 28900
+      },
+      {
+        "date": "2026-09-03",
+        "value": 28900
       }
     ],
     "brainwalkersAbos": [
@@ -343,6 +347,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-02",
         "value": 405
+      },
+      {
+        "date": "2026-09-03",
+        "value": 408
       }
     ],
     "tiktokFollower": [
@@ -465,6 +473,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-02",
         "value": 2739
+      },
+      {
+        "date": "2026-09-03",
+        "value": 2740
       }
     ]
   },
@@ -491,7 +503,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 405,
+      "current": 408,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -500,7 +512,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2739,
+      "current": 2740,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -509,7 +521,7 @@ const DASHBOARD_DATA = {
       "id": "bricklink-parts",
       "label": "Bricklink – Teile verkauft",
       "project": "bricklink",
-      "current": 72435,
+      "current": 72412,
       "target": 100000,
       "unit": "Teile",
       "due": "2026-12-31"
@@ -534,12 +546,21 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-02T11:53:39.801Z",
-    "openOrdersCount": 272,
-    "pendingShipments": []
+    "checkedAt": "2026-09-03T10:32:11.654Z",
+    "openOrdersCount": 273,
+    "pendingShipments": [
+      {
+        "orderId": 32484738,
+        "buyer": "Viriatus",
+        "status": "PAID",
+        "orderedDate": "2026-09-02T22:39:39.347Z",
+        "total": "36.5870",
+        "currency": "EUR"
+      }
+    ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-02T11:53:40.042Z",
+    "checkedAt": "2026-09-03T10:32:11.778Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -584,8 +605,8 @@ const DASHBOARD_DATA = {
       },
       {
         "weekStart": "2026-08-31",
-        "total": 36.44,
-        "orderCount": 2
+        "total": 73.03,
+        "orderCount": 3
       }
     ],
     "monthly": [
@@ -621,8 +642,8 @@ const DASHBOARD_DATA = {
       },
       {
         "month": "2026-09",
-        "total": 17.66,
-        "orderCount": 1
+        "total": 54.25,
+        "orderCount": 2
       }
     ]
   },
@@ -692,11 +713,11 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "405"
+          "value": "408"
         },
         {
           "label": "Videos",
-          "value": "66"
+          "value": "67"
         },
         {
           "label": "Rhythmus",
