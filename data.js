@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-09-04",
-    "lastSyncedAt": "2026-09-04T11:55:36.730Z",
+    "lastUpdated": "2026-09-05",
+    "lastSyncedAt": "2026-09-05T09:48:59.517Z",
     "owner": "Kilian"
   },
   "github": {
@@ -229,6 +229,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-04",
         "value": 29000
+      },
+      {
+        "date": "2026-09-05",
+        "value": 29000
       }
     ],
     "brainwalkersAbos": [
@@ -359,6 +363,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-04",
         "value": 413
+      },
+      {
+        "date": "2026-09-05",
+        "value": 416
       }
     ],
     "tiktokFollower": [
@@ -489,6 +497,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-04",
         "value": 2739
+      },
+      {
+        "date": "2026-09-05",
+        "value": 2739
       }
     ]
   },
@@ -515,7 +527,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 413,
+      "current": 416,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -558,7 +570,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-04T11:55:35.230Z",
+    "checkedAt": "2026-09-05T09:48:58.681Z",
     "openOrdersCount": 273,
     "pendingShipments": [
       {
@@ -572,7 +584,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-04T11:55:35.530Z",
+    "checkedAt": "2026-09-05T09:48:58.736Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -619,8 +631,8 @@ const DASHBOARD_DATA = {
     "monthly": [
       {
         "month": "2026-03",
-        "total": 837.69,
-        "orderCount": 23
+        "total": 751.25,
+        "orderCount": 22
       },
       {
         "month": "2026-04",
@@ -720,11 +732,11 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "413"
+          "value": "416"
         },
         {
           "label": "Videos",
-          "value": "68"
+          "value": "69"
         },
         {
           "label": "Rhythmus",
