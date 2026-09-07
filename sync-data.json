@@ -37,11 +37,17 @@
   "todos": {
     "date": "2026-09-07",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "053aa708-1ca4-4cd9-9f10-b605917fa899",
+          "text": "Bricklink",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1788765696668
+    "updatedAt": 1788765719691
   },
   "tasks": {
     "items": [
