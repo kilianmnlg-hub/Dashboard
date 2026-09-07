@@ -47,6 +47,11 @@
           "id": "457980b8-e9dc-45d7-953c-f2db189edaec",
           "text": "Studio aufräumen",
           "done": false
+        },
+        {
+          "id": "c7c75a2f-1e06-4e9b-a9db-71b9dc5e2996",
+          "text": "Laden Tour Cutten",
+          "done": false
         }
       ],
       "studium": [],
@@ -58,7 +63,7 @@
         }
       ]
     },
-    "updatedAt": 1788766915550
+    "updatedAt": 1788766923366
   },
   "tasks": {
     "items": [
