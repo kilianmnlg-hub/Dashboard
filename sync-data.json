@@ -35,44 +35,13 @@
     "updatedAt": 0
   },
   "todos": {
-    "date": "2026-09-01",
+    "date": "2026-09-07",
     "items": {
-      "business": [
-        {
-          "id": "354e796f-95b9-40ba-b177-5d3e4e507525",
-          "text": "Lego Dino Hochladen",
-          "done": false
-        },
-        {
-          "id": "264aa9dc-1603-4a06-b5ed-009d74a3f665",
-          "text": "Video audio",
-          "done": false
-        },
-        {
-          "id": "5cf6aa07-4967-4950-b583-98175b1c4d2b",
-          "text": "video cut",
-          "done": false
-        },
-        {
-          "id": "f3152e56-181c-4921-85b7-a2799c25f627",
-          "text": "video hochladen",
-          "done": false
-        },
-        {
-          "id": "a0d47b59-8e24-49b9-82a6-3ecac289b2ef",
-          "text": "Lego Tour Haul",
-          "done": false
-        },
-        {
-          "id": "79ca3c18-f83b-4263-bf11-8d261efc8089",
-          "text": "bricklink bestellung packen",
-          "done": false
-        }
-      ],
+      "business": [],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1788245591599
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -120,8 +89,38 @@
         "id": "b84b2452-c45c-4e5e-b76e-845c891dbaeb",
         "text": "erste Arbeit, erste Übersicht erstellen",
         "done": false
+      },
+      {
+        "id": "e39b3fff-df53-4ce5-bbc1-bb01cc87b70e",
+        "text": "Lego Dino Hochladen",
+        "done": false
+      },
+      {
+        "id": "6a71f14d-39d0-4095-9ff4-616533fdbda1",
+        "text": "Video audio",
+        "done": false
+      },
+      {
+        "id": "fc826eae-7a0b-4314-92b8-b6d901a7b305",
+        "text": "video cut",
+        "done": false
+      },
+      {
+        "id": "7e88b28e-0134-4ae2-be38-85474d3d78d1",
+        "text": "video hochladen",
+        "done": false
+      },
+      {
+        "id": "5d2463b1-9ce8-44ec-85ef-9cdc7e37918b",
+        "text": "Lego Tour Haul",
+        "done": false
+      },
+      {
+        "id": "05c90cfd-6637-47a5-830c-94d144a6147c",
+        "text": "bricklink bestellung packen",
+        "done": false
       }
     ],
-    "updatedAt": 1788245522846
+    "updatedAt": 1788764821914
   }
 }
