@@ -76,26 +76,6 @@
         "done": false
       },
       {
-        "id": "e39b3fff-df53-4ce5-bbc1-bb01cc87b70e",
-        "text": "Lego Dino Hochladen",
-        "done": false
-      },
-      {
-        "id": "6a71f14d-39d0-4095-9ff4-616533fdbda1",
-        "text": "Video audio",
-        "done": false
-      },
-      {
-        "id": "fc826eae-7a0b-4314-92b8-b6d901a7b305",
-        "text": "video cut",
-        "done": false
-      },
-      {
-        "id": "7e88b28e-0134-4ae2-be38-85474d3d78d1",
-        "text": "video hochladen",
-        "done": false
-      },
-      {
         "id": "5d2463b1-9ce8-44ec-85ef-9cdc7e37918b",
         "text": "Lego Tour Haul",
         "done": false
@@ -106,6 +86,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1788765696615
+    "updatedAt": 1788765705346
   }
 }
