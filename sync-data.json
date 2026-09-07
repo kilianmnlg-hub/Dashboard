@@ -42,6 +42,11 @@
           "id": "053aa708-1ca4-4cd9-9f10-b605917fa899",
           "text": "Bricklink",
           "done": false
+        },
+        {
+          "id": "457980b8-e9dc-45d7-953c-f2db189edaec",
+          "text": "Studio aufräumen",
+          "done": false
         }
       ],
       "studium": [],
@@ -53,7 +58,7 @@
         }
       ]
     },
-    "updatedAt": 1788765728459
+    "updatedAt": 1788766915550
   },
   "tasks": {
     "items": [
