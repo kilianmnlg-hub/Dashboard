@@ -41,7 +41,7 @@
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1788765696668
   },
   "tasks": {
     "items": [
@@ -58,21 +58,6 @@
       {
         "id": "e67b88f8-e446-4b95-a782-da4083af1e6b",
         "text": "Pakete Unboxen",
-        "done": false
-      },
-      {
-        "id": "a887d791-9576-4ef2-b64b-16487efabcb0",
-        "text": "Minifiguren hochladen",
-        "done": false
-      },
-      {
-        "id": "f763d773-caf1-401f-a003-bf822a4dc73a",
-        "text": "Vlog fertig cutten",
-        "done": false
-      },
-      {
-        "id": "238a804d-e9b2-498b-9c9c-aa58b3c36704",
-        "text": "vlog hochladen",
         "done": false
       },
       {
@@ -121,6 +106,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1788764821914
+    "updatedAt": 1788765696615
   }
 }
