@@ -35,35 +35,13 @@
     "updatedAt": 0
   },
   "todos": {
-    "date": "2026-09-07",
+    "date": "2026-09-08",
     "items": {
-      "business": [
-        {
-          "id": "053aa708-1ca4-4cd9-9f10-b605917fa899",
-          "text": "Bricklink",
-          "done": false
-        },
-        {
-          "id": "457980b8-e9dc-45d7-953c-f2db189edaec",
-          "text": "Studio aufräumen",
-          "done": false
-        },
-        {
-          "id": "c7c75a2f-1e06-4e9b-a9db-71b9dc5e2996",
-          "text": "Laden Tour Cutten",
-          "done": false
-        }
-      ],
+      "business": [],
       "studium": [],
-      "privat": [
-        {
-          "id": "25d3a0fe-1d8d-4e56-b887-b3d8d9014a09",
-          "text": "Gym",
-          "done": false
-        }
-      ]
+      "privat": []
     },
-    "updatedAt": 1788766923366
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -96,8 +74,28 @@
         "id": "b84b2452-c45c-4e5e-b76e-845c891dbaeb",
         "text": "erste Arbeit, erste Übersicht erstellen",
         "done": false
+      },
+      {
+        "id": "66118dbe-f6c0-414a-905f-957b4f5139d1",
+        "text": "Bricklink",
+        "done": false
+      },
+      {
+        "id": "cdc373f7-febc-4296-a8eb-c20533fe31ff",
+        "text": "Studio aufräumen",
+        "done": false
+      },
+      {
+        "id": "8166067a-02e2-4350-a530-44564b07d11b",
+        "text": "Laden Tour Cutten",
+        "done": false
+      },
+      {
+        "id": "67621164-4772-422c-ad7c-c5b159019472",
+        "text": "Gym",
+        "done": false
       }
     ],
-    "updatedAt": 1788765711329
+    "updatedAt": 1788873901294
   }
 }
