@@ -71,11 +71,6 @@
         "done": false
       },
       {
-        "id": "66118dbe-f6c0-414a-905f-957b4f5139d1",
-        "text": "Bricklink",
-        "done": false
-      },
-      {
         "id": "cdc373f7-febc-4296-a8eb-c20533fe31ff",
         "text": "Studio aufräumen",
         "done": false
@@ -91,6 +86,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1788873908740
+    "updatedAt": 1788873912023
   }
 }
