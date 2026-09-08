@@ -66,11 +66,6 @@
         "done": false
       },
       {
-        "id": "cf99d9bb-e0a3-42d6-b322-4dea8cf75db9",
-        "text": "Dino Audio aufnehmen",
-        "done": false
-      },
-      {
         "id": "b84b2452-c45c-4e5e-b76e-845c891dbaeb",
         "text": "erste Arbeit, erste Übersicht erstellen",
         "done": false
@@ -96,6 +91,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1788873901294
+    "updatedAt": 1788873908740
   }
 }
