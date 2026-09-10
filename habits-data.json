@@ -141,8 +141,15 @@
       "gym": true
     },
     "2026-09-07": {
-      "1d8f6548-bdad-4bab-a63c-167a8563b147": true
+      "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
+      "gym": true
+    },
+    "2026-09-09": {
+      "gym": true
+    },
+    "2026-09-08": {
+      "gym": true
     }
   },
-  "updatedAt": 1788768121094
+  "updatedAt": 1789022711162
 }
