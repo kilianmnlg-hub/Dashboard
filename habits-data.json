@@ -159,8 +159,9 @@
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-09-10": {
-      "1d8f6548-bdad-4bab-a63c-167a8563b147": true
+      "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
+      "gym": true
     }
   },
-  "updatedAt": 1789022736317
+  "updatedAt": 1789063767985
 }
