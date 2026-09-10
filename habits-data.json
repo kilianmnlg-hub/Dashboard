@@ -143,15 +143,21 @@
     "2026-09-07": {
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
       "gym": true,
-      "koffein": true
+      "koffein": true,
+      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-09-09": {
-      "gym": true
+      "gym": true,
+      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-09-08": {
       "gym": true,
-      "koffein": true
+      "koffein": true,
+      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     }
   },
-  "updatedAt": 1789022721242
+  "updatedAt": 1789022731492
 }
