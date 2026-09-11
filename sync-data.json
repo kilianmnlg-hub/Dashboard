@@ -61,11 +61,6 @@
         "done": false
       },
       {
-        "id": "3030f659-2602-4472-bab9-277911f57883",
-        "text": "Bardobrick Tour fertig cutten",
-        "done": false
-      },
-      {
         "id": "ab9013c6-960b-491b-8cf3-67fd5f5d4a59",
         "text": "Tour hochladen",
         "done": false
@@ -86,6 +81,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1789110514043
+    "updatedAt": 1789110519244
   }
 }
