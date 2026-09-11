@@ -54,6 +54,11 @@
           "id": "10d69ddc-5a4b-4672-a05f-657b63225f2d",
           "text": "4 Seiten Arbeit schreiben",
           "done": true
+        },
+        {
+          "id": "13fde64b-8c25-4d4f-88c1-8835f795f979",
+          "text": "Praxisarbeit fertig schrieben",
+          "done": false
         }
       ],
       "privat": [
@@ -69,7 +74,7 @@
         }
       ]
     },
-    "updatedAt": 1789110582413
+    "updatedAt": 1789110597273
   },
   "tasks": {
     "items": [
