@@ -37,7 +37,13 @@
   "todos": {
     "date": "2026-09-11",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "493074a7-7b8f-40d9-b6ad-3704d2305974",
+          "text": "Laden Tour hochladen",
+          "done": false
+        }
+      ],
       "studium": [
         {
           "id": "10d69ddc-5a4b-4672-a05f-657b63225f2d",
@@ -58,7 +64,7 @@
         }
       ]
     },
-    "updatedAt": 1789110552383
+    "updatedAt": 1789110561008
   },
   "tasks": {
     "items": [
