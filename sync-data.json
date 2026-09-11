@@ -44,10 +44,15 @@
           "id": "ebef7336-b43f-4176-99d0-159d0709ddc0",
           "text": "Gym",
           "done": false
+        },
+        {
+          "id": "a0e517f7-721c-42fc-8459-223f836ecc7f",
+          "text": "Wäsche",
+          "done": false
         }
       ]
     },
-    "updatedAt": 1789110530176
+    "updatedAt": 1789110536577
   },
   "tasks": {
     "items": [
