@@ -39,9 +39,15 @@
     "items": {
       "business": [],
       "studium": [],
-      "privat": []
+      "privat": [
+        {
+          "id": "ebef7336-b43f-4176-99d0-159d0709ddc0",
+          "text": "Gym",
+          "done": false
+        }
+      ]
     },
-    "updatedAt": 0
+    "updatedAt": 1789110530176
   },
   "tasks": {
     "items": [
