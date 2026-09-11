@@ -56,21 +56,6 @@
         "done": false
       },
       {
-        "id": "e67b88f8-e446-4b95-a782-da4083af1e6b",
-        "text": "Pakete Unboxen",
-        "done": false
-      },
-      {
-        "id": "57af99ac-cece-487b-8ce5-609000ec9819",
-        "text": "Pakete unboxen",
-        "done": false
-      },
-      {
-        "id": "b84b2452-c45c-4e5e-b76e-845c891dbaeb",
-        "text": "erste Arbeit, erste Übersicht erstellen",
-        "done": false
-      },
-      {
         "id": "cdc373f7-febc-4296-a8eb-c20533fe31ff",
         "text": "Studio aufräumen",
         "done": false
@@ -101,6 +86,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1789110502039
+    "updatedAt": 1789110514043
   }
 }
