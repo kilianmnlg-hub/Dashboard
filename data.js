@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-09-11",
-    "lastSyncedAt": "2026-09-11T07:08:33.865Z",
+    "lastSyncedAt": "2026-09-11T10:25:37.120Z",
     "owner": "Kilian"
   },
   "github": {
@@ -572,7 +572,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-09-11",
-        "value": 2761
+        "value": 2762
       }
     ]
   },
@@ -608,7 +608,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2761,
+      "current": 2762,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -642,12 +642,12 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-11T07:08:32.850Z",
+    "checkedAt": "2026-09-11T10:25:35.764Z",
     "openOrdersCount": 273,
     "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-11T07:08:33.020Z",
+    "checkedAt": "2026-09-11T10:25:36.052Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -694,8 +694,8 @@ const DASHBOARD_DATA = {
     "monthly": [
       {
         "month": "2026-03",
-        "total": 587.37,
-        "orderCount": 19
+        "total": 564.73,
+        "orderCount": 18
       },
       {
         "month": "2026-04",
@@ -799,7 +799,7 @@ const DASHBOARD_DATA = {
         },
         {
           "label": "Videos",
-          "value": "73"
+          "value": "72"
         },
         {
           "label": "Rhythmus",
@@ -813,10 +813,10 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-09-10"
+      "to": "2026-09-11"
     },
     "totalsByCategory": {
-      "YouTube": 43171.68,
+      "YouTube": 43217.56,
       "Bricklink": 1976.05
     },
     "daily": [
@@ -1018,6 +1018,11 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-10",
         "YouTube": 287.89,
+        "Bricklink": 0
+      },
+      {
+        "date": "2026-09-11",
+        "YouTube": 45.88,
         "Bricklink": 0
       }
     ]
