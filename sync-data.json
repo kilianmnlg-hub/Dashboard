@@ -37,49 +37,11 @@
   "todos": {
     "date": "2026-09-11",
     "items": {
-      "business": [
-        {
-          "id": "c6e7685c-4be7-44cc-87af-91965641220c",
-          "text": "Bardobrick Tour fertig cutten",
-          "done": false
-        },
-        {
-          "id": "539b8bc9-096e-41dd-829d-e768c59e8b5a",
-          "text": "Tour hochladen",
-          "done": false
-        },
-        {
-          "id": "f78cb00e-fe00-4f49-a370-3b21aa939f54",
-          "text": "Brainwalker Skript",
-          "done": false
-        },
-        {
-          "id": "eb73f5a5-f83e-4fa7-86b1-04c4e0e28181",
-          "text": "Ein Set ausparten",
-          "done": false
-        }
-      ],
-      "studium": [
-        {
-          "id": "8456408a-cc7e-4c72-8d1f-026beef9d0b2",
-          "text": "4 Seiten der Projektarbeit",
-          "done": true
-        }
-      ],
-      "privat": [
-        {
-          "id": "95661623-2c28-4226-8c5d-5ebf622d819f",
-          "text": "Gym",
-          "done": true
-        },
-        {
-          "id": "aafb2a09-a78d-4383-af5a-e1a71c8fbd84",
-          "text": "Wäsche",
-          "done": false
-        }
-      ]
+      "business": [],
+      "studium": [],
+      "privat": []
     },
-    "updatedAt": 1789063757797
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -112,8 +74,33 @@
         "id": "cdc373f7-febc-4296-a8eb-c20533fe31ff",
         "text": "Studio aufräumen",
         "done": false
+      },
+      {
+        "id": "3030f659-2602-4472-bab9-277911f57883",
+        "text": "Bardobrick Tour fertig cutten",
+        "done": false
+      },
+      {
+        "id": "ab9013c6-960b-491b-8cf3-67fd5f5d4a59",
+        "text": "Tour hochladen",
+        "done": false
+      },
+      {
+        "id": "858be400-3261-4f1f-b266-52e3d58649b5",
+        "text": "Brainwalker Skript",
+        "done": false
+      },
+      {
+        "id": "a2311b2c-f1c6-4e27-b036-d9c577195fc3",
+        "text": "Ein Set ausparten",
+        "done": false
+      },
+      {
+        "id": "867e1b1f-f0eb-4454-97bf-6ac16cd496ca",
+        "text": "Wäsche",
+        "done": false
       }
     ],
-    "updatedAt": 1789063763270
+    "updatedAt": 1789110502039
   }
 }
