@@ -64,18 +64,8 @@
         "id": "ab9013c6-960b-491b-8cf3-67fd5f5d4a59",
         "text": "Tour hochladen",
         "done": false
-      },
-      {
-        "id": "858be400-3261-4f1f-b266-52e3d58649b5",
-        "text": "Brainwalker Skript",
-        "done": false
-      },
-      {
-        "id": "867e1b1f-f0eb-4454-97bf-6ac16cd496ca",
-        "text": "Wäsche",
-        "done": false
       }
     ],
-    "updatedAt": 1789110523443
+    "updatedAt": 1789110527495
   }
 }
