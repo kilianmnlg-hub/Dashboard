@@ -38,7 +38,13 @@
     "date": "2026-09-11",
     "items": {
       "business": [],
-      "studium": [],
+      "studium": [
+        {
+          "id": "10d69ddc-5a4b-4672-a05f-657b63225f2d",
+          "text": "4 Seiten Arbeit schreiben",
+          "done": false
+        }
+      ],
       "privat": [
         {
           "id": "ebef7336-b43f-4176-99d0-159d0709ddc0",
@@ -52,7 +58,7 @@
         }
       ]
     },
-    "updatedAt": 1789110536577
+    "updatedAt": 1789110552383
   },
   "tasks": {
     "items": [
