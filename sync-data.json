@@ -71,16 +71,11 @@
         "done": false
       },
       {
-        "id": "a2311b2c-f1c6-4e27-b036-d9c577195fc3",
-        "text": "Ein Set ausparten",
-        "done": false
-      },
-      {
         "id": "867e1b1f-f0eb-4454-97bf-6ac16cd496ca",
         "text": "Wäsche",
         "done": false
       }
     ],
-    "updatedAt": 1789110519244
+    "updatedAt": 1789110523443
   }
 }
