@@ -42,13 +42,18 @@
           "id": "493074a7-7b8f-40d9-b6ad-3704d2305974",
           "text": "Laden Tour hochladen",
           "done": false
+        },
+        {
+          "id": "f1459979-38f6-4d1b-bffd-0b01cda6820e",
+          "text": "Brainwalker Skript",
+          "done": false
         }
       ],
       "studium": [
         {
           "id": "10d69ddc-5a4b-4672-a05f-657b63225f2d",
           "text": "4 Seiten Arbeit schreiben",
-          "done": false
+          "done": true
         }
       ],
       "privat": [
@@ -64,7 +69,7 @@
         }
       ]
     },
-    "updatedAt": 1789110561008
+    "updatedAt": 1789110582413
   },
   "tasks": {
     "items": [
