@@ -2030,13 +2030,20 @@
   fetchRemoteSyncData();
 
   // ---------- Google Kalender ----------
-  // Laeuft komplett im Browser (kein Backend noetig, passt zum Rest des Dashboards):
-  // Google Identity Services (GIS, aus dem <script>-Tag in index.html) fuer den OAuth2-
-  // Token-Client, Google Calendar API direkt per fetch() mit dem erhaltenen Access-Token.
-  // Der Access-Token lebt nur ~1 Std und wird bewusst NICHT automatisch im Hintergrund
-  // erneuert (das wuerde einen Popup-Aufruf ohne Nutzer-Klick brauchen, was Browser meist
-  // blockieren) - stattdessen einfach erneut auf "Kalender verbinden" klicken, wenn eine
-  // Anfrage mit 401 fehlschlaegt. Einrichtung siehe README, Abschnitt "Google Kalender".
+  // Google Identity Services (GIS) fuer den OAuth2-Authorization-Code-Flow, Google Calendar
+  // API direkt per fetch() mit dem Access-Token. Der Access-Token lebt nur ~1 Std. - fuer
+  // eine dauerhafte Verbindung ohne wiederholte Popups wird beim ersten Verbinden zusaetzlich
+  // ein langlebiger refresh_token geholt (Authorization-Code-Flow statt des reinen
+  // Implicit-Flows). Der Tausch code -> {access_token, refresh_token} bzw. spaeter
+  // refresh_token -> neuer access_token laeuft ueber einen kleinen Cloudflare-Worker-Proxy
+  // (worker/gcal-proxy.js, URL in data.googleCalendar.workerUrl), da der Google-Client-Secret
+  // dafuer noetig ist und niemals im Browser-Code stehen darf. Der refresh_token bleibt daher
+  // NUR lokal in diesem Browser (localStorage) - er wird nie ueber den Cloud-Sync geteilt,
+  // da das Dashboard-Repo oeffentlich ist und der Token dauerhaften Kalender-Zugriff gewaehrt.
+  // Erneuerungen ueber den refresh_token laufen als ganz normaler fetch() im Hintergrund -
+  // kein Popup, daher auch nicht vom Browser blockierbar (anders als GIS' eigener "stiller"
+  // Modus, der intern trotzdem ein Popup-Fenster oeffnet und von Browsern geblockt wird).
+  // Einrichtung siehe README, Abschnitt "Google Kalender".
   // calendar.events allein deckt Termine lesen/schreiben ab, aber NICHT den
   // calendars.get-Aufruf (Kalender-Metadaten inkl. echter Kalender-ID fuers Embed) - dafuer
   // ist ein breiterer Scope noetig. calendar.readonly deckt beides ab (Kalenderliste +
@@ -2045,10 +2052,14 @@
   const GCAL_TOKEN_KEY = "dashboard-gcal-token";
   const GCAL_CLIENT_ID_KEY = "dashboard-gcal-clientid";
   const GCAL_CALENDAR_ID_KEY = "dashboard-gcal-calendarid";
+  const GCAL_WORKER_URL_KEY = "dashboard-gcal-workerurl";
+  // Bewusst NIE Teil von sync-data.json / GitHub - geraetelokales Geheimnis, siehe Kommentar oben.
+  const GCAL_REFRESH_TOKEN_KEY = "dashboard-gcal-refresh-token";
 
-  let gcalTokenClient = null;
+  let gcalCodeClient = null;
   let gcalAccessToken = null;
   let gcalCalendarId = data.googleCalendar?.calendarId || localStorage.getItem(GCAL_CALENDAR_ID_KEY) || null;
+  let gcalRefreshTimer = null;
 
   const calendarConnectState = document.getElementById("calendarConnectState");
   const calendarConnectHint = document.getElementById("calendarConnectHint");
@@ -2115,16 +2126,59 @@
     return clientId;
   }
 
+  function getGcalWorkerUrl() {
+    let workerUrl = data.googleCalendar?.workerUrl || localStorage.getItem(GCAL_WORKER_URL_KEY) || "";
+    if (!workerUrl) {
+      const input = prompt(
+        "URL des Cloudflare-Worker-Proxys für den Kalender (siehe README, Abschnitt \"Google Kalender\" für die Einrichtung):"
+      );
+      if (!input) return null;
+      workerUrl = input.trim().replace(/\/$/, "");
+      localStorage.setItem(GCAL_WORKER_URL_KEY, workerUrl);
+    }
+    return workerUrl.replace(/\/$/, "");
+  }
+
+  // Tauscht den refresh_token (falls vorhanden) im Hintergrund gegen einen frischen
+  // access_token - ein ganz normaler fetch() ohne Popup, daher nie vom Browser blockierbar.
+  // Wird beim Laden (falls kein gueltiger Access-Token gecacht ist), kurz vor Ablauf des
+  // aktuellen Tokens sowie als Fallback nach einem 401 aufgerufen.
+  async function refreshGcalAccessToken() {
+    const refreshToken = localStorage.getItem(GCAL_REFRESH_TOKEN_KEY);
+    const workerUrl = data.googleCalendar?.workerUrl || localStorage.getItem(GCAL_WORKER_URL_KEY);
+    if (!refreshToken || !workerUrl) return false;
+    try {
+      const res = await fetch(`${workerUrl.replace(/\/$/, "")}/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      });
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+      const payload = await res.json();
+      if (!payload.access_token) throw new Error("Keine access_token in Antwort");
+      gcalAccessToken = payload.access_token;
+      const saved = saveGcalToken(payload.access_token, payload.expires_in);
+      showCalendarConnected(true);
+      scheduleGcalRefresh(saved.expiresAt);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   async function gcalFetch(path, options) {
     const res = await fetch(`https://www.googleapis.com/calendar/v3/${path}`, {
       ...options,
       headers: { ...((options && options.headers) || {}), Authorization: `Bearer ${gcalAccessToken}` }
     });
     if (res.status === 401) {
-      // Token abgelaufen/ungueltig — lokal verwerfen, UI faellt zurueck auf "Verbinden".
+      // Token abgelaufen/ungueltig — lokal verwerfen, UI faellt zurueck auf "Verbinden",
+      // aber sofort per refresh_token einen neuen Access-Token holen (kein Popup) - damit ist
+      // im Idealfall schon wieder verbunden, bevor der Nutzer ueberhaupt reagiert.
       localStorage.removeItem(GCAL_TOKEN_KEY);
       gcalAccessToken = null;
       showCalendarConnected(false);
+      refreshGcalAccessToken();
     }
     return res;
   }
@@ -2207,36 +2261,71 @@
     if (e.key === "Enter") quickAddEvent(calendarQuickAddInput.value);
   });
 
-  function ensureGcalTokenClient(clientId) {
-    if (gcalTokenClient) return gcalTokenClient;
+  // ~5 Minuten vor Ablauf des aktuellen Tokens automatisch per refresh_token erneuern
+  // (siehe refreshGcalAccessToken), damit ein laenger offen bleibender Tab nie ein 401 durch
+  // schlicht abgelaufenes Token erlebt.
+  function scheduleGcalRefresh(expiresAt) {
+    clearTimeout(gcalRefreshTimer);
+    if (typeof expiresAt !== "number") return;
+    const delay = Math.max(5000, expiresAt - Date.now() - 5 * 60 * 1000);
+    gcalRefreshTimer = setTimeout(refreshGcalAccessToken, delay);
+  }
+
+  function ensureGcalCodeClient(clientId) {
+    if (gcalCodeClient) return gcalCodeClient;
     if (!window.google?.accounts?.oauth2) return null;
-    gcalTokenClient = google.accounts.oauth2.initTokenClient({
+    gcalCodeClient = google.accounts.oauth2.initCodeClient({
       client_id: clientId,
       scope: GCAL_SCOPE,
+      ux_mode: "popup",
+      access_type: "offline",
+      prompt: "consent",
       callback: async (resp) => {
-        if (resp.error) {
-          setCalendarStatus("error", resp.error);
+        if (resp.error || !resp.code) {
+          setCalendarStatus("error", resp.error || "kein Code erhalten");
           return;
         }
-        gcalAccessToken = resp.access_token;
-        saveGcalToken(resp.access_token, resp.expires_in);
-        showCalendarConnected(true);
-        await resolveCalendarId();
-        await fetchTodayEvents();
+        const workerUrl = getGcalWorkerUrl();
+        if (!workerUrl) return;
+        try {
+          const res = await fetch(`${workerUrl}/exchange`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: resp.code })
+          });
+          if (!res.ok) throw new Error(`Status ${res.status}`);
+          const payload = await res.json();
+          if (!payload.access_token) throw new Error("Keine access_token in Antwort");
+          gcalAccessToken = payload.access_token;
+          const saved = saveGcalToken(payload.access_token, payload.expires_in);
+          if (payload.refresh_token) {
+            // Google liefert den refresh_token nur bei der allerersten Zustimmung (bzw. bei
+            // erzwungenem prompt=consent) - falls doch mal keiner mitkommt, bleibt ein
+            // eventuell schon gespeicherter frueherer Token einfach erhalten.
+            localStorage.setItem(GCAL_REFRESH_TOKEN_KEY, payload.refresh_token);
+          }
+          showCalendarConnected(true);
+          await resolveCalendarId();
+          await fetchTodayEvents();
+          scheduleGcalRefresh(saved.expiresAt);
+        } catch (err) {
+          setCalendarStatus("error", err.message);
+        }
       }
     });
-    return gcalTokenClient;
+    return gcalCodeClient;
   }
 
   calendarConnectBtn?.addEventListener("click", () => {
     const clientId = getGcalClientId();
     if (!clientId) return;
-    const client = ensureGcalTokenClient(clientId);
+    if (!getGcalWorkerUrl()) return;
+    const client = ensureGcalCodeClient(clientId);
     if (!client) {
       alert("Google-Anmeldedienst ist noch nicht geladen — bitte kurz warten und nochmal klicken.");
       return;
     }
-    client.requestAccessToken({ prompt: "consent" });
+    client.requestCode();
   });
 
   calendarOpenFullBtn?.addEventListener("click", async () => {
@@ -2257,20 +2346,25 @@
     if (e.key === "Escape" && calendarOverlay?.classList.contains("open")) calendarOverlay.classList.remove("open");
   });
 
-  // Beim Laden: nur einsteigen, wenn schon ein gueltiger (nicht abgelaufener) Token
-  // gecacht ist — bewusst KEIN automatischer Popup-Versuch ohne Klick, den wuerden die
-  // meisten Browser ohnehin als ungewollten Popup blockieren.
+  // Beim Laden: mit gueltigem gecachtem Access-Token direkt einsteigen (und die naechste
+  // Erneuerung vorplanen). Ohne gueltigen Access-Token, aber mit einem gespeicherten
+  // refresh_token, per plain fetch() (kein Popup, siehe refreshGcalAccessToken) automatisch
+  // einen neuen Access-Token holen - das ersetzt den frueheren Klick auf "Kalender
+  // verbinden" bei jedem Neuladen komplett.
   (function initGoogleCalendarOnLoad() {
     const cached = loadCachedGcalToken();
-    if (!cached) {
-      if (!data.googleCalendar?.clientId && !localStorage.getItem(GCAL_CLIENT_ID_KEY) && calendarConnectHint) {
-        calendarConnectHint.textContent = 'Noch nicht eingerichtet — siehe README, Abschnitt "Google Kalender".';
-      }
+    if (cached) {
+      gcalAccessToken = cached.access_token;
+      showCalendarConnected(true);
+      resolveCalendarId().then(fetchTodayEvents);
+      scheduleGcalRefresh(cached.expiresAt);
       return;
     }
-    gcalAccessToken = cached.access_token;
-    showCalendarConnected(true);
-    resolveCalendarId().then(fetchTodayEvents);
+    if (!data.googleCalendar?.clientId && !localStorage.getItem(GCAL_CLIENT_ID_KEY) && calendarConnectHint) {
+      calendarConnectHint.textContent = 'Noch nicht eingerichtet — siehe README, Abschnitt "Google Kalender".';
+      return;
+    }
+    refreshGcalAccessToken();
   })();
 
   // ---------- PWA: Service Worker registrieren ----------

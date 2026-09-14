@@ -19,7 +19,8 @@ const DASHBOARD_DATA = {
     "workflowFile": "sync-all.yml"
   },
   "googleCalendar": {
-    "clientId": "864080911617-s0mr2dif1ftilon7fpcejdu7brjnqubr.apps.googleusercontent.com"
+    "clientId": "864080911617-s0mr2dif1ftilon7fpcejdu7brjnqubr.apps.googleusercontent.com",
+    "workerUrl": "https://dashboard-gcal-proxy.kilian-mnlg.workers.dev"
   },
   "brainMap": {
     "syncedAt": "2026-09-12T06:07:04.970Z",

@@ -297,15 +297,22 @@ Datum/Uhrzeit selbst über den `quickAdd`-Endpunkt) und öffnet über "Ganzen Ka
 ansehen" ein Overlay mit deinem echten, eingebetteten Google-Kalender (offizielles
 Google-Embed, alle Ansichten inklusive).
 
-**Läuft komplett im Browser, kein Server nötig:** Anders als Notion erlaubt Googles
-Calendar-API direkte Aufrufe aus dem Browser (CORS ist erlaubt), dafür läuft die
-Autorisierung über einen waschechten OAuth2-Consent-Popup (Google Identity Services)
-statt eines simplen API-Keys.
+**Autorisierung:** Google Identity Services (GIS) im Browser, über einen waschechten
+OAuth2-Consent-Popup. Die Google Calendar API selbst wird danach direkt per `fetch()` aus
+dem Browser angesprochen (CORS ist erlaubt) — kein Server nötig für die eigentlichen
+Kalender-Aufrufe.
 
-**Speicherung:** Der Access-Token lebt nur ~1 Stunde und wird lokal (`localStorage`)
-zwischengespeichert, aber bewusst **nicht** automatisch im Hintergrund erneuert — das
-würde einen Popup ohne Klick brauchen, den die meisten Browser sowieso blockieren.
-Läuft ein Token ab, reicht ein erneuter Klick auf "Kalender verbinden".
+**Dauerhaft verbunden bleiben:** Der Access-Token lebt nur ~1 Stunde. Damit dafür nicht
+jedes Mal ein erneuter Klick auf "Kalender verbinden" nötig ist, holt sich das Dashboard
+beim ersten Verbinden zusätzlich einen langlebigen `refresh_token` (OAuth
+Authorization-Code-Flow statt des einfacheren Implicit-Flows). Der Tausch
+`code → {access_token, refresh_token}` bzw. später `refresh_token → neuer access_token`
+läuft über einen kleinen **Cloudflare-Worker-Proxy** (`worker/gcal-proxy.js`), weil dafür
+das Google-Client-Secret nötig ist — das darf niemals im öffentlichen Browser-Code stehen.
+Der `refresh_token` selbst bleibt **nur lokal** in `localStorage` auf dem jeweiligen Gerät
+(nie Teil von `sync-data.json` / GitHub, da das Repo öffentlich ist). Die Erneuerung läuft
+danach als ganz normaler `fetch()` im Hintergrund — kein Popup mehr, also auch nicht vom
+Browser blockierbar. Pro Gerät ist trotzdem einmalig der "Kalender verbinden"-Klick nötig.
 
 ### Einrichtung
 
@@ -320,14 +327,28 @@ Läuft ein Token ab, reicht ein erneuter Klick auf "Kalender verbinden".
    Anwendungstyp **"Web application"** → unter "Authorized JavaScript origins" die
    Dashboard-URL eintragen (z.B. `https://kilianmnlg-hub.github.io`, für lokales Testen
    zusätzlich `http://localhost:8934`) → erstellen. Du bekommst eine **Client-ID**
-   (`....apps.googleusercontent.com`) — kein Client-Secret nötig, das ist ein reiner
-   Browser-Client.
-4. Beim ersten Klick auf "Kalender verbinden" im Dashboard fragt dich ein Prompt einmalig
-   nach dieser Client-ID und merkt sie sich pro Browser/Gerät in `localStorage` — genauso
-   wie beim GitHub-Token für den Sync-Button. Alternativ direkt in `data.js` unter
-   `googleCalendar: { clientId: "..." }` eintragen, dann entfällt der Prompt.
-5. Direkt danach öffnet sich Googles Consent-Popup (Login + Berechtigung erteilen) —
-   danach lädt das Dashboard deine heutigen Termine.
+   (`....apps.googleusercontent.com`) sowie ein **Client-Secret** — das Secret wird NICHT
+   im Dashboard-Code verwendet, sondern nur gleich als Cloudflare-Worker-Secret hinterlegt
+   (Schritt 4).
+4. **Cloudflare-Worker-Proxy einrichten** (hält das Client-Secret sicher server-seitig):
+   - [dash.cloudflare.com](https://dash.cloudflare.com) → kostenloser Account → "Workers &
+     Pages" → "Create application" → "Start with Hello World!" → einen Namen vergeben
+     (z.B. `dashboard-gcal-proxy`) → deployen.
+   - Den Inhalt von `worker/gcal-proxy.js` aus diesem Repo als Worker-Code hinterlegen
+     (per Cloudflare-Dashboard-Editor oder per API/`wrangler`).
+   - Unter den Worker-Einstellungen zwei Variablen setzen: `GOOGLE_CLIENT_ID` (Plaintext,
+     die Client-ID aus Schritt 3) und `GOOGLE_CLIENT_SECRET` (als **Secret**, verschlüsselt
+     — das Client-Secret aus Schritt 3).
+   - Falls sich die Dashboard-URL ändert oder ein weiteres Gerät/Origin dazukommt: die
+     `ALLOWED_ORIGINS`-Liste oben in `worker/gcal-proxy.js` entsprechend erweitern und neu
+     deployen.
+   - Die resultierende Worker-URL (`https://<name>.<dein-account>.workers.dev`) in
+     `data.js` unter `googleCalendar: { workerUrl: "..." }` eintragen.
+5. Beim ersten Klick auf "Kalender verbinden" im Dashboard fragt dich ein Prompt einmalig
+   nach Client-ID und Worker-URL (falls nicht schon in `data.js` hinterlegt) und merkt sie
+   sich pro Browser/Gerät in `localStorage`. Direkt danach öffnet sich Googles
+   Consent-Popup (Login + Berechtigung erteilen) — danach lädt das Dashboard deine
+   heutigen Termine und bleibt ab jetzt dauerhaft verbunden (siehe oben).
 
 **Kalender-ID für den eingebetteten "Ganzer Kalender"-Link:** wird nach dem Verbinden
 automatisch über die API ermittelt (deine `primary`-Kalender-ID, meist deine
