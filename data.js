@@ -1,4 +1,4 @@
-﻿// Datenquelle für das Dashboard.
+// Datenquelle für das Dashboard.
 // timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt),
 // goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue und metricsHistory
 // (für die Wochenvergleich-Trendpfeile) werden automatisch von scripts/sync-all.mjs
@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-09-14",
-    "lastSyncedAt": "2026-09-14T06:09:34.599Z",
+    "lastSyncedAt": "2026-09-14T11:29:06.212Z",
     "owner": "Kilian"
   },
   "github": {
@@ -26,22 +26,80 @@ const DASHBOARD_DATA = {
     "syncedAt": "2026-09-12T06:07:04.970Z",
     "vaultName": "Kilian Obsidian",
     "areas": [
-      { "id": "bricklink", "folder": "Bricklink", "noteCount": 2, "color": "var(--accent-bricklink)" },
-      { "id": "botf", "folder": "Bricks On The Floor", "noteCount": 1, "color": "var(--accent-bricks)" },
-      { "id": "ideen", "folder": "Ideen", "noteCount": 2, "color": "var(--accent-tiktok)" },
-      { "id": "laden", "folder": "Laden", "noteCount": 1, "color": "var(--node-laden)" },
-      { "id": "privat", "folder": "Privat", "noteCount": 1, "color": "var(--node-privat)" },
-      { "id": "brainwalkers", "folder": "The Brainwalkers", "noteCount": 1, "color": "var(--accent-brainwalkers)" }
+      {
+        "id": "bricklink",
+        "folder": "Bricklink",
+        "noteCount": 2,
+        "color": "var(--accent-bricklink)"
+      },
+      {
+        "id": "botf",
+        "folder": "Bricks On The Floor",
+        "noteCount": 1,
+        "color": "var(--accent-bricks)"
+      },
+      {
+        "id": "ideen",
+        "folder": "Ideen",
+        "noteCount": 2,
+        "color": "var(--accent-tiktok)"
+      },
+      {
+        "id": "laden",
+        "folder": "Laden",
+        "noteCount": 1,
+        "color": "var(--node-laden)"
+      },
+      {
+        "id": "privat",
+        "folder": "Privat",
+        "noteCount": 1,
+        "color": "var(--node-privat)"
+      },
+      {
+        "id": "brainwalkers",
+        "folder": "The Brainwalkers",
+        "noteCount": 1,
+        "color": "var(--accent-brainwalkers)"
+      }
     ]
   },
   "notes": [
-    { "date": "2026-08-18T11:43:00", "category": "Ideen", "text": "Habittracker verbessern" },
-    { "date": "2026-08-18T11:43:00", "category": "Ideen", "text": "Habittracker verbessern" },
-    { "date": "2026-08-07T08:45:00", "category": "Bricklink", "text": "100k Artikel auf Bricklink als Ziel für dieses Jahr" },
-    { "date": "2026-08-07T08:42:00", "category": "Ideen", "text": "52 Bricks Vids und 26 Brain Vids in Ziele" },
-    { "date": "2026-08-07T08:41:00", "category": "Ideen", "text": "Calendar ins Dashboard" },
-    { "date": "2026-08-05T22:31:00", "category": "Ideen", "text": "Bodycam for YouTube" },
-    { "date": "2026-08-05T22:29:00", "category": "Ideen", "text": "Bodycam for Youtube" }
+    {
+      "date": "2026-08-18T11:43:00",
+      "category": "Ideen",
+      "text": "Habittracker verbessern"
+    },
+    {
+      "date": "2026-08-18T11:43:00",
+      "category": "Ideen",
+      "text": "Habittracker verbessern"
+    },
+    {
+      "date": "2026-08-07T08:45:00",
+      "category": "Bricklink",
+      "text": "100k Artikel auf Bricklink als Ziel für dieses Jahr"
+    },
+    {
+      "date": "2026-08-07T08:42:00",
+      "category": "Ideen",
+      "text": "52 Bricks Vids und 26 Brain Vids in Ziele"
+    },
+    {
+      "date": "2026-08-07T08:41:00",
+      "category": "Ideen",
+      "text": "Calendar ins Dashboard"
+    },
+    {
+      "date": "2026-08-05T22:31:00",
+      "category": "Ideen",
+      "text": "Bodycam for YouTube"
+    },
+    {
+      "date": "2026-08-05T22:29:00",
+      "category": "Ideen",
+      "text": "Bodycam for Youtube"
+    }
   ],
   "metricsHistory": {
     "bricksOnTheFloorAbos": [
@@ -381,7 +439,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-09-14",
-        "value": 459
+        "value": 460
       }
     ],
     "tiktokFollower": [
@@ -551,7 +609,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-09-14",
-        "value": 2764
+        "value": 2765
       }
     ]
   },
@@ -578,7 +636,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 459,
+      "current": 460,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -587,7 +645,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2764,
+      "current": 2765,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -621,7 +679,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-14T06:09:16.315Z",
+    "checkedAt": "2026-09-14T11:29:05.229Z",
     "openOrdersCount": 275,
     "pendingShipments": [
       {
@@ -643,7 +701,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-14T06:09:16.626Z",
+    "checkedAt": "2026-09-14T11:29:05.419Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -791,7 +849,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "459"
+          "value": "460"
         },
         {
           "label": "Videos",
