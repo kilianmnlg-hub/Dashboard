@@ -1,18 +1,14 @@
 {
   "ideas": {
     "bricksOnTheFloor": {
-      "nextId": "96181cdb-863c-48f6-894d-c22d033a7957",
+      "nextId": null,
       "items": [
         {
           "id": "ecc18dd8-2c28-40d9-abfe-d443bb16d9f4",
           "text": "Sind Lego Dinosaurier schlechter geworden"
-        },
-        {
-          "id": "96181cdb-863c-48f6-894d-c22d033a7957",
-          "text": "Bardobrick Tour"
         }
       ],
-      "updatedAt": 1788768144865
+      "updatedAt": 1789371233602
     },
     "brainwalkers": {
       "nextId": null,
@@ -35,70 +31,37 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-09-11",
+    "date": "2026-09-14",
     "items": {
-      "business": [
-        {
-          "id": "493074a7-7b8f-40d9-b6ad-3704d2305974",
-          "text": "Laden Tour hochladen",
-          "done": false
-        },
-        {
-          "id": "f1459979-38f6-4d1b-bffd-0b01cda6820e",
-          "text": "Brainwalker Skript",
-          "done": false
-        }
-      ],
-      "studium": [
-        {
-          "id": "10d69ddc-5a4b-4672-a05f-657b63225f2d",
-          "text": "4 Seiten Arbeit schreiben",
-          "done": true
-        },
-        {
-          "id": "13fde64b-8c25-4d4f-88c1-8835f795f979",
-          "text": "Praxisarbeit fertig schrieben",
-          "done": false
-        }
-      ],
-      "privat": [
-        {
-          "id": "ebef7336-b43f-4176-99d0-159d0709ddc0",
-          "text": "Gym",
-          "done": false
-        },
-        {
-          "id": "a0e517f7-721c-42fc-8459-223f836ecc7f",
-          "text": "Wäsche",
-          "done": false
-        }
-      ]
+      "business": [],
+      "studium": [],
+      "privat": []
     },
-    "updatedAt": 1789110597273
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
       {
-        "id": "389b863d-de76-4827-ab0d-e6975c1f7596",
-        "text": "Gewinnspiel versenden",
+        "id": "55b88e0e-c8b5-4484-ba98-01dda03e99f9",
+        "text": "Amsterdam mit Nele planen",
         "done": false
       },
       {
-        "id": "e2189df9-cf30-47ac-8a4f-4bec9099cc50",
-        "text": "Buchhaltung",
+        "id": "d9d0feca-b21f-4243-8d34-dd94d681debf",
+        "text": "x spell Video fertig cutten",
         "done": false
       },
       {
-        "id": "cdc373f7-febc-4296-a8eb-c20533fe31ff",
-        "text": "Studio aufräumen",
+        "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
+        "text": "buchhaltung",
         "done": false
       },
       {
-        "id": "ab9013c6-960b-491b-8cf3-67fd5f5d4a59",
-        "text": "Tour hochladen",
+        "id": "8f9be9e6-ce80-47a4-b8f0-245eeed2c203",
+        "text": "video Idee fürs nächste BW video",
         "done": false
       }
     ],
-    "updatedAt": 1789110527495
+    "updatedAt": 1789365837177
   }
 }
