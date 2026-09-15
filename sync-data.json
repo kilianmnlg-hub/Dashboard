@@ -1,14 +1,18 @@
 {
   "ideas": {
     "bricksOnTheFloor": {
-      "nextId": null,
+      "nextId": "5ea5d33e-8724-4fc7-a949-f994e7a663c2",
       "items": [
         {
           "id": "ecc18dd8-2c28-40d9-abfe-d443bb16d9f4",
           "text": "Sind Lego Dinosaurier schlechter geworden"
+        },
+        {
+          "id": "5ea5d33e-8724-4fc7-a949-f994e7a663c2",
+          "text": "Lego dinosaurier we need with ki"
         }
       ],
-      "updatedAt": 1789371233602
+      "updatedAt": 1789455039648
     },
     "brainwalkers": {
       "nextId": null,
