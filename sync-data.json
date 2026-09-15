@@ -31,62 +31,43 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-09-14",
+    "date": "2026-09-15",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "b69be8c7-7de9-40bb-b789-ec93642bb2a3",
+          "text": "video clips",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1789396892696
+    "updatedAt": 1789454866800
   },
   "tasks": {
     "items": [
       {
-        "id": "389b863d-de76-4827-ab0d-e6975c1f7596",
-        "text": "Gewinnspiel versenden",
+        "id": "55b88e0e-c8b5-4484-ba98-01dda03e99f9",
+        "text": "Amsterdam mit Nele planen",
         "done": false
       },
       {
-        "id": "e2189df9-cf30-47ac-8a4f-4bec9099cc50",
-        "text": "Buchhaltung",
+        "id": "d9d0feca-b21f-4243-8d34-dd94d681debf",
+        "text": "x spell Video fertig cutten",
         "done": false
       },
       {
-        "id": "cdc373f7-febc-4296-a8eb-c20533fe31ff",
-        "text": "Studio aufräumen",
+        "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
+        "text": "buchhaltung",
         "done": false
       },
       {
-        "id": "ab9013c6-960b-491b-8cf3-67fd5f5d4a59",
-        "text": "Tour hochladen",
-        "done": false
-      },
-      {
-        "id": "810f413c-2cfa-481d-94e9-9dae43f2d2f8",
-        "text": "Laden Tour hochladen",
-        "done": false
-      },
-      {
-        "id": "bc644e40-0b39-4841-85d6-3336eaaf05e3",
-        "text": "Brainwalker Skript",
-        "done": false
-      },
-      {
-        "id": "eea5a4c5-c1c3-443c-99a3-f6b30f8ba140",
-        "text": "Praxisarbeit fertig schrieben",
-        "done": false
-      },
-      {
-        "id": "79175f1e-188d-48bb-be39-a628569a737b",
-        "text": "Gym",
-        "done": false
-      },
-      {
-        "id": "44969306-4f4b-47d0-8219-00baca5be458",
-        "text": "Wäsche",
+        "id": "8f9be9e6-ce80-47a4-b8f0-245eeed2c203",
+        "text": "video Idee fürs nächste BW video",
         "done": false
       }
     ],
-    "updatedAt": 1789396888276
+    "updatedAt": 1789454733662
   }
 }
