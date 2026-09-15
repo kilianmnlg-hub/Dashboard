@@ -38,12 +38,17 @@
           "id": "b69be8c7-7de9-40bb-b789-ec93642bb2a3",
           "text": "video clips",
           "done": false
+        },
+        {
+          "id": "563beb32-9f30-4202-824c-0ec9fb321503",
+          "text": "thumbnail budget cards",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1789454866800
+    "updatedAt": 1789454887913
   },
   "tasks": {
     "items": [
