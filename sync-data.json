@@ -43,12 +43,17 @@
           "id": "563beb32-9f30-4202-824c-0ec9fb321503",
           "text": "thumbnail budget cards",
           "done": false
+        },
+        {
+          "id": "caa8fea0-108e-4cc0-979b-114cc002a753",
+          "text": "dinos we need skript",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1789454887913
+    "updatedAt": 1789454900182
   },
   "tasks": {
     "items": [
