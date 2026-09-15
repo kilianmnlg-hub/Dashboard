@@ -15,7 +15,7 @@
       "updatedAt": 1789455039648
     },
     "brainwalkers": {
-      "nextId": null,
+      "nextId": "37b472f5-8a3f-478f-9d16-d88629ee8b32",
       "items": [
         {
           "id": "37b472f5-8a3f-478f-9d16-d88629ee8b32",
@@ -26,7 +26,7 @@
           "text": "10 Tips zum Commander Profi"
         }
       ],
-      "updatedAt": 1787920939921
+      "updatedAt": 1789455044744
     }
   },
   "studiumDeadline": {
