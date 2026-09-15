@@ -51,7 +51,8 @@
     const map = {
       saving: "☁️ Speichere…",
       saved: `☁️ Automatisch gesichert · ${time}`,
-      error: `⚠️ Auto-Sync fehlgeschlagen${detail ? " — " + detail : ""}`
+      error: `⚠️ Auto-Sync fehlgeschlagen${detail ? " — " + detail : ""}`,
+      "no-token": '☁️ Nicht mit der Cloud verbunden — einmal auf „Sync" klicken'
     };
     autoSyncStatusEl.hidden = false;
     autoSyncStatusEl.textContent = map[state] || "";
@@ -60,7 +61,16 @@
   const autoSyncTimers = {};
   const AUTO_SYNC_PUSHERS = { habits: () => pushHabitsToCloud(), syncdata: () => pushSyncDataToCloud() };
   function scheduleAutoSync(kind) {
-    if (!localStorage.getItem("dashboard-gh-token")) return;
+    if (!localStorage.getItem("dashboard-gh-token")) {
+      // Ohne Token wuerde ein Push sofort nach einem GitHub-Token fragen - das waere ein
+      // ueberraschender Prompt mitten in einer simplen Aenderung (Haekchen, neue Aufgabe).
+      // Bisher blieb das komplett STILL: die Aenderung landete nur lokal, ohne jeden Hinweis,
+      // dass sie nie in der Cloud ankommt - genau das hat auf einem frisch genutzten Geraet
+      // dazu gefuehrt, dass neue Aufgaben "verschwanden" (nie zu anderen Geraeten synct waren).
+      // Jetzt zumindest sichtbar (aber nicht aufdringlich) im Status-Badge markieren.
+      setAutoSyncStatus("no-token");
+      return;
+    }
     clearTimeout(autoSyncTimers[kind]);
     autoSyncTimers[kind] = setTimeout(async () => {
       setAutoSyncStatus("saving");
@@ -2159,6 +2169,11 @@
       gcalAccessToken = payload.access_token;
       const saved = saveGcalToken(payload.access_token, payload.expires_in);
       showCalendarConnected(true);
+      // War hier bisher vergessen: ohne diesen Aufruf blieb die Terminliste nach einer rein
+      // automatischen Erneuerung (z.B. beim Laden mit abgelaufenem Access-Token) auf dem alten
+      // Stand haengen, obwohl die Verbindung selbst laengst wieder da war.
+      await resolveCalendarId();
+      await fetchTodayEvents();
       scheduleGcalRefresh(saved.expiresAt);
       return true;
     } catch (e) {
@@ -2303,6 +2318,12 @@
             // erzwungenem prompt=consent) - falls doch mal keiner mitkommt, bleibt ein
             // eventuell schon gespeicherter frueherer Token einfach erhalten.
             localStorage.setItem(GCAL_REFRESH_TOKEN_KEY, payload.refresh_token);
+          } else if (!localStorage.getItem(GCAL_REFRESH_TOKEN_KEY)) {
+            // Kein refresh_token in der Antwort UND auch keiner von frueher gespeichert -
+            // die Verbindung faellt nach Ablauf des Access-Tokens (~1 Std.) wieder auf
+            // "Kalender verbinden" zurueck. Statt dass das spaeter unbemerkt/unerklaerlich
+            // passiert, das gleich sichtbar machen.
+            setCalendarStatus("error", "kein dauerhafter Zugriff erhalten, bitte erneut verbinden");
           }
           showCalendarConnected(true);
           await resolveCalendarId();
