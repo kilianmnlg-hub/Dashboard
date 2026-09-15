@@ -50,10 +50,16 @@
           "done": false
         }
       ],
-      "studium": [],
+      "studium": [
+        {
+          "id": "fe163800-bd12-445c-b813-4e20b764a668",
+          "text": "projekt erstellen",
+          "done": false
+        }
+      ],
       "privat": []
     },
-    "updatedAt": 1789454900182
+    "updatedAt": 1789454920448
   },
   "tasks": {
     "items": [
