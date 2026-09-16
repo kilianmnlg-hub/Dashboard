@@ -1368,6 +1368,20 @@
   const taskList = document.getElementById("taskList");
   const taskInput = document.getElementById("taskInput");
 
+  // Verschiebt eine Aufgabe zurueck ins heutige Tages-To-Do (in die gewaehlte Spalte) - das
+  // Gegenstueck zu migrateStaleTodosToTasks() weiter unten, das den umgekehrten Weg geht.
+  function moveTaskToTodo(id, categoryId) {
+    const item = tasks.find((t) => t.id === id);
+    if (!item) return;
+    tasks = tasks.filter((t) => t.id !== id);
+    todos[categoryId] = todos[categoryId] || [];
+    todos[categoryId].push({ id: newId(), text: item.text, done: false });
+    saveTasks(tasks);
+    saveTodos(todos);
+    renderTasks();
+    renderTodos();
+  }
+
   function renderTasks() {
     taskList.innerHTML = tasks.length
       ? tasks
@@ -1376,11 +1390,19 @@
       <li class="todo-item ${item.done ? "done" : ""}" data-id="${item.id}">
         <input type="checkbox" ${item.done ? "checked" : ""} />
         <span>${escapeHtml(item.text)}</span>
+        <div class="todo-move-wrap">
+          <button type="button" class="todo-move" aria-label="Ins Tages-To-Do verschieben" title="Ins Tages-To-Do verschieben">↩</button>
+          <div class="todo-move-menu" hidden>
+            ${TODO_CATEGORIES.map((cat) => `<button type="button" data-cat="${cat.id}">${cat.label}</button>`).join("")}
+          </div>
+        </div>
         <button type="button" class="todo-remove" aria-label="Entfernen">×</button>
       </li>`
           )
           .join("")
       : `<li class="todo-empty">Noch nichts eingetragen.</li>`;
+
+    const closeAllMoveMenus = () => taskList.querySelectorAll(".todo-move-menu").forEach((m) => (m.hidden = true));
 
     taskList.querySelectorAll(".todo-item").forEach((row) => {
       const id = row.getAttribute("data-id");
@@ -1400,7 +1422,25 @@
         saveTasks(tasks);
         renderTasks();
       });
+      const menu = row.querySelector(".todo-move-menu");
+      row.querySelector(".todo-move").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const wasHidden = menu.hidden;
+        closeAllMoveMenus();
+        menu.hidden = !wasHidden;
+      });
+      menu.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          moveTaskToTodo(id, btn.getAttribute("data-cat"));
+        });
+      });
     });
+
+    if (!taskList.dataset.moveMenuOutsideClickBound) {
+      taskList.dataset.moveMenuOutsideClickBound = "1";
+      document.addEventListener("click", closeAllMoveMenus);
+    }
   }
 
   function addTask() {

@@ -382,6 +382,11 @@ ebenfalls über den Cloud-Sync (siehe unten). Sammelt zusätzlich automatisch
 alles, was aus dem Tages-To-Do vergangener Tage nicht abgehakt wurde (siehe
 oben).
 
+**Zurück ins Tages-To-Do:** Der Pfeil (↩) an jeder Aufgabe öffnet ein kleines
+Menü mit den drei Tages-To-Do-Spalten (Business, Studium & Job, Privates) —
+Klick auf eine Spalte verschiebt die Aufgabe dorthin (als neuer, nicht
+abgehakter Punkt) und entfernt sie aus "Aufgaben".
+
 ## Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben
 
 Diese vier kleinen, unabhängigen Felder teilen sich eine gemeinsame Cloud-Datei
