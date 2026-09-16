@@ -47,12 +47,17 @@
           "id": "cbd7c901-d1cd-493d-8f9f-778abdb6ea51",
           "text": "thumbnail budget cards",
           "done": false
+        },
+        {
+          "id": "cc207ed7-1ca9-4b8c-87fe-c48a651d10ce",
+          "text": "dinos we need skript",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1789546682056
+    "updatedAt": 1789546684778
   },
   "tasks": {
     "items": [
@@ -62,16 +67,11 @@
         "done": false
       },
       {
-        "id": "39b30688-6848-4268-b657-672fe541ada1",
-        "text": "dinos we need skript",
-        "done": false
-      },
-      {
         "id": "bac42105-224c-48be-85a3-4ca898c77f99",
         "text": "projekt erstellen",
         "done": false
       }
     ],
-    "updatedAt": 1789546682056
+    "updatedAt": 1789546684778
   }
 }
