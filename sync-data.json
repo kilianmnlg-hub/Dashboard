@@ -42,23 +42,23 @@
           "id": "1c0557f2-7e74-48c3-bbc4-8e4aa277c0c3",
           "text": "x spell Video fertig cutten",
           "done": true
+        },
+        {
+          "id": "cbd7c901-d1cd-493d-8f9f-778abdb6ea51",
+          "text": "thumbnail budget cards",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1789546667794
+    "updatedAt": 1789546682056
   },
   "tasks": {
     "items": [
       {
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
-        "done": false
-      },
-      {
-        "id": "bbbc86fa-dcb6-4280-9351-3523250d81c2",
-        "text": "thumbnail budget cards",
         "done": false
       },
       {
@@ -72,6 +72,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1789546676660
+    "updatedAt": 1789546682056
   }
 }
