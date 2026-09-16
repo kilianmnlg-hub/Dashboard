@@ -39,23 +39,18 @@
     "items": {
       "business": [
         {
-          "id": "b906419c-f934-47b6-830a-394b8bd9303a",
-          "text": "Amsterdam mit Nele planen",
-          "done": false
+          "id": "1c0557f2-7e74-48c3-bbc4-8e4aa277c0c3",
+          "text": "x spell Video fertig cutten",
+          "done": true
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1789545997635
+    "updatedAt": 1789546667794
   },
   "tasks": {
     "items": [
-      {
-        "id": "d9d0feca-b21f-4243-8d34-dd94d681debf",
-        "text": "x spell Video fertig cutten",
-        "done": false
-      },
       {
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
@@ -87,6 +82,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1789545997635
+    "updatedAt": 1789546662917
   }
 }
