@@ -35,35 +35,13 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-09-15",
+    "date": "2026-09-16",
     "items": {
-      "business": [
-        {
-          "id": "b69be8c7-7de9-40bb-b789-ec93642bb2a3",
-          "text": "video clips",
-          "done": false
-        },
-        {
-          "id": "563beb32-9f30-4202-824c-0ec9fb321503",
-          "text": "thumbnail budget cards",
-          "done": false
-        },
-        {
-          "id": "caa8fea0-108e-4cc0-979b-114cc002a753",
-          "text": "dinos we need skript",
-          "done": false
-        }
-      ],
-      "studium": [
-        {
-          "id": "fe163800-bd12-445c-b813-4e20b764a668",
-          "text": "projekt erstellen",
-          "done": false
-        }
-      ],
+      "business": [],
+      "studium": [],
       "privat": []
     },
-    "updatedAt": 1789486271568
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -86,8 +64,28 @@
         "id": "8f9be9e6-ce80-47a4-b8f0-245eeed2c203",
         "text": "video Idee fürs nächste BW video",
         "done": false
+      },
+      {
+        "id": "9c8fb206-4805-4d92-9f3f-0a7faae17374",
+        "text": "video clips",
+        "done": false
+      },
+      {
+        "id": "bbbc86fa-dcb6-4280-9351-3523250d81c2",
+        "text": "thumbnail budget cards",
+        "done": false
+      },
+      {
+        "id": "39b30688-6848-4268-b657-672fe541ada1",
+        "text": "dinos we need skript",
+        "done": false
+      },
+      {
+        "id": "bac42105-224c-48be-85a3-4ca898c77f99",
+        "text": "projekt erstellen",
+        "done": false
       }
     ],
-    "updatedAt": 1789486271569
+    "updatedAt": 1789543151555
   }
 }
