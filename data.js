@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-09-15",
-    "lastSyncedAt": "2026-09-15T12:23:52.129Z",
+    "lastUpdated": "2026-09-16",
+    "lastSyncedAt": "2026-09-16T10:39:55.023Z",
     "owner": "Kilian"
   },
   "github": {
@@ -274,6 +274,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-15",
         "value": 29200
+      },
+      {
+        "date": "2026-09-16",
+        "value": 29200
       }
     ],
     "brainwalkersAbos": [
@@ -447,6 +451,10 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-09-15",
+        "value": 460
+      },
+      {
+        "date": "2026-09-16",
         "value": 460
       }
     ],
@@ -622,6 +630,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-15",
         "value": 2766
+      },
+      {
+        "date": "2026-09-16",
+        "value": 2766
       }
     ]
   },
@@ -691,7 +703,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-15T12:23:50.068Z",
+    "checkedAt": "2026-09-16T10:39:53.975Z",
     "openOrdersCount": 276,
     "pendingShipments": [
       {
@@ -705,13 +717,13 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-15T12:23:50.382Z",
+    "checkedAt": "2026-09-16T10:39:54.224Z",
     "currency": "EUR",
     "weekly": [
       {
         "weekStart": "2026-07-20",
-        "total": 414.07,
-        "orderCount": 8
+        "total": 343.35,
+        "orderCount": 7
       },
       {
         "weekStart": "2026-07-27",
@@ -757,8 +769,8 @@ const DASHBOARD_DATA = {
     "monthly": [
       {
         "month": "2026-03",
-        "total": 457,
-        "orderCount": 12
+        "total": 421.73,
+        "orderCount": 11
       },
       {
         "month": "2026-04",
