@@ -237,6 +237,7 @@ a { color: inherit; }
 .nav::-webkit-scrollbar { display: none; }
 
 .nav a {
+  position: relative;
   text-decoration: none;
   color: var(--text-muted);
   font-size: 13px;
@@ -246,8 +247,15 @@ a { color: inherit; }
   white-space: nowrap;
   transition: background .15s ease, color .15s ease;
 }
-.nav a:hover { color: var(--text); background: var(--surface-2); }
+.nav a::after {
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: 4px; height: 2px;
+  background: var(--accent); border-radius: 2px; transform: scaleX(0); transform-origin: left;
+  transition: transform .22s cubic-bezier(.2, .8, .2, 1);
+}
+.nav a:hover { color: var(--text); }
+.nav a:hover::after { transform: scaleX(1); }
 .nav a.active { color: var(--text); background: var(--surface-2); }
+.nav a.active::after { transform: scaleX(0); }
 
 .theme-toggle {
   flex-shrink: 0;
@@ -286,14 +294,24 @@ a { color: inherit; }
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
+  transition: background .15s ease, transform .1s ease;
 }
 .sync-button:hover { background: var(--surface-2); }
+.sync-button:active { transform: scale(.96); }
 .sync-button:disabled { opacity: .6; cursor: default; }
 .sync-button.spinning #syncButtonIcon { display: inline-block; animation: spin 1s linear infinite; }
+.sync-button.done #syncButtonIcon { display: none; }
+.sync-check { display: none; color: var(--status-good); font-weight: 700; }
+.sync-button.done .sync-check { display: inline-block; animation: syncCheckPop .3s cubic-bezier(.34, 1.56, .64, 1); }
 
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+@keyframes syncCheckPop {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.25); }
+  100% { transform: scale(1); }
 }
 
 /* ---------- Layout: volle Breite ---------- */
@@ -493,6 +511,15 @@ svg.links line.lit { stroke-width: 1.6; }
 @media (prefers-reduced-motion: reduce) {
   .card { transition: none; }
   .card:hover { transform: none; }
+  .todo-item input[type="checkbox"]:checked,
+  .idea-next input[type="checkbox"]:checked,
+  .idea-backlog input[type="checkbox"]:checked,
+  .idea-promote:hover,
+  .todo-move-wrap .todo-move:hover,
+  .sync-button.done .sync-check,
+  .habit-daycell.just-toggled::after { animation: none; }
+  .nav a::after { transition: none; }
+  .sync-button, .habit-daycell, .idea-add button, .todo-add button, .habit-add button { transition: none; }
 }
 
 .card-eyebrow { margin: 0 0 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); }
@@ -602,6 +629,10 @@ svg.links line.lit { stroke-width: 1.6; }
   border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 13.5px; line-height: 1.4;
 }
 .idea-next input[type="checkbox"] { margin-top: 2px; flex-shrink: 0; accent-color: var(--card-accent, var(--accent)); cursor: pointer; }
+.idea-next input[type="checkbox"]:checked,
+.idea-backlog input[type="checkbox"]:checked,
+.todo-item input[type="checkbox"]:checked { animation: chkPop .32s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes chkPop { 0% { transform: scale(1); } 45% { transform: scale(1.35); } 100% { transform: scale(1); } }
 .idea-next-text { flex: 1; word-break: break-word; }
 .idea-next-empty { font-size: 12.5px; color: var(--text-faint); }
 .idea-next.empty { background: var(--surface-2); border-color: var(--border); border-style: dashed; }
@@ -618,7 +649,14 @@ svg.links line.lit { stroke-width: 1.6; }
   flex-shrink: 0; border: none; background: none; color: var(--text-faint);
   cursor: pointer; padding: 2px 6px; border-radius: 6px; font-size: 13px;
 }
-.idea-promote:hover { background: var(--surface); color: var(--card-accent, var(--accent)); }
+.idea-promote:hover { background: var(--surface); color: var(--card-accent, var(--accent)); animation: arrowNudge .5s ease; }
+
+@keyframes arrowNudge {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-3px); }
+  55% { transform: translateY(1px); }
+  75% { transform: translateY(-1px); }
+}
 
 .idea-add { display: flex; gap: 8px; align-items: flex-end; }
 .idea-add textarea {
@@ -630,8 +668,10 @@ svg.links line.lit { stroke-width: 1.6; }
 .idea-add button {
   flex-shrink: 0; width: 34px; height: 34px; border-radius: 8px; border: none;
   background: var(--card-accent, var(--accent)); color: var(--accent-ink); font-size: 16px; font-weight: 700; cursor: pointer;
+  transition: transform .1s ease;
 }
 .idea-add button:hover { filter: brightness(1.08); }
+.idea-add button:active { transform: scale(.88); }
 
 /* ---------- To-Do-Karte ---------- */
 
@@ -653,8 +693,10 @@ svg.links line.lit { stroke-width: 1.6; }
   flex-shrink: 0; width: 34px; border-radius: 8px; border: none;
   background: var(--card-accent, var(--accent)); color: var(--accent-ink);
   font-size: 16px; font-weight: 700; cursor: pointer;
+  transition: transform .1s ease;
 }
 .todo-add button:hover { filter: brightness(1.08); }
+.todo-add button:active { transform: scale(.88); }
 
 .todo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 
@@ -681,7 +723,7 @@ svg.links line.lit { stroke-width: 1.6; }
   opacity: 0; transition: opacity .12s ease;
 }
 .todo-item:hover .todo-move { opacity: 1; }
-.todo-move-wrap .todo-move:hover { color: var(--accent); background: var(--surface); }
+.todo-move-wrap .todo-move:hover { color: var(--accent); background: var(--surface); animation: arrowNudge .5s ease; }
 .todo-move-menu:not([hidden]) {
   position: absolute; top: 100%; right: 0; z-index: 20; margin-top: 4px; width: 168px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
@@ -694,6 +736,14 @@ svg.links line.lit { stroke-width: 1.6; }
 .todo-move-menu button:hover { background: var(--surface-2); }
 
 .todo-empty { font-size: 12.5px; color: var(--text-faint); padding: 8px 6px; }
+
+/* Listen-Eintraege fliegen beim ersten Anzeigen (bzw. einzeln beim Neu-Hinzufuegen) leicht
+   gestaffelt ein, siehe staggerListItems()/staggerListOnce()/flashNewItem() in script.js. */
+.li-enter { animation: liEnter .32s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes liEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 /* ---------- Kalender ---------- */
 
@@ -841,8 +891,10 @@ svg.links line.lit { stroke-width: 1.6; }
 .habit-add button {
   flex-shrink: 0; width: 34px; border-radius: 8px; border: none;
   background: var(--accent); color: var(--accent-ink); font-size: 16px; font-weight: 700; cursor: pointer;
+  transition: transform .1s ease;
 }
 .habit-add button:hover { filter: brightness(1.08); }
+.habit-add button:active { transform: scale(.88); }
 
 .habit-empty { font-size: 13px; color: var(--text-faint); padding: 8px 0; }
 
@@ -873,13 +925,25 @@ svg.links line.lit { stroke-width: 1.6; }
 .habit-days { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
 
 .habit-daycell {
+  position: relative; overflow: hidden;
   width: 32px; height: 32px; border-radius: 8px;
   border: 1px solid var(--border); background: var(--surface-2);
   cursor: pointer; padding: 0; flex-shrink: 0;
+  transition: transform .08s ease;
 }
 .habit-daycell:hover { border-color: var(--habit-color, var(--accent)); }
+.habit-daycell:active { transform: scale(.9); }
 .habit-daycell.done { background: var(--habit-color, var(--accent)); border-color: transparent; }
 .habit-daycell.today { box-shadow: 0 0 0 2px var(--habit-color, var(--accent)); }
+.habit-daycell.just-toggled::after {
+  content: ""; position: absolute; inset: 0; margin: auto; width: 4px; height: 4px;
+  background: var(--accent-ink); opacity: .55; border-radius: 50%;
+  animation: habitRipple .4s ease-out;
+}
+@keyframes habitRipple {
+  from { transform: scale(1); opacity: .55; }
+  to { transform: scale(9); opacity: 0; }
+}
 .habit-dayhead {
   background: none; border: none; text-align: center; font-size: 10px; line-height: 1.3;
   color: var(--text-faint); cursor: default; height: auto; width: 32px;

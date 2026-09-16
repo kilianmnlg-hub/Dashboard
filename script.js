@@ -16,6 +16,71 @@
   };
   const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
 
+  // ---------- Kleine Belebungs-Helfer (Mikro-Animationen) ----------
+  const prefersReducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Zaehlt eine Statistik-Zahl beim ersten Rendern kurz hoch statt sie sofort dazustehen zu
+  // lassen. Erkennt automatisch die (ggf. deutsch formatierte, z.B. "8.227,1") Zahl im Text
+  // und laesst Praefix/Suffix (Waehrungszeichen, Einheiten, umgebender Text) unangetastet.
+  function animateStatValue(el) {
+    const finalText = el.getAttribute("data-final") ?? el.textContent;
+    // Sicherer Ausgangswert zuerst: falls requestAnimationFrame aus irgendeinem Grund nie
+    // feuert (z.B. Tab im Hintergrund geoeffnet/noch nicht sichtbar), steht wenigstens sofort
+    // die richtige Zahl da, statt dauerhaft leer zu bleiben - die Animation ist nur "on top".
+    el.textContent = finalText;
+    if (prefersReducedMotion()) return;
+    const match = finalText.match(/\d{1,3}(?:\.\d{3})*(?:,\d+)?|\d+(?:,\d+)?/);
+    if (!match) return;
+    const numStr = match[0];
+    const prefix = finalText.slice(0, match.index);
+    const suffix = finalText.slice(match.index + numStr.length);
+    const decimals = numStr.includes(",") ? numStr.split(",")[1].length : 0;
+    const target = parseFloat(numStr.replace(/\./g, "").replace(",", "."));
+    if (!isFinite(target) || target === 0) return;
+    const duration = 900;
+    let start = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      const p = Math.min(1, (ts - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent =
+        prefix + (eased * target).toLocaleString("de-DE", { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = finalText;
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Laesst die Kinder einer frisch gerenderten Liste gestaffelt (leicht versetzt)
+  // einfliegen statt alle auf einmal dazustehen.
+  function staggerListItems(listEl) {
+    if (!listEl || prefersReducedMotion()) return;
+    Array.from(listEl.children).forEach((li, i) => {
+      li.classList.add("li-enter");
+      li.style.animationDelay = `${Math.min(i, 8) * 45}ms`;
+      li.addEventListener("animationend", () => { li.classList.remove("li-enter"); li.style.animationDelay = ""; }, { once: true });
+    });
+  }
+  // Wie staggerListItems, aber merkt sich per data-Attribut auf dem Listenelement selbst,
+  // dass schon einmal gestaffelt wurde - fuer Listen, deren <ul> ueber mehrere Renders hinweg
+  // dieselbe DOM-Node bleibt (nur der Inhalt wird ersetzt). Sonst wuerde JEDE Kleinigkeit
+  // (ein Haekchen, ein geloeschter Eintrag) die KOMPLETTE Liste erneut einfliegen lassen -
+  // das soll nur beim allerersten Anzeigen passieren.
+  function staggerListOnce(listEl) {
+    if (!listEl || listEl.dataset.staggered) return;
+    listEl.dataset.staggered = "1";
+    staggerListItems(listEl);
+  }
+  // Hebt einen einzelnen, gerade neu hinzugefuegten Eintrag kurz hervor - das Gegenstueck zu
+  // staggerList* fuer alles, was NACH dem allerersten Rendern dazukommt.
+  function flashNewItem(container, id) {
+    if (prefersReducedMotion()) return;
+    const el = container?.querySelector(`[data-id="${id}"]`);
+    if (!el) return;
+    el.classList.add("li-enter");
+    el.addEventListener("animationend", () => el.classList.remove("li-enter"), { once: true });
+  }
+
   // Sicherheitsnetz fuer alle Cloud-Sync-Felder (Habit-Tracker, Video-Ideen, Studium-Termin,
   // Tages-To-Do, Aufgaben): ein Cloud-Stand darf einen nicht-leeren lokalen Stand NIE durch
   // einen leeren ersetzen, selbst wenn er laut Zeitstempel neuer ist. Sonst kann ein Geraet,
@@ -196,11 +261,15 @@
       );
 
       if (res.status === 204) {
+        // Spinner morpht sofort in einen Haken, statt noch 4s weiterzudrehen waehrend der
+        // Text schon "Gestartet" sagt (wirkte vorher inkonsistent).
+        syncButton.classList.remove("spinning");
+        syncButton.classList.add("done");
         syncLabel.textContent = "Gestartet ✓";
         setTimeout(() => {
+          syncButton.classList.remove("done");
           syncLabel.textContent = "Sync";
           syncButton.disabled = false;
-          syncButton.classList.remove("spinning");
         }, 4000);
         alert("Sync gestartet. Läuft ca. 15–30 Sekunden — lade die Seite danach neu.");
       } else if (res.status === 401 || res.status === 403) {
@@ -910,6 +979,7 @@
       row.querySelector(".idea-row-text").addEventListener("click", () => promoteIdea(key, id));
       row.querySelector(".idea-promote").addEventListener("click", () => promoteIdea(key, id));
     });
+    staggerListOnce(widget.backlogEl);
   }
 
   function promoteIdea(key, id) {
@@ -954,7 +1024,7 @@
         (s) => `
         <div class="stat-row">
           <span class="stat-label">${s.label}</span>
-          <span class="stat-value">${s.value}${s.hint ? `<span class="stat-hint">${s.hint}</span>` : ""}</span>
+          <span class="stat-value"><span class="stat-value-num" data-final="${escapeHtml(s.value)}"></span>${s.hint ? `<span class="stat-hint">${s.hint}</span>` : ""}</span>
         </div>`
       )
       .join("");
@@ -982,6 +1052,7 @@
       }
     `;
     businessGrid.appendChild(card);
+    card.querySelectorAll(".stat-value-num").forEach((el) => animateStatValue(el));
 
     if (isYoutubeChannel) {
       const nextEl = card.querySelector(`#idea-next-${key}`);
@@ -997,10 +1068,12 @@
         const state = loadIdeaState(key);
         // Neue Ideen landen immer in "Weitere Ideen" - auch wenn der "naechste Idee"-Platz
         // gerade leer ist, wird er nicht automatisch befuellt (nur per Klick, siehe oben).
-        const items = [...state.items, { id: newId(), text }];
+        const newItem = { id: newId(), text };
+        const items = [...state.items, newItem];
         saveIdeaState(key, state.nextId, items);
         addInput.value = "";
         renderIdeaWidget(key);
+        flashNewItem(backlogEl, newItem.id);
       };
       addBtn.addEventListener("click", addIdea);
       addInput.addEventListener("keydown", (e) => {
@@ -1271,6 +1344,14 @@
   const todoGrid = document.getElementById("todoGrid");
   document.getElementById("todoDateLabel").textContent = `Setzt sich täglich automatisch zurück, offene Punkte wandern in „Aufgaben“ · ${now.toLocaleDateString("de-DE", { weekday: "long", day: "2-digit", month: "long" })}`;
 
+  // todoGrid wird bei JEDEM Render komplett neu aufgebaut (alle drei Spalten-Karten inkl.
+  // ihrer <ul>s sind also bei jedem Aufruf brandneue DOM-Knoten) - ein data-Attribut-Flag
+  // wie bei staggerListOnce() wuerde hier also nichts nuetzen. Stattdessen dieses Modul-
+  // weite Flag: true nach dem allerersten Render, damit nur der initiale Seitenaufbau
+  // gestaffelt einfliegt und nicht jede Kleinigkeit (Haekchen, geloeschter Eintrag) die
+  // komplette Spalte neu einfliegen laesst.
+  let todoGridStaggeredOnce = false;
+
   function renderTodos() {
     todoGrid.innerHTML = "";
     TODO_CATEGORIES.forEach((cat) => {
@@ -1308,9 +1389,11 @@
         const text = input.value.trim();
         if (!text) return;
         todos[cat.id] = todos[cat.id] || [];
-        todos[cat.id].push({ id: newId(), text, done: false });
+        const newItem = { id: newId(), text, done: false };
+        todos[cat.id].push(newItem);
         saveTodos(todos);
         renderTodos();
+        flashNewItem(todoGrid, newItem.id);
       };
       card.querySelector(".todo-add button").addEventListener("click", addItem);
       input.addEventListener("keydown", (e) => {
@@ -1333,7 +1416,9 @@
       });
 
       todoGrid.appendChild(card);
+      if (!todoGridStaggeredOnce) staggerListItems(card.querySelector(".todo-list"));
     });
+    todoGridStaggeredOnce = true;
   }
 
   renderTodos();
@@ -1375,11 +1460,13 @@
     if (!item) return;
     tasks = tasks.filter((t) => t.id !== id);
     todos[categoryId] = todos[categoryId] || [];
-    todos[categoryId].push({ id: newId(), text: item.text, done: false });
+    const newItem = { id: newId(), text: item.text, done: false };
+    todos[categoryId].push(newItem);
     saveTasks(tasks);
     saveTodos(todos);
     renderTasks();
     renderTodos();
+    flashNewItem(todoGrid, newItem.id);
   }
 
   function renderTasks() {
@@ -1441,15 +1528,18 @@
       taskList.dataset.moveMenuOutsideClickBound = "1";
       document.addEventListener("click", closeAllMoveMenus);
     }
+    staggerListOnce(taskList);
   }
 
   function addTask() {
     const text = taskInput.value.trim();
     if (!text) return;
-    tasks.push({ id: newId(), text, done: false });
+    const newItem = { id: newId(), text, done: false };
+    tasks.push(newItem);
     saveTasks(tasks);
     taskInput.value = "";
     renderTasks();
+    flashNewItem(taskList, newItem.id);
   }
   document.getElementById("taskAddBtn").addEventListener("click", addTask);
   taskInput.addEventListener("keydown", (e) => {
@@ -1685,10 +1775,21 @@
 
   function toggleHabitDay(habitId, key) {
     habitState.log[key] = habitState.log[key] || {};
-    habitState.log[key][habitId] = !habitState.log[key][habitId];
+    const turningOn = !habitState.log[key][habitId];
+    habitState.log[key][habitId] = turningOn;
     if (!habitState.log[key][habitId]) delete habitState.log[key][habitId];
     saveHabitState();
     renderHabits();
+    if (turningOn && !prefersReducedMotion()) {
+      // renderHabits() baut die Zellen komplett neu auf (synchron per innerHTML, also sofort
+      // im DOM) - die "done"-Klasse selbst darf den Ripple deshalb NICHT ausloesen (sonst
+      // wuerden bei jedem Klick irgendwo ALLE bereits abgehakten Zellen erneut den Ripple
+      // abspielen). Stattdessen nur die eine, gerade umgeschaltete Zelle kurz markieren.
+      document.querySelectorAll(`.habit-daycell[data-habit="${habitId}"][data-date="${key}"]`).forEach((cell) => {
+        cell.classList.add("just-toggled");
+        cell.addEventListener("animationend", () => cell.classList.remove("just-toggled"), { once: true });
+      });
+    }
   }
 
   function removeHabit(habitId) {
