@@ -37,19 +37,20 @@
   "todos": {
     "date": "2026-09-16",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "b906419c-f934-47b6-830a-394b8bd9303a",
+          "text": "Amsterdam mit Nele planen",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1789545188098
+    "updatedAt": 1789545997635
   },
   "tasks": {
     "items": [
-      {
-        "id": "55b88e0e-c8b5-4484-ba98-01dda03e99f9",
-        "text": "Amsterdam mit Nele planen",
-        "done": false
-      },
       {
         "id": "d9d0feca-b21f-4243-8d34-dd94d681debf",
         "text": "x spell Video fertig cutten",
@@ -86,6 +87,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1789543151555
+    "updatedAt": 1789545997635
   }
 }
