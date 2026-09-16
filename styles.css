@@ -682,7 +682,7 @@ svg.links line.lit { stroke-width: 1.6; }
 }
 .todo-item:hover .todo-move { opacity: 1; }
 .todo-move-wrap .todo-move:hover { color: var(--accent); background: var(--surface); }
-.todo-move-menu {
+.todo-move-menu:not([hidden]) {
   position: absolute; top: 100%; right: 0; z-index: 20; margin-top: 4px; width: 168px;
   background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, .18); padding: 4px; display: flex; flex-direction: column; gap: 2px;
