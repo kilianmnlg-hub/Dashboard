@@ -81,6 +81,87 @@
     el.addEventListener("animationend", () => el.classList.remove("li-enter"), { once: true });
   }
 
+  // Laesst die Balken eines .iso-chart-Containers (Umsatz-Charts, Zeit-Balance-Balken) beim
+  // Rendern von 0 auf ihre Zielhoehe hochwachsen, statt sofort auf voller Hoehe zu stehen -
+  // siehe .iso-chart.grown-Regeln in styles.css. Ohne Animation (reduced motion) einfach
+  // direkt den Endzustand setzen.
+  function growBarsIn(containerEl) {
+    if (!containerEl) return;
+    if (prefersReducedMotion()) {
+      containerEl.classList.add("grown");
+      return;
+    }
+    containerEl.classList.remove("grown");
+    // Erzwungener Reflow: liest eine Layout-Eigenschaft, damit der Browser den Stand OHNE
+    // "grown" (Balken bei Hoehe 0) tatsaechlich rendert, bevor die Klasse gleich wieder
+    // hinzugefuegt wird - sonst wuerden beide Aenderungen zu einer einzigen Layout-Berechnung
+    // zusammengefasst und die Hoehen-Transition faende nie sichtbar statt. Bewusst OHNE
+    // requestAnimationFrame-Verzoegerung: die haengt vom naechsten Frame ab, der in einem
+    // (noch) nicht sichtbaren/aktiven Tab u.U. nie kommt - dann bliebe "grown" fuer immer
+    // fehlen und die Balken blieben unsichtbar bei Hoehe 0.
+    void containerEl.offsetWidth;
+    containerEl.classList.add("grown");
+  }
+
+  // Zaehlt die Stunden-Zahl in der Donut-Mitte beim ersten Rendern kurz hoch (analog zu
+  // animateStatValue oben, aber fuer einen bereits als JS-Zahl vorliegenden Stundenwert statt
+  // einen deutsch formatierten Text - daher eine eigene, einfachere Variante).
+  function animateDonutTotal(el, targetHours) {
+    if (!el) return;
+    const finalText = `${targetHours.toFixed(1)}h`;
+    el.textContent = finalText;
+    if (prefersReducedMotion() || targetHours <= 0) return;
+    const duration = 900;
+    let start = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      const p = Math.min(1, (ts - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = `${(targetHours * eased).toFixed(1)}h`;
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = finalText;
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Laesst den Zeit-Balance-Donut im Uhrzeigersinn "aufziehen" statt die fertigen Segmente
+  // sofort anzuzeigen - ein wandernder Rand (boundary) deckt die Segmente in ihrer echten,
+  // finalen Groesse auf (kein Verzerren der Proportionen waehrend der Animation), der Rest
+  // bleibt bis dahin in der Ruhefarbe (--surface-3), genau wie im statischen Endzustand.
+  // segments: [{color, from, to}] mit kumulierten Prozent-Grenzen (0-100), filledTo ist die
+  // Summe aller Segmente (i.d.R. 100, bei totalMinutes=0 aber 0 - siehe Aufrufer).
+  function animateDonutRing(el, segments, filledTo) {
+    if (!el) return;
+    const finalGradient = () => {
+      const parts = segments.map((s) => `${s.color} ${s.from}% ${s.to}%`);
+      parts.push(`var(--surface-3) ${filledTo}% 100%`);
+      return `conic-gradient(${parts.join(", ")})`;
+    };
+    if (prefersReducedMotion() || !segments.length || filledTo <= 0) {
+      el.style.background = finalGradient();
+      return;
+    }
+    el.style.background = finalGradient();
+    const duration = 900;
+    let start = null;
+    function step(ts) {
+      if (start === null) start = ts;
+      const p = Math.min(1, (ts - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const boundary = filledTo * eased;
+      const parts = [];
+      segments.forEach((s) => {
+        const visibleTo = Math.min(s.to, boundary);
+        if (visibleTo > s.from) parts.push(`${s.color} ${s.from}% ${visibleTo}%`);
+      });
+      parts.push(`var(--surface-3) ${boundary}% 100%`);
+      el.style.background = `conic-gradient(${parts.join(", ")})`;
+      if (p < 1) requestAnimationFrame(step);
+      else el.style.background = finalGradient();
+    }
+    requestAnimationFrame(step);
+  }
+
   // Sicherheitsnetz fuer alle Cloud-Sync-Felder (Habit-Tracker, Video-Ideen, Studium-Termin,
   // Tages-To-Do, Aufgaben): ein Cloud-Stand darf einen nicht-leeren lokalen Stand NIE durch
   // einen leeren ersetzen, selbst wenn er laut Zeitstempel neuer ist. Sonst kann ein Geraet,
@@ -1159,22 +1240,22 @@
       ? `${timeViewRangeLabel[timeView]()} · Quelle: ${tt.source}`
       : `Keine Zeiteinträge für diesen Zeitraum · Quelle: ${tt.source}`;
 
-    document.getElementById("timeDonutTotal").textContent = `${toHours(totalMinutes).toFixed(1)}h`;
+    animateDonutTotal(document.getElementById("timeDonutTotal"), toHours(totalMinutes));
 
     let donutCursor = 0;
-    const donutStops = categories.map((cat) => {
+    const donutSegments = categories.map((cat) => {
       const from = donutCursor;
       donutCursor += totalMinutes ? (totals[cat] / totalMinutes) * 100 : 0;
-      return `${categoryColors[cat] || "var(--surface-3)"} ${from}% ${donutCursor}%`;
+      return { color: categoryColors[cat] || "var(--surface-3)", from, to: donutCursor };
     });
-    donutStops.push(`var(--surface-3) ${donutCursor}% 100%`);
-    document.getElementById("timeDonut").style.background = `conic-gradient(${donutStops.join(", ")})`;
+    animateDonutRing(document.getElementById("timeDonut"), donutSegments, donutCursor);
 
-    document.getElementById("timeLegend").innerHTML = categories.length
+    const timeLegendEl = document.getElementById("timeLegend");
+    timeLegendEl.innerHTML = categories.length
       ? categories
           .map(
             (cat) => `
-        <div class="legend-row">
+        <div class="legend-row" data-cat="${escapeHtml(cat)}">
           <span class="legend-dot" style="background:${categoryColors[cat] || "var(--surface-3)"}"></span>
           ${cat}
           <span class="v">${toHours(totals[cat]).toFixed(1)}h · ${totalMinutes ? ((totals[cat] / totalMinutes) * 100).toFixed(0) : 0}%</span>
@@ -1182,6 +1263,11 @@
           )
           .join("")
       : `<p class="habit-empty">Keine Zeiteinträge in diesem Zeitraum.</p>`;
+    const legendRows = timeLegendEl.querySelectorAll(".legend-row");
+    legendRows.forEach((row) => {
+      row.addEventListener("mouseenter", () => legendRows.forEach((r) => r.classList.toggle("dim", r !== row)));
+      row.addEventListener("mouseleave", () => legendRows.forEach((r) => r.classList.remove("dim")));
+    });
 
     const rowTotals = rows.map((row) => categories.reduce((sum, c) => sum + (row[c] || 0), 0));
     const maxRowTotal = Math.max(1, ...rowTotals);
@@ -1200,7 +1286,8 @@
       return `${dateLabel} — ${toHours(dayTotal).toFixed(1)}h gesamt (${parts})`;
     };
 
-    document.getElementById("timeBars").innerHTML = rows
+    const timeBarsEl = document.getElementById("timeBars");
+    timeBarsEl.innerHTML = rows
       .map((row, i) => {
         const dayTotal = rowTotals[i];
         const h = Math.max(4, Math.round((dayTotal / maxRowTotal) * 130));
@@ -1214,11 +1301,12 @@
           .join("");
         return `<div class="iso-bar-col" title="${tooltipFor(row, dayTotal)}">
           <div class="iso-bar-value">${toHours(dayTotal).toFixed(1)}h</div>
-          <div class="stack-bar" style="height:${h}px">${segs}</div>
+          <div class="stack-bar" style="--h:${h}px">${segs}</div>
           <div class="iso-bar-label">${labelFor(row)}</div>
         </div>`;
       })
       .join("");
+    growBarsIn(timeBarsEl);
   }
 
   document.querySelectorAll("#timeViewToggle button").forEach((btn) => {
@@ -1290,6 +1378,7 @@
         </div>`;
       })
       .join("");
+    growBarsIn(container);
   }
 
   // ---------- Tages-To-Do ----------

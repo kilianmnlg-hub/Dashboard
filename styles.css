@@ -520,6 +520,8 @@ svg.links line.lit { stroke-width: 1.6; }
   .habit-daycell.just-toggled::after { animation: none; }
   .nav a::after { transition: none; }
   .sync-button, .habit-daycell, .idea-add button, .todo-add button, .habit-add button { transition: none; }
+  .iso-bar, .stack-bar, .iso-bar-value, .legend-row, .legend-dot { transition: none; }
+  .iso-bar-col:hover .iso-bar, .iso-bar-col:hover .stack-bar { transform: none; filter: none; }
 }
 
 .card-eyebrow { margin: 0 0 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); }
@@ -792,16 +794,26 @@ svg.links line.lit { stroke-width: 1.6; }
 #revenueChartWeekly, #revenueChartMonthly { height: 240px; padding-top: 20px; }
 .iso-bar-col { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; min-width: 30px; }
 .iso-bar {
-  --h: 40px; --w: 32px; width: var(--w); height: var(--h); flex-shrink: 0;
+  --h: 40px; --w: 32px; width: var(--w); height: 0; flex-shrink: 0;
   border-radius: 6px 6px 3px 3px;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--accent-bricklink) 100%, white 30%) 0%, var(--accent-bricklink) 40%, var(--accent-bricklink) 100%);
   box-shadow:
     inset -4px 0 0 color-mix(in srgb, var(--accent-bricklink) 100%, black 28%),
     inset 0 1px 0 rgba(255,255,255,.3);
+  transition: height .6s cubic-bezier(.2, .8, .2, 1), transform .15s ease, filter .15s ease;
 }
+/* Balken wachsen beim Rendern von 0 auf ihre Zielhoehe hoch statt sofort dazustehen -
+   siehe growBarsIn() in script.js. Ohne die Klasse (z.B. reduced motion) bleibt --h einfach
+   die Endhoehe, kein FOUC. */
+.iso-chart.grown .iso-bar, .iso-chart.grown .stack-bar { height: var(--h); }
+.iso-bar-col:hover .iso-bar, .iso-bar-col:hover .stack-bar { transform: translateY(-4px); filter: brightness(1.12); }
 .iso-bar-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-faint); white-space: nowrap; }
-.iso-bar-value { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text-muted); font-weight: 600; white-space: nowrap; }
+.iso-bar-value {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--text-muted); font-weight: 600;
+  white-space: nowrap; opacity: 0; transition: opacity .3s ease .3s;
+}
+.iso-chart.grown .iso-bar-value { opacity: 1; }
 
 /* ---------- Donut (Zeit-Balance) ---------- */
 
@@ -822,17 +834,23 @@ svg.links line.lit { stroke-width: 1.6; }
 .donut-center .lbl { font-size: 10.5px; color: var(--text-faint); margin-top: 4px; }
 
 .legend { display: flex; flex-direction: column; gap: 10px; min-width: 160px; }
-.legend-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-.legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; display: inline-block; }
+.legend-row {
+  display: flex; align-items: center; gap: 10px; font-size: 13px;
+  padding: 3px 6px; margin: -3px -6px; border-radius: 8px; transition: opacity .15s ease;
+}
+.legend-row.dim { opacity: .4; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; display: inline-block; transition: transform .15s ease; }
+.legend-row:hover .legend-dot { transform: scale(1.3); }
 .legend-row .v { font-family: 'IBM Plex Mono', monospace; font-weight: 600; margin-left: auto; padding-left: 16px; font-variant-numeric: tabular-nums; }
 
 /* ---------- Gestapelte Balken (Zeit-Balance, pro Tag/Monat) ---------- */
 
 .stack-bar {
-  width: var(--w, 24px); flex-shrink: 0;
+  --h: 0px; width: var(--w, 24px); height: 0; flex-shrink: 0;
   display: flex; flex-direction: column-reverse;
   border-radius: 5px 5px 2px 2px; overflow: hidden;
   background: var(--surface-3);
+  transition: height .6s cubic-bezier(.2, .8, .2, 1), transform .15s ease, filter .15s ease;
 }
 .stack-bar .seg { width: 100%; }
 
