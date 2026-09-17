@@ -266,6 +266,11 @@ zu ändern (1–7) — z.B. Sport auf 3× pro Woche. Sobald so oft abgehakt wurd
 Badge ein (✓ 3/3) und die Woche zählt als erledigt, auch wenn nicht jeder Tag angekreuzt ist.
 Das Ziel wird pro Gewohnheit mitgespeichert und läuft über denselben Cloud-Sync mit.
 
+**Streak-Badge:** Läuft eine Gewohnheit 7 Tage oder länger am Stück (Wochenenden/Lücken
+brechen die Serie), erscheint neben dem Namen ein kleines Badge mit der Streak-Länge — in
+allen drei Ansichten (Woche/Monat/Jahr). Ist der heutige Tag noch nicht abgehakt, zählt die
+Serie trotzdem ab gestern weiter, statt sofort auf 0 zu springen.
+
 **Speicherung, zweistufig:**
 1. **Sofort lokal** (`localStorage`) bei jedem Klick — funktioniert immer, auch offline.
 2. **Cloud-Kopie in `habits-data.json`** im Repo — automatisch, ca. 2,5 Sekunden nach

@@ -9,10 +9,10 @@
 // (siehe "activate" unten) - sonst kann ein Geraet mit wackliger Verbindung (v.a. Handy im
 // Mobilfunknetz) nach einem fehlgeschlagenen Netzwerk-Request beliebig lange auf einer
 // alten, im Cache haengengebliebenen script.js/index.html sitzen bleiben.
-const CACHE_NAME = "dashboard-v10";
+const CACHE_NAME = "dashboard-v11";
 const APP_SHELL = [
   "./", "index.html", "styles.css", "script.js", "data.js", "habits-data.json", "sync-data.json", "manifest.webmanifest", "icon.svg",
-  "fonts/fraunces-var.woff2", "fonts/publicsans-var.woff2", "fonts/plexmono-500.woff2", "fonts/plexmono-600.woff2"
+  "fonts/fraunces-var.woff2", "fonts/publicsans-var.woff2", "fonts/plexmono-500.woff2", "fonts/plexmono-600.woff2", "fonts/pressstart2p-400.woff2"
 ];
 
 self.addEventListener("install", (event) => {

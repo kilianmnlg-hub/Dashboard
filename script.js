@@ -162,6 +162,100 @@
     requestAnimationFrame(step);
   }
 
+  // Ziel-Gauge als "aufleuchtender" Segment-Ring (Arcade-Lebensring) statt einem glatten Bogen -
+  // baut den kompletten conic-gradient mit GAUGE_SEGMENTS Kerben, von denen die ersten
+  // "litCount" in der Zielfarbe leuchten und der Rest in der Ruhefarbe bleibt.
+  const GAUGE_SEGMENTS = 24;
+  const GAUGE_GAP_DEG = 3;
+  function buildGaugeGradient(litCount, accentVar) {
+    const segDeg = 360 / GAUGE_SEGMENTS;
+    const parts = [];
+    for (let i = 0; i < GAUGE_SEGMENTS; i++) {
+      const start = i * segDeg;
+      const end = start + segDeg - GAUGE_GAP_DEG;
+      const color = i < litCount ? accentVar : "var(--surface-3)";
+      parts.push(`${color} ${start}deg ${end}deg`, `transparent ${end}deg ${start + segDeg}deg`);
+    }
+    return `conic-gradient(from -90deg, ${parts.join(", ")})`;
+  }
+  // Laesst die Segmente beim ersten Rendern nacheinander "aufleuchten" statt sofort auf dem
+  // Zielwert zu stehen. setTimeout statt requestAnimationFrame, da setTimeout in einem (noch)
+  // im Hintergrund geoeffneten Tab zwar gedrosselt, aber anders als rAF nicht auf unbestimmte
+  // Zeit ausgesetzt wird - UND der Endzustand wird ohnehin zuerst synchron gesetzt, damit der
+  // Ring so oder so korrekt dasteht, auch wenn die Animation aus irgendeinem Grund nie liefe.
+  function animateGauge(el, pct, accentVar) {
+    if (!el) return;
+    const span = el.querySelector("span");
+    const finalLit = Math.round((pct / 100) * GAUGE_SEGMENTS);
+    el.style.background = buildGaugeGradient(finalLit, accentVar);
+    if (span) span.textContent = `${pct.toFixed(0)}%`;
+    if (prefersReducedMotion() || finalLit <= 0) return;
+    let i = 0;
+    const step = () => {
+      i++;
+      el.style.background = buildGaugeGradient(i, accentVar);
+      if (span) span.textContent = `${Math.round((i / GAUGE_SEGMENTS) * 100)}%`;
+      if (i < finalLit) setTimeout(step, 28);
+      else {
+        el.style.background = buildGaugeGradient(finalLit, accentVar);
+        if (span) span.textContent = `${pct.toFixed(0)}%`;
+      }
+    };
+    setTimeout(step, 28);
+  }
+
+  // ---------- Ziel-Meilenstein-Toasts ("Level Up") ----------
+  // Merkt sich pro Ziel die zuletzt gezeigte 10%-Marke, damit der Toast bei jedem Laden nicht
+  // erneut fuer laengst erreichte Marken aufploppt - nur ein NEU ueberschrittener 10er-Schritt
+  // (60, 70, 80, ...) loest ihn aus. Bewusst NICHT Teil des Cloud-Sync: rein geraetelokale
+  // "hab ich das schon gesehen"-Notiz, kein echter Nutzdaten-Zustand.
+  const GOAL_MILESTONE_KEY = "dashboard-goal-milestones-seen";
+  const loadGoalMilestonesSeen = () => {
+    try {
+      return JSON.parse(localStorage.getItem(GOAL_MILESTONE_KEY)) || {};
+    } catch (e) {
+      return {};
+    }
+  };
+  const saveGoalMilestonesSeen = (state) => localStorage.setItem(GOAL_MILESTONE_KEY, JSON.stringify(state));
+
+  let milestoneToastQueue = [];
+  let milestoneToastBusy = false;
+  function showMilestoneToast(title, sub) {
+    let toastEl = document.getElementById("milestoneToast");
+    if (!toastEl) {
+      toastEl = document.createElement("div");
+      toastEl.id = "milestoneToast";
+      toastEl.className = "milestone-toast hidden-state";
+      toastEl.innerHTML = `
+        <svg class="pixel-icon" width="22" height="22" viewBox="0 0 8 8" aria-hidden="true">
+          <g fill="var(--status-good)"><rect x="3" y="0" width="2" height="3"/><rect x="0" y="3" width="8" height="2"/><rect x="3" y="5" width="2" height="3"/></g>
+        </svg>
+        <span><span class="milestone-toast-title"></span><br><span class="milestone-toast-sub"></span></span>
+      `;
+      document.body.appendChild(toastEl);
+    }
+    toastEl.querySelector(".milestone-toast-title").textContent = title;
+    toastEl.querySelector(".milestone-toast-sub").textContent = sub;
+    toastEl.classList.remove("hidden-state");
+  }
+  function processMilestoneQueue() {
+    const next = milestoneToastQueue.shift();
+    if (!next) {
+      milestoneToastBusy = false;
+      const toastEl = document.getElementById("milestoneToast");
+      if (toastEl) toastEl.classList.add("hidden-state");
+      return;
+    }
+    milestoneToastBusy = true;
+    showMilestoneToast(next.title, next.sub);
+    setTimeout(processMilestoneQueue, 3200);
+  }
+  function queueMilestoneToast(title, sub) {
+    milestoneToastQueue.push({ title, sub });
+    if (!milestoneToastBusy) processMilestoneQueue();
+  }
+
   // Sicherheitsnetz fuer alle Cloud-Sync-Felder (Habit-Tracker, Video-Ideen, Studium-Termin,
   // Tages-To-Do, Aufgaben): ein Cloud-Stand darf einen nicht-leeren lokalen Stand NIE durch
   // einen leeren ersetzen, selbst wenn er laut Zeitstempel neuer ist. Sonst kann ein Geraet,
@@ -831,6 +925,13 @@
   }
 
   const goalsGrid = document.getElementById("goalsGrid");
+  // Beim allerersten Laden (Feature gerade erst ausgerollt, noch kein gespeicherter Stand)
+  // gaebe es sonst fuer JEDES Ziel sofort einen "Level Up"-Toast, obwohl der aktuelle
+  // Fortschritt ja gar nicht neu ist - stattdessen den heutigen Stand still als Basislinie
+  // uebernehmen und erst ab der naechsten wirklich neuen 10%-Marke einen Toast zeigen.
+  const isFirstMilestoneRun = localStorage.getItem(GOAL_MILESTONE_KEY) === null;
+  const goalMilestonesSeen = loadGoalMilestonesSeen();
+  let goalMilestonesChanged = false;
   data.goals.forEach((goal) => {
     const accent = accentByProject[goal.project] || "var(--accent-goal)";
     const pct = Math.max(0, Math.min(100, (goal.current / goal.target) * 100));
@@ -855,7 +956,7 @@
       card.innerHTML = `
         <p class="card-title">${goal.label}</p>
         <div class="gauge-row">
-          <div class="gauge" style="--pct:${pct}; --gc:${accent}"><span>${pct.toFixed(0)}%</span></div>
+          <div class="gauge" style="--gc:${accent}"><span></span></div>
           <div class="gauge-meta">
             <span class="num">${fmtDE.format(goal.current)} ${goal.unit}</span>
             <span class="lbl">Ziel ${fmtDE.format(goal.target)} ${goal.unit}</span>
@@ -864,9 +965,21 @@
         </div>
         ${trend !== null ? `<div class="goal-trend">${renderTrendBadge(trend, goal.unit)}</div>` : ""}
       `;
+
+      // Bei jeder NEU ueberschrittenen 10%-Marke (60, 70, 80, ...) einen "Level Up"-Toast
+      // anstossen - nicht erst beim finalen Erreichen. Marken unter 10% werden bewusst
+      // ignoriert (sonst wuerde quasi jedes frisch angelegte Ziel sofort einen Toast ausloesen).
+      const decile = Math.floor(pct / 10) * 10;
+      if (decile >= 10 && decile > (goalMilestonesSeen[goal.id] || 0)) {
+        goalMilestonesSeen[goal.id] = decile;
+        goalMilestonesChanged = true;
+        if (!isFirstMilestoneRun) queueMilestoneToast(`${decile}% ERREICHT!`, goal.label);
+      }
     }
     goalsGrid.appendChild(card);
+    if (!goal.isMilestone) animateGauge(card.querySelector(".gauge"), pct, accent);
   });
+  if (goalMilestonesChanged) saveGoalMilestonesSeen(goalMilestonesSeen);
 
   // ---------- Studium-Countdown (nächste Prüfung/Abgabe) ----------
   // Bewusst klein — kein neuer "Privat"-Bereich, nur ein einzelner editierbarer Termin
@@ -1938,6 +2051,36 @@
     container.innerHTML = habitState.habits.length ? bodyHtml : `<p class="habit-empty">Noch keine Gewohnheiten — oben hinzufügen.</p>`;
   }
 
+  // Zaehlt aufeinanderfolgende abgehakte Tage rueckwaerts ab heute. Ist "heute" noch nicht
+  // abgehakt, faengt die Zaehlung stattdessen bei "gestern" an, statt die Serie sofort auf 0
+  // zu setzen - man hat ja bis zum Tagesende noch Zeit, den heutigen Tag nachzuholen.
+  function computeStreak(habitId) {
+    let streak = 0;
+    const cursor = new Date();
+    cursor.setHours(0, 0, 0, 0);
+    if (!habitState.log[dateKey(cursor)]?.[habitId]) {
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    while (habitState.log[dateKey(cursor)]?.[habitId]) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  }
+
+  // Kleines Arcade-Badge (Flammen-Sprite + Zahl), das erst ab einer Serie von 7+ Tagen
+  // ueberhaupt auftaucht - darunter bleibt es beim normalen Wochenzaehler.
+  function streakBadgeHtml(habitId) {
+    const streak = computeStreak(habitId);
+    if (streak < 7) return "";
+    return `<span class="streak-badge" title="${streak} Tage in Folge">
+      <svg class="pixel-icon" width="14" height="14" viewBox="0 0 8 8" aria-hidden="true">
+        <g fill="var(--accent)"><rect x="3" y="0" width="2" height="3"/><rect x="0" y="3" width="8" height="2"/><rect x="3" y="5" width="2" height="3"/></g>
+      </svg>
+      <span class="n">${streak}</span>
+    </span>`;
+  }
+
   function renderHabitWeek() {
     const weekStart = mondayOf(new Date());
     const days = Array.from({ length: 7 }, (_, i) => {
@@ -1964,7 +2107,7 @@
         const target = h.targetPerWeek;
         const weekDone = doneCount >= target;
         return `<div class="habit-row">
-          <div class="habit-label">${escapeHtml(h.label)}<button type="button" class="habit-count${weekDone ? " done" : ""}" data-target="${h.id}" title="Wochenziel aendern">${weekDone ? "✓ " : ""}${doneCount}/${target}</button></div>
+          <div class="habit-label">${escapeHtml(h.label)}${streakBadgeHtml(h.id)}<button type="button" class="habit-count${weekDone ? " done" : ""}" data-target="${h.id}" title="Wochenziel aendern">${weekDone ? "✓ " : ""}${doneCount}/${target}</button></div>
           <div class="habit-days">${cells}</div>
           <button type="button" class="habit-remove" data-remove="${h.id}" aria-label="Entfernen">×</button>
         </div>`;
@@ -2010,7 +2153,7 @@
           return daycellHtml({ habitId: h.id, key, done, today: key === todayK, colorIdx: idx });
         }).join("");
         return `<div class="habit-month-row">
-          <div class="habit-month-title">${escapeHtml(h.label)}</div>
+          <div class="habit-month-title">${escapeHtml(h.label)}${streakBadgeHtml(h.id)}</div>
           <div class="habit-month-grid">${blanks}${cells}</div>
         </div>`;
       })
@@ -2083,7 +2226,7 @@
           )
           .join("");
         return `<div class="habit-year-row">
-          <div class="habit-year-title">${escapeHtml(h.label)}</div>
+          <div class="habit-year-title">${escapeHtml(h.label)}${streakBadgeHtml(h.id)}</div>
           <div class="habit-year-scroll">
             <div class="habit-year-months">${monthLabels}</div>
             <div class="habit-year-grid">${cells}</div>
