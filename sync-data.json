@@ -63,16 +63,66 @@
       ],
       "privat": []
     },
-    "updatedAt": 1789626320519
+    "updatedAt": 1789654601915
   },
   "tasks": {
     "items": [
       {
+        "id": "55b88e0e-c8b5-4484-ba98-01dda03e99f9",
+        "text": "Amsterdam mit Nele planen",
+        "done": false
+      },
+      {
+        "id": "d9d0feca-b21f-4243-8d34-dd94d681debf",
+        "text": "x spell Video fertig cutten",
+        "done": false
+      },
+      {
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
+      },
+      {
+        "id": "8f9be9e6-ce80-47a4-b8f0-245eeed2c203",
+        "text": "video Idee fürs nächste BW video",
+        "done": false
+      },
+      {
+        "id": "f5bb273c-93c7-4540-b7e6-f86535858ab9",
+        "text": "video clips",
+        "done": false
+      },
+      {
+        "id": "b69e0178-8590-4d9f-bd64-060400e8ba01",
+        "text": "thumbnail budget cards",
+        "done": false
+      },
+      {
+        "id": "40f1cdfd-7318-4c76-a215-d7cc1c8d1c35",
+        "text": "dinos we need skript",
+        "done": false
+      },
+      {
+        "id": "a056ef13-66d0-4615-a9c6-4c1762d8e23c",
+        "text": "projekt erstellen",
+        "done": false
+      },
+      {
+        "id": "9c4d063f-3da2-47a8-9984-1d2c29d4d297",
+        "text": "thumbnail budget cards",
+        "done": false
+      },
+      {
+        "id": "c0076811-80ca-4528-9a52-db946b0e9ab2",
+        "text": "dinos we need skript",
+        "done": false
+      },
+      {
+        "id": "f1e49681-cdcd-41e6-b40c-bd4531f8ff46",
+        "text": "projekt erstellen",
+        "done": false
       }
     ],
-    "updatedAt": 1789626296831
+    "updatedAt": 1789654599933
   }
 }
