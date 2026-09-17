@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-09-17",
-    "lastSyncedAt": "2026-09-17T05:43:20.147Z",
+    "lastSyncedAt": "2026-09-17T10:48:25.228Z",
     "owner": "Kilian"
   },
   "github": {
@@ -281,7 +281,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-09-17",
-        "value": 29200
+        "value": 29100
       }
     ],
     "brainwalkersAbos": [
@@ -645,7 +645,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-09-17",
-        "value": 2770
+        "value": 2771
       }
     ]
   },
@@ -654,7 +654,7 @@ const DASHBOARD_DATA = {
       "id": "bricks-abos",
       "label": "Bricks On The Floor – Abonnenten",
       "project": "bricksOnTheFloor",
-      "current": 29200,
+      "current": 29100,
       "target": 50000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -681,7 +681,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2770,
+      "current": 2771,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -715,21 +715,12 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-17T05:43:19.532Z",
+    "checkedAt": "2026-09-17T10:48:23.966Z",
     "openOrdersCount": 276,
-    "pendingShipments": [
-      {
-        "orderId": 32576686,
-        "buyer": "bsserge",
-        "status": "PAID",
-        "orderedDate": "2026-09-14T17:57:06.310Z",
-        "total": "31.0300",
-        "currency": "EUR"
-      }
-    ]
+    "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-17T05:43:19.564Z",
+    "checkedAt": "2026-09-17T10:48:24.202Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -855,7 +846,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "29.200",
+          "value": "29.100",
           "hint": "+397 letzte 28 Tage"
         },
         {
@@ -900,10 +891,10 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-09-16"
+      "to": "2026-09-17"
     },
     "totalsByCategory": {
-      "YouTube": 43512.39,
+      "YouTube": 43572.39,
       "Bricklink": 2153.98
     },
     "daily": [
@@ -1125,6 +1116,11 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-16",
         "YouTube": 144.83,
+        "Bricklink": 0
+      },
+      {
+        "date": "2026-09-17",
+        "YouTube": 60,
         "Bricklink": 0
       }
     ]
