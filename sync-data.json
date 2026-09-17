@@ -37,11 +37,17 @@
   "todos": {
     "date": "2026-09-17",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "ae2aab85-7e35-43fe-ac34-d939ed62408f",
+          "text": "dinos we need skript",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1789623785053
+    "updatedAt": 1789626285926
   },
   "tasks": {
     "items": [
@@ -56,16 +62,11 @@
         "done": false
       },
       {
-        "id": "ca498c8e-6905-4bb8-937d-edde5d71916f",
-        "text": "dinos we need skript",
-        "done": false
-      },
-      {
         "id": "5d04ef60-ba6c-4cca-933b-d6c2d6f47b70",
         "text": "projekt erstellen",
         "done": false
       }
     ],
-    "updatedAt": 1789623624519
+    "updatedAt": 1789626285925
   }
 }
