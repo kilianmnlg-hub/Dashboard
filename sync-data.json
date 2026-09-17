@@ -42,6 +42,11 @@
           "id": "ae2aab85-7e35-43fe-ac34-d939ed62408f",
           "text": "dinos we need skript",
           "done": false
+        },
+        {
+          "id": "6aa08733-3a85-436c-9efc-91589b05625a",
+          "text": "mtg thumbnail",
+          "done": false
         }
       ],
       "studium": [
@@ -53,7 +58,7 @@
       ],
       "privat": []
     },
-    "updatedAt": 1789626306160
+    "updatedAt": 1789626315725
   },
   "tasks": {
     "items": [
