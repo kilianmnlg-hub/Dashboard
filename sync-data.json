@@ -44,10 +44,16 @@
           "done": false
         }
       ],
-      "studium": [],
+      "studium": [
+        {
+          "id": "d7cec963-e402-403e-b785-1023312c2785",
+          "text": "projekt erstellen",
+          "done": false
+        }
+      ],
       "privat": []
     },
-    "updatedAt": 1789626285926
+    "updatedAt": 1789626289630
   },
   "tasks": {
     "items": [
@@ -60,13 +66,8 @@
         "id": "6f7540de-e817-4c58-9877-31a52e8fd52a",
         "text": "thumbnail budget cards",
         "done": false
-      },
-      {
-        "id": "5d04ef60-ba6c-4cca-933b-d6c2d6f47b70",
-        "text": "projekt erstellen",
-        "done": false
       }
     ],
-    "updatedAt": 1789626285925
+    "updatedAt": 1789626289630
   }
 }
