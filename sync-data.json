@@ -47,6 +47,11 @@
           "id": "6aa08733-3a85-436c-9efc-91589b05625a",
           "text": "mtg thumbnail",
           "done": false
+        },
+        {
+          "id": "dac8164f-6146-4574-bb9c-dd68e0ac5ccf",
+          "text": "dino thumbnail",
+          "done": false
         }
       ],
       "studium": [
@@ -58,7 +63,7 @@
       ],
       "privat": []
     },
-    "updatedAt": 1789626315725
+    "updatedAt": 1789626320519
   },
   "tasks": {
     "items": [
