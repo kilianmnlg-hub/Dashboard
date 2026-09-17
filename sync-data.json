@@ -35,79 +35,37 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-09-16",
+    "date": "2026-09-17",
     "items": {
-      "business": [
-        {
-          "id": "1c0557f2-7e74-48c3-bbc4-8e4aa277c0c3",
-          "text": "x spell Video fertig cutten",
-          "done": true
-        },
-        {
-          "id": "cbd7c901-d1cd-493d-8f9f-778abdb6ea51",
-          "text": "thumbnail budget cards",
-          "done": false
-        },
-        {
-          "id": "cc207ed7-1ca9-4b8c-87fe-c48a651d10ce",
-          "text": "dinos we need skript",
-          "done": false
-        }
-      ],
-      "studium": [
-        {
-          "id": "e1fd56d1-d405-4ea1-ac9b-5960ca4a291e",
-          "text": "projekt erstellen",
-          "done": false
-        }
-      ],
+      "business": [],
+      "studium": [],
       "privat": []
     },
-    "updatedAt": 1789572003160
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
-      {
-        "id": "55b88e0e-c8b5-4484-ba98-01dda03e99f9",
-        "text": "Amsterdam mit Nele planen",
-        "done": false
-      },
-      {
-        "id": "d9d0feca-b21f-4243-8d34-dd94d681debf",
-        "text": "x spell Video fertig cutten",
-        "done": false
-      },
       {
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
       },
       {
-        "id": "8f9be9e6-ce80-47a4-b8f0-245eeed2c203",
-        "text": "video Idee fürs nächste BW video",
-        "done": false
-      },
-      {
-        "id": "f5bb273c-93c7-4540-b7e6-f86535858ab9",
-        "text": "video clips",
-        "done": false
-      },
-      {
-        "id": "b69e0178-8590-4d9f-bd64-060400e8ba01",
+        "id": "6f7540de-e817-4c58-9877-31a52e8fd52a",
         "text": "thumbnail budget cards",
         "done": false
       },
       {
-        "id": "40f1cdfd-7318-4c76-a215-d7cc1c8d1c35",
+        "id": "ca498c8e-6905-4bb8-937d-edde5d71916f",
         "text": "dinos we need skript",
         "done": false
       },
       {
-        "id": "a056ef13-66d0-4615-a9c6-4c1762d8e23c",
+        "id": "5d04ef60-ba6c-4cca-933b-d6c2d6f47b70",
         "text": "projekt erstellen",
         "done": false
       }
     ],
-    "updatedAt": 1789572001129
+    "updatedAt": 1789623624519
   }
 }
