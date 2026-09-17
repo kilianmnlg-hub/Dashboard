@@ -98,16 +98,6 @@
         "done": false
       },
       {
-        "id": "40f1cdfd-7318-4c76-a215-d7cc1c8d1c35",
-        "text": "dinos we need skript",
-        "done": false
-      },
-      {
-        "id": "a056ef13-66d0-4615-a9c6-4c1762d8e23c",
-        "text": "projekt erstellen",
-        "done": false
-      },
-      {
         "id": "9c4d063f-3da2-47a8-9984-1d2c29d4d297",
         "text": "thumbnail budget cards",
         "done": false
@@ -116,13 +106,8 @@
         "id": "c0076811-80ca-4528-9a52-db946b0e9ab2",
         "text": "dinos we need skript",
         "done": false
-      },
-      {
-        "id": "f1e49681-cdcd-41e6-b40c-bd4531f8ff46",
-        "text": "projekt erstellen",
-        "done": false
       }
     ],
-    "updatedAt": 1789654599933
+    "updatedAt": 1789662579828
   }
 }
