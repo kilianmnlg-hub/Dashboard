@@ -49,11 +49,16 @@
           "id": "d7cec963-e402-403e-b785-1023312c2785",
           "text": "projekt erstellen",
           "done": false
+        },
+        {
+          "id": "d5db0af7-2a76-4ebc-9451-de2e006119f3",
+          "text": "thumbnail budget cards",
+          "done": false
         }
       ],
       "privat": []
     },
-    "updatedAt": 1789626289630
+    "updatedAt": 1789626296831
   },
   "tasks": {
     "items": [
@@ -61,13 +66,8 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
-      },
-      {
-        "id": "6f7540de-e817-4c58-9877-31a52e8fd52a",
-        "text": "thumbnail budget cards",
-        "done": false
       }
     ],
-    "updatedAt": 1789626289630
+    "updatedAt": 1789626296831
   }
 }
