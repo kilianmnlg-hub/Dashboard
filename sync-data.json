@@ -57,11 +57,6 @@
         "done": false
       },
       {
-        "id": "2fdcffb2-12b4-414f-bae1-081e12cb305a",
-        "text": "mtg thumbnail",
-        "done": false
-      },
-      {
         "id": "488a0d0a-0e43-415e-97be-e26df0410987",
         "text": "dino thumbnail",
         "done": false
@@ -72,6 +67,6 @@
         "done": false
       }
     ],
-    "updatedAt": 1789711555140
+    "updatedAt": 1789711558112
   }
 }
