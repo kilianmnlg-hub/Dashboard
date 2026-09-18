@@ -42,12 +42,17 @@
           "id": "d6685d98-d01d-4a15-a06d-f8507d44d8e2",
           "text": "dinos we need skript",
           "done": false
+        },
+        {
+          "id": "fd21ebf1-adfa-421a-b2c0-1f2c3aec4e2c",
+          "text": "dino thumbnail",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1789711555140
+    "updatedAt": 1789711561204
   },
   "tasks": {
     "items": [
@@ -55,18 +60,8 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
-      },
-      {
-        "id": "488a0d0a-0e43-415e-97be-e26df0410987",
-        "text": "dino thumbnail",
-        "done": false
-      },
-      {
-        "id": "57206d57-58a4-445a-9a73-73222a609891",
-        "text": "projekt erstellen",
-        "done": false
       }
     ],
-    "updatedAt": 1789711558112
+    "updatedAt": 1789711562692
   }
 }
