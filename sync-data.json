@@ -35,79 +35,42 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-09-17",
+    "date": "2026-09-18",
     "items": {
-      "business": [
-        {
-          "id": "ae2aab85-7e35-43fe-ac34-d939ed62408f",
-          "text": "dinos we need skript",
-          "done": false
-        },
-        {
-          "id": "6aa08733-3a85-436c-9efc-91589b05625a",
-          "text": "mtg thumbnail",
-          "done": false
-        },
-        {
-          "id": "dac8164f-6146-4574-bb9c-dd68e0ac5ccf",
-          "text": "dino thumbnail",
-          "done": false
-        }
-      ],
-      "studium": [
-        {
-          "id": "d7cec963-e402-403e-b785-1023312c2785",
-          "text": "projekt erstellen",
-          "done": false
-        }
-      ],
+      "business": [],
+      "studium": [],
       "privat": []
     },
-    "updatedAt": 1789654601915
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
-      {
-        "id": "55b88e0e-c8b5-4484-ba98-01dda03e99f9",
-        "text": "Amsterdam mit Nele planen",
-        "done": false
-      },
-      {
-        "id": "d9d0feca-b21f-4243-8d34-dd94d681debf",
-        "text": "x spell Video fertig cutten",
-        "done": false
-      },
       {
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
       },
       {
-        "id": "8f9be9e6-ce80-47a4-b8f0-245eeed2c203",
-        "text": "video Idee fürs nächste BW video",
-        "done": false
-      },
-      {
-        "id": "f5bb273c-93c7-4540-b7e6-f86535858ab9",
-        "text": "video clips",
-        "done": false
-      },
-      {
-        "id": "b69e0178-8590-4d9f-bd64-060400e8ba01",
-        "text": "thumbnail budget cards",
-        "done": false
-      },
-      {
-        "id": "9c4d063f-3da2-47a8-9984-1d2c29d4d297",
-        "text": "thumbnail budget cards",
-        "done": false
-      },
-      {
-        "id": "c0076811-80ca-4528-9a52-db946b0e9ab2",
+        "id": "a4c31e21-3ff3-4992-bfbc-5be2dc077eea",
         "text": "dinos we need skript",
+        "done": false
+      },
+      {
+        "id": "2fdcffb2-12b4-414f-bae1-081e12cb305a",
+        "text": "mtg thumbnail",
+        "done": false
+      },
+      {
+        "id": "488a0d0a-0e43-415e-97be-e26df0410987",
+        "text": "dino thumbnail",
+        "done": false
+      },
+      {
+        "id": "57206d57-58a4-445a-9a73-73222a609891",
+        "text": "projekt erstellen",
         "done": false
       }
     ],
-    "updatedAt": 1789662579828
+    "updatedAt": 1789711544926
   }
 }
