@@ -49,10 +49,16 @@
           "done": false
         }
       ],
-      "studium": [],
+      "studium": [
+        {
+          "id": "d8b2e7dc-e2d3-4dec-9ad6-9bf3a464d549",
+          "text": "2 Seiten Arbeit",
+          "done": false
+        }
+      ],
       "privat": []
     },
-    "updatedAt": 1789711561204
+    "updatedAt": 1789711570798
   },
   "tasks": {
     "items": [
