@@ -37,11 +37,17 @@
   "todos": {
     "date": "2026-09-19",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "523fd048-58b6-4464-927c-8bba4ebbbb37",
+          "text": "dinos we need skript",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1789802940558
   },
   "tasks": {
     "items": [
@@ -79,13 +85,8 @@
         "id": "9c4d063f-3da2-47a8-9984-1d2c29d4d297",
         "text": "thumbnail budget cards",
         "done": false
-      },
-      {
-        "id": "c0076811-80ca-4528-9a52-db946b0e9ab2",
-        "text": "dinos we need skript",
-        "done": false
       }
     ],
-    "updatedAt": 1789802937745
+    "updatedAt": 1789802940558
   }
 }
