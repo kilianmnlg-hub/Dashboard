@@ -23,7 +23,7 @@ const DASHBOARD_DATA = {
     "workerUrl": "https://dashboard-gcal-proxy.kilian-mnlg.workers.dev"
   },
   "brainMap": {
-    "syncedAt": "2026-09-18T13:28:26.416Z",
+    "syncedAt": "2026-09-19T06:07:05.543Z",
     "vaultName": "Kilian Obsidian",
     "areas": [
       { "id": "bricklink", "folder": "Bricklink", "noteCount": 2, "color": "var(--accent-bricklink)" },
