@@ -47,12 +47,17 @@
           "id": "e8ea8ae4-44e3-4762-b109-718a183b403a",
           "text": "Budget Cards fertig cutten",
           "done": false
+        },
+        {
+          "id": "d99d7bb4-4471-4f31-a279-f0956a7804f4",
+          "text": "budget cards hochladen",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1789802973899
+    "updatedAt": 1789802981179
   },
   "tasks": {
     "items": [
