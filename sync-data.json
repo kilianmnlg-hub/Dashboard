@@ -35,7 +35,7 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-09-18",
+    "date": "2026-09-19",
     "items": {
       "business": [],
       "studium": [],
@@ -84,28 +84,8 @@
         "id": "c0076811-80ca-4528-9a52-db946b0e9ab2",
         "text": "dinos we need skript",
         "done": false
-      },
-      {
-        "id": "18dce210-c03e-4ba0-b8ee-b5cb9e2206bc",
-        "text": "dinos we need skript",
-        "done": false
-      },
-      {
-        "id": "420f74ec-d6ea-48ae-b02d-1b159187ec1a",
-        "text": "mtg thumbnail",
-        "done": false
-      },
-      {
-        "id": "24fef509-04ae-4c81-b42f-5f714589c9ca",
-        "text": "dino thumbnail",
-        "done": false
-      },
-      {
-        "id": "ca356174-424c-48b3-948a-f03e58a5fe1d",
-        "text": "projekt erstellen",
-        "done": false
       }
     ],
-    "updatedAt": 1789744434690
+    "updatedAt": 1789802937745
   }
 }
