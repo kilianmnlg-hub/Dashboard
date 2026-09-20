@@ -44,6 +44,11 @@
       "id": "1d8f6548-bdad-4bab-a63c-167a8563b147",
       "label": "Wiegen",
       "targetPerWeek": 7
+    },
+    {
+      "id": "b07e389a-dfc6-4ab9-830c-5daf53425daf",
+      "label": "Lesen",
+      "targetPerWeek": 7
     }
   ],
   "log": {
@@ -221,5 +226,5 @@
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     }
   },
-  "updatedAt": 1789921430719
+  "updatedAt": 1789921464196
 }
