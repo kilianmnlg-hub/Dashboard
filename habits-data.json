@@ -205,7 +205,13 @@
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "koffein": true,
       "gym": true
+    },
+    "2026-09-19": {
+      "gym": true
+    },
+    "2026-09-20": {
+      "gym": true
     }
   },
-  "updatedAt": 1789803016863
+  "updatedAt": 1789921403695
 }
