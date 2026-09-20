@@ -35,29 +35,13 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-09-19",
+    "date": "2026-09-20",
     "items": {
-      "business": [
-        {
-          "id": "523fd048-58b6-4464-927c-8bba4ebbbb37",
-          "text": "dinos we need skript",
-          "done": false
-        },
-        {
-          "id": "e8ea8ae4-44e3-4762-b109-718a183b403a",
-          "text": "Budget Cards fertig cutten",
-          "done": false
-        },
-        {
-          "id": "d99d7bb4-4471-4f31-a279-f0956a7804f4",
-          "text": "budget cards hochladen",
-          "done": false
-        }
-      ],
+      "business": [],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1789802981179
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -70,8 +54,23 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
+      },
+      {
+        "id": "6121e8c3-0b2c-4b12-8272-5ebee0cda04f",
+        "text": "dinos we need skript",
+        "done": false
+      },
+      {
+        "id": "42ad8f93-c209-444b-b433-6f7619b5e6cb",
+        "text": "Budget Cards fertig cutten",
+        "done": false
+      },
+      {
+        "id": "2ae41954-c8b6-44dc-9ea6-fe1f3e6ec6ec",
+        "text": "budget cards hochladen",
+        "done": false
       }
     ],
-    "updatedAt": 1789802952430
+    "updatedAt": 1789906847648
   }
 }
