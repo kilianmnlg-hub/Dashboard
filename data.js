@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-09-20",
-    "lastSyncedAt": "2026-09-20T16:25:14.062Z",
+    "lastUpdated": "2026-09-21",
+    "lastSyncedAt": "2026-09-21T11:43:04.159Z",
     "owner": "Kilian"
   },
   "github": {
@@ -294,6 +294,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-20",
         "value": 29200
+      },
+      {
+        "date": "2026-09-21",
+        "value": 29200
       }
     ],
     "brainwalkersAbos": [
@@ -488,6 +492,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-20",
         "value": 444
+      },
+      {
+        "date": "2026-09-21",
+        "value": 494
       }
     ],
     "tiktokFollower": [
@@ -682,6 +690,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-20",
         "value": 2775
+      },
+      {
+        "date": "2026-09-21",
+        "value": 2776
       }
     ]
   },
@@ -708,7 +720,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 444,
+      "current": 494,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -717,7 +729,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2775,
+      "current": 2776,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -726,7 +738,7 @@ const DASHBOARD_DATA = {
       "id": "bricklink-parts",
       "label": "Bricklink – Teile verkauft",
       "project": "bricklink",
-      "current": 80165,
+      "current": 81786,
       "target": 100000,
       "unit": "Teile",
       "due": "2026-12-31"
@@ -751,12 +763,21 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-20T16:25:12.793Z",
-    "openOrdersCount": 279,
-    "pendingShipments": []
+    "checkedAt": "2026-09-21T11:43:03.378Z",
+    "openOrdersCount": 280,
+    "pendingShipments": [
+      {
+        "orderId": 32626286,
+        "buyer": "christian.roenz",
+        "status": "PAID",
+        "orderedDate": "2026-09-21T06:49:24.020Z",
+        "total": "20.7900",
+        "currency": "EUR"
+      }
+    ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-20T16:25:13.043Z",
+    "checkedAt": "2026-09-21T11:43:03.475Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -798,6 +819,11 @@ const DASHBOARD_DATA = {
         "weekStart": "2026-09-14",
         "total": 107.22,
         "orderCount": 4
+      },
+      {
+        "weekStart": "2026-09-21",
+        "total": 20.79,
+        "orderCount": 1
       }
     ],
     "monthly": [
@@ -833,8 +859,8 @@ const DASHBOARD_DATA = {
       },
       {
         "month": "2026-09",
-        "total": 189.72,
-        "orderCount": 8
+        "total": 210.51,
+        "orderCount": 9
       }
     ]
   },
@@ -904,7 +930,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "444"
+          "value": "494"
         },
         {
           "label": "Videos",
@@ -926,7 +952,7 @@ const DASHBOARD_DATA = {
     },
     "totalsByCategory": {
       "YouTube": 44146.07,
-      "Bricklink": 2473.41
+      "Bricklink": 2632.57
     },
     "daily": [
       {
@@ -1166,7 +1192,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-09-20",
-        "Bricklink": 47.27,
+        "Bricklink": 206.43,
         "YouTube": 70.95
       }
     ]
