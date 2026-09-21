@@ -33,11 +33,17 @@
   "todos": {
     "date": "2026-09-21",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "e5d5a175-6eb7-49b1-8368-79fd6eb2b0a0",
+          "text": "Dino Ton Aufnehmen",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1789974089894
   },
   "tasks": {
     "items": [
