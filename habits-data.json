@@ -231,11 +231,12 @@
     "2026-09-21": {
       "gym": true,
       "koffein": true,
-      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true
+      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
+      "07b53929-622d-4cdf-baf0-47645c841575": true
     },
     "2026-09-22": {
       "gym": true
     }
   },
-  "updatedAt": 1790099730106
+  "updatedAt": 1790099736149
 }
