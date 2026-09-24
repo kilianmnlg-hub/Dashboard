@@ -31,25 +31,13 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-09-21",
+    "date": "2026-09-24",
     "items": {
-      "business": [
-        {
-          "id": "e5d5a175-6eb7-49b1-8368-79fd6eb2b0a0",
-          "text": "Dino Ton Aufnehmen",
-          "done": false
-        }
-      ],
-      "studium": [
-        {
-          "id": "689c2935-5f7f-45f2-895f-5621d649b2be",
-          "text": "eine Seite",
-          "done": false
-        }
-      ],
+      "business": [],
+      "studium": [],
       "privat": []
     },
-    "updatedAt": 1789974098886
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -62,8 +50,18 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
+      },
+      {
+        "id": "6f32623e-bd71-44f3-86c8-ab5c150a5147",
+        "text": "Dino Ton Aufnehmen",
+        "done": false
+      },
+      {
+        "id": "0a6d5742-63c4-4b63-bc2d-e06750b288a0",
+        "text": "eine Seite",
+        "done": false
       }
     ],
-    "updatedAt": 1789974075211
+    "updatedAt": 1790236038617
   }
 }
