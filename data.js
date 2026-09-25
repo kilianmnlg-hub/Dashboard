@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-09-25",
-    "lastSyncedAt": "2026-09-25T10:57:15.261Z",
+    "lastSyncedAt": "2026-09-25T12:29:24.785Z",
     "owner": "Kilian"
   },
   "github": {
@@ -741,7 +741,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-09-25",
-        "value": 2781
+        "value": 2782
       }
     ]
   },
@@ -777,7 +777,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2781,
+      "current": 2782,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -786,7 +786,7 @@ const DASHBOARD_DATA = {
       "id": "bricklink-parts",
       "label": "Bricklink – Teile verkauft",
       "project": "bricklink",
-      "current": 82605,
+      "current": 82555,
       "target": 100000,
       "unit": "Teile",
       "due": "2026-12-31"
@@ -811,12 +811,21 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-25T10:57:14.051Z",
-    "openOrdersCount": 280,
-    "pendingShipments": []
+    "checkedAt": "2026-09-25T12:29:23.588Z",
+    "openOrdersCount": 281,
+    "pendingShipments": [
+      {
+        "orderId": 32657607,
+        "buyer": "chni02412",
+        "status": "PAID",
+        "orderedDate": "2026-09-25T12:13:16.410Z",
+        "total": "90.4000",
+        "currency": "EUR"
+      }
+    ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-25T10:57:14.222Z",
+    "checkedAt": "2026-09-25T12:29:23.817Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -856,8 +865,8 @@ const DASHBOARD_DATA = {
       },
       {
         "weekStart": "2026-09-21",
-        "total": 20.79,
-        "orderCount": 1
+        "total": 111.19,
+        "orderCount": 2
       }
     ],
     "monthly": [
@@ -893,8 +902,8 @@ const DASHBOARD_DATA = {
       },
       {
         "month": "2026-09",
-        "total": 210.51,
-        "orderCount": 9
+        "total": 300.91,
+        "orderCount": 10
       }
     ]
   },
