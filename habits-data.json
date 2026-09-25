@@ -240,7 +240,10 @@
     "2026-09-22": {
       "gym": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
+    },
+    "2026-09-23": {
+      "rauchfrei": true
     }
   },
-  "updatedAt": 1790099753627
+  "updatedAt": 1790329299114
 }
