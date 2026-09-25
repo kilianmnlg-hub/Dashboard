@@ -34,10 +34,16 @@
     "date": "2026-09-25",
     "items": {
       "business": [],
-      "studium": [],
+      "studium": [
+        {
+          "id": "f7792e9f-6c82-49af-9674-950f3f5b768a",
+          "text": "AP beenden",
+          "done": false
+        }
+      ],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1790329430748
   },
   "tasks": {
     "items": [
