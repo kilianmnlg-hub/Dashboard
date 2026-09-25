@@ -38,6 +38,11 @@
           "id": "a12ca8ba-3d53-468b-8eca-41d92e41ff44",
           "text": "Paket auspacken und eintragen",
           "done": false
+        },
+        {
+          "id": "42d4c2d0-a571-4783-9e21-2ece927024f7",
+          "text": "Brainwalkers Deck eintragen",
+          "done": false
         }
       ],
       "studium": [
@@ -49,7 +54,7 @@
       ],
       "privat": []
     },
-    "updatedAt": 1790329446828
+    "updatedAt": 1790329462446
   },
   "tasks": {
     "items": [
