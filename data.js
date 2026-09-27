@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-09-26",
-    "lastSyncedAt": "2026-09-26T11:59:45.912Z",
+    "lastUpdated": "2026-09-27",
+    "lastSyncedAt": "2026-09-27T11:11:40.477Z",
     "owner": "Kilian"
   },
   "github": {
@@ -318,6 +318,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-26",
         "value": 29300
+      },
+      {
+        "date": "2026-09-27",
+        "value": 29300
       }
     ],
     "brainwalkersAbos": [
@@ -536,6 +540,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-26",
         "value": 521
+      },
+      {
+        "date": "2026-09-27",
+        "value": 522
       }
     ],
     "tiktokFollower": [
@@ -754,6 +762,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-26",
         "value": 2788
+      },
+      {
+        "date": "2026-09-27",
+        "value": 2790
       }
     ]
   },
@@ -780,7 +792,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 521,
+      "current": 522,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -789,7 +801,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2788,
+      "current": 2790,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -798,7 +810,7 @@ const DASHBOARD_DATA = {
       "id": "bricklink-parts",
       "label": "Bricklink – Teile verkauft",
       "project": "bricklink",
-      "current": 82555,
+      "current": 82605,
       "target": 100000,
       "unit": "Teile",
       "due": "2026-12-31"
@@ -823,7 +835,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-26T11:59:45.209Z",
+    "checkedAt": "2026-09-27T11:11:39.920Z",
     "openOrdersCount": 281,
     "pendingShipments": [
       {
@@ -837,7 +849,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-26T11:59:45.259Z",
+    "checkedAt": "2026-09-27T11:11:39.947Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -985,11 +997,11 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "521"
+          "value": "522"
         },
         {
           "label": "Videos",
-          "value": "77"
+          "value": "78"
         },
         {
           "label": "Rhythmus",
