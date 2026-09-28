@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-09-27",
-    "lastSyncedAt": "2026-09-27T12:37:30.543Z",
+    "lastUpdated": "2026-09-28",
+    "lastSyncedAt": "2026-09-28T12:38:25.791Z",
     "owner": "Kilian"
   },
   "github": {
@@ -322,6 +322,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-27",
         "value": 29300
+      },
+      {
+        "date": "2026-09-28",
+        "value": 29300
       }
     ],
     "brainwalkersAbos": [
@@ -544,6 +548,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-27",
         "value": 523
+      },
+      {
+        "date": "2026-09-28",
+        "value": 526
       }
     ],
     "tiktokFollower": [
@@ -766,6 +774,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-27",
         "value": 2789
+      },
+      {
+        "date": "2026-09-28",
+        "value": 2789
       }
     ]
   },
@@ -792,7 +804,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 523,
+      "current": 526,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -810,7 +822,7 @@ const DASHBOARD_DATA = {
       "id": "bricklink-parts",
       "label": "Bricklink – Teile verkauft",
       "project": "bricklink",
-      "current": 82605,
+      "current": 83904,
       "target": 100000,
       "unit": "Teile",
       "due": "2026-12-31"
@@ -835,7 +847,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-27T12:37:29.700Z",
+    "checkedAt": "2026-09-28T12:38:24.432Z",
     "openOrdersCount": 281,
     "pendingShipments": [
       {
@@ -849,7 +861,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-27T12:37:29.827Z",
+    "checkedAt": "2026-09-28T12:38:24.725Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -997,11 +1009,11 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "523"
+          "value": "526"
         },
         {
           "label": "Videos",
-          "value": "78"
+          "value": "79"
         },
         {
           "label": "Rhythmus",
