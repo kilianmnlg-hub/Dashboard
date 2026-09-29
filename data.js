@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-09-29",
-    "lastSyncedAt": "2026-09-29T11:57:25.687Z",
+    "lastSyncedAt": "2026-09-29T13:39:01.158Z",
     "owner": "Kilian"
   },
   "github": {
@@ -559,7 +559,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-09-29",
-        "value": 533
+        "value": 534
       }
     ],
     "tiktokFollower": [
@@ -816,7 +816,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 533,
+      "current": 534,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -859,7 +859,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-29T11:57:24.226Z",
+    "checkedAt": "2026-09-29T13:39:00.175Z",
     "openOrdersCount": 282,
     "pendingShipments": [
       {
@@ -873,7 +873,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-29T11:57:24.449Z",
+    "checkedAt": "2026-09-29T13:39:00.304Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -1026,7 +1026,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "533"
+          "value": "534"
         },
         {
           "label": "Videos",
