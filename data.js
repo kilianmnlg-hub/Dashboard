@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-09-29",
-    "lastSyncedAt": "2026-09-29T13:39:01.158Z",
+    "lastUpdated": "2026-09-30",
+    "lastSyncedAt": "2026-09-30T11:45:26.172Z",
     "owner": "Kilian"
   },
   "github": {
@@ -330,6 +330,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-29",
         "value": 29300
+      },
+      {
+        "date": "2026-09-30",
+        "value": 29300
       }
     ],
     "brainwalkersAbos": [
@@ -560,6 +564,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-29",
         "value": 534
+      },
+      {
+        "date": "2026-09-30",
+        "value": 535
       }
     ],
     "tiktokFollower": [
@@ -790,6 +798,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-29",
         "value": 2792
+      },
+      {
+        "date": "2026-09-30",
+        "value": 2792
       }
     ]
   },
@@ -816,7 +828,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 534,
+      "current": 535,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -834,7 +846,7 @@ const DASHBOARD_DATA = {
       "id": "bricklink-parts",
       "label": "Bricklink – Teile verkauft",
       "project": "bricklink",
-      "current": 83675,
+      "current": 84125,
       "target": 100000,
       "unit": "Teile",
       "due": "2026-12-31"
@@ -859,27 +871,18 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-09-29T13:39:00.175Z",
+    "checkedAt": "2026-09-30T11:45:25.468Z",
     "openOrdersCount": 282,
-    "pendingShipments": [
-      {
-        "orderId": 32688019,
-        "buyer": "cathvlaeminck",
-        "status": "PAID",
-        "orderedDate": "2026-09-29T06:15:52.300Z",
-        "total": "21.7890",
-        "currency": "EUR"
-      }
-    ]
+    "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-09-29T13:39:00.304Z",
+    "checkedAt": "2026-09-30T11:45:25.505Z",
     "currency": "EUR",
     "weekly": [
       {
         "weekStart": "2026-08-03",
-        "total": 497.95,
-        "orderCount": 6
+        "total": 86.79,
+        "orderCount": 4
       },
       {
         "weekStart": "2026-08-10",
@@ -1026,11 +1029,11 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "534"
+          "value": "535"
         },
         {
           "label": "Videos",
-          "value": "80"
+          "value": "81"
         },
         {
           "label": "Rhythmus",
