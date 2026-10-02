@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-10-01",
-    "lastSyncedAt": "2026-10-01T14:05:16.432Z",
+    "lastUpdated": "2026-10-02",
+    "lastSyncedAt": "2026-10-02T11:43:32.413Z",
     "owner": "Kilian"
   },
   "github": {
@@ -338,6 +338,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-01",
         "value": 29300
+      },
+      {
+        "date": "2026-10-02",
+        "value": 29300
       }
     ],
     "brainwalkersAbos": [
@@ -575,6 +579,10 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-10-01",
+        "value": 536
+      },
+      {
+        "date": "2026-10-02",
         "value": 536
       }
     ],
@@ -814,6 +822,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-01",
         "value": 2793
+      },
+      {
+        "date": "2026-10-02",
+        "value": 2792
       }
     ]
   },
@@ -849,7 +861,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2793,
+      "current": 2792,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -883,7 +895,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-01T14:05:15.335Z",
+    "checkedAt": "2026-10-02T11:43:31.291Z",
     "openOrdersCount": 283,
     "pendingShipments": [
       {
@@ -897,7 +909,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-01T14:05:15.515Z",
+    "checkedAt": "2026-10-02T11:43:31.462Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -949,8 +961,8 @@ const DASHBOARD_DATA = {
     "monthly": [
       {
         "month": "2026-04",
-        "total": 770.35,
-        "orderCount": 21
+        "total": 742.22,
+        "orderCount": 20
       },
       {
         "month": "2026-05",
@@ -1068,10 +1080,10 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-09-30"
+      "to": "2026-10-02"
     },
     "totalsByCategory": {
-      "YouTube": 44921.13,
+      "YouTube": 44996.15,
       "Bricklink": 3489.12
     },
     "daily": [
@@ -1343,6 +1355,11 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-09-30",
         "YouTube": 44.04,
+        "Bricklink": 0
+      },
+      {
+        "date": "2026-10-02",
+        "YouTube": 75.02,
         "Bricklink": 0
       }
     ]
