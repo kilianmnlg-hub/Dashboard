@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-10-03",
-    "lastSyncedAt": "2026-10-03T10:57:08.510Z",
+    "lastSyncedAt": "2026-10-03T12:10:09.736Z",
     "owner": "Kilian"
   },
   "github": {
@@ -879,7 +879,7 @@ const DASHBOARD_DATA = {
       "id": "bricks-longform-2026",
       "label": "Bricks On The Floor – Longform-Videos 2026",
       "project": "bricksOnTheFloor",
-      "current": 0,
+      "current": 11,
       "target": 52,
       "unit": "Videos",
       "due": "2026-12-31"
@@ -895,7 +895,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-03T10:57:07.633Z",
+    "checkedAt": "2026-10-03T12:10:08.880Z",
     "openOrdersCount": 283,
     "pendingShipments": [
       {
@@ -909,7 +909,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-03T10:57:07.801Z",
+    "checkedAt": "2026-10-03T12:10:08.950Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -1031,7 +1031,7 @@ const DASHBOARD_DATA = {
       "subtitle": "LEGO-YouTube-Kanal · Hauptprojekt",
       "accent": "bricks",
       "uploadRhythmDays": 7,
-      "lastUploadAt": null,
+      "lastUploadAt": "2026-09-23T16:20:16Z",
       "stats": [
         {
           "label": "Abonnenten",
