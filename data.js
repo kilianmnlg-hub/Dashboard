@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-10-05",
-    "lastSyncedAt": "2026-10-05T15:27:34.589Z",
+    "lastUpdated": "2026-10-06",
+    "lastSyncedAt": "2026-10-06T12:35:24.305Z",
     "owner": "Kilian"
   },
   "github": {
@@ -103,10 +103,6 @@ const DASHBOARD_DATA = {
   ],
   "metricsHistory": {
     "bricksOnTheFloorAbos": [
-      {
-        "date": "2026-08-07",
-        "value": 28300
-      },
       {
         "date": "2026-08-08",
         "value": 28400
@@ -342,13 +338,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-05",
         "value": 29300
+      },
+      {
+        "date": "2026-10-06",
+        "value": 29300
       }
     ],
     "brainwalkersAbos": [
-      {
-        "date": "2026-08-07",
-        "value": 253
-      },
       {
         "date": "2026-08-08",
         "value": 254
@@ -584,13 +580,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-05",
         "value": 537
+      },
+      {
+        "date": "2026-10-06",
+        "value": 537
       }
     ],
     "tiktokFollower": [
-      {
-        "date": "2026-08-07",
-        "value": 2713
-      },
       {
         "date": "2026-08-08",
         "value": 2713
@@ -826,6 +822,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-05",
         "value": 2791
+      },
+      {
+        "date": "2026-10-06",
+        "value": 2791
       }
     ]
   },
@@ -870,7 +870,7 @@ const DASHBOARD_DATA = {
       "id": "bricklink-parts",
       "label": "Bricklink – Teile verkauft",
       "project": "bricklink",
-      "current": 84109,
+      "current": 84108,
       "target": 100000,
       "unit": "Teile",
       "due": "2026-12-31"
@@ -895,21 +895,12 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-05T15:27:33.969Z",
-    "openOrdersCount": 285,
-    "pendingShipments": [
-      {
-        "orderId": 32706086,
-        "buyer": "melanya",
-        "status": "PAID",
-        "orderedDate": "2026-10-01T12:49:46.943Z",
-        "total": "20.2180",
-        "currency": "EUR"
-      }
-    ]
+    "checkedAt": "2026-10-06T12:35:23.299Z",
+    "openOrdersCount": 286,
+    "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-05T15:27:34.016Z",
+    "checkedAt": "2026-10-06T12:35:23.451Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -951,13 +942,18 @@ const DASHBOARD_DATA = {
         "weekStart": "2026-09-28",
         "total": 42.01,
         "orderCount": 2
+      },
+      {
+        "weekStart": "2026-10-05",
+        "total": 100,
+        "orderCount": 1
       }
     ],
     "monthly": [
       {
         "month": "2026-04",
-        "total": 617.71,
-        "orderCount": 17
+        "total": 485.19,
+        "orderCount": 14
       },
       {
         "month": "2026-05",
@@ -986,8 +982,8 @@ const DASHBOARD_DATA = {
       },
       {
         "month": "2026-10",
-        "total": 20.22,
-        "orderCount": 1
+        "total": 120.22,
+        "orderCount": 2
       }
     ]
   },
@@ -1078,8 +1074,8 @@ const DASHBOARD_DATA = {
       "to": "2026-10-05"
     },
     "totalsByCategory": {
-      "YouTube": 45334.39,
-      "Bricklink": 3550.89
+      "YouTube": 45572.03,
+      "Bricklink": 3630.79
     },
     "daily": [
       {
@@ -1364,8 +1360,8 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-10-05",
-        "YouTube": 53.64,
-        "Bricklink": 0
+        "YouTube": 291.28,
+        "Bricklink": 79.9
       }
     ]
   }
