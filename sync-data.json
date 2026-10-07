@@ -60,8 +60,13 @@
         "id": "979533b2-4cc7-44f4-a16b-f946b15ef479",
         "text": "Einkaufliste",
         "done": false
+      },
+      {
+        "id": "4c1aca8f-54e8-4d09-bb37-33c6e95ff473",
+        "text": "Buchhaltung",
+        "done": false
       }
     ],
-    "updatedAt": 1791356570123
+    "updatedAt": 1791356585275
   }
 }
