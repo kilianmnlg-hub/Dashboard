@@ -269,9 +269,10 @@
       "kalender",
       "todo",
       "aufgaben",
-      "remote-tasks"
+      "remote-tasks",
+      "habits"
     ],
-    "updatedAt": 1791376448036,
+    "updatedAt": 1791376449274,
     "lvl": 5
   }
 }
