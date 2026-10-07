@@ -79,18 +79,24 @@
         "cat": "youtube",
         "start": 1791389517664,
         "end": 1791396717664
+      },
+      {
+        "id": "5753ea01-5434-4951-a620-ecfacfe7f624",
+        "cat": "youtube",
+        "start": 1791397588850,
+        "end": 1791400018502
       }
     ],
     "removed": [],
     "active": {
-      "youtube": 1791397588850,
+      "youtube": null,
       "bricklink": null
     },
     "targets": {
       "youtube": 20,
       "bricklink": 8
     },
-    "updatedAt": 1791397588850
+    "updatedAt": 1791400018503
   },
   "inbox": {
     "items": [],
