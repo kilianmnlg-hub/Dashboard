@@ -194,6 +194,12 @@
         "name": "Kuchen",
         "qty": "",
         "aisle": "misc"
+      },
+      {
+        "id": "e2f5a3c0-6bfe-46c3-942b-0b7d72073bc3",
+        "name": "Tiefkühl-Obst",
+        "qty": "",
+        "aisle": "tk"
       }
     ],
     "history": {},
@@ -218,7 +224,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373744843
+    "updatedAt": 1791373765545
   },
   "timetracker": {
     "entries": [],
