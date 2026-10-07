@@ -152,6 +152,12 @@
         "name": "Skyr",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "e437564e-2ef4-4766-82a1-3528dff5af73",
+        "name": "Hähnchen",
+        "qty": "",
+        "aisle": "fleisch"
       }
     ],
     "history": {},
@@ -168,6 +174,6 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360625503
+    "updatedAt": 1791360645503
   }
 }
