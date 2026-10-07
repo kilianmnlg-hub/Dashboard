@@ -1,7 +1,7 @@
 # Kilian – Dashboard
 
 Statisches HTML/CSS/JS-Dashboard mit Überblick über Bricklink, Bricks On The Floor,
-The Brainwalkers, 2026-Ziele, Zeit-Balance, Google Kalender und Tages-To-Do. Installierbar
+The Brainwalkers, 2026-Ziele, Zeittracker, Google Kalender und Tages-To-Do. Installierbar
 als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 
 ## Dateien
@@ -12,7 +12,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `scripts/sync-all.mjs` — zieht **alle** automatisierbaren Daten und schreibt sie
   in `data.js`. Ruft die Fetcher in `scripts/fetchers/` nacheinander auf (nicht parallel,
   da youtube.mjs und tiktok.mjs beide das `goals`-Array aktualisieren):
-  - `time-tracker.mjs` — Notion "Zeittracker" (Zeit-Balance-Sektion)
+  - `time-tracker.mjs` — Notion "Zeittracker" (Historie für die Zeittracker-Sektion), `push-timetracker.mjs` schreibt im Dashboard erfasste Zeiten nach Notion
   - `youtube.mjs` — YouTube-Abonnenten/Video-Anzahl/letztes **Longform**-Upload-Datum
     (Bricks On The Floor, The Brainwalkers) → speist auch die Upload-Rhythmus-Ampel
   - `tiktok.mjs` — TikTok-Follower (@bricksonthefloor) per Profilseiten-Scrape
@@ -39,7 +39,7 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 
 | Daten | Quelle | Status |
 |---|---|---|
-| Zeit-Balance (YouTube/Bricklink-Stunden) | Notion "Zeittracker" | ✅ automatisch |
+| Zeittracker: Historie (YouTube/Bricklink-Stunden) | Notion "Zeittracker" | ✅ automatisch |
 | Abonnenten Bricks On The Floor & Brainwalkers | YouTube Data API | ✅ automatisch |
 | Video-Anzahl Brainwalkers | YouTube Data API | ✅ automatisch |
 | Letztes Longform-Upload-Datum (Upload-Rhythmus-Ampel, Shorts zählen nicht) | YouTube Data API | ✅ automatisch |
@@ -73,6 +73,10 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 2. Deine "Zeittracker"-Datenbank in Notion öffnen → "..." Menü → "Connections" →
    die neue Integration hinzufügen.
 3. Token als GitHub-Secret `NOTION_TOKEN` hinterlegen (siehe "GitHub Secrets" unten).
+4. **Für den Zeittracker im Dashboard:** Die Integration braucht in den Einstellungen (notion.so/my-integrations →
+   "Capabilities") zusätzlich **"Insert content"** und **"Update content"**, damit im Dashboard erfasste Zeiten nach Notion
+   geschrieben werden können. Ohne diese Rechte läuft alles weiter (Lesen), nur der Abgleich Dashboard → Notion meldet im
+   Actions-Log eine Warnung.
 
 ### 2. YouTube (Abonnenten)
 
@@ -398,7 +402,7 @@ Wisch-Helfer in `shopping.js`) und speichert nichts. Es gilt weiterhin: alle Nut
 - **Sektionstitel** haben je ein Pixel-Symbol (Kalender, Rolle, Schwert, Globus, Flamme, Pokal, Truhe, Sanduhr,
   Einkaufswagen, Buch). Die Business-Karten haben bewusst keine Symbole, nur einen Farbbalken oben.
 - **Brain-Karte:** Die Bereiche sind Pixel-Kacheln mit Symbol, verbunden durch gestrichelte, wandernde Wege (kein 3D-Kippen mehr).
-- **Ziele und Zeit-Balance:** Die Ringe bestehen aus Pixel-Blöcken (24 beim Ziel-Ring, 36 bei der Zeit-Balance), die beim
+- **Ziele:** Die Ringe der Ziele bestehen aus 24 Pixel-Blöcken, die beim
   Laden nacheinander aufleuchten. Balkendiagramme sind aus gestapelten Pixel-Blöcken aufgebaut. Habit-Serien ab 7 Tagen
   zeigen das Flammen-Badge.
 - **Level oben in der Leiste:** "LVL 5" ist der Durchschnitt aller Ziele in 10%-Schritten (52 % im Schnitt = Level 5, die
@@ -407,14 +411,39 @@ Wisch-Helfer in `shopping.js`) und speichert nichts. Es gilt weiterhin: alle Nut
   - Menü als zweite, seitlich wischbare Zeile, der aktive Eintrag bleibt mittig.
   - Ziele, Business und Tages-To-Do sind wischbare Karten-Reihen mit Einrasten und Positions-Punkten.
   - Habit-Woche: Name oben, die sieben Tage groß darunter.
-  - Wischen auf Habits und Zeit-Balance wechselt Woche/Monat/Jahr, auf der Einkaufsliste die vier Reiter.
+  - Wischen auf Habits und Zeittracker wechselt Woche/Monat/Jahr, auf der Einkaufsliste die vier Reiter.
   - Eine Zeile in Aufgaben, Remote Tasks und der Einkaufsliste nach rechts wischen = abhaken (ab ca. 90px Zug; in der
     Einkaufsliste lässt sich das durch nochmaliges Wischen zurücknehmen). Diagramme scrollen seitlich.
   - Größere Tippflächen, Eingaben ohne Zoom-Sprung (16px), Rücksicht auf Notch und Home-Leiste.
 
+## Zeittracker
+
+Ersetzt die frühere Zeit-Balance. Der Arbeitszeit-Tracker ist direkt im Dashboard (Code in `timetracker.js`, Pixel-Stil wie
+der Rest):
+
+- **Timer** für YouTube und Bricklink mit Start/Stop. Ein laufender Timer liegt in der Cloud, ein Timer vom Handy läuft
+  also auch am PC weiter. Läuft ein Timer länger als 12 Stunden, fragt das Dashboard beim Stoppen nach (so speichern, mit
+  eigener Dauer speichern oder verwerfen), damit ein vergessener Timer keine Stunden-Ausreißer erzeugt.
+- **Kacheln** Heute / Diese Woche / Dieser Monat mit Anteil YouTube vs. Bricklink.
+- **Diagramm** Woche, Monat und Jahr (Heatmap) mit Vor-/Zurück-Pfeilen; Tipp auf einen Tag öffnet das Tages-Detail.
+  Auf dem Handy wechselt Wischen zwischen Woche, Monat und Jahr.
+- **Verlauf** der letzten 100 Einträge, "+ Eintrag" für manuelle Zeiten, × zum Löschen.
+
+**Daten:** Im Dashboard erfasste Einträge, gelöschte Einträge und laufende Timer liegen nur in der Cloud (Feld `timetracker`
+in `sync-data.json`, wie alles andere). Die Historie kommt aus Notion (`data.timeTracker.entries`, vom täglichen Sync).
+Das Dashboard zeigt beides zusammen; Einträge, die in beiden vorkommen, zählen nur einmal (Erkennung über Kategorie plus
+Start-Minute). Einträge und Löschungen werden bei gleichzeitigen Änderungen auf zwei Geräten immer vereinigt.
+
+**Abgleich mit Notion:** Der Workflow `sync-all.yml` schreibt in seinem ersten Schritt (`scripts/push-timetracker.mjs`) neue
+Dashboard-Einträge als Seiten in die Notion-Datenbank "Zeittracker" und verschiebt gelöschte in den Notion-Papierkorb;
+danach liest der normale Sync alles wieder ein. Das passiert täglich um 08:00 Uhr oder sofort über den Sync-Knopf oben.
+Bis dahin steht oben rechts im Tracker "N OFFEN" (Einträge, die noch auf Notion warten). Voraussetzung: Die
+Notion-Integration hat Schreibrechte (siehe "Einrichtung", Notion). Der alte Notion-Tracker (Artifact) funktioniert
+weiter; seine Einträge erscheinen nach dem nächsten Sync im Dashboard.
+
 ## Einkaufsliste
 
-Eigene Sektion zwischen "Zeit-Balance" und "Notizen" im Retro-Pixel-Stil (Code in `shopping.js`,
+Eigene Sektion zwischen "Zeittracker" und "Notizen" im Retro-Pixel-Stil (Code in `shopping.js`,
 eingebunden von `script.js`). Alles in einer kompakten Karte, vier Reiter klappen je ein Feld auf:
 
 - **Liste:** Artikel eintippen (Enter oder +). Mengen wie "2x Milch" werden erkannt, und die Liste

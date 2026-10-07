@@ -107,45 +107,6 @@
     containerEl.classList.add("grown");
   }
 
-  // Zaehlt die Stunden-Zahl in der Donut-Mitte beim ersten Rendern kurz hoch (analog zu
-  // animateStatValue oben, aber fuer einen bereits als JS-Zahl vorliegenden Stundenwert statt
-  // einen deutsch formatierten Text - daher eine eigene, einfachere Variante).
-  function animateDonutTotal(el, targetHours) {
-    if (!el) return;
-    const finalText = `${targetHours.toFixed(1)}h`;
-    el.textContent = finalText;
-    if (prefersReducedMotion() || targetHours <= 0) return;
-    const duration = 900;
-    let start = null;
-    function step(ts) {
-      if (start === null) start = ts;
-      const p = Math.min(1, (ts - start) / duration);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = `${(targetHours * eased).toFixed(1)}h`;
-      if (p < 1) requestAnimationFrame(step);
-      else el.textContent = finalText;
-    }
-    requestAnimationFrame(step);
-  }
-
-  // Zeit-Balance-Donut als Ring aus 36 Pixel-Bloecken (Spiel-Look). Jeder Block bekommt die Farbe des
-  // Segments, in das seine Mitte faellt; die Bloecke leuchten per CSS-Animation (Verzoegerung je Block)
-  // nacheinander auf. Der Endzustand steht ohne jede Animation sofort da.
-  // segments: [{color, from, to}] mit kumulierten Prozent-Grenzen (0-100), filledTo ist die Summe
-  // aller Segmente (i.d.R. 100, bei totalMinutes=0 aber 0 - siehe Aufrufer).
-  const DONUT_BLOCKS = 36;
-  function animateDonutRing(el, segments, filledTo) {
-    if (!el) return;
-    el.style.removeProperty("background");
-    el.querySelectorAll(":scope > i").forEach((i) => i.remove());
-    const blocks = Array.from({ length: DONUT_BLOCKS }, (_, i) => {
-      const mid = ((i + 0.5) / DONUT_BLOCKS) * 100;
-      const seg = filledTo > 0 ? segments.find((x) => mid >= x.from && mid < x.to) : null;
-      return `<i class="${seg ? "on" : ""}" style="--i:${i}${seg ? `;--b:${seg.color}` : ""}"></i>`;
-    }).join("");
-    el.insertAdjacentHTML("afterbegin", blocks);
-  }
-
   // Ziel-Gauge als Ring aus 24 Pixel-Bloecken (Spiel-Lebensring): die ersten "litCount" leuchten in der
   // Zielfarbe, der Rest bleibt in der Ruhefarbe. Das Aufleuchten nacheinander macht CSS (Verzoegerung je
   // Block) - der Endzustand steht also so oder so sofort korrekt da, auch ohne Animation.
@@ -1374,159 +1335,6 @@
     }
   });
 
-  // ---------- Time tracker: Donut + gestapelte Balken (Woche/Monat/Jahr) ----------
-  const tt = data.timeTracker;
-  const toHours = (min) => min / 60;
-  const categoryColors = { YouTube: "var(--accent-bricks)", Bricklink: "var(--accent-bricklink)" };
-  // Lokaler Helfer statt des später deklarierten `dateKey` — sonst Temporal-Dead-Zone-Fehler
-  // (siehe escapeHtml/newId oben: gleiche Falle, hier bewusst vermieden).
-  const timeDateKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-
-  let timeView = "week";
-
-  function timeCategoriesOf(rows) {
-    const set = new Set();
-    rows.forEach((row) => Object.keys(row).forEach((k) => k !== "date" && set.add(k)));
-    return [...set];
-  }
-
-  function sumByCategory(rows) {
-    const totals = {};
-    rows.forEach((row) => {
-      Object.entries(row).forEach(([k, v]) => {
-        if (k === "date") return;
-        totals[k] = (totals[k] || 0) + v;
-      });
-    });
-    return totals;
-  }
-
-  function aggregateMonthly(daily) {
-    const byMonth = {};
-    daily.forEach((row) => {
-      const key = row.date.slice(0, 7);
-      byMonth[key] = byMonth[key] || { date: key };
-      Object.entries(row).forEach(([k, v]) => {
-        if (k === "date") return;
-        byMonth[key][k] = (byMonth[key][k] || 0) + v;
-      });
-    });
-    return Object.keys(byMonth)
-      .sort()
-      .map((k) => byMonth[k]);
-  }
-
-  function timeViewRows(view) {
-    const today = new Date();
-    if (view === "week") {
-      const cutoff = new Date(today);
-      cutoff.setDate(cutoff.getDate() - 6);
-      const cutoffKey = timeDateKey(cutoff);
-      return { rows: tt.daily.filter((d) => d.date >= cutoffKey), granularity: "day" };
-    }
-    if (view === "month") {
-      const prefix = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
-      return { rows: tt.daily.filter((d) => d.date.startsWith(prefix)), granularity: "day" };
-    }
-    const yearRows = tt.daily.filter((d) => d.date.startsWith(String(today.getFullYear())));
-    return { rows: aggregateMonthly(yearRows), granularity: "month" };
-  }
-
-  const timeViewRangeLabel = {
-    week: () => "Letzte 7 Tage",
-    month: () => new Date().toLocaleDateString("de-DE", { month: "long", year: "numeric" }),
-    year: () => `${new Date().getFullYear()}`
-  };
-
-  function renderTimeBalance() {
-    const { rows, granularity } = timeViewRows(timeView);
-    const categories = timeCategoriesOf(rows);
-    const totals = sumByCategory(rows);
-    const totalMinutes = Object.values(totals).reduce((a, b) => a + b, 0);
-
-    document.getElementById("timeRangeLabel").textContent = rows.length
-      ? `${timeViewRangeLabel[timeView]()} · Quelle: ${tt.source}`
-      : `Keine Zeiteinträge für diesen Zeitraum · Quelle: ${tt.source}`;
-
-    animateDonutTotal(document.getElementById("timeDonutTotal"), toHours(totalMinutes));
-
-    let donutCursor = 0;
-    const donutSegments = categories.map((cat) => {
-      const from = donutCursor;
-      donutCursor += totalMinutes ? (totals[cat] / totalMinutes) * 100 : 0;
-      return { color: categoryColors[cat] || "var(--surface-3)", from, to: donutCursor };
-    });
-    animateDonutRing(document.getElementById("timeDonut"), donutSegments, donutCursor);
-
-    const timeLegendEl = document.getElementById("timeLegend");
-    timeLegendEl.innerHTML = categories.length
-      ? categories
-          .map(
-            (cat) => `
-        <div class="legend-row" data-cat="${escapeHtml(cat)}">
-          <span class="legend-dot" style="background:${categoryColors[cat] || "var(--surface-3)"}"></span>
-          ${cat}
-          <span class="v">${toHours(totals[cat]).toFixed(1)}h · ${totalMinutes ? ((totals[cat] / totalMinutes) * 100).toFixed(0) : 0}%</span>
-        </div>`
-          )
-          .join("")
-      : `<p class="habit-empty">Keine Zeiteinträge in diesem Zeitraum.</p>`;
-    const legendRows = timeLegendEl.querySelectorAll(".legend-row");
-    legendRows.forEach((row) => {
-      row.addEventListener("mouseenter", () => legendRows.forEach((r) => r.classList.toggle("dim", r !== row)));
-      row.addEventListener("mouseleave", () => legendRows.forEach((r) => r.classList.remove("dim")));
-    });
-
-    const rowTotals = rows.map((row) => categories.reduce((sum, c) => sum + (row[c] || 0), 0));
-    const maxRowTotal = Math.max(1, ...rowTotals);
-
-    const labelFor = (row) =>
-      granularity === "month"
-        ? new Date(row.date + "-01T00:00:00").toLocaleDateString("de-DE", { month: "short" })
-        : new Date(row.date + "T00:00:00").toLocaleDateString("de-DE", { weekday: "short" });
-
-    const tooltipFor = (row, dayTotal) => {
-      const dateLabel =
-        granularity === "month"
-          ? new Date(row.date + "-01T00:00:00").toLocaleDateString("de-DE", { month: "long", year: "numeric" })
-          : fmtDate(row.date);
-      const parts = categories.map((c) => `${c}: ${toHours(row[c] || 0).toFixed(1)}h`).join(" · ");
-      return `${dateLabel} — ${toHours(dayTotal).toFixed(1)}h gesamt (${parts})`;
-    };
-
-    const timeBarsEl = document.getElementById("timeBars");
-    timeBarsEl.innerHTML = rows
-      .map((row, i) => {
-        const dayTotal = rowTotals[i];
-        const h = Math.max(4, Math.round((dayTotal / maxRowTotal) * 130));
-        const segs = categories
-          .map((c) => {
-            const segH = dayTotal > 0 ? Math.round(((row[c] || 0) / dayTotal) * h) : 0;
-            return segH > 0
-              ? `<div class="seg" style="height:${segH}px; background:${categoryColors[c] || "var(--surface-3)"}"></div>`
-              : "";
-          })
-          .join("");
-        return `<div class="iso-bar-col" title="${tooltipFor(row, dayTotal)}">
-          <div class="iso-bar-value">${toHours(dayTotal).toFixed(1)}h</div>
-          <div class="stack-bar" style="--h:${h}px">${segs}</div>
-          <div class="iso-bar-label">${labelFor(row)}</div>
-        </div>`;
-      })
-      .join("");
-    growBarsIn(timeBarsEl);
-  }
-
-  document.querySelectorAll("#timeViewToggle button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      timeView = btn.dataset.view;
-      document.querySelectorAll("#timeViewToggle button").forEach((b) => b.classList.toggle("active", b === btn));
-      renderTimeBalance();
-    });
-  });
-
-  renderTimeBalance();
-
   // ---------- Umsatz-Trend (Bricklink) ----------
   const revenue = data.bricklinkRevenue;
   const hasWeekly = revenue?.weekly?.length > 0;
@@ -1891,6 +1699,20 @@
   // Rohstand aus der Cloud: falls shopping.js mal nicht geladen ist, wird er beim Push unveraendert
   // zurueckgeschrieben statt versehentlich geloescht.
   let remoteShoppingRaw = null;
+
+  // Zeittracker (timetracker.js): ersetzt die frühere Zeit-Balance. Laufende Timer und im Dashboard erfasste Einträge
+  // liegen nur in der Cloud (Feld "timetracker" in sync-data.json), die Historie kommt aus Notion (data.timeTracker.entries).
+  const timeTrackerBoard = window.createTimeTracker
+    ? window.createTimeTracker({
+        dataStore,
+        scheduleAutoSync,
+        newId,
+        notionEntries: data.timeTracker?.entries,
+        notionAt: data.meta?.lastSyncedAt,
+        refresh: () => fetchRemoteSyncData()
+      })
+    : null;
+  let remoteTimeTrackerRaw = null;
 
   // Nicht abgehakte Tages-To-Dos VERGANGENER Tage nach "Aufgaben" uebernehmen, bevor der
   // alte Tages-Eintrag verworfen wird. Jeder Tag hat einen eigenen Storage-Key
@@ -2474,9 +2296,11 @@
       todos: { date: todayKey(), items: todosState.items, updatedAt: clampedAt(todosState.updatedAt) },
       tasks: taskBoard.payload(),
       remoteTasks: remoteTaskBoard.payload(),
-      shopping: shoppingBoard ? shoppingBoard.payload() : remoteShoppingRaw
+      shopping: shoppingBoard ? shoppingBoard.payload() : remoteShoppingRaw,
+      timetracker: timeTrackerBoard ? timeTrackerBoard.payload() : remoteTimeTrackerRaw
     };
     if (payload.shopping == null) delete payload.shopping;
+    if (payload.timetracker == null) delete payload.timetracker;
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${SYNC_DATA_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
     const fail = (msg, extra) => {
@@ -2604,6 +2428,8 @@
         remoteTaskBoard.applyRemote(remote.remoteTasks);
         remoteShoppingRaw = remote.shopping ?? null;
         if (shoppingBoard) shoppingBoard.applyRemote(remote.shopping);
+        remoteTimeTrackerRaw = remote.timetracker ?? null;
+        if (timeTrackerBoard) timeTrackerBoard.applyRemote(remote.timetracker);
         applyRemoteTodos(remote.todos);
       }
       cloudLoaded.syncdata = true;
@@ -3055,7 +2881,7 @@
       refresh();
     });
 
-    // Handy: Woche/Monat/Jahr per Wischen wechseln (Habits und Zeit-Balance)
+    // Handy: Woche/Monat/Jahr per Wischen wechseln (Habits; der Zeittracker bringt sein eigenes Wischen mit)
     const swipeViews = (panelSel, toggleSel) => {
       const panel = document.querySelector(panelSel);
       const btns = [...document.querySelectorAll(`${toggleSel} button`)];
@@ -3067,7 +2893,6 @@
       PX.attachSwipe(panel, { onLeft: () => step(1), onRight: () => step(-1), ignore: "input, textarea" });
     };
     swipeViews(".habit-panel", "#habitViewToggle");
-    swipeViews("#zeit .panel", "#timeViewToggle");
 
     // Handy: Aufgaben und Remote Tasks nach rechts wischen = abhaken (wie ein Klick auf das Kaestchen)
     [taskList, remoteTaskList].forEach((list) =>

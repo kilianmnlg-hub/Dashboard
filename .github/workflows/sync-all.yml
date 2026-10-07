@@ -29,6 +29,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      # Zeittracker: im Dashboard erfasste Zeiten nach Notion schreiben (und dort geloeschte in den Papierkorb), BEVOR
+      # der Daten-Sync unten alles wieder einliest. Scheitert das (z.B. fehlende Schreibrechte der Notion-Integration),
+      # laeuft der normale Sync trotzdem weiter.
+      - name: Zeittracker nach Notion schreiben
+        run: node scripts/push-timetracker.mjs
+        continue-on-error: true
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
       - run: node scripts/sync-all.mjs
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}

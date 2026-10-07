@@ -13,6 +13,7 @@
     book:    { p: { b: "#8a6a3a", w: "#f2e3b8" }, r: ["..bbbbbb", ".bwwwwwb", "bwwbbwwb", "bwwwwwwb", "bwbbbbwb", "bwwwwwwb", "bbbbbbbb", "........"] },
     brain:   { p: { p: "#e89ab8", l: "#c0587e" }, r: ["..pppp..", ".pplppp.", "pplpplpp", "plppplpp", "pplpplpp", "pppplppp", ".pppppp.", "..pppp.."] },
     brick:   { p: { b: "#d95926", h: "#f0a37a", d: "#9a3a14" }, r: [".bb..bb.", ".bbbbbb.", "bbbbbbbb", "bhbbbbbb", "bbbbbbbb", "bbbbbbbb", "dddddddd", "........"] },
+    brickblue:{ p: { b: "#2b5f8a", h: "#9cc4e4", d: "#1a3a58" }, r: [".bb..bb.", ".bbbbbb.", "bbbbbbbb", "bhbbbbbb", "bbbbbbbb", "bbbbbbbb", "dddddddd", "........"] },
     play:    { p: { b: "#8a2f2f", r: "#e66767", w: "#ffffff" }, r: ["bbbbbbbb", "brrrrrrb", "brwrrrrb", "brwwrrrb", "brwwwrrb", "brwwrrrb", "brwrrrrb", "bbbbbbbb"] },
     spark:   { p: { p: "#9085e9" }, r: ["...pp...", "...pp...", "..pppp..", "pppppppp", "pppppppp", "..pppp..", "...pp...", "...pp..."] },
     bulb:    { p: { y: "#f4c542", h: "#fff1a8", g: "#9aa3ad" }, r: ["..yyyy..", ".yhyyyy.", ".yyyyyy.", ".yyyyyy.", "..yyyy..", "...gg...", "...gg...", "..gggg.."] },
