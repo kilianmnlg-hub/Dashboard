@@ -188,19 +188,14 @@
     "updatedAt": 1791362066833
   },
   "timetracker": {
-    "entries": [
-      {
-        "id": "3a0f8587-d3cd-4dd6-8383-4d56deca644b",
-        "cat": "youtube",
-        "start": 1791368615554,
-        "end": 1791368619263
-      }
+    "entries": [],
+    "removed": [
+      "youtube|29856143"
     ],
-    "removed": [],
     "active": {
       "youtube": null,
       "bricklink": null
     },
-    "updatedAt": 1791368619264
+    "updatedAt": 1791368624183
   }
 }
