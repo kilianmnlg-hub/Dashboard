@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-10-07",
-    "lastSyncedAt": "2026-10-07T16:11:08.471Z",
+    "lastSyncedAt": "2026-10-07T19:32:27.240Z",
     "owner": "Kilian"
   },
   "github": {
@@ -879,7 +879,7 @@ const DASHBOARD_DATA = {
       "id": "bricks-longform-2026",
       "label": "Bricks On The Floor – Longform-Videos 2026",
       "project": "bricksOnTheFloor",
-      "current": 27,
+      "current": 28,
       "target": 52,
       "unit": "Videos",
       "due": "2026-12-31"
@@ -895,12 +895,12 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-07T16:11:06.922Z",
+    "checkedAt": "2026-10-07T19:32:25.748Z",
     "openOrdersCount": 286,
     "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-07T16:11:07.254Z",
+    "checkedAt": "2026-10-07T19:32:26.051Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -952,8 +952,8 @@ const DASHBOARD_DATA = {
     "monthly": [
       {
         "month": "2026-04",
-        "total": 471.67,
-        "orderCount": 13
+        "total": 434.04,
+        "orderCount": 12
       },
       {
         "month": "2026-05",
@@ -1022,7 +1022,7 @@ const DASHBOARD_DATA = {
       "subtitle": "LEGO-YouTube-Kanal · Hauptprojekt",
       "accent": "bricks",
       "uploadRhythmDays": 7,
-      "lastUploadAt": "2026-09-23T16:20:16Z",
+      "lastUploadAt": "2026-10-07T18:21:03Z",
       "stats": [
         {
           "label": "Abonnenten",
@@ -1071,10 +1071,10 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-10-06"
+      "to": "2026-10-07"
     },
     "totalsByCategory": {
-      "YouTube": 12864.05,
+      "YouTube": 13084.54,
       "Bricklink": 3630.79
     },
     "daily": [
@@ -1366,6 +1366,11 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-06",
         "YouTube": 120.18,
+        "Bricklink": 0
+      },
+      {
+        "date": "2026-10-07",
+        "YouTube": 220.49,
         "Bricklink": 0
       }
     ],
@@ -2930,6 +2935,27 @@ const DASHBOARD_DATA = {
         "start": 1791289260000,
         "end": 1791296460000,
         "min": 120.18
+      },
+      {
+        "id": "3f2430d3-4cf3-81ca-b480-c9c154b8d47f",
+        "cat": "youtube",
+        "start": 1791367200000,
+        "end": 1791370800000,
+        "min": 60
+      },
+      {
+        "id": "3f2430d3-4cf3-81b0-b541-db6f70b0ba72",
+        "cat": "youtube",
+        "start": 1791389460000,
+        "end": 1791396660000,
+        "min": 120
+      },
+      {
+        "id": "3f2430d3-4cf3-8108-947a-f4286242b232",
+        "cat": "youtube",
+        "start": 1791397560000,
+        "end": 1791399960000,
+        "min": 40.49
       }
     ]
   }
