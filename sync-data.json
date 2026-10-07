@@ -109,10 +109,11 @@
     "history": {},
     "prices": {
       "Milch": 1,
-      "Light Käse": 2
+      "Light Käse": 2,
+      "Mais": 1
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360330981
+    "updatedAt": 1791360334034
   }
 }
