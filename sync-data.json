@@ -110,10 +110,11 @@
     "prices": {
       "Milch": 1,
       "Light Käse": 2,
-      "Mais": 1
+      "Mais": 1,
+      "Kartoffeln": 4
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360334034
+    "updatedAt": 1791360337120
   }
 }
