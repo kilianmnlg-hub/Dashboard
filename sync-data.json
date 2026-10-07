@@ -266,19 +266,15 @@
   },
   "fold": {
     "collapsed": [
-      "kalender",
-      "todo",
       "aufgaben",
       "remote-tasks",
       "einkauf",
       "zeit",
+      "business",
       "ziele",
-      "notizen",
-      "brain",
-      "habits",
-      "business"
+      "notizen"
     ],
-    "updatedAt": 1791376925569,
+    "updatedAt": 1791377355167,
     "lvl": 5
   }
 }
