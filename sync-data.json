@@ -116,6 +116,12 @@
         "name": "Sauce Holland",
         "qty": "",
         "aisle": "vorrat"
+      },
+      {
+        "id": "a8480cde-45db-42ac-a1df-4d644dfa34b2",
+        "name": "Bananen",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {},
@@ -129,6 +135,6 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360442048
+    "updatedAt": 1791360477289
   }
 }
