@@ -104,6 +104,12 @@
         "name": "Light Käse",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "8c22c5f9-acd0-4179-ac90-eb1c0894d7a6",
+        "name": "Grünebohnen",
+        "qty": "",
+        "aisle": "vorrat"
       }
     ],
     "history": {},
@@ -115,6 +121,6 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360390923
+    "updatedAt": 1791360395854
   }
 }
