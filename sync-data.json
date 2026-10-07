@@ -53,5 +53,40 @@
       }
     ],
     "updatedAt": 1791389448111
+  },
+  "remoteTasks": {
+    "items": [],
+    "updatedAt": 0
+  },
+  "shopping": {
+    "items": [],
+    "history": {},
+    "prices": {},
+    "learned": {},
+    "dishes": [],
+    "updatedAt": 0
+  },
+  "timetracker": {
+    "entries": [],
+    "removed": [],
+    "active": {
+      "youtube": null,
+      "bricklink": null
+    },
+    "targets": {
+      "youtube": 20,
+      "bricklink": 8
+    },
+    "updatedAt": 0
+  },
+  "inbox": {
+    "items": [],
+    "removed": [],
+    "updatedAt": 0
+  },
+  "fold": {
+    "collapsed": [],
+    "updatedAt": 0,
+    "lvl": 5
   }
 }
