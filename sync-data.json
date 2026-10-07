@@ -117,10 +117,11 @@
       "Milch": 1,
       "Light Käse": 2,
       "Mais": 1,
-      "Kartoffeln": 4
+      "Kartoffeln": 4,
+      "Grünebohnen": 2
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360395854
+    "updatedAt": 1791360399650
   }
 }
