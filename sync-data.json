@@ -221,11 +221,12 @@
       "Tomaten": 2,
       "Salat": 1,
       "Frischkäse": 1,
-      "Tiefkühl-Obst": 3
+      "Tiefkühl-Obst": 3,
+      "Kuchen": 2
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373976474
+    "updatedAt": 1791373979371
   },
   "timetracker": {
     "entries": [],
