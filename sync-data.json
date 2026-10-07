@@ -173,10 +173,11 @@
       "Eier": 4,
       "Harzer Käse": 2,
       "Skyr": 2,
-      "Hähnchen": 6
+      "Hähnchen": 6,
+      "Tiefkühlgemüse": 2
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360660462
+    "updatedAt": 1791360664457
   }
 }
