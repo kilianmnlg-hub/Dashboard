@@ -188,6 +188,12 @@
         "name": "Magerquark",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "e5674f6f-66b0-4c5f-b810-7f8b90bc63f5",
+        "name": "Kuchen",
+        "qty": "",
+        "aisle": "misc"
       }
     ],
     "history": {},
@@ -212,7 +218,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373737199
+    "updatedAt": 1791373744843
   },
   "timetracker": {
     "entries": [],
