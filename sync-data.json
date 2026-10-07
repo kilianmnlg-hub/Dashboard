@@ -199,11 +199,12 @@
       "Skyr": 2,
       "Hähnchen": 6,
       "Tiefkühlgemüse": 2,
-      "Sojagranulat": 3
+      "Sojagranulat": 3,
+      "Tomaten": 2
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373130482
+    "updatedAt": 1791373144530
   },
   "timetracker": {
     "entries": [],
