@@ -4,7 +4,7 @@
    (scripts/push-timetracker.mjs) schreibt neue Dashboard-Eintraege nach Notion und verschiebt geloeschte in den Papierkorb.
    script.js uebergibt dataStore, Auto-Sync und die Merge-Regeln und ruft applyRemote()/payload() auf. */
 (function () {
-  const MIN = 60000, DAY = 86400000, LONG_TIMER = 12 * 3600000;
+  const MIN = 60000, DAY = 86400000, MAX_TIMER = 2 * 3600000; // Ein Timer stoppt automatisch nach 2 Stunden
   const CATS = ["youtube", "bricklink"];
   const LABEL = { youtube: "YouTube", bricklink: "Bricklink" };
   const SPRITE = { youtube: "play", bricklink: "brickblue" };
@@ -107,7 +107,7 @@
       });
       return index;
     }
-    const live = (c) => (state.active[c] ? Math.max(0, Date.now() - state.active[c]) : 0);
+    const live = (c) => (state.active[c] ? Math.min(MAX_TIMER, Math.max(0, Date.now() - state.active[c])) : 0);
     function dayTotals(d) {
       const row = buildIndex().byDay.get(dateKey(d)), t = { youtube: row ? row.youtube : 0, bricklink: row ? row.bricklink : 0 };
       if (sameDay(d, new Date())) CATS.forEach((c) => (t[c] += live(c)));
@@ -124,7 +124,7 @@
         root.querySelector(`.tt-timer[data-c="${c}"]`).classList.toggle("tt-running", run);
         $("ttClk-" + c).textContent = fmtClock(run ? live(c) : 0);
         $("ttBtn-" + c).textContent = run ? "STOP" : "START";
-        $("ttSub-" + c).textContent = "Heute: " + fmtHM(t[c]);
+        $("ttSub-" + c).textContent = "Heute: " + fmtHM(t[c]) + (run ? " · Auto-Stopp " + fmtClockTime(state.active[c] + MAX_TIMER) : "");
       });
     }
     function commit(cat, start, end) {
@@ -137,8 +137,14 @@
     }
     function toggle(cat) {
       if (!state.active[cat]) { state.active[cat] = Date.now(); save(); renderAll(); return; }
-      const start = state.active[cat], end = Date.now();
-      if (end - start > LONG_TIMER) openLong(cat, start, end); else commit(cat, start, end);
+      const start = state.active[cat];
+      commit(cat, start, Math.min(Date.now(), start + MAX_TIMER));
+    }
+    // Laeuft ein Timer seit 2 Stunden, wird er mit genau dieser Dauer gespeichert (auch wenn das Dashboard zu war: der Start
+    // steht in der Cloud, beim naechsten Oeffnen wird nachgeholt).
+    function autoStop() {
+      const now = Date.now();
+      CATS.forEach((c) => { const s = state.active[c]; if (s && now - s >= MAX_TIMER) commit(c, s, s + MAX_TIMER); });
     }
     CATS.forEach((c) => $("ttBtn-" + c).addEventListener("click", () => toggle(c)));
 
@@ -225,23 +231,7 @@
     $("ttDayOv").addEventListener("click", (e) => { if (e.target === $("ttDayOv")) closeDay(); });
     root.addEventListener("click", (e) => { const b = e.target.closest("#ttBars .tt-bg, #ttYear .tt-yd"); if (b && b.dataset.d) openDay(b.dataset.d); });
     root.addEventListener("keydown", (e) => { if ((e.key === "Enter" || e.key === " ") && e.target.classList && e.target.classList.contains("tt-bg")) { e.preventDefault(); openDay(e.target.dataset.d); } });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeDay(); closeLong(); } });
-
-    /* ---------- Vergessener Timer (laenger als 12 Stunden) ---------- */
-    let longCtx = null;
-    function openLong(cat, start, end) {
-      longCtx = { cat, start, end };
-      $("ttLongText").textContent = `Der ${LABEL[cat]}-Timer läuft seit ${fmtHM(end - start)} (gestartet ${fmtDateTime(start)}). Wahrscheinlich wurde er vergessen. Wie soll er gespeichert werden?`;
-      $("ttLongMin").value = 60;
-      $("ttLongKeep").textContent = "SO SPEICHERN (" + fmtHM(end - start) + ")";
-      $("ttLongOv").classList.add("tt-open");
-      $("ttLongMin").focus();
-    }
-    function closeLong() { $("ttLongOv").classList.remove("tt-open"); longCtx = null; }
-    $("ttLongKeep").addEventListener("click", () => { if (!longCtx) return; const c = longCtx; closeLong(); commit(c.cat, c.start, c.end); });
-    $("ttLongCut").addEventListener("click", () => { if (!longCtx) return; const m = Math.max(1, Math.min(12 * 60, Math.round(+$("ttLongMin").value || 0))); const c = longCtx; closeLong(); commit(c.cat, c.start, c.start + m * MIN); });
-    $("ttLongDrop").addEventListener("click", () => { if (!longCtx) return; const c = longCtx; closeLong(); state.active[c.cat] = null; save(); renderAll(); });
-    $("ttLongClose").addEventListener("click", closeLong);
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDay(); });
 
     /* ---------- Verlauf ---------- */
     let freshKey = null;
@@ -340,7 +330,8 @@
       } catch (e) { /* offline o.ae.: die mitgelieferten Daten bleiben */ }
     }
     loadFreshNotion();
-    setInterval(() => { if (state.active.youtube || state.active.bricklink) { renderTimers(); renderStats(); } }, 1000);
+    autoStop();
+    setInterval(() => { autoStop(); if (state.active.youtube || state.active.bricklink) { renderTimers(); renderStats(); } }, 1000);
 
     return {
       render: renderAll,
@@ -358,6 +349,7 @@
         const remoteKeys = new Set(r.entries.map((e) => e.k));
         changedLocal = state.entries.some((e) => !remoteKeys.has(e.k)) || state.removed.some((k) => !r.removed.includes(k));
         if (r.updatedAt > state.updatedAt) { state.active = r.active; state.targets = r.targets; }
+        autoStop();
         state.updatedAt = Math.max(state.updatedAt, r.updatedAt);
         index = null;
         persist();
