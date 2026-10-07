@@ -1,7 +1,7 @@
 {
   "name": "Kilian – Überblick",
   "short_name": "Überblick",
-  "description": "Bricklink, YouTube-Kanäle, Ziele, Zeit-Balance und Tages-To-Do auf einen Blick.",
+  "description": "Bricklink, YouTube-Kanäle, Ziele, Zeittracker und Tages-To-Do auf einen Blick.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -9,6 +9,8 @@
   "theme_color": "#14120F",
   "orientation": "portrait-primary",
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "icon-200.png", "sizes": "200x200", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-640.png", "sizes": "640x640", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ]
 }
