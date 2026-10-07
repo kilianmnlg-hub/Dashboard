@@ -1060,13 +1060,13 @@
     const need = (goal.target - goal.current) / remaining;
     const pace = goalPacePerDay(goal);
     const needRow = `<div class="gr-row"><span class="gr-l">NÖTIG</span><div class="gr-blk gr-need">${"<i></i>".repeat(20)}</div><b>${fmtRate(need * k)}${unit}</b></div>`;
-    if (pace === null) return `<div class="goal-reality">${needRow}<p class="gr-note">Tempo wird gemessen, sobald genug Verlauf da ist.</p></div>`;
+    if (pace === null) return `<div class="goal-reality">${needRow}<p class="gr-note">Tempo noch nicht messbar.</p></div>`;
     const proj = goal.current + Math.max(0, pace) * remaining, ratio = proj / goal.target;
     const [label, cls] = ratio >= 0.97 ? ["AUF KURS", "good"] : ratio >= 0.9 ? ["KNAPP DAHINTER", "warn"] : ratio >= 0.7 ? ["DAHINTER", "warn"] : ["ZU WEIT WEG", "bad"];
     const lit = Math.max(pace > 0 ? 1 : 0, Math.min(20, Math.round((Math.max(0, pace) / need) * 20)));
     return `<div class="goal-reality">${needRow}
       <div class="gr-row gr-${cls}"><span class="gr-l">AKTUELL</span><div class="gr-blk">${Array.from({ length: 20 }, (_, i) => `<i class="${i < lit ? "on" : ""}"></i>`).join("")}</div><b>${fmtRate(Math.max(0, pace) * k)}${unit}</b></div>
-      <div class="gr-proj"><span>Prognose ${fmtDate(goal.due)}: <b>${fmtDE.format(Math.round(proj))}</b></span><span class="gr-tag ${cls}">${label}</span></div></div>`;
+      <div class="gr-row gr-${cls}"><span class="gr-l" title="Prognose zum ${fmtDate(goal.due)}">PROGNOSE</span><span class="gr-tag ${cls}">${label}</span><b title="Stand zum ${fmtDate(goal.due)}">${fmtDE.format(Math.round(proj))}</b></div></div>`;
   }
 
   const goalsGrid = document.getElementById("goalsGrid");
@@ -1103,7 +1103,7 @@
         <div class="gauge-row">
           <div class="gauge" style="--gc:${accent}"><span></span></div>
           <div class="gauge-meta">
-            <span class="num">${fmtDE.format(goal.current)} ${goal.unit}</span>
+            <span class="num">${fmtDE.format(goal.current)} <span class="num-u">${goal.unit}</span></span>
             <span class="lbl">Ziel ${fmtDE.format(goal.target)} ${goal.unit}</span>
             <span class="due">${dueLabel}</span>
           </div>
