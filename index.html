@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Kilian – Überblick</title>
-<link rel="stylesheet" href="styles.css?v=20261007c" />
+<link rel="stylesheet" href="styles.css?v=20261007d" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="icon.svg" />
@@ -20,6 +20,8 @@
     <button type="button" class="ship-alert-dismiss" id="shipAlertDismiss" aria-label="Ausblenden">×</button>
   </div>
 </div>
+
+<div id="topAlerts" aria-live="polite"></div>
 
 <header class="topbar">
   <div class="topbar-inner">
@@ -235,6 +237,16 @@
       <div class="tt-timers" id="ttTimers"></div>
       <div class="tt-stats" id="ttStats"></div>
 
+      <details class="tt-card tt-fold" id="ttGoalCard">
+        <summary><span class="tt-ft tt-px">WOCHENZIEL</span><span class="tt-fs" id="ttGoalSum"></span></summary>
+        <div class="tt-fold-body">
+          <div class="tt-goal">
+            <div class="tt-goalrows" id="ttGoalRows"></div>
+            <div><div class="tt-lb tt-px" style="margin-bottom:6px">LETZTE 9 WOCHEN · STUNDEN</div><div class="tt-hist" id="ttHist"></div><p class="tt-hint">Gestrichelte Linie = dein Wochen-Soll gesamt. Das Soll pro Bereich stellst du links mit − und + ein.</p></div>
+          </div>
+        </div>
+      </details>
+
       <details class="tt-card tt-fold" id="ttChartCard">
         <summary><span class="tt-ft tt-px">ÜBERSICHT</span><span class="tt-fs" id="ttChartSum"></span></summary>
         <div class="tt-fold-body">
@@ -345,8 +357,8 @@
 </footer>
 
 <script src="data.js"></script>
-<script src="shopping.js?v=20261007c"></script>
-<script src="timetracker.js?v=20261007c"></script>
-<script src="script.js?v=20261007c"></script>
+<script src="shopping.js?v=20261007d"></script>
+<script src="timetracker.js?v=20261007d"></script>
+<script src="script.js?v=20261007d"></script>
 </body>
 </html>

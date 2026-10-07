@@ -426,6 +426,55 @@
     shipAlert.hidden = true;
   });
 
+  // ---------- Achtung-Banner ganz oben ----------
+  // Weitere Hinweise im Stil des Versand-Alarms: ueberfaellige Uploads (Rhythmus aus data.business, Shorts zaehlen
+  // nicht) und offene Bricklink-Nachrichten. Pro Sitzung wegklickbar (sessionStorage, wie beim Versand-Alarm).
+  (function renderTopAlerts() {
+    const host = document.getElementById("topAlerts");
+    if (!host) return;
+    const items = [];
+    [["bricksOnTheFloor", "Bricks On The Floor"], ["brainwalkers", "The Brainwalkers"]].forEach(([key, name]) => {
+      const biz = data.business?.[key];
+      if (!biz?.uploadRhythmDays || !biz.lastUploadAt) return;
+      const days = daysSince(biz.lastUploadAt);
+      const status = rhythmStatus(days, biz.uploadRhythmDays);
+      if (!status || status === "green") return;
+      items.push({
+        id: `upload-${key}-${biz.lastUploadAt}`,
+        level: status,
+        icon: "film",
+        title: `${name}: seit ${days} Tagen kein Longform-Video`,
+        sub: `Dein Rhythmus: alle ${biz.uploadRhythmDays} Tage · letzter Upload ${fmtDate(biz.lastUploadAt.slice(0, 10))}`
+      });
+    });
+    const stat = (label) => parseInt(String((data.business?.bricklink?.stats || []).find((s) => s.label === label)?.value ?? "").replace(/\./g, ""), 10) || 0;
+    const mails = stat("Drive-Thru-Mail offen"), noFeedback = stat("Ohne Feedback");
+    if (mails > 0 || noFeedback > 0) {
+      items.push({
+        id: `bricklink-mails-${mails}-${noFeedback}`,
+        level: "info",
+        icon: "bell",
+        title: `Bricklink: ${mails} Drive-Thru-Mails offen, ${noFeedback} Bestellungen ohne Feedback`,
+        sub: "Ein paar davon heute abarbeiten?"
+      });
+    }
+    const visible = items.filter((it) => {
+      try { return !sessionStorage.getItem(`dashboard-alert-dismissed-${it.id}`); } catch (e) { return true; }
+    });
+    host.innerHTML = visible
+      .map(
+        (it) => `<div class="ship-alert top-alert ${it.level}" data-alert="${escapeHtml(it.id)}"><div class="ship-alert-inner">${pxSpr(it.icon, 22)}<span class="ship-alert-text"><b>${escapeHtml(it.title)}</b><span class="ta-sub">${escapeHtml(it.sub)}</span></span><button type="button" class="ship-alert-dismiss" aria-label="Ausblenden">×</button></div></div>`
+      )
+      .join("");
+    host.addEventListener("click", (e) => {
+      const btn = e.target.closest(".ship-alert-dismiss");
+      const row = btn && btn.closest(".top-alert");
+      if (!row) return;
+      try { sessionStorage.setItem(`dashboard-alert-dismissed-${row.dataset.alert}`, "1"); } catch (err) { /* egal */ }
+      row.remove();
+    });
+  })();
+
   // ---------- Sync-Button ----------
   const syncButton = document.getElementById("syncButton");
   const syncLabel = document.getElementById("syncButtonLabel");
@@ -980,6 +1029,46 @@
     return `<span class="trend-badge ${dir}">${arrow} ${sign}${fmtDE.format(delta)} ${unit || ""} (${periodLabel})</span>`;
   }
 
+  // ---------- Ziel-Realitaets-Check ----------
+  // Zeigt pro Ziel, welches Tempo bis zur Frist noetig ist, wie schnell du gerade bist und wo du bei
+  // gleichbleibendem Tempo landest. Tempo: Follower/Abos aus metricsHistory (letzte 28 Tage, mind. 7 Tage Verlauf),
+  // Longform-Videos aus dem Upload-Rhythmus des Kanals. Ohne Messwerte gibt es nur die Zeile "noetig".
+  const PACE_WINDOW_DAYS = 28;
+  const BIZ_BY_VIDEO_GOAL = { "bricks-longform-2026": "bricksOnTheFloor", "brainwalkers-longform-2026": "brainwalkers" };
+  function goalPacePerDay(goal) {
+    const key = HISTORY_KEY_BY_GOAL[goal.id];
+    const hist = key ? data.metricsHistory?.[key] : null;
+    if (hist && hist.length >= 2) {
+      const sorted = [...hist].sort((a, b) => a.date.localeCompare(b.date));
+      const latest = sorted[sorted.length - 1];
+      const cutoff = new Date(latest.date + "T00:00:00");
+      cutoff.setDate(cutoff.getDate() - PACE_WINDOW_DAYS);
+      const past = sorted.find((h) => new Date(h.date + "T00:00:00") >= cutoff) || sorted[0];
+      const days = (new Date(latest.date + "T00:00:00") - new Date(past.date + "T00:00:00")) / 86400000;
+      if (days >= 7) return (latest.value - past.value) / days;
+    }
+    const biz = data.business?.[BIZ_BY_VIDEO_GOAL[goal.id]];
+    if (biz?.uploadRhythmDays) return 1 / biz.uploadRhythmDays;
+    return null;
+  }
+  function goalRealityHtml(goal, remaining) {
+    if (goal.current >= goal.target) return `<div class="goal-reality"><span class="gr-tag good">ERREICHT</span></div>`;
+    if (remaining <= 0) return `<div class="goal-reality"><span class="gr-tag bad">FRIST ABGELAUFEN</span></div>`;
+    const weekly = goal.unit === "Videos";
+    const k = weekly ? 7 : 1, unit = weekly ? "/Woche" : "/Tag";
+    const fmtRate = (v) => (v < 20 ? fmtDE.format(Math.round(v * 10) / 10) : fmtDE.format(Math.round(v)));
+    const need = (goal.target - goal.current) / remaining;
+    const pace = goalPacePerDay(goal);
+    const needRow = `<div class="gr-row"><span class="gr-l">NÖTIG</span><div class="gr-blk gr-need">${"<i></i>".repeat(20)}</div><b>${fmtRate(need * k)}${unit}</b></div>`;
+    if (pace === null) return `<div class="goal-reality">${needRow}<p class="gr-note">Tempo wird gemessen, sobald genug Verlauf da ist.</p></div>`;
+    const proj = goal.current + Math.max(0, pace) * remaining, ratio = proj / goal.target;
+    const [label, cls] = ratio >= 0.97 ? ["AUF KURS", "good"] : ratio >= 0.9 ? ["KNAPP DAHINTER", "warn"] : ratio >= 0.7 ? ["DAHINTER", "warn"] : ["ZU WEIT WEG", "bad"];
+    const lit = Math.max(pace > 0 ? 1 : 0, Math.min(20, Math.round((Math.max(0, pace) / need) * 20)));
+    return `<div class="goal-reality">${needRow}
+      <div class="gr-row gr-${cls}"><span class="gr-l">AKTUELL</span><div class="gr-blk">${Array.from({ length: 20 }, (_, i) => `<i class="${i < lit ? "on" : ""}"></i>`).join("")}</div><b>${fmtRate(Math.max(0, pace) * k)}${unit}</b></div>
+      <div class="gr-proj"><span>Prognose ${fmtDate(goal.due)}: <b>${fmtDE.format(Math.round(proj))}</b></span><span class="gr-tag ${cls}">${label}</span></div></div>`;
+  }
+
   const goalsGrid = document.getElementById("goalsGrid");
   // Beim allerersten Laden (Feature gerade erst ausgerollt, noch kein gespeicherter Stand)
   // gaebe es sonst fuer JEDES Ziel sofort einen "Level Up"-Toast, obwohl der aktuelle
@@ -1019,6 +1108,7 @@
             <span class="due">${dueLabel}</span>
           </div>
         </div>
+        ${goalRealityHtml(goal, remaining)}
         ${trend !== null ? `<div class="goal-trend">${renderTrendBadge(trend, goal.unit)}</div>` : ""}
       `;
 

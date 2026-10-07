@@ -4,6 +4,8 @@
 (function () {
   /* ---------- Pixel-Sprites (8x8) ---------- */
   const SPR = {
+    film:    { p: { b: "#3f3f4a", w: "#f4f4f4", r: "#e66767" }, r: ["bbbbbbbb", "bwbrrbwb", "bbbrrbbb", "bwbrrbwb", "bbbrrbbb", "bwbrrbwb", "bbbrrbbb", "bbbbbbbb"] },
+    bell:    { p: { y: "#f4c542", d: "#b8892a" }, r: ["...yy...", "..yyyy..", ".yyyyyy.", ".yyyyyy.", ".yyyyyy.", "yyyyyyyy", "dddddddd", "...dd..."] },
     calendar:{ p: { b: "#8d8d99", r: "#e0524b", w: "#f4f4f4", k: "#3f3f4a" }, r: ["rrrrrrrr", "rrrrrrrr", "bwwwwwwb", "bwkwkwkb", "bwwwwwwb", "bwkwkwwb", "bwwwwwwb", "bbbbbbbb"] },
     sword:   { p: { b: "#d8e0ea", c: "#8a97a8", d: "#b5772f" }, r: ["......bb", ".....bbc", "....bbc.", "...bbc..", "..bbc...", ".dbc....", "ddd.....", "dd......"] },
     globe:   { p: { b: "#1f4a7a", g: "#3f86c9", l: "#5fbf63" }, r: ["..bbbb..", ".bggllb.", "bgglgggb", "bgggglgb", "bgllgggb", "bggglggb", ".bgggbb.", "..bbbb.."] },

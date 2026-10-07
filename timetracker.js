@@ -25,7 +25,8 @@
   const weekDays = (o) => { const m = monday(new Date()); m.setDate(m.getDate() + o * 7); return Array.from({ length: 7 }, (_, i) => { const d = new Date(m); d.setDate(m.getDate() + i); return d; }); };
   const monthDays = (o) => { const n = new Date(); const b = new Date(n.getFullYear(), n.getMonth() + o, 1); const c = new Date(b.getFullYear(), b.getMonth() + 1, 0).getDate(); return Array.from({ length: c }, (_, i) => new Date(b.getFullYear(), b.getMonth(), i + 1)); };
 
-  const emptyState = () => ({ entries: [], removed: [], active: { youtube: null, bricklink: null }, updatedAt: -1 });
+  const DEFAULT_TARGETS = { youtube: 20, bricklink: 8 }; // Wochen-Soll in Stunden (aenderbar im Wochenziel-Fenster)
+  const emptyState = () => ({ entries: [], removed: [], active: { youtube: null, bricklink: null }, targets: { ...DEFAULT_TARGETS }, updatedAt: -1 });
   const isNum = (v) => typeof v === "number" && isFinite(v);
   // Alles aus Cloud/Speicher wird geprueft, damit kaputte Daten nie die Oberflaeche zerlegen
   function sanitize(raw, newId) {
@@ -43,6 +44,7 @@
     });
     (Array.isArray(raw.removed) ? raw.removed : []).forEach((k) => { if (typeof k === "string" && /^(youtube|bricklink)\|\d+$/.test(k) && !out.removed.includes(k)) out.removed.push(k); });
     CATS.forEach((c) => { const v = raw.active && raw.active[c]; out.active[c] = isNum(v) && v > 0 && v <= Date.now() + 5 * MIN ? v : null; });
+    CATS.forEach((c) => { const v = raw.targets && raw.targets[c]; out.targets[c] = isNum(v) && v >= 0 && v <= 80 ? v : DEFAULT_TARGETS[c]; });
     return out;
   }
 
@@ -294,7 +296,33 @@
       renderAll();
     });
 
-    function renderAll() { index = null; renderTimers(); renderStats(); renderChart(); renderEntries(); renderSync(); }
+    /* ---------- Wochenziel ---------- */
+    const HOUR = 3600000, fmtH = (h) => String(Math.round(h * 10) / 10).replace(".", ",");
+    function weekSums(o) { const s = { youtube: 0, bricklink: 0 }; weekDays(o).forEach((d) => { const t = dayTotals(d); CATS.forEach((c) => (s[c] += t[c])); }); return s; }
+    function renderGoalFold() {
+      const days = weekDays(0), today = new Date(), di = days.findIndex((d) => sameDay(d, today)), dayNo = di < 0 ? 7 : di + 1;
+      const cur = weekSums(0), sollTotal = CATS.reduce((a, c) => a + state.targets[c], 0), istTotal = (cur.youtube + cur.bricklink) / HOUR;
+      $("ttGoalSum").textContent = "WOCHE " + fmtH(istTotal) + " / " + fmtH(sollTotal) + " H";
+      $("ttGoalRows").innerHTML = CATS.map((c) => {
+        const soll = state.targets[c], ist = cur[c] / HOUR, N = 20, lit = soll > 0 ? Math.min(N, Math.round((ist / soll) * N)) : 0, mark = Math.round((dayNo / 7) * N);
+        const planH = soll * (dayNo / 7), diff = ist - planH, ok = soll === 0 || ist >= planH;
+        const note = soll === 0 ? "Kein Soll gesetzt" : ok ? "im Plan (" + fmtH(diff) + " h voraus)" : fmtH(-diff) + " h unter Plan";
+        return `<div class="tt-wrow" style="--c:var(--tt-${c === "youtube" ? "yt" : "bl"})"><div class="tt-wn"><i></i>${LABEL[c]}</div><div><div class="tt-wb"><span class="tt-mk" style="left:${(mark / N) * 100}%"></span><div class="tt-blk" style="--cc:${ok ? "var(--status-good)" : "var(--status-warning)"}">${Array.from({ length: N }, (_, j) => `<i class="${j < lit ? "on" : ""}"></i>`).join("")}</div></div><div class="tt-wnote ${ok ? "ok" : "bad"}">${note}</div></div><div class="tt-wst"><b>${fmtH(ist)} / ${fmtH(soll)} h</b><span class="tt-step"><button data-g="${c}" data-d="-1" type="button" aria-label="${LABEL[c]}-Soll verringern">−</button><button data-g="${c}" data-d="1" type="button" aria-label="${LABEL[c]}-Soll erhöhen">+</button></span></div></div>`;
+      }).join("");
+      const wk = Array.from({ length: 9 }, (_, i) => { const o = i - 8, s = weekSums(o), d0 = weekDays(o)[0]; return { y: s.youtube / HOUR, b: s.bricklink / HOUR, l: d0.getDate() + "." + (d0.getMonth() + 1) + "." }; });
+      const maxH = Math.max(sollTotal * 1.15, ...wk.map((w) => w.y + w.b), 8), per = 120 / maxH;
+      $("ttHist").innerHTML = wk.map((w) => `<div class="tt-hb"><div class="tt-hs" title="${fmtH(w.y)} h YouTube, ${fmtH(w.b)} h Bricklink"><b class="y" style="height:${Math.round(w.y * per / 8) * 8}px"></b><b class="b" style="height:${Math.round(w.b * per / 8) * 8}px"></b></div><span class="tt-px">${w.l}</span></div>`).join("") + `<div class="tt-soll" style="bottom:${Math.round(sollTotal * per) + 22}px"><em class="tt-px">SOLL ${fmtH(sollTotal)} H</em></div>`;
+    }
+    $("ttGoalRows").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-g]");
+      if (!b) return;
+      const c = b.dataset.g;
+      state.targets[c] = Math.max(0, Math.min(80, state.targets[c] + Number(b.dataset.d)));
+      save(); renderGoalFold();
+    });
+    $("ttGoalCard").addEventListener("toggle", () => { if ($("ttGoalCard").open) renderGoalFold(); });
+
+    function renderAll() { index = null; renderTimers(); renderStats(); renderChart(); renderEntries(); renderSync(); renderGoalFold(); }
     renderAll();
     async function loadFreshNotion() {
       try {
@@ -329,7 +357,7 @@
         // Lokal vorhandenes, das die Cloud noch nicht kennt: beim naechsten Speichern mitschicken
         const remoteKeys = new Set(r.entries.map((e) => e.k));
         changedLocal = state.entries.some((e) => !remoteKeys.has(e.k)) || state.removed.some((k) => !r.removed.includes(k));
-        if (r.updatedAt > state.updatedAt) state.active = r.active;
+        if (r.updatedAt > state.updatedAt) { state.active = r.active; state.targets = r.targets; }
         state.updatedAt = Math.max(state.updatedAt, r.updatedAt);
         index = null;
         persist();
@@ -341,6 +369,7 @@
           entries: state.entries.map((e) => ({ id: e.id, cat: e.cat, start: e.start, end: e.end })),
           removed: state.removed.slice(),
           active: { youtube: state.active.youtube, bricklink: state.active.bricklink },
+          targets: { youtube: state.targets.youtube, bricklink: state.targets.bricklink },
           updatedAt: Math.max(0, state.updatedAt)
         };
       }
