@@ -176,6 +176,12 @@
         "name": "Salat",
         "qty": "",
         "aisle": "obst"
+      },
+      {
+        "id": "a9c945fa-f4c0-4bbf-9c8f-eeee00ff33b3",
+        "name": "Frischkäse",
+        "qty": "",
+        "aisle": "kuehl"
       }
     ],
     "history": {},
@@ -197,7 +203,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373127393
+    "updatedAt": 1791373130482
   },
   "timetracker": {
     "entries": [],
