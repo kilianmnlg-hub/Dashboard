@@ -88,12 +88,6 @@
         "aisle": "kuehl"
       },
       {
-        "id": "52d4864f-a695-4919-89e9-7880414d82c1",
-        "name": "Kartoffeln",
-        "qty": "",
-        "aisle": "obst"
-      },
-      {
         "id": "aff36a33-bc93-43f9-9f9b-85c8c2587650",
         "name": "Mais",
         "qty": "",
@@ -116,12 +110,6 @@
         "name": "Sauce Holland",
         "qty": "",
         "aisle": "vorrat"
-      },
-      {
-        "id": "a8480cde-45db-42ac-a1df-4d644dfa34b2",
-        "name": "Bananen",
-        "qty": "",
-        "aisle": "obst"
       },
       {
         "id": "8d7fad26-9bc5-4428-af2a-d4171cbe04bf",
@@ -202,7 +190,14 @@
         "aisle": "tk"
       }
     ],
-    "history": {},
+    "history": {
+      "Kartoffeln": [
+        1791375377977
+      ],
+      "Bananen": [
+        1791375378905
+      ]
+    },
     "prices": {
       "Milch": 1,
       "Light Käse": 2,
@@ -227,7 +222,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373984223
+    "updatedAt": 1791375378905
   },
   "timetracker": {
     "entries": [],
