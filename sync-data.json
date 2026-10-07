@@ -122,6 +122,12 @@
         "name": "Bananen",
         "qty": "",
         "aisle": "obst"
+      },
+      {
+        "id": "8d7fad26-9bc5-4428-af2a-d4171cbe04bf",
+        "name": "Avocado",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {},
@@ -135,6 +141,6 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360477289
+    "updatedAt": 1791360484132
   }
 }
