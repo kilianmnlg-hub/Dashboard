@@ -286,7 +286,8 @@
       "gym": true,
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "07b53929-622d-4cdf-baf0-47645c841575": true
+      "07b53929-622d-4cdf-baf0-47645c841575": true,
+      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true
     },
     "2026-10-05": {
       "gym": true,
@@ -299,5 +300,5 @@
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     }
   },
-  "updatedAt": 1791354830605
+  "updatedAt": 1791354831365
 }
