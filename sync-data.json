@@ -220,11 +220,12 @@
       "Sojagranulat": 3,
       "Tomaten": 2,
       "Salat": 1,
-      "Frischkäse": 1
+      "Frischkäse": 1,
+      "Tiefkühl-Obst": 3
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373765545
+    "updatedAt": 1791373976474
   },
   "timetracker": {
     "entries": [],
