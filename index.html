@@ -38,6 +38,7 @@
       <a href="#ziele">Ziele</a>
       <a href="#business">Business</a>
       <a href="#zeit">Zeit-Balance</a>
+      <a href="#einkauf">Einkauf</a>
       <a href="#notizen">Notizen</a>
     </nav>
     <span class="auto-sync-status" id="autoSyncStatus" hidden></span>
@@ -244,6 +245,59 @@
     </div>
   </section>
 
+  <section id="einkauf" class="section shop" aria-label="Einkaufsliste">
+    <div class="section-head">
+      <h2><span class="section-marker"></span>Einkaufsliste</h2>
+      <div class="shop-head-right">
+        <span class="shop-coins px" title="Geschätzter Preis der offenen Liste"><span id="shopCoinSpr"></span><span class="lbl">≈</span><span id="shopCoinN">0 €</span></span>
+        <button class="pbtn px" id="shopStoreBtn" type="button">SHOP-MODUS</button>
+      </div>
+    </div>
+    <div id="shopRoot">
+      <div class="shop-card" id="shopCard">
+        <div class="shop-title"><span id="shopCartSpr"></span><span class="sub">Preise werden auf volle Euro aufgerundet · „Butter 2,39“ merkt sich den Preis gleich mit</span></div>
+        <div class="shop-add">
+          <div class="addwrap"><input id="shopInp" type="text" placeholder="Neues Item… (z.B. 2x Milch 1,15)" maxlength="80" autocomplete="off" aria-label="Artikel hinzufügen"></div>
+          <button class="pbtn go" id="shopAddBtn" type="button" aria-label="Hinzufügen">+</button>
+        </div>
+        <div class="shop-ac" id="shopAc"></div>
+
+        <div class="tabs" role="tablist" id="shopTabs"></div>
+
+        <div class="pane" id="shopPaneList"></div>
+
+        <div class="pane" id="shopPaneHist" hidden>
+          <p class="hint">Dein Inventar: alles, was du schon gekauft hast. Antippen legt es zurück auf die Liste, die Zahl zeigt wie oft.</p>
+          <div class="inv" id="shopHist"></div>
+          <div class="shop-pad-top"><button class="pbtn px small" id="shopReadd" type="button">STAMMARTIKEL (3×+) ALLE HINZUFÜGEN</button></div>
+        </div>
+
+        <div class="pane" id="shopPaneDue" hidden>
+          <p class="hint">Vorrats-Leisten aus deinen Kaufabständen. Ist die Leiste leer, wird es Zeit.</p>
+          <div id="shopDue"></div>
+        </div>
+
+        <div class="pane" id="shopPaneTpl" hidden>
+          <p class="hint">Rezepte: CRAFT legt alle Zutaten auf die Liste, Vorhandenes wird nicht doppelt eingetragen.</p>
+          <div id="shopTpl"></div>
+          <div class="mini">
+            <input id="shopDName" type="text" placeholder="Neues Rezept, z.B. Chili" aria-label="Name des Rezepts" maxlength="40">
+            <input id="shopDIng" type="text" placeholder="Zutaten, mit Komma getrennt" aria-label="Zutaten" class="wide" maxlength="200">
+            <button class="pbtn px small" id="shopDAdd" type="button">SPEICHERN</button>
+          </div>
+          <div class="mini flat">
+            <button class="pbtn px small" id="shopDFromList" type="button">AKTUELLE LISTE ALS REZEPT SPEICHERN</button>
+          </div>
+        </div>
+      </div>
+      <details class="catalog">
+        <summary class="px">SYMBOL-KATALOG <span id="shopCatN"></span></summary>
+        <p class="hint">Das erste passende Wort im Namen bestimmt das Symbol. Alles andere bekommt das Symbol seines Gangs.</p>
+        <div class="cat-grid" id="shopCatGrid"></div>
+      </details>
+    </div>
+  </section>
+
   <section id="notizen" class="section">
     <div class="section-head">
       <h2><span class="section-marker"></span>Notizen</h2>
@@ -260,6 +314,7 @@
 </footer>
 
 <script src="data.js"></script>
+<script src="shopping.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

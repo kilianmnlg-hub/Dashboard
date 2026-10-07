@@ -25,7 +25,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
   direkt aus dem Browser aktualisiert (siehe Abschnitt "Habit-Tracker")
 - `sync-data.json` — Cloud-Kopie von Video-Ideen, Studium-Termin, Tages-To-Do und
   Aufgaben, ebenfalls vom Sync-Button direkt aus dem Browser aktualisiert (siehe
-  Abschnitt "Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben / Remote Tasks")
+  Abschnitt "Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben / Remote Tasks / Einkaufsliste")
 
 ## Lokal ansehen
 
@@ -388,7 +388,39 @@ den Eintrag, der Pfeil (↩) verschiebt ihn ins Tages-To-Do, und der Stand liegt
 Feld `remoteTasks` in `sync-data.json` (Cloud-only, siehe unten). Offene Punkte aus dem
 Tages-To-Do vergangener Tage wandern weiterhin nur nach "Aufgaben".
 
-## Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben / Remote Tasks
+## Einkaufsliste
+
+Eigene Sektion zwischen "Zeit-Balance" und "Notizen" im Retro-Pixel-Stil (Code in `shopping.js`,
+eingebunden von `script.js`). Alles in einer kompakten Karte, vier Reiter klappen je ein Feld auf:
+
+- **Liste:** Artikel eintippen (Enter oder +). Mengen wie "2x Milch" werden erkannt, und die Liste
+  sortiert automatisch nach Supermarkt-Gängen (Obst & Gemüse, Milch & Kühlregal, Vorrat und so weiter,
+  jeder Gang einklappbar). Die Gang-Zuordnung läuft über Stichwörter. Ein Tipp auf das Schriftrollen-Symbol
+  einer Zeile ändert den Gang, und die Wahl wird für diesen Artikel gemerkt. Abhaken streicht kurz durch und
+  schiebt den Artikel ins Inventar.
+- **Inventar:** alles, was du schon gekauft hast (nach Häufigkeit sortiert, mit Anzahl und letztem Preis).
+  Antippen legt den Artikel zurück auf die Liste, das × vergisst ihn.
+- **Vorrat:** pro Artikel eine Leiste, berechnet aus den Abständen deiner bisherigen Käufe. Ist sie leer
+  (blinkt "LEER!"), ist der Artikel vermutlich fällig. Dafür muss ein Artikel mindestens zweimal gekauft worden sein.
+- **Rezepte:** Gerichte mit Zutaten. CRAFT legt alle Zutaten auf die Liste, Vorhandenes wird nicht doppelt
+  eingetragen. Neue Rezepte entstehen über Name + Zutaten (mit Komma getrennt) oder aus der aktuellen Liste.
+
+**Symbole:** Jeder Gang hat ein Symbol, dazu gibt es 59 eigene Artikel-Symbole (Banane, Nudeln, Cola und so
+weiter). Das erste passende Wort im Namen bestimmt das Symbol, sonst zeigt der Artikel das Symbol seines Gangs.
+Der aufklappbare "Symbol-Katalog" unter der Karte zeigt alle.
+
+**Preise:** Beim Eintippen kann ein Preis mitgegeben werden ("Butter 2,39"), oder der Preis-Button in der
+Zeile wird angetippt. Der zuletzt bekannte Preis pro Artikel wird gemerkt. Die Münze oben rechts zeigt den
+geschätzten Preis der offenen Liste ("+2?" heißt: zwei Artikel ohne Preis). Alle Beträge werden auf volle
+Euro aufgerundet angezeigt. Der **Shop-Modus** blendet Eingabe und Reiter aus und macht die Zeilen groß.
+
+**Speicherung:** wie alles andere nur in der Cloud, als Feld `shopping` in `sync-data.json` (Liste, Verlauf mit
+den letzten 12 Kaufzeitpunkten je Artikel, Preise, gemerkte Gänge, Rezepte), also auf allen Geräten gleich.
+Es gelten dieselben Regeln wie bei den Aufgaben (siehe "Cloud-only" unten): neuester Zeitstempel gewinnt, ein
+leerer Stand überschreibt nie einen gefüllten. Die Einkaufsliste wird als Ganzes synchronisiert, parallele
+Änderungen auf zwei Geräten innerhalb weniger Sekunden können sich also gegenseitig überschreiben.
+
+## Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben / Remote Tasks / Einkaufsliste
 
 Diese vier kleinen, unabhängigen Felder teilen sich eine gemeinsame Cloud-Datei
 (`sync-data.json`) und funktionieren nach demselben Prinzip wie der

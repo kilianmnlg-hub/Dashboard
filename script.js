@@ -1915,6 +1915,15 @@
   const taskList = taskBoard.listEl;
   const remoteTaskList = remoteTaskBoard.listEl;
 
+  // Einkaufsliste (Logik, Symbole und Oberfläche in shopping.js). Liegt wie alles andere nur in der
+  // Cloud: Feld "shopping" in sync-data.json, gleiche Zeitstempel-/Merge-Regeln wie die Aufgaben.
+  const shoppingBoard = window.createShoppingBoard
+    ? window.createShoppingBoard({ dataStore, scheduleAutoSync, remoteWins, newId })
+    : null;
+  // Rohstand aus der Cloud: falls shopping.js mal nicht geladen ist, wird er beim Push unveraendert
+  // zurueckgeschrieben statt versehentlich geloescht.
+  let remoteShoppingRaw = null;
+
   // Nicht abgehakte Tages-To-Dos VERGANGENER Tage nach "Aufgaben" uebernehmen, bevor der
   // alte Tages-Eintrag verworfen wird. Jeder Tag hat einen eigenen Storage-Key
   // (dashboard-todo-JJJJ-MM-TT) - ein neuer Tag bedeutet bisher einfach einen neuen, leeren
@@ -2501,8 +2510,10 @@
       studiumDeadline,
       todos: { date: todayKey(), items: todosState.items, updatedAt: clampedAt(todosState.updatedAt) },
       tasks: taskBoard.payload(),
-      remoteTasks: remoteTaskBoard.payload()
+      remoteTasks: remoteTaskBoard.payload(),
+      shopping: shoppingBoard ? shoppingBoard.payload() : remoteShoppingRaw
     };
+    if (payload.shopping == null) delete payload.shopping;
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${SYNC_DATA_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
     const fail = (msg, extra) => {
@@ -2628,6 +2639,8 @@
         applyRemoteStudium(remote.studiumDeadline);
         taskBoard.applyRemote(remote.tasks);
         remoteTaskBoard.applyRemote(remote.remoteTasks);
+        remoteShoppingRaw = remote.shopping ?? null;
+        if (shoppingBoard) shoppingBoard.applyRemote(remote.shopping);
         applyRemoteTodos(remote.todos);
       }
       cloudLoaded.syncdata = true;
