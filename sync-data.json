@@ -134,6 +134,12 @@
         "name": "Eier",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "15272164-d044-49a5-be26-65e708e5d13e",
+        "name": "Harzer Käse",
+        "qty": "",
+        "aisle": "kuehl"
       }
     ],
     "history": {},
@@ -150,6 +156,6 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360510137
+    "updatedAt": 1791360530244
   }
 }
