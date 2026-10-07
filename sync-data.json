@@ -246,9 +246,16 @@
     "updatedAt": 1791373357223
   },
   "inbox": {
-    "items": [],
+    "items": [
+      {
+        "id": "b1621851-86f3-4c1d-ad24-10181cb3d90b",
+        "text": "Name: Brick'n'Collect",
+        "cat": "Laden",
+        "at": 1791375342047
+      }
+    ],
     "removed": [],
-    "updatedAt": 0
+    "updatedAt": 1791375342047
   },
   "fold": {
     "collapsed": [],
