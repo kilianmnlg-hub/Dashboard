@@ -15,6 +15,10 @@
     return div.innerHTML;
   };
   const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+  // Pixel-Symbole und Wisch-Helfer kommen aus shopping.js (laedt vor diesem Skript). Fehlt die Datei,
+  // laeuft alles ohne Symbole weiter.
+  const PX = window.PixelSprites || null;
+  const pxSpr = (name, size) => (PX ? PX.spr(name, size) : "");
 
   // ---------- Kleine Belebungs-Helfer (Mikro-Animationen) ----------
   const prefersReducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -124,84 +128,40 @@
     requestAnimationFrame(step);
   }
 
-  // Laesst den Zeit-Balance-Donut im Uhrzeigersinn "aufziehen" statt die fertigen Segmente
-  // sofort anzuzeigen - ein wandernder Rand (boundary) deckt die Segmente in ihrer echten,
-  // finalen Groesse auf (kein Verzerren der Proportionen waehrend der Animation), der Rest
-  // bleibt bis dahin in der Ruhefarbe (--surface-3), genau wie im statischen Endzustand.
-  // segments: [{color, from, to}] mit kumulierten Prozent-Grenzen (0-100), filledTo ist die
-  // Summe aller Segmente (i.d.R. 100, bei totalMinutes=0 aber 0 - siehe Aufrufer).
+  // Zeit-Balance-Donut als Ring aus 36 Pixel-Bloecken (Spiel-Look). Jeder Block bekommt die Farbe des
+  // Segments, in das seine Mitte faellt; die Bloecke leuchten per CSS-Animation (Verzoegerung je Block)
+  // nacheinander auf. Der Endzustand steht ohne jede Animation sofort da.
+  // segments: [{color, from, to}] mit kumulierten Prozent-Grenzen (0-100), filledTo ist die Summe
+  // aller Segmente (i.d.R. 100, bei totalMinutes=0 aber 0 - siehe Aufrufer).
+  const DONUT_BLOCKS = 36;
   function animateDonutRing(el, segments, filledTo) {
     if (!el) return;
-    const finalGradient = () => {
-      const parts = segments.map((s) => `${s.color} ${s.from}% ${s.to}%`);
-      parts.push(`var(--surface-3) ${filledTo}% 100%`);
-      return `conic-gradient(${parts.join(", ")})`;
-    };
-    if (prefersReducedMotion() || !segments.length || filledTo <= 0) {
-      el.style.background = finalGradient();
-      return;
-    }
-    el.style.background = finalGradient();
-    const duration = 900;
-    let start = null;
-    function step(ts) {
-      if (start === null) start = ts;
-      const p = Math.min(1, (ts - start) / duration);
-      const eased = 1 - Math.pow(1 - p, 3);
-      const boundary = filledTo * eased;
-      const parts = [];
-      segments.forEach((s) => {
-        const visibleTo = Math.min(s.to, boundary);
-        if (visibleTo > s.from) parts.push(`${s.color} ${s.from}% ${visibleTo}%`);
-      });
-      parts.push(`var(--surface-3) ${boundary}% 100%`);
-      el.style.background = `conic-gradient(${parts.join(", ")})`;
-      if (p < 1) requestAnimationFrame(step);
-      else el.style.background = finalGradient();
-    }
-    requestAnimationFrame(step);
+    el.style.removeProperty("background");
+    el.querySelectorAll(":scope > i").forEach((i) => i.remove());
+    const blocks = Array.from({ length: DONUT_BLOCKS }, (_, i) => {
+      const mid = ((i + 0.5) / DONUT_BLOCKS) * 100;
+      const seg = filledTo > 0 ? segments.find((x) => mid >= x.from && mid < x.to) : null;
+      return `<i class="${seg ? "on" : ""}" style="--i:${i}${seg ? `;--b:${seg.color}` : ""}"></i>`;
+    }).join("");
+    el.insertAdjacentHTML("afterbegin", blocks);
   }
 
-  // Ziel-Gauge als "aufleuchtender" Segment-Ring (Arcade-Lebensring) statt einem glatten Bogen -
-  // baut den kompletten conic-gradient mit GAUGE_SEGMENTS Kerben, von denen die ersten
-  // "litCount" in der Zielfarbe leuchten und der Rest in der Ruhefarbe bleibt.
+  // Ziel-Gauge als Ring aus 24 Pixel-Bloecken (Spiel-Lebensring): die ersten "litCount" leuchten in der
+  // Zielfarbe, der Rest bleibt in der Ruhefarbe. Das Aufleuchten nacheinander macht CSS (Verzoegerung je
+  // Block) - der Endzustand steht also so oder so sofort korrekt da, auch ohne Animation.
   const GAUGE_SEGMENTS = 24;
-  const GAUGE_GAP_DEG = 3;
-  function buildGaugeGradient(litCount, accentVar) {
-    const segDeg = 360 / GAUGE_SEGMENTS;
-    const parts = [];
-    for (let i = 0; i < GAUGE_SEGMENTS; i++) {
-      const start = i * segDeg;
-      const end = start + segDeg - GAUGE_GAP_DEG;
-      const color = i < litCount ? accentVar : "var(--surface-3)";
-      parts.push(`${color} ${start}deg ${end}deg`, `transparent ${end}deg ${start + segDeg}deg`);
-    }
-    return `conic-gradient(from -90deg, ${parts.join(", ")})`;
-  }
-  // Laesst die Segmente beim ersten Rendern nacheinander "aufleuchten" statt sofort auf dem
-  // Zielwert zu stehen. setTimeout statt requestAnimationFrame, da setTimeout in einem (noch)
-  // im Hintergrund geoeffneten Tab zwar gedrosselt, aber anders als rAF nicht auf unbestimmte
-  // Zeit ausgesetzt wird - UND der Endzustand wird ohnehin zuerst synchron gesetzt, damit der
-  // Ring so oder so korrekt dasteht, auch wenn die Animation aus irgendeinem Grund nie liefe.
   function animateGauge(el, pct, accentVar) {
     if (!el) return;
+    el.style.removeProperty("background");
     const span = el.querySelector("span");
     const finalLit = Math.round((pct / 100) * GAUGE_SEGMENTS);
-    el.style.background = buildGaugeGradient(finalLit, accentVar);
+    el.querySelectorAll(":scope > i").forEach((i) => i.remove());
+    el.insertAdjacentHTML(
+      "afterbegin",
+      Array.from({ length: GAUGE_SEGMENTS }, (_, i) => `<i class="${i < finalLit ? "on" : ""}" style="--i:${i}"></i>`).join("")
+    );
+    el.style.setProperty("--gc", accentVar);
     if (span) span.textContent = `${pct.toFixed(0)}%`;
-    if (prefersReducedMotion() || finalLit <= 0) return;
-    let i = 0;
-    const step = () => {
-      i++;
-      el.style.background = buildGaugeGradient(i, accentVar);
-      if (span) span.textContent = `${Math.round((i / GAUGE_SEGMENTS) * 100)}%`;
-      if (i < finalLit) setTimeout(step, 28);
-      else {
-        el.style.background = buildGaugeGradient(finalLit, accentVar);
-        if (span) span.textContent = `${pct.toFixed(0)}%`;
-      }
-    };
-    setTimeout(step, 28);
   }
 
   // ---------- Ziel-Meilenstein-Toasts ("Level Up") ----------
@@ -598,6 +558,13 @@
 
   const setActive = (id) => {
     navLinks.forEach((a) => a.classList.toggle("active", a.getAttribute("href") === `#${id}`));
+    // Handy: die Menueleiste scrollt waagerecht, der aktive Eintrag soll mittig sichtbar bleiben
+    const nav = document.getElementById("mainNav");
+    const act = navLinks.find((a) => a.classList.contains("active"));
+    if (nav && act && nav.scrollWidth > nav.clientWidth + 2) {
+      const left = act.getBoundingClientRect().left - nav.getBoundingClientRect().left + nav.scrollLeft;
+      nav.scrollTo({ left: left - (nav.clientWidth - act.clientWidth) / 2, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    }
   };
 
   if ("IntersectionObserver" in window) {
@@ -622,8 +589,8 @@
     const n = areas.length;
     areas.forEach((a, i) => {
       const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
-      const x = 50 + Math.cos(angle) * 34;
-      const y = 50 + Math.sin(angle) * 34 * 0.72;
+      const x = 50 + Math.cos(angle) * 36;
+      const y = 50 + Math.sin(angle) * 34 * 0.9;
       const z = (i % 2 === 0 ? 1 : -1) * (10 + ((i * 6) % 24));
       const noteLabel = a.noteCount === 1 ? "1 Notiz" : `${a.noteCount} Notizen`;
       nodes.push({ id: a.id, label: a.folder, x, y, z, r: 8 + Math.min(4, a.noteCount * 0.4), color: a.color || "var(--accent)", stat: noteLabel });
@@ -636,6 +603,7 @@
   const { nodes: brainNodesData, links: brainLinksData } = layoutBrainNodes(brainAreas);
   const brainInteractiveIds = new Set(brainAreas.map((a) => a.id));
 
+  const BRAIN_SPRITES = { core: "brain", bricklink: "brick", botf: "play", ideen: "bulb", laden: "shop", privat: "home", brainwalkers: "spark" };
   const brainNodesEl = document.getElementById("brainNodes");
   const brainLinksSvg = document.getElementById("brainLinks");
   const brainSceneWrap = document.getElementById("brainSceneWrap");
@@ -644,7 +612,7 @@
     .map(
       (t) => `
     <div class="node ${t.id === "core" ? "core" : ""}" data-topic="${t.id}" style="left:${t.x}%; top:${t.y}%; --z:${t.z}px; width:${t.r * 2}px; height:${t.r * 2}px;">
-      <div class="dotcore" style="--nc:${t.color}"></div>
+      <div class="dotcore" style="--nc:${t.color}">${pxSpr(BRAIN_SPRITES[t.id] || "star", t.id === "core" ? 40 : 28)}</div>
       ${t.label ? `<div class="node-label">${escapeHtml(t.label)}</div>` : ""}
     </div>`
     )
@@ -2281,12 +2249,7 @@
   function streakBadgeHtml(habitId) {
     const streak = computeStreak(habitId);
     if (streak < 7) return "";
-    return `<span class="streak-badge" title="${streak} Tage in Folge">
-      <svg class="pixel-icon" width="14" height="14" viewBox="0 0 8 8" aria-hidden="true">
-        <g fill="var(--accent)"><rect x="3" y="0" width="2" height="3"/><rect x="0" y="3" width="8" height="2"/><rect x="3" y="5" width="2" height="3"/></g>
-      </svg>
-      <span class="n">${streak}</span>
-    </span>`;
+    return `<span class="streak-badge" title="${streak} Tage in Folge">${pxSpr("flame", 14)}<span class="n">${streak}</span></span>`;
   }
 
   function renderHabitWeek() {
@@ -3037,4 +3000,82 @@
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch((err) => console.warn("Service Worker nicht registriert:", err.message));
   }
+  // ---------- Pixel-Look: Symbole, Level-Anzeige, Wischen (Handy) ----------
+  // Rein visuell und nur im Arbeitsspeicher: nichts davon wird gespeichert oder synchronisiert.
+  (function pixelLook() {
+    if (!PX) return;
+    const SECTION_SPRITES = { kalender: "calendar", todo: "scroll", aufgaben: "sword", "remote-tasks": "globe", habits: "flame", ziele: "trophy", business: "chest", zeit: "hourglass", einkauf: "cart", notizen: "book" };
+    Object.entries(SECTION_SPRITES).forEach(([id, name]) => {
+      const marker = document.querySelector(`#${id} .section-head .section-marker`);
+      if (marker) marker.outerHTML = `<span class="sec-sprite">${PX.spr(name, 28)}</span>`;
+    });
+    const syncIcon = document.getElementById("syncButtonIcon");
+    if (syncIcon) syncIcon.innerHTML = PX.spr("floppy", 16);
+
+    // Level = Durchschnitt aller Ziele in 10%-Schritten (z.B. 52 % im Schnitt = LVL 5, noch 8 % bis LVL 6)
+    const lvlBox = document.getElementById("lvlBox");
+    const lvlGoals = (data.goals || []).filter((g) => !g.isMilestone && g.target > 0);
+    if (lvlBox && lvlGoals.length) {
+      const avg = lvlGoals.reduce((sum, g) => sum + Math.max(0, Math.min(100, (g.current / g.target) * 100)), 0) / lvlGoals.length;
+      const level = Math.floor(avg / 10);
+      const into = avg >= 100 ? 10 : avg - level * 10;
+      lvlBox.querySelector(".lvl-n").textContent = `LVL ${level}`;
+      lvlBox.querySelector(".xp").innerHTML = Array.from({ length: 10 }, (_, i) => `<i class="${i < Math.round(into) ? "on" : ""}"></i>`).join("");
+      lvlBox.querySelector(".lvl-avg").textContent = `Ø ${Math.round(avg)} %`;
+      lvlBox.title = avg >= 100 ? `Alle Ziele erreicht (Ø ${avg.toFixed(1)} %)` : `Durchschnitt aller Ziele: ${avg.toFixed(1)} %. Bei ${(level + 1) * 10} % ist Level ${level + 1} erreicht.`;
+      lvlBox.hidden = false;
+    }
+
+    // Handy: Karten-Reihen (Ziele, Business, Tages-To-Do) sind seitlich wischbar, Punkte zeigen die Position
+    const mqMobile = matchMedia("(max-width: 720px)");
+    ["goalsGrid", "businessGrid", "todoGrid"].forEach((id) => {
+      const grid = document.getElementById(id);
+      if (!grid) return;
+      const dots = document.createElement("div");
+      dots.className = "swipe-dots";
+      dots.setAttribute("aria-hidden", "true");
+      grid.after(dots);
+      const refresh = () => {
+        const cards = [...grid.children];
+        if (dots.children.length !== cards.length) dots.innerHTML = cards.map(() => "<i></i>").join("");
+        if (!mqMobile.matches) return;
+        const gr = grid.getBoundingClientRect();
+        const center = gr.left + grid.clientWidth / 2;
+        let best = 0, bestD = Infinity;
+        cards.forEach((c, i) => {
+          const r = c.getBoundingClientRect();
+          const d = Math.abs(r.left + r.width / 2 - center);
+          if (d < bestD) { bestD = d; best = i; }
+        });
+        [...dots.children].forEach((d, i) => d.classList.toggle("on", i === best));
+      };
+      grid.addEventListener("scroll", refresh, { passive: true });
+      new MutationObserver(refresh).observe(grid, { childList: true });
+      window.addEventListener("resize", refresh);
+      refresh();
+    });
+
+    // Handy: Woche/Monat/Jahr per Wischen wechseln (Habits und Zeit-Balance)
+    const swipeViews = (panelSel, toggleSel) => {
+      const panel = document.querySelector(panelSel);
+      const btns = [...document.querySelectorAll(`${toggleSel} button`)];
+      if (!panel || !btns.length) return;
+      const step = (d) => {
+        const i = btns.findIndex((b) => b.classList.contains("active")) + d;
+        if (i >= 0 && i < btns.length) btns[i].click();
+      };
+      PX.attachSwipe(panel, { onLeft: () => step(1), onRight: () => step(-1), ignore: "input, textarea" });
+    };
+    swipeViews(".habit-panel", "#habitViewToggle");
+    swipeViews("#zeit .panel", "#timeViewToggle");
+
+    // Handy: Aufgaben und Remote Tasks nach rechts wischen = abhaken (wie ein Klick auf das Kaestchen)
+    [taskList, remoteTaskList].forEach((list) =>
+      PX.attachRowSwipe(list, ".todo-item", (row) => {
+        const cb = row.querySelector('input[type="checkbox"]');
+        if (cb) cb.click();
+      })
+    );
+  })();
+
 })();

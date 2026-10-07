@@ -388,6 +388,30 @@ den Eintrag, der Pfeil (↩) verschiebt ihn ins Tages-To-Do, und der Stand liegt
 Feld `remoteTasks` in `sync-data.json` (Cloud-only, siehe unten). Offene Punkte aus dem
 Tages-To-Do vergangener Tage wandern weiterhin nur nach "Aufgaben".
 
+## Pixel-Look und Handy-Ansicht
+
+Das ganze Dashboard ist im Retro-Spielstil gehalten: 2-Pixel-Rahmen mit hartem Schatten, Press-Start-Schrift für
+Beschriftungen, Pixel-Symbole und Animationen in Stufen. Die Anordnung der Kästchen ist dabei unverändert geblieben,
+geändert hat sich nur der Look. Alles ist rein visuell (Code: Block "Pixel-Look" am Ende von `styles.css`, Symbole und
+Wisch-Helfer in `shopping.js`) und speichert nichts. Es gilt weiterhin: alle Nutzdaten liegen nur in der Cloud.
+
+- **Sektionstitel** haben je ein Pixel-Symbol (Kalender, Rolle, Schwert, Globus, Flamme, Pokal, Truhe, Sanduhr,
+  Einkaufswagen, Buch). Die Business-Karten haben bewusst keine Symbole, nur einen Farbbalken oben.
+- **Brain-Karte:** Die Bereiche sind Pixel-Kacheln mit Symbol, verbunden durch gestrichelte, wandernde Wege (kein 3D-Kippen mehr).
+- **Ziele und Zeit-Balance:** Die Ringe bestehen aus Pixel-Blöcken (24 beim Ziel-Ring, 36 bei der Zeit-Balance), die beim
+  Laden nacheinander aufleuchten. Balkendiagramme sind aus gestapelten Pixel-Blöcken aufgebaut. Habit-Serien ab 7 Tagen
+  zeigen das Flammen-Badge.
+- **Level oben in der Leiste:** "LVL 5" ist der Durchschnitt aller Ziele in 10%-Schritten (52 % im Schnitt = Level 5, die
+  zehn Kästchen zeigen den Weg bis 60 % = Level 6). Reine Anzeige, wird jedes Mal aus den Zielwerten berechnet.
+- **Handy (bis 720px Breite):**
+  - Menü als zweite, seitlich wischbare Zeile, der aktive Eintrag bleibt mittig.
+  - Ziele, Business und Tages-To-Do sind wischbare Karten-Reihen mit Einrasten und Positions-Punkten.
+  - Habit-Woche: Name oben, die sieben Tage groß darunter.
+  - Wischen auf Habits und Zeit-Balance wechselt Woche/Monat/Jahr, auf der Einkaufsliste die vier Reiter.
+  - Eine Zeile in Aufgaben, Remote Tasks und der Einkaufsliste nach rechts wischen = abhaken (ab ca. 90px Zug; in der
+    Einkaufsliste lässt sich das durch nochmaliges Wischen zurücknehmen). Diagramme scrollen seitlich.
+  - Größere Tippflächen, Eingaben ohne Zoom-Sprung (16px), Rücksicht auf Notch und Home-Leiste.
+
 ## Einkaufsliste
 
 Eigene Sektion zwischen "Zeit-Balance" und "Notizen" im Retro-Pixel-Stil (Code in `shopping.js`,

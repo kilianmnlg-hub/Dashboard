@@ -4,6 +4,21 @@
 (function () {
   /* ---------- Pixel-Sprites (8x8) ---------- */
   const SPR = {
+    calendar:{ p: { b: "#8d8d99", r: "#e0524b", w: "#f4f4f4", k: "#3f3f4a" }, r: ["rrrrrrrr", "rrrrrrrr", "bwwwwwwb", "bwkwkwkb", "bwwwwwwb", "bwkwkwwb", "bwwwwwwb", "bbbbbbbb"] },
+    sword:   { p: { b: "#d8e0ea", c: "#8a97a8", d: "#b5772f" }, r: ["......bb", ".....bbc", "....bbc.", "...bbc..", "..bbc...", ".dbc....", "ddd.....", "dd......"] },
+    globe:   { p: { b: "#1f4a7a", g: "#3f86c9", l: "#5fbf63" }, r: ["..bbbb..", ".bggllb.", "bgglgggb", "bgggglgb", "bgllgggb", "bggglggb", ".bgggbb.", "..bbbb.."] },
+    flame:   { p: { f: "#e8681c", o: "#f4c542" }, r: ["...f....", "..ff.f..", "..fff.f.", ".fffoff.", ".ffooff.", ".ffooff.", "..fooff.", "...ff..."] },
+    trophy:  { p: { g: "#b8892a", y: "#f4c542" }, r: ["gggggggg", ".gyyyyg.", "ggyyyygg", "g.gyyg.g", "..gyyg..", "...gg...", "..gggg..", ".gggggg."] },
+    hourglass:{ p: { b: "#b5772f", s: "#f4c542" }, r: ["bbbbbbbb", ".bssssb.", "..bssb..", "...bb...", "...bb...", "..bssb..", ".bssssb.", "bbbbbbbb"] },
+    book:    { p: { b: "#8a6a3a", w: "#f2e3b8" }, r: ["..bbbbbb", ".bwwwwwb", "bwwbbwwb", "bwwwwwwb", "bwbbbbwb", "bwwwwwwb", "bbbbbbbb", "........"] },
+    brain:   { p: { p: "#e89ab8", l: "#c0587e" }, r: ["..pppp..", ".pplppp.", "pplpplpp", "plppplpp", "pplpplpp", "pppplppp", ".pppppp.", "..pppp.."] },
+    brick:   { p: { b: "#d95926", h: "#f0a37a", d: "#9a3a14" }, r: [".bb..bb.", ".bbbbbb.", "bbbbbbbb", "bhbbbbbb", "bbbbbbbb", "bbbbbbbb", "dddddddd", "........"] },
+    play:    { p: { b: "#8a2f2f", r: "#e66767", w: "#ffffff" }, r: ["bbbbbbbb", "brrrrrrb", "brwrrrrb", "brwwrrrb", "brwwwrrb", "brwwrrrb", "brwrrrrb", "bbbbbbbb"] },
+    spark:   { p: { p: "#9085e9" }, r: ["...pp...", "...pp...", "..pppp..", "pppppppp", "pppppppp", "..pppp..", "...pp...", "...pp..."] },
+    bulb:    { p: { y: "#f4c542", h: "#fff1a8", g: "#9aa3ad" }, r: ["..yyyy..", ".yhyyyy.", ".yyyyyy.", ".yyyyyy.", "..yyyy..", "...gg...", "...gg...", "..gggg.."] },
+    shop:    { p: { r: "#e0524b", w: "#f4f4f4", b: "#8a6a3a", d: "#5c3b1e" }, r: ["rwrwrwrw", "rwrwrwrw", "bbbbbbbb", "bwwddwwb", "bwwddwwb", "bwwddwwb", "bwwddwwb", "bbbbbbbb"] },
+    home:    { p: { r: "#c8553d", b: "#d9c8a0", w: "#8ab8e6", d: "#5c3b1e" }, r: ["...rr...", "..rrrr..", ".rrrrrr.", "rrrrrrrr", ".bbbbbb.", ".bwwddb.", ".bwwddb.", ".bbbbbb."] },
+    floppy:  { p: { b: "#2f5a96", w: "#dfe9f5", s: "#8ab8e6" }, r: ["bbbbbbbb", "bwwwwbbb", "bwwwwbbb", "bwwwwwwb", "bbbbbbbb", "bssssssb", "bssssssb", "bbbbbbbb"] },
     cart:  { p: { b: "currentColor", c: "#e8681c" }, r: ["b.......", "bb......", ".bcccccc", ".bcccccc", "..bcccc.", "..bbbbb.", "..b...b.", "..b...b."] },
     coin:  { p: { a: "#f4c542", b: "#9a6b10", c: "#fff1a8" }, r: ["..bbbb..", ".baaaab.", "baacaaab", "baacaaab", "baacaaab", "baaaaaab", ".baaaab.", "..bbbb.."] },
     heart: { p: { r: "#e0524b", h: "#ffb3ad" }, r: [".rr..rr.", "rhrrrrrr", "rrrrrrrr", "rrrrrrrr", ".rrrrrr.", "..rrrr..", "...rr...", "........"] },
@@ -187,6 +202,70 @@
     s.r.forEach((row, y) => { let x = 0; while (x < 8) { const ch = row[x]; if (ch === ".") { x++; continue; } let w = 1; while (x + w < 8 && row[x + w] === ch) w++; rects += `<rect x="${x}" y="${y}" width="${w}" height="1" fill="${s.p[ch]}"/>`; x += w; } });
     return (sprCache[key] = `<svg class="spr ${cls}" width="${size}" height="${size}" viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`);
   }
+
+
+  /* ---------- Wisch-Helfer (Handy) ---------- */
+  // true, wenn zwischen Ziel und Wurzel ein waagerecht scrollbares Element liegt: dort gehört die Geste dem Scrollen
+  const isScrollableX = (node, root) => {
+    for (let n = node; n && n !== root && n.nodeType === 1; n = n.parentElement) {
+      if (n.scrollWidth > n.clientWidth + 2) {
+        const ox = getComputedStyle(n).overflowX;
+        if (ox === "auto" || ox === "scroll") return true;
+      }
+    }
+    return false;
+  };
+  // Seitwärts-Wischen auf einer Fläche (z.B. zwischen Reitern wechseln)
+  function attachSwipe(el, { onLeft, onRight, ignore, rightIgnore }) {
+    if (!el) return;
+    let sx = 0, sy = 0, st = 0, ok = false, noRight = false;
+    el.addEventListener("touchstart", (e) => {
+      const t = e.touches[0];
+      ok = e.touches.length === 1 && !(ignore && e.target.closest && e.target.closest(ignore)) && !isScrollableX(e.target, el);
+      noRight = !!(rightIgnore && e.target.closest && e.target.closest(rightIgnore));
+      sx = t.clientX; sy = t.clientY; st = Date.now();
+    }, { passive: true });
+    el.addEventListener("touchend", (e) => {
+      if (!ok) return;
+      ok = false;
+      const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+      if (dx > 0 && noRight) return; // Rechts-Wischen auf einer Zeile gehört dem Abhaken
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6 && Date.now() - st < 700) (dx < 0 ? onLeft : onRight)();
+    }, { passive: true });
+  }
+  // Zeile nach rechts wischen = erledigt (Ziehen zeigt die Zeile mit; ab ca. 90px löst es aus)
+  function attachRowSwipe(container, rowSel, onDone) {
+    if (!container) return;
+    let row = null, sx = 0, sy = 0, dx = 0, active = false, locked = false;
+    container.addEventListener("touchstart", (e) => {
+      row = e.touches.length === 1 && e.target.closest ? e.target.closest(rowSel) : null;
+      if (row && e.target.closest("input, button, .shop-menu")) row = null;
+      if (!row) return;
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY; dx = 0; active = false; locked = false;
+    }, { passive: true });
+    container.addEventListener("touchmove", (e) => {
+      if (!row || locked) return;
+      const mx = e.touches[0].clientX - sx, my = e.touches[0].clientY - sy;
+      if (!active) {
+        if (Math.abs(my) > 10 && Math.abs(my) > Math.abs(mx)) { locked = true; return; }
+        if (mx > 12 && mx > Math.abs(my) * 1.5) active = true; else return;
+      }
+      dx = Math.max(0, Math.min(mx, 140));
+      row.style.transform = `translateX(${dx}px)`;
+      row.classList.toggle("swipe-ready", dx > 90);
+    }, { passive: true });
+    const end = () => {
+      if (!row) return;
+      const r = row; row = null;
+      r.style.transform = "";
+      r.classList.remove("swipe-ready");
+      if (active && dx > 90) onDone(r);
+      active = false;
+    };
+    container.addEventListener("touchend", end, { passive: true });
+    container.addEventListener("touchcancel", end, { passive: true });
+  }
+  window.PixelSprites = { spr, SPR, attachSwipe, attachRowSwipe };
 
   /* ---------- Einkaufsliste: Gänge, Daten, Oberfläche ---------- */
   const DAY = 86400000;
@@ -497,6 +576,18 @@
       const name = norm($("shopDName").value) || "Mein Rezept";
       state.dishes.push({ name, items: state.items.map((i) => i.name) }); $("shopDName").value = ""; save(); render();
     });
+
+    // Handy: zwischen den vier Reitern wischen, in der Liste eine Zeile nach rechts wischen = abhaken
+    const TAB_ORDER = ["list", "hist", "due", "tpl"];
+    const stepTab = (d) => {
+      if (storeMode) return;
+      const i = TAB_ORDER.indexOf(tab) + d;
+      if (i < 0 || i >= TAB_ORDER.length) return;
+      tab = TAB_ORDER[i];
+      render();
+    };
+    attachSwipe($("shopCard"), { onLeft: () => stepTab(1), onRight: () => stepTab(-1), ignore: ".tabs, .shop-menu, input", rightIgnore: ".shop-row" });
+    attachRowSwipe($("shopPaneList"), ".shop-row", (r) => toggleCheck(r.dataset.row));
 
     $("shopCartSpr").innerHTML = spr("cart", 30);
     $("shopCoinSpr").innerHTML = spr("coin", 16);
