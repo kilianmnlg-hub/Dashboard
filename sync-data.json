@@ -158,6 +158,12 @@
         "name": "Hähnchen",
         "qty": "",
         "aisle": "fleisch"
+      },
+      {
+        "id": "24b3d7c1-8029-458d-8666-e2650fc287ef",
+        "name": "Sojagranulat",
+        "qty": "",
+        "aisle": "misc"
       }
     ],
     "history": {},
@@ -178,6 +184,6 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360664457
+    "updatedAt": 1791362054266
   }
 }
