@@ -427,6 +427,13 @@ aus dem Upload-Rhythmus des Kanals. Ohne Messwerte (z.B. Umsatz, Bricklink-Teile
 (rot ab 1,5-fachem Rhythmus, sonst gelb; Shorts zählen nicht) und offene Bricklink-Drive-Thru-Mails bzw. Bestellungen ohne Feedback.
 "Wegklicken" gilt nur für die aktuelle Sitzung.
 
+## Einklappbare Fenster
+
+Jedes Fenster (Brain-Karte oben und alle Sektionen von Kalender bis Notizen) hat vorn in der Überschrift einen Pfeil-Knopf. Ein Klick
+klappt den Inhalt zu und lässt nur die Titelzeile stehen, ein zweiter klappt ihn wieder auf. Standard ist immer ausgeklappt; gemerkt
+wird nur, was du eingeklappt hast. Die Liste liegt wie alles andere in der Cloud (Feld `fold` in `sync-data.json`, Code in `fold.js`),
+gilt also auf allen Geräten gleich und nicht nur im Browser.
+
 ## Zeittracker
 
 Ersetzt die frühere Zeit-Balance. Der Arbeitszeit-Tracker ist direkt im Dashboard (Code in `timetracker.js`, Pixel-Stil wie

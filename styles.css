@@ -1654,3 +1654,16 @@ svg.links line.lit { stroke: var(--accent); stroke-width: 2; }
 .ib-st { font-family: var(--px); font-size: 7px; color: var(--text-faint); border: 2px solid var(--border); border-radius: 2px; padding: 4px 6px; flex: none; margin-top: 2px; line-height: 1.5; } .ib-st.ok { color: var(--status-good); border-color: var(--status-good); }
 .ib-del { border: 2px solid transparent; background: none; color: var(--text-faint); font-size: 16px; padding: 0 7px; border-radius: 3px; cursor: pointer; flex: none; } .ib-del:hover { color: var(--status-critical); border-color: var(--status-critical); }
 @media (prefers-reduced-motion: reduce) { .ib-sheet { animation: none; } }
+
+/* ---------- Einklappbare Fenster ---------- */
+.fold-btn { flex: none; align-self: center; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 2px solid var(--text); border-radius: 3px; background: var(--surface-2); color: var(--text); box-shadow: 2px 2px 0 var(--pxs); cursor: pointer; transition: transform .08s steps(2), box-shadow .08s steps(2); }
+.fold-btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--pxs); }
+.fold-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fold-btn svg { display: block; }
+.section.is-folded > .section-head .fold-btn svg, .brain-card.is-folded > .fold-btn svg { transform: rotate(-90deg); }
+.fold-corner { position: absolute; top: 14px; right: 14px; z-index: 5; }
+.section.is-folded > :not(.section-head) { display: none !important; }
+.section.is-folded > .section-head { margin-bottom: 0; }
+.brain-card.is-folded { min-height: 0; margin-bottom: 28px; }
+.brain-card.is-folded .brain-scene-wrap, .brain-card.is-folded .brain-hint, .brain-card.is-folded .area-pop { display: none !important; }
+.brain-card.is-folded .brain-copy { flex: 1 1 auto; padding: 22px 64px 22px 24px; }

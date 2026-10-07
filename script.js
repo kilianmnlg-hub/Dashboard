@@ -1811,6 +1811,10 @@
     : null;
   let remoteInboxRaw = null;
 
+  // Einklappbare Fenster (fold.js): welche Sektionen zugeklappt sind, steht als Liste in der Cloud (Standard: alles offen).
+  const foldBoard = window.createFold ? window.createFold({ dataStore, scheduleAutoSync }) : null;
+  let remoteFoldRaw = null;
+
   // Nicht abgehakte Tages-To-Dos VERGANGENER Tage nach "Aufgaben" uebernehmen, bevor der
   // alte Tages-Eintrag verworfen wird. Jeder Tag hat einen eigenen Storage-Key
   // (dashboard-todo-JJJJ-MM-TT) - ein neuer Tag bedeutet bisher einfach einen neuen, leeren
@@ -2395,9 +2399,11 @@
       remoteTasks: remoteTaskBoard.payload(),
       shopping: shoppingBoard ? shoppingBoard.payload() : remoteShoppingRaw,
       timetracker: timeTrackerBoard ? timeTrackerBoard.payload() : remoteTimeTrackerRaw,
-      inbox: inboxBoard ? inboxBoard.payload() : remoteInboxRaw
+      inbox: inboxBoard ? inboxBoard.payload() : remoteInboxRaw,
+      fold: foldBoard ? foldBoard.payload() : remoteFoldRaw
     };
     if (payload.inbox == null) delete payload.inbox;
+    if (payload.fold == null) delete payload.fold;
     if (payload.shopping == null) delete payload.shopping;
     if (payload.timetracker == null) delete payload.timetracker;
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${SYNC_DATA_REMOTE_FILE}`;
@@ -2531,6 +2537,8 @@
         if (timeTrackerBoard) timeTrackerBoard.applyRemote(remote.timetracker);
         remoteInboxRaw = remote.inbox ?? null;
         if (inboxBoard) inboxBoard.applyRemote(remote.inbox);
+        remoteFoldRaw = remote.fold ?? null;
+        if (foldBoard) foldBoard.applyRemote(remote.fold);
         applyRemoteTodos(remote.todos);
       }
       cloudLoaded.syncdata = true;
