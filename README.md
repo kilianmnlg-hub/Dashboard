@@ -485,7 +485,7 @@ geht es über Safari → Teilen → "Zum Home-Bildschirm". Technisch dahinter:
 
 Der Service Worker ist bewusst simpel gehalten: **network-first** für alle
 Dateien inklusive `data.js` — das Netzwerk hat immer Vorrang, der Cache dient
-nur als Fallback für die App-Dateien ohne Internetverbindung. Die Daten-Dateien
+nur als Fallback für die App-Dateien ohne Internetverbindung. Bei jedem Laden wird beim Server nachgefragt (`no-cache`), damit GitHub Pages' 10-Minuten-Zwischenspeicher keine alte Version festhält. Die Daten-Dateien
 (`habits-data.json`, `sync-data.json`) und alle fremden Hosts (GitHub-API, Google)
 ignoriert er komplett, damit nie ein veralteter Cloud-Stand ausgeliefert wird.
 

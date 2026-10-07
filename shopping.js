@@ -4,7 +4,7 @@
 (function () {
   /* ---------- Pixel-Sprites (8x8) ---------- */
   const SPR = {
-    cart:  { p: { b: "var(--fg)", c: "#e8681c" }, r: ["b.......", "bb......", ".bcccccc", ".bcccccc", "..bcccc.", "..bbbbb.", "..b...b.", "..b...b."] },
+    cart:  { p: { b: "currentColor", c: "#e8681c" }, r: ["b.......", "bb......", ".bcccccc", ".bcccccc", "..bcccc.", "..bbbbb.", "..b...b.", "..b...b."] },
     coin:  { p: { a: "#f4c542", b: "#9a6b10", c: "#fff1a8" }, r: ["..bbbb..", ".baaaab.", "baacaaab", "baacaaab", "baacaaab", "baaaaaab", ".baaaab.", "..bbbb.."] },
     heart: { p: { r: "#e0524b", h: "#ffb3ad" }, r: [".rr..rr.", "rhrrrrrr", "rrrrrrrr", "rrrrrrrr", ".rrrrrr.", "..rrrr..", "...rr...", "........"] },
     star:  { p: { a: "#f4c542" }, r: ["...aa...", "...aa...", "aaaaaaaa", ".aaaaaa.", "..aaaa..", ".aa..aa.", ".a....a.", "........"] },

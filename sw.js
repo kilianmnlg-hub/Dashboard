@@ -9,7 +9,7 @@
 // (siehe "activate" unten) - sonst kann ein Geraet mit wackliger Verbindung (v.a. Handy im
 // Mobilfunknetz) nach einem fehlgeschlagenen Netzwerk-Request beliebig lange auf einer
 // alten, im Cache haengengebliebenen script.js/index.html sitzen bleiben.
-const CACHE_NAME = "dashboard-v15";
+const CACHE_NAME = "dashboard-v16";
 // habits-data.json / sync-data.json bewusst NICHT im Cache (Cloud-only): Nutzdaten duerfen weder
 // lokal liegen bleiben noch bei einem Netzausfall als scheinbar aktueller Stand ausgeliefert werden.
 const APP_SHELL = [
@@ -39,7 +39,9 @@ self.addEventListener("fetch", (event) => {
   if (/\/(habits-data|sync-data)\.json$/.test(reqUrl.pathname)) return;
 
   event.respondWith(
-    fetch(event.request)
+    // "no-cache" = beim Server nachfragen (kleine bedingte Anfrage, ETag), statt bis zu 10 Minuten eine
+    // alte Datei aus dem Browser-Zwischenspeicher zu nehmen (GitHub Pages erlaubt max-age=600).
+    fetch(event.request, { cache: "no-cache" })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
