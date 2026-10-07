@@ -20,7 +20,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
     und pro Monat (Umsatz-Trend-Charts)
 - `.github/workflows/sync-all.yml` — automatischer Sync jeden Tag um 08:00 Uhr
   (plus manuell auslösbar über den Sync-Button im Dashboard oder den Actions-Tab)
-- `manifest.webmanifest`, `icon.svg`, `sw.js` — machen das Dashboard als PWA installierbar
+- `manifest.webmanifest`, `icon-*.png`, `sw.js` — machen das Dashboard als PWA installierbar
 - `habits-data.json` — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
   direkt aus dem Browser aktualisiert (siehe Abschnitt "Habit-Tracker")
 - `sync-data.json` — Cloud-Kopie von Video-Ideen, Studium-Termin, Tages-To-Do und
@@ -575,8 +575,5 @@ Code-Änderungen die Version in `index.html` hochzählen und den Cache-Namen in 
 Parameter, ändert sich täglich und wird vom Service Worker immer beim Server nachgefragt; der Zeittracker lädt seine
 Notion-Historie zusätzlich frisch nach.
 
-Das App-Icon (`icon.svg`) ist ein einfaches generiertes SVG im Farbschema des
-Dashboards. Für optimale iOS-Darstellung kannst du es bei Bedarf einmal extern
-in eine PNG-Datei (z.B. 180×180) umwandeln und den `apple-touch-icon`-Link in
-`index.html` darauf zeigen lassen — notwendig ist das aber nicht, die App
-funktioniert auch mit dem SVG.
+Das App-Icon ist ein Pixel-Pokal im Farbschema des Dashboards, als PNG in drei Größen: `icon-64.png` (Browser-Tab), `icon-200.png`
+(Startbildschirm, Apple-Touch-Icon) und `icon-640.png` (Installation, mit Rand für maskierte Icons).
