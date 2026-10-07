@@ -330,7 +330,12 @@
       "cloud-failed": "⚠️ Cloud nicht erreichbar — Änderungen gesperrt, neuer Versuch läuft"
     };
     autoSyncStatusEl.hidden = false;
-    autoSyncStatusEl.textContent = map[state] || "";
+    // Auf schmaleren Bildschirmen blendet das CSS den Wortlaut aus (nur Wolke und Uhrzeit); lange Meldungen werden gekuerzt, der
+    // volle Text steht im Tooltip.
+    const text = map[state] || "";
+    if (state === "saved") autoSyncStatusEl.innerHTML = `☁️ <span class="as-w">Automatisch gesichert · </span>${time}`;
+    else autoSyncStatusEl.textContent = text;
+    autoSyncStatusEl.title = text;
   }
 
   // Seit Cloud-only ist der Auto-Sync der EINZIGE Weg, auf dem Aenderungen gespeichert werden
