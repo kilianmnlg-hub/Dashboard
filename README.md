@@ -425,6 +425,8 @@ der Rest):
   also auch am PC weiter. Läuft ein Timer länger als 12 Stunden, fragt das Dashboard beim Stoppen nach (so speichern, mit
   eigener Dauer speichern oder verwerfen), damit ein vergessener Timer keine Stunden-Ausreißer erzeugt.
 - **Kacheln** Heute / Diese Woche / Dieser Monat mit Anteil YouTube vs. Bricklink.
+- **Ausklappfenster:** "Übersicht" (Diagramm) und "Verlauf" sind standardmäßig zugeklappt und sparen Platz. In der Titelzeile steht
+  eine Kurzinfo (z.B. "WOCHE 5.10. – 11.10. · 8h 11m", "224 EINTRÄGE · ZULETZT 06.10.").
 - **Diagramm** Woche, Monat und Jahr (Heatmap) mit Vor-/Zurück-Pfeilen; Tipp auf einen Tag öffnet das Tages-Detail.
   Auf dem Handy wechselt Wischen zwischen Woche, Monat und Jahr.
 - **Verlauf** der letzten 100 Einträge, "+ Eintrag" für manuelle Zeiten, × zum Löschen.

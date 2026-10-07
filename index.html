@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Kilian – Überblick</title>
-<link rel="stylesheet" href="styles.css?v=20261007b" />
+<link rel="stylesheet" href="styles.css?v=20261007c" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="icon.svg" />
@@ -235,7 +235,9 @@
       <div class="tt-timers" id="ttTimers"></div>
       <div class="tt-stats" id="ttStats"></div>
 
-      <div class="tt-card" id="ttChartCard">
+      <details class="tt-card tt-fold" id="ttChartCard">
+        <summary><span class="tt-ft tt-px">ÜBERSICHT</span><span class="tt-fs" id="ttChartSum"></span></summary>
+        <div class="tt-fold-body">
         <div class="tt-ch">
           <div class="tt-seg" id="ttSeg" role="tablist"></div>
           <div class="tt-nav"><button id="ttPrev" type="button" aria-label="Zurück">‹</button><span class="tt-range tt-px" id="ttRange"></span><button id="ttNext" type="button" aria-label="Weiter">›</button></div>
@@ -243,10 +245,13 @@
         <div class="tt-cscroll" id="ttCscroll"><div class="tt-bars" id="ttBars"></div></div>
         <div class="tt-year" id="ttYear"></div>
         <div class="tt-legend"><span><i style="background:var(--tt-yt)"></i>YouTube</span><span><i style="background:var(--tt-bl)"></i>Bricklink</span></div>
-      </div>
+        </div>
+      </details>
 
-      <div class="tt-card">
-        <div class="tt-lh"><h3>Verlauf</h3><button class="tt-btn tt-sm tt-px" id="ttToggleForm" type="button">+ EINTRAG</button></div>
+      <details class="tt-card tt-fold" id="ttLogCard">
+        <summary><span class="tt-ft tt-px">VERLAUF</span><span class="tt-fs" id="ttLogSum"></span></summary>
+        <div class="tt-fold-body">
+        <div class="tt-lh"><button class="tt-btn tt-sm tt-px" id="ttToggleForm" type="button">+ EINTRAG</button></div>
         <div class="tt-form" id="ttForm">
           <label class="tt-px">PROJEKT<select id="ttMCat"><option value="youtube">YouTube</option><option value="bricklink">Bricklink</option></select></label>
           <label class="tt-px">DATUM<input type="date" id="ttMDate"></label>
@@ -255,7 +260,8 @@
           <div class="tt-ra"><button class="tt-btn tt-sm tt-px" id="ttMCancel" type="button">ABBRECHEN</button><button class="tt-btn tt-sm tt-px tt-go" id="ttMSave" type="button">SPEICHERN</button></div>
         </div>
         <div class="tt-entries" id="ttEntries"></div>
-      </div>
+        </div>
+      </details>
     </div>
 
     <div class="tt-ov" id="ttDayOv"><div class="tt-modal" role="dialog" aria-modal="true" aria-labelledby="ttDayTitle">
@@ -339,8 +345,8 @@
 </footer>
 
 <script src="data.js"></script>
-<script src="shopping.js?v=20261007b"></script>
-<script src="timetracker.js?v=20261007b"></script>
-<script src="script.js?v=20261007b"></script>
+<script src="shopping.js?v=20261007c"></script>
+<script src="timetracker.js?v=20261007c"></script>
+<script src="script.js?v=20261007c"></script>
 </body>
 </html>

@@ -1569,3 +1569,16 @@ svg.links line.lit { stroke: var(--accent); stroke-width: 2; }
   .tt-form input, .tt-form select, .tt-lm input { font-size: 16px; min-height: 40px; }
 }
 @media (prefers-reduced-motion: reduce) { .tt-bg.tt-grow .tt-stack b, .tt-er.tt-fresh, .tt-tag i, .tt-timer.tt-running .tt-head .spr, .tt-sync.tt-busy .tt-led { animation: none !important; } }
+
+/* Ausklappfenster im Zeittracker (Uebersicht, Verlauf) */
+.tt-fold { padding: 0; }
+.tt-fold > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 14px 16px; min-height: 48px; }
+.tt-fold > summary::-webkit-details-marker { display: none; }
+.tt-fold > summary::before { content: "▶"; font-family: var(--px); font-size: 9px; color: var(--accent); transition: transform .12s steps(2); flex: none; }
+.tt-fold[open] > summary::before { transform: rotate(90deg); }
+.tt-fold > summary:hover .tt-ft { color: var(--accent); }
+.tt-ft { font-size: 10px; }
+.tt-fs { margin-left: auto; font-family: var(--px); font-size: 8px; color: var(--text-muted); text-align: right; line-height: 1.6; }
+.tt-fold-body { padding: 4px 16px 16px; border-top: 2px dotted var(--border); margin: 0 16px; padding-inline: 0; padding-top: 16px; }
+.tt-lh { justify-content: flex-end; }
+@media (max-width: 560px) { .tt-fold > summary { padding: 12px; gap: 8px; flex-wrap: wrap; } .tt-fs { margin-left: 0; width: 100%; text-align: left; } .tt-fold-body { margin: 0 12px; } }

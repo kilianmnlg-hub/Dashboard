@@ -182,7 +182,25 @@
       $("ttYear").style.display = yr ? "grid" : "none";
       if (yr) renderYear(new Date().getFullYear() + offset); else { renderBars(mode === "week" ? weekDays(offset) : monthDays(offset), animNext); animNext = false; }
       root.querySelectorAll("#ttSeg .tt-tab").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.m === mode)));
+      renderChartSum();
     }
+    // Titelzeile der Uebersicht (auch zugeklappt sichtbar): Zeitraum + Summe
+    function renderChartSum() {
+      let total = 0, label;
+      if (mode === "year") {
+        const y = new Date().getFullYear() + offset;
+        buildIndex().byDay.forEach((row, k) => { if (k.startsWith(y + "-")) total += row.youtube + row.bricklink; });
+        if (y === new Date().getFullYear()) CATS.forEach((c) => (total += live(c)));
+        label = "JAHR " + y;
+      } else {
+        const days = mode === "week" ? weekDays(offset) : monthDays(offset);
+        days.forEach((d) => { const t = dayTotals(d); total += t.youtube + t.bricklink; });
+        label = mode === "week" ? "WOCHE " + days[0].getDate() + "." + (days[0].getMonth() + 1) + ". – " + days[6].getDate() + "." + (days[6].getMonth() + 1) + "." : MONTH_LABELS[days[0].getMonth()].toUpperCase() + " " + days[0].getFullYear();
+      }
+      $("ttChartSum").textContent = label + " · " + fmtHM(total);
+    }
+    // Beim Aufklappen laufen die Balken neu hoch
+    $("ttChartCard").addEventListener("toggle", () => { if ($("ttChartCard").open) { animNext = true; renderChart(); } });
     $("ttSeg").addEventListener("click", (e) => { const b = e.target.closest("[data-m]"); if (b) { mode = b.dataset.m; offset = 0; animNext = true; renderChart(); } });
     $("ttPrev").addEventListener("click", () => { offset--; animNext = true; renderChart(); });
     $("ttNext").addEventListener("click", () => { offset++; animNext = true; renderChart(); });
@@ -231,6 +249,9 @@
         ? list.map((e) => `<div class="tt-er ${e.k === freshKey ? "tt-fresh" : ""}" style="--c:var(--tt-${e.cat === "youtube" ? "yt" : "bl"})"><i></i><span class="tt-nm">${LABEL[e.cat]}</span><span class="tt-wh">${fmtDateTime(e.start)}</span><span class="tt-du">${fmtHM(e.dur)}</span><button class="tt-del" data-k="${esc(e.k)}" type="button" aria-label="Eintrag löschen">×</button></div>`).join("")
         : `<div class="tt-empty">${notion.length ? "Noch keine Einträge." : "Der Notion-Verlauf ist noch nicht geladen (der nächste Sync um 08:00 Uhr oder der Sync-Knopf oben holt ihn)."} Starte oben einen Timer oder füge manuell einen Eintrag hinzu.</div>`;
       freshKey = null;
+      const all = buildIndex().list;
+      const newest = all.reduce((m, e) => Math.max(m, e.start), 0);
+      $("ttLogSum").textContent = all.length + " EINTRÄGE" + (newest ? " · ZULETZT " + pad(new Date(newest).getDate()) + "." + pad(new Date(newest).getMonth() + 1) + "." : "");
     }
     $("ttEntries").addEventListener("click", (e) => {
       const b = e.target.closest(".tt-del");
@@ -254,6 +275,7 @@
       state.removed = state.removed.filter((x) => x !== k);
       if (!state.entries.some((e) => e.k === k) && !notionKeys.has(k)) state.entries.push({ id: newId(), cat, start, end, k });
       freshKey = k;
+      $("ttLogCard").open = true;
       save(); renderAll();
     }
 
