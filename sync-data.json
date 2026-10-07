@@ -265,8 +265,10 @@
     "updatedAt": 1791375342047
   },
   "fold": {
-    "collapsed": [],
-    "updatedAt": 1791375288007,
+    "collapsed": [
+      "kalender"
+    ],
+    "updatedAt": 1791376443550,
     "lvl": 5
   }
 }
