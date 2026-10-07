@@ -274,9 +274,10 @@
       "einkauf",
       "zeit",
       "business",
-      "ziele"
+      "ziele",
+      "notizen"
     ],
-    "updatedAt": 1791376493295,
+    "updatedAt": 1791376555479,
     "lvl": 5
   }
 }
