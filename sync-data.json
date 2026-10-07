@@ -107,9 +107,11 @@
       }
     ],
     "history": {},
-    "prices": {},
+    "prices": {
+      "Milch": 1
+    },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360289089
+    "updatedAt": 1791360326343
   }
 }
