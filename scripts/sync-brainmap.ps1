@@ -49,6 +49,47 @@ $knownAreas = @{
 }
 $fallbackColors = @("var(--accent-privat)", "var(--node-laden)", "var(--node-privat)")
 
+# --- Handy-Notizen aus der Cloud-Inbox in den Vault uebernehmen ---
+# Notizen, die im Dashboard ueber den "+"-Knopf (z.B. am Handy) erfasst wurden, stehen in sync-data.json (Feld "inbox").
+# Sie werden hier wie die Notizen vom PC an die richtige Notizen.md im Themen-Ordner gehaengt. Welche schon uebernommen
+# sind, merkt sich scripts\inbox-imported.json (nur lokal). Ein Fehler hier (z.B. kein Internet) stoppt den Rest nicht.
+try {
+  $stampNow = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+  $remoteSync = Invoke-RestMethod -Uri "https://raw.githubusercontent.com/kilianmnlg-hub/Dashboard/main/sync-data.json?t=$stampNow" -TimeoutSec 30
+  $doneFile = Join-Path $PSScriptRoot "inbox-imported.json"
+  $doneIds = @()
+  if (Test-Path $doneFile) {
+    # foreach statt @(...): Windows PowerShell 5.1 liefert ein JSON-Array sonst als ein einziges verschachteltes Objekt zurueck
+    $parsedIds = Get-Content -Raw -Path $doneFile -Encoding UTF8 | ConvertFrom-Json
+    foreach ($idx in $parsedIds) { $doneIds += [string]$idx }
+  }
+  $removedIds = @($remoteSync.inbox.removed)
+  $importedNow = 0
+  foreach ($inboxItem in @($remoteSync.inbox.items)) {
+    if (-not $inboxItem.id -or ($doneIds -contains $inboxItem.id) -or ($removedIds -contains $inboxItem.id)) { continue }
+    $inboxText = ([string]$inboxItem.text).Trim()
+    if (-not $inboxText) { continue }
+    $inboxFolder = [string]$inboxItem.cat
+    if (-not $inboxFolder) { $inboxFolder = "Ideen" }
+    $inboxFolderPath = Join-Path $vaultPath $inboxFolder
+    if (-not (Test-Path $inboxFolderPath)) { New-Item -ItemType Directory -Path $inboxFolderPath | Out-Null }
+    $inboxFile = Join-Path $inboxFolderPath "Notizen.md"
+    $inboxWhen = [DateTimeOffset]::FromUnixTimeMilliseconds([int64]$inboxItem.at).LocalDateTime.ToString("dd.MM.yyyy, HH:mm")
+    $inboxExisting = ""
+    if (Test-Path $inboxFile) { $inboxExisting = Get-Content -Raw -Path $inboxFile -Encoding UTF8 }
+    if ($inboxExisting.Trim()) { $inboxBody = ($inboxExisting -replace "\s+$", "") + "`n`n" } else { $inboxBody = "# Notizen`n`n" }
+    [System.IO.File]::WriteAllText($inboxFile, $inboxBody + "## $inboxWhen`n$inboxText`n`n", (New-Object System.Text.UTF8Encoding($false)))
+    $doneIds += [string]$inboxItem.id
+    $importedNow++
+  }
+  if ($importedNow -gt 0) {
+    ConvertTo-Json -InputObject @($doneIds) | Set-Content -Path $doneFile -Encoding UTF8
+    Write-Host "$importedNow Handy-Notiz(en) in den Vault uebernommen."
+  }
+} catch {
+  Write-Warning "Handy-Inbox nicht uebernommen: $($_.Exception.Message)"
+}
+
 $folders = Get-ChildItem -Path $vaultPath -Directory | Where-Object { $_.Name -ne ".obsidian" } | Sort-Object Name
 
 $areas = @()

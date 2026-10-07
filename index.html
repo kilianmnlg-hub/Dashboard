@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Kilian – Überblick</title>
-<link rel="stylesheet" href="styles.css?v=20261007d" />
+<link rel="stylesheet" href="styles.css?v=20261007e" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon.svg" type="image/svg+xml" />
 <link rel="apple-touch-icon" href="icon.svg" />
@@ -347,18 +347,34 @@
       <p class="section-sub">Alle über "Brain" erfassten Notizen, unabhängig vom Themen-Ordner</p>
     </div>
     <div class="panel">
+      <div class="ib-box" id="inboxBox" hidden>
+        <div class="ib-head"><span class="ib-title">VOM HANDY</span><span class="ib-count" id="inboxCount"></span></div>
+        <ul class="ib-list" id="inboxList"></ul>
+      </div>
       <ul class="notes-list" id="notesList"></ul>
     </div>
   </section>
 </main>
+
+<button type="button" class="ib-fab" id="inboxFab" aria-label="Schnelle Notiz erfassen">+</button>
+<div class="ib-ov" id="inboxOv">
+  <div class="ib-sheet" role="dialog" aria-modal="true" aria-labelledby="inboxTitle">
+    <div class="ib-sh"><span class="ib-title" id="inboxTitle">SCHNELLE NOTIZ</span></div>
+    <textarea id="inboxTxt" rows="4" maxlength="2000" placeholder="Idee, Gedanke, Aufgabe…" aria-label="Notiz"></textarea>
+    <div class="ib-chips" id="inboxChips"></div>
+    <p class="ib-msg" id="inboxMsg" role="status"></p>
+    <div class="ib-actions"><button type="button" class="ib-btn" id="inboxCancel">ABBRECHEN</button><button type="button" class="ib-btn ib-go" id="inboxSave">SPEICHERN</button></div>
+  </div>
+</div>
 
 <footer class="footer">
   <p>Daten aus Obsidian, Notion, YouTube & Bricklink · zuletzt synchronisiert <span id="footerUpdated"></span></p>
 </footer>
 
 <script src="data.js"></script>
-<script src="shopping.js?v=20261007d"></script>
-<script src="timetracker.js?v=20261007d"></script>
-<script src="script.js?v=20261007d"></script>
+<script src="shopping.js?v=20261007e"></script>
+<script src="timetracker.js?v=20261007e"></script>
+<script src="inbox.js?v=20261007e"></script>
+<script src="script.js?v=20261007e"></script>
 </body>
 </html>

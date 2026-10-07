@@ -9,11 +9,11 @@
 // (siehe "activate" unten) - sonst kann ein Geraet mit wackliger Verbindung (v.a. Handy im
 // Mobilfunknetz) nach einem fehlgeschlagenen Netzwerk-Request beliebig lange auf einer
 // alten, im Cache haengengebliebenen script.js/index.html sitzen bleiben.
-const CACHE_NAME = "dashboard-v21";
+const CACHE_NAME = "dashboard-v22";
 // habits-data.json / sync-data.json bewusst NICHT im Cache (Cloud-only): Nutzdaten duerfen weder
 // lokal liegen bleiben noch bei einem Netzausfall als scheinbar aktueller Stand ausgeliefert werden.
 const APP_SHELL = [
-  "./", "index.html", "styles.css", "script.js", "shopping.js", "timetracker.js", "data.js", "manifest.webmanifest", "icon.svg",
+  "./", "index.html", "styles.css", "script.js", "shopping.js", "timetracker.js", "inbox.js", "data.js", "manifest.webmanifest", "icon.svg",
   "fonts/fraunces-var.woff2", "fonts/publicsans-var.woff2", "fonts/plexmono-500.woff2", "fonts/plexmono-600.woff2", "fonts/pressstart2p-400.woff2"
 ];
 

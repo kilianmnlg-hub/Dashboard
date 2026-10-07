@@ -1804,6 +1804,13 @@
     : null;
   let remoteTimeTrackerRaw = null;
 
+  // Handy-Notiz (inbox.js): Notizen von jedem Geraet in eine Cloud-Inbox; das lokale Skript sync-brainmap.ps1 uebernimmt
+  // sie am PC nach Obsidian, danach tauchen sie in data.notes auf und die Liste zeigt ein Haekchen.
+  const inboxBoard = window.createInbox
+    ? window.createInbox({ dataStore, scheduleAutoSync, newId, areas: data.brainMap?.areas, notes: data.notes })
+    : null;
+  let remoteInboxRaw = null;
+
   // Nicht abgehakte Tages-To-Dos VERGANGENER Tage nach "Aufgaben" uebernehmen, bevor der
   // alte Tages-Eintrag verworfen wird. Jeder Tag hat einen eigenen Storage-Key
   // (dashboard-todo-JJJJ-MM-TT) - ein neuer Tag bedeutet bisher einfach einen neuen, leeren
@@ -2387,8 +2394,10 @@
       tasks: taskBoard.payload(),
       remoteTasks: remoteTaskBoard.payload(),
       shopping: shoppingBoard ? shoppingBoard.payload() : remoteShoppingRaw,
-      timetracker: timeTrackerBoard ? timeTrackerBoard.payload() : remoteTimeTrackerRaw
+      timetracker: timeTrackerBoard ? timeTrackerBoard.payload() : remoteTimeTrackerRaw,
+      inbox: inboxBoard ? inboxBoard.payload() : remoteInboxRaw
     };
+    if (payload.inbox == null) delete payload.inbox;
     if (payload.shopping == null) delete payload.shopping;
     if (payload.timetracker == null) delete payload.timetracker;
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${SYNC_DATA_REMOTE_FILE}`;
@@ -2520,6 +2529,8 @@
         if (shoppingBoard) shoppingBoard.applyRemote(remote.shopping);
         remoteTimeTrackerRaw = remote.timetracker ?? null;
         if (timeTrackerBoard) timeTrackerBoard.applyRemote(remote.timetracker);
+        remoteInboxRaw = remote.inbox ?? null;
+        if (inboxBoard) inboxBoard.applyRemote(remote.inbox);
         applyRemoteTodos(remote.todos);
       }
       cloudLoaded.syncdata = true;

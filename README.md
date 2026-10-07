@@ -416,6 +416,17 @@ Wisch-Helfer in `shopping.js`) und speichert nichts. Es gilt weiterhin: alle Nut
     Einkaufsliste lässt sich das durch nochmaliges Wischen zurücknehmen). Diagramme scrollen seitlich.
   - Größere Tippflächen, Eingaben ohne Zoom-Sprung (16px), Rücksicht auf Notch und Home-Leiste.
 
+## Reality-Check bei den Zielen und Achtung-Banner
+
+**Reality-Check:** Jede Zielkarte zeigt unter dem Ring das nötige Tempo bis zur Frist (z.B. "244/Tag"), dein aktuelles Tempo, die
+Prognose zur Frist und einen Status: AUF KURS (ab 97 % des Ziels), KNAPP DAHINTER (ab 90 %), DAHINTER (ab 70 %) oder ZU WEIT WEG.
+Das Tempo kommt bei Abos und Followern aus `metricsHistory` (letzte 28 Tage, mindestens 7 Tage Verlauf), bei den Longform-Videos
+aus dem Upload-Rhythmus des Kanals. Ohne Messwerte (z.B. Umsatz, Bricklink-Teile) steht nur die Zeile "nötig".
+
+**Achtung-Banner:** Ganz oben, wie der Versand-Alarm, erscheinen weitere wegklickbare Hinweise: überfälliger Longform-Upload je Kanal
+(rot ab 1,5-fachem Rhythmus, sonst gelb; Shorts zählen nicht) und offene Bricklink-Drive-Thru-Mails bzw. Bestellungen ohne Feedback.
+"Wegklicken" gilt nur für die aktuelle Sitzung.
+
 ## Zeittracker
 
 Ersetzt die frühere Zeit-Balance. Der Arbeitszeit-Tracker ist direkt im Dashboard (Code in `timetracker.js`, Pixel-Stil wie
@@ -429,6 +440,9 @@ der Rest):
   eine Kurzinfo (z.B. "WOCHE 5.10. – 11.10. · 8h 11m", "224 EINTRÄGE · ZULETZT 06.10.").
 - **Diagramm** Woche, Monat und Jahr (Heatmap) mit Vor-/Zurück-Pfeilen; Tipp auf einen Tag öffnet das Tages-Detail.
   Auf dem Handy wechselt Wischen zwischen Woche, Monat und Jahr.
+- **Wochenziel** (Ausklappfenster): Stunden-Soll pro Bereich (Standard YouTube 20 h, Bricklink 8 h, mit − und + einstellbar und
+  in der Cloud gespeichert), Fortschrittsleiste mit Marke "heute" ("1,7 h unter Plan") und der Verlauf der letzten 9 Wochen mit
+  gestrichelter Soll-Linie.
 - **Verlauf** der letzten 100 Einträge, "+ Eintrag" für manuelle Zeiten, × zum Löschen.
 
 **Daten:** Im Dashboard erfasste Einträge, gelöschte Einträge und laufende Timer liegen nur in der Cloud (Feld `timetracker`
@@ -442,6 +456,16 @@ danach liest der normale Sync alles wieder ein. Das passiert täglich um 08:00 U
 Bis dahin steht oben rechts im Tracker "N OFFEN" (Einträge, die noch auf Notion warten). Voraussetzung: Die
 Notion-Integration hat Schreibrechte (siehe "Einrichtung", Notion). Der alte Notion-Tracker (Artifact) funktioniert
 weiter; seine Einträge erscheinen nach dem nächsten Sync im Dashboard.
+
+## Handy-Notiz (Cloud-Inbox)
+
+Am Handy (und überall mit Touch) schwebt unten rechts ein **+**-Knopf. Er öffnet ein Eingabefenster mit Kategorien (die Themen-Ordner deines
+Vaults, Standard "Ideen"). Die Notiz geht nur in die Cloud (Feld `inbox` in `sync-data.json`) und erscheint in der Sektion "Notizen" unter
+"VOM HANDY". Am PC übernimmt `scripts/sync-brainmap.ps1` (täglicher Task "Dashboard Brain-Map Sync") neue Inbox-Notizen vor dem Vault-Scan
+in die jeweilige `Notizen.md` im richtigen Ordner (gleiches Format wie die Schnelle Notiz). Bereits übernommene Notizen merkt sich
+`scripts/inbox-imported.json` (nur lokal, nicht im Repo). Sobald eine Notiz in `data.notes` auftaucht, zeigt die Liste "✓ IN OBSIDIAN" und
+räumt sie nach 3 Tagen von selbst auf; mit × lässt sich jede Notiz auch sofort entfernen. Am PC mit Chrome/Edge funktioniert weiter die
+direkte "Schnelle Notiz" über den Brain-Kern.
 
 ## Einkaufsliste
 
