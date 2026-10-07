@@ -53,5 +53,15 @@
       }
     ],
     "updatedAt": 1791354984677
+  },
+  "remoteTasks": {
+    "items": [
+      {
+        "id": "979533b2-4cc7-44f4-a16b-f946b15ef479",
+        "text": "Einkaufliste",
+        "done": false
+      }
+    ],
+    "updatedAt": 1791356570123
   }
 }
