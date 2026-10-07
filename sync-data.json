@@ -170,6 +170,12 @@
         "name": "Tomaten",
         "qty": "",
         "aisle": "obst"
+      },
+      {
+        "id": "077f7cb2-fa40-43b5-aa4d-9ce0c5add179",
+        "name": "Salat",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {},
@@ -191,7 +197,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373124536
+    "updatedAt": 1791373127393
   },
   "timetracker": {
     "entries": [],
