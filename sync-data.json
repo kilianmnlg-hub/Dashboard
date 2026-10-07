@@ -92,12 +92,18 @@
         "name": "Kartoffeln",
         "qty": "",
         "aisle": "obst"
+      },
+      {
+        "id": "aff36a33-bc93-43f9-9f9b-85c8c2587650",
+        "name": "Mais",
+        "qty": "",
+        "aisle": "misc"
       }
     ],
     "history": {},
     "prices": {},
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360280920
+    "updatedAt": 1791360284696
   }
 }
