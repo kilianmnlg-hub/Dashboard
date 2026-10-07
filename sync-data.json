@@ -140,6 +140,12 @@
         "name": "Harzer Käse",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "6b6331b3-9675-410b-8dcb-61234b998aae",
+        "name": "Tiefkühlgemüse",
+        "qty": "",
+        "aisle": "tk"
       }
     ],
     "history": {},
@@ -152,11 +158,10 @@
       "Sauce Holland": 2,
       "Avocado": 4,
       "Bananen": 2,
-      "Eier": 4,
-      "Harzer Käse": 2
+      "Eier": 4
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360598666
+    "updatedAt": 1791360622807
   }
 }
