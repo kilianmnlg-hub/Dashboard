@@ -186,5 +186,14 @@
     "learned": {},
     "dishes": [],
     "updatedAt": 1791362066833
+  },
+  "timetracker": {
+    "entries": [],
+    "removed": [],
+    "active": {
+      "youtube": 1791368615554,
+      "bricklink": null
+    },
+    "updatedAt": 1791368615554
   }
 }
