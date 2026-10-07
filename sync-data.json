@@ -164,6 +164,12 @@
         "name": "Sojagranulat",
         "qty": "",
         "aisle": "misc"
+      },
+      {
+        "id": "e8f83a11-ae06-4372-b8d4-f9ff0547117c",
+        "name": "Tomaten",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {},
@@ -185,7 +191,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791362066833
+    "updatedAt": 1791373124536
   },
   "timetracker": {
     "entries": [],
