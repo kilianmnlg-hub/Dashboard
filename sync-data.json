@@ -55,8 +55,14 @@
     "updatedAt": 1791389448111
   },
   "remoteTasks": {
-    "items": [],
-    "updatedAt": 0
+    "items": [
+      {
+        "id": "b08b3c28-a855-41bb-b49b-d5e08bd4b7c7",
+        "text": "At-te",
+        "done": false
+      }
+    ],
+    "updatedAt": 1791401497336
   },
   "shopping": {
     "items": [],
