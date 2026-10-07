@@ -65,8 +65,13 @@
         "id": "4c1aca8f-54e8-4d09-bb37-33c6e95ff473",
         "text": "Buchhaltung",
         "done": false
+      },
+      {
+        "id": "464fe96c-73ea-4118-b3a1-aa6b58223299",
+        "text": "dashboard verbessern",
+        "done": false
       }
     ],
-    "updatedAt": 1791356585275
+    "updatedAt": 1791356602193
   }
 }
