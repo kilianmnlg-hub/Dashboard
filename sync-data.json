@@ -182,6 +182,12 @@
         "name": "Frischkäse",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "cfad10fc-28a3-4ed7-ad3f-0b2dd1de7e1a",
+        "name": "Magerquark",
+        "qty": "",
+        "aisle": "kuehl"
       }
     ],
     "history": {},
@@ -206,7 +212,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373149915
+    "updatedAt": 1791373737199
   },
   "timetracker": {
     "entries": [],
@@ -223,5 +229,10 @@
       "bricklink": 7
     },
     "updatedAt": 1791373357223
+  },
+  "inbox": {
+    "items": [],
+    "removed": [],
+    "updatedAt": 0
   }
 }
