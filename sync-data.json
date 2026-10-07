@@ -196,6 +196,10 @@
       "youtube": null,
       "bricklink": null
     },
-    "updatedAt": 1791368624183
+    "targets": {
+      "youtube": 20,
+      "bricklink": 7
+    },
+    "updatedAt": 1791372936283
   }
 }
