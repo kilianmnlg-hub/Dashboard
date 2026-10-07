@@ -222,11 +222,12 @@
       "Salat": 1,
       "Frischkäse": 1,
       "Tiefkühl-Obst": 3,
-      "Kuchen": 2
+      "Kuchen": 2,
+      "Magerquark": 2
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373979371
+    "updatedAt": 1791373984223
   },
   "timetracker": {
     "entries": [],
