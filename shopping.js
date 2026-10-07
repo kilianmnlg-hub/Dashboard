@@ -75,29 +75,104 @@
     klopapier:{ p: { w: "#f4f4f4", d: "#cfcfcf", c: "#b8a37a" }, r: [".wwwwww.", "wwwddwww", "wwdccdww", "wwdccdww", "wwwddwww", ".wwwwww.", "..dddd..", "........"] },
     zahnpasta:{ p: { w: "#f4f4f4", r: "#e0524b", b: "#3f6ea8" }, r: ["wwwwwwww", ".wrrrrw.", ".wwwwww.", ".wwrrww.", "..wwww..", "..wwww..", "...bb...", "..bbbb.."] },
     shampoo: { p: { p: "#e0524b", d: "#3f8aa0", b: "#6fb7c9", w: "#ffffff" }, r: ["...pp...", "..dddd..", ".bbbbbb.", ".bwwwwb.", ".bwwwwb.", ".bbbbbb.", ".bbbbbb.", "..dddd.."] },
-    waschmittel:{ p: { b: "#3f6ea8", c: "#6fa8dc", w: "#ffffff", y: "#f4c542" }, r: ["bbbbbbbb", "bccccccb", "bcwwwwcb", "bcwyywcb", "bcwwwwcb", "bccccccb", "bbbbbbbb", "........"] }
+    waschmittel:{ p: { b: "#3f6ea8", c: "#6fa8dc", w: "#ffffff", y: "#f4c542" }, r: ["bbbbbbbb", "bccccccb", "bcwwwwcb", "bcwyywcb", "bcwwwwcb", "bccccccb", "bbbbbbbb", "........"] },
+    proteinpulver:{ p: { b: "#3f3f4a", w: "#f4f4f4", r: "#e0524b", d: "#bdbdbd" }, r: ["..bbbb..", ".bbbbbb.", ".wwwwww.", ".wrrrrw.", ".wrwwrw.", ".wrrrrw.", ".wwwwww.", ".dddddd."] },
+    proteinriegel:{ p: { b: "#5a3520", r: "#c0392b", w: "#f4c542" }, r: ["........", "b.bbbb.b", "bbrrrrbb", "brwwwwrb", "brrwwrrb", "bbrrrrbb", "b.bbbb.b", "........"] },
+    nuss:    { p: { b: "#7a4b2a", c: "#d9a05b", d: "#f0c88a" }, r: ["...bb...", "..bccb..", ".bccccb.", ".bcdccb.", ".bccccb.", "..bccb..", "...bb...", "........"] },
+    erdnussbutter:{ like: "honig", p: { y: "#c8934a", d: "#8a5a1f", c: "#d33a2a" } },
+    suesskartoffel:{ p: { b: "#8a3a5a", a: "#e0885a", d: "#b85a30" }, r: ["........", "....bbb.", "..bbaaab", ".baaaaab", "baaadaab", "baaaaab.", ".bbbbb..", "........"] },
+    pflanzendrink:{ like: "kuehl", p: { b: "#3e7d3a", w: "#f4f4f4", c: "#8bc57a" } },
+    getreide:{ like: "reis", p: { w: "#e8d6a0", b: "#8a6a3a", d: "#b8a070" } },
+    hummus:  { like: "honig", p: { y: "#e0c58a", d: "#a88a4a", c: "#6b8e23" } },
+    tofu:    { p: { w: "#f4ecd8", d: "#cdbf9a" }, r: ["........", "..wwwwww", ".wwwwwwd", "wwwwwwdd", "wwwwwwdd", "wwwwwwd.", "dddddd..", "........"] },
+    wrap:    { p: { b: "#b8863f", c: "#e8c98a", d: "#f4e3b8" }, r: ["........", "..bbbb..", ".bccccb.", "bcddddcb", "bcddddcb", ".bccccb.", "..bbbb..", "........"] },
+    reiswaffel:{ p: { b: "#a98650", w: "#f0dfb0", d: "#d9c185" }, r: ["..bbbb..", ".bwwwwb.", "bwdwdwwb", "bwwdwdwb", "bwdwdwwb", "bwwdwdwb", ".bwwwwb.", "..bbbb.."] },
+    trockenobst:{ like: "chips", p: { r: "#7a3e2a", y: "#a8603a", w: "#e8c8a0" } },
+    bruehe:  { like: "tofu", p: { w: "#f4c542", d: "#b8892a" } },
+    tomatenmark:{ like: "zahnpasta", p: { w: "#e0524b", r: "#f4a6a0", b: "#2e7d32" } },
+    mayo:    { like: "ketchup", p: { r: "#f2e8c0", d: "#c9b46a", w: "#ffffff", g: "#e0524b" } },
+    senf:    { like: "ketchup", p: { r: "#e0b020", d: "#9a7a10", w: "#ffffff", g: "#6b8e23" } },
+    shaker:  { p: { b: "#3f3f4a", w: "#d8e6f0", c: "#e0c8a0" }, r: ["...bb...", "..bbbb..", ".wwwwww.", ".wccccw.", ".wccccw.", ".wccccw.", ".wccccw.", ".bbbbbb."] },
+    energy:  { like: "cola", p: { r: "#2a6fd1", w: "#f4e04d", g: "#9aa3ad", d: "#1a3f80" } },
+    sportdrink:{ like: "wasser", p: { b: "#5fbf63", w: "#e8ffe8", d: "#2e7d32" } },
+    vitamine:{ p: { b: "#f4f4f4", c: "#e08a1e", d: "#a85f0a", w: "#ffffff", r: "#e0524b" }, r: ["..bbbb..", ".bbbbbb.", ".cccccc.", ".cwwwwc.", ".cwrrwc.", ".cwwwwc.", ".cccccc.", ".dddddd."] },
+    kiwi:    { p: { b: "#7a5a2a", g: "#7cc24a", l: "#b7e07a", w: "#f2f7d0", d: "#2a2a1a" }, r: ["..bbbb..", ".bggggb.", "bglwwlgb", "glwdwwlg", "glwwdwlg", "bglwwlgb", ".bggggb.", "..bbbb.."] },
+    ananas:  { p: { g: "#4caf50", y: "#f4c542", x: "#c9971a" }, r: ["..g.g...", "...gg...", "..yyyy..", ".yxyxyy.", ".yyxyxy.", ".yxyxyy.", ".yyxyxy.", "..yyyy.."] },
+    melone:  { p: { g: "#3e8e41", w: "#cfe8b0", r: "#e0524b", k: "#2a1a1a" }, r: ["........", "gggggggg", "gwwwwwwg", ".rrrrrr.", ".rkrrkr.", "..rrrr..", "...rr...", "........"] },
+    kirsche: { p: { r: "#c0192b", g: "#4caf50", h: "#ffb3ad" }, r: ["...g.g..", "..g...g.", ".g.....g", ".rr...rr", "rhrr.rhr", "rrrr.rrr", ".rr...rr", "........"] },
+    mais:    { p: { g: "#6b8e23", y: "#f4d03f", x: "#c9a41e" }, r: ["...gg...", "..gyyg..", ".gyxyyg.", ".gyyxyg.", ".gyxyyg.", ".gyyxyg.", "..gyyg..", "...gg..."] },
+    erbse:   { p: { g: "#4a9c3a", p: "#9ed36a" }, r: ["........", ".gggggg.", "gpgpgpgg", "gppppppg", ".gggggg.", "........", "........", "........"] },
+    radieschen:{ p: { g: "#4caf50", r: "#d02a5a", w: "#f4f4f4" }, r: ["..g.g...", "...gg...", "..rrrr..", ".rrrrrr.", ".rrrrrr.", "..rrrr..", "...ww...", "....w..."] },
+    ingwer:  { p: { b: "#b8863f", a: "#e0b86a" }, r: ["........", "..bb..b.", "..bbbbbb", ".baaabab", "baaaaaab", ".baaaab.", "..bbbb..", "........"] },
+    chili:   { p: { g: "#4caf50", r: "#d9342b" }, r: ["......g.", ".....gg.", "....rrr.", "...rrrr.", "..rrrr..", ".rrrr...", "rrrr....", "rr......"] },
+    kraeuter:{ p: { g: "#4caf50", l: "#9ed36a", d: "#6b4a2a" }, r: ["..g.g...", ".ggggg..", "gglgggg.", ".gggggg.", "..ggg...", "...d....", "...d....", "...d...."] },
+    garnele: { p: { r: "#f08a6a", h: "#ffd0c0" }, r: ["..rrrr..", ".rrhrrr.", "rrrr.rrr", "rrr..rrr", "rrr..rr.", ".rrr.r..", "..rrrr..", "...rr..."] },
+    thunfisch:{ p: { g: "#9aa3ad", b: "#3f6ea8", w: "#cfe3f4", e: "#1a1a1a" }, r: [".gggggg.", ".bbbbbb.", ".bwwwwb.", ".bwebwb.", ".bwwwwb.", ".bbbbbb.", ".gggggg.", "........"] },
+    pommes:  { p: { y: "#f4c542", r: "#e0524b", w: "#ffffff" }, r: ["..y.y.y.", "..yyyyy.", ".yyyyyyy", "rrrrrrrr", "rwwwwwwr", ".rwwwwr.", ".rwwwwr.", "..rrrr.."] },
+    brezel:  { p: { b: "#a8662a" }, r: [".bb..bb.", "b..bb..b", "b.b..b.b", ".bbbbbb.", "b.b..b.b", "b..bb..b", ".bb..bb.", "........"] },
+    muellbeutel:{ p: { b: "#4a4a58", h: "#7a7a8c", c: "#9aa3ad" }, r: ["...cc...", "..bbbb..", ".bbbbbb.", "bbbhbbbb", "bbhbbbbb", "bbbbbbbb", ".bbbbbb.", "..bbbb.."] },
+    schwamm: { p: { g: "#4caf50", y: "#f4d03f", o: "#c9a41e" }, r: ["........", "gggggggg", "gggggggg", "yyyyyyyy", "yoyyyoyy", "yyyyyyyy", "yyyyyyyy", "........"] },
+    batterie:{ p: { b: "#cfcfcf", g: "#2a2a32", y: "#f4c542" }, r: ["...bb...", "..gggg..", "..gggg..", "..yyyy..", "..gggg..", "..gggg..", "..gggg..", "..bbbb.."] },
+    seife:   { p: { b: "#6fb7c9", w: "#cfeaf2", c: "#ffffff" }, r: ["........", ".bbbbbb.", "bwwwwwwb", "bwcccwwb", "bwwwwwwb", ".bbbbbb.", "........", "........"] },
+    deo:     { p: { b: "#cfcfcf", g: "#6fa8dc", c: "#9ec7ec", w: "#ffffff" }, r: ["...bb...", "..gggg..", ".gccccg.", ".gcwwcg.", ".gccccg.", ".gccccg.", ".gggggg.", "........"] },
+    zahnbuerste:{ p: { r: "#e0524b", w: "#f4f4f4", b: "#6fb7c9", c: "#3f8aa0" }, r: ["..rrrr..", "..wwww..", "...bb...", "...bb...", "...bb...", "...bb...", "...bb...", "...cc..."] },
+    tissue:  { p: { w: "#ffffff", b: "#3f6ea8", c: "#8ab8e6" }, r: ["..www...", ".wwwww..", "bbbbbbbb", "bccccccb", "bcwwwwcb", "bccccccb", "bccccccb", "bbbbbbbb"] },
   });
   /* [Sprite, Anzeigename, Stichwörter]: die erste passende Zeile gewinnt; Stichwörter bis 3 Buchstaben müssen exakt dem Wort entsprechen, längere genügen als Wortteil */
   const ITEM_SPRITES = [
-    ["klopapier", "Klopapier", ["klopapier", "toilettenpapier", "küchenrolle", "taschentücher"]], ["zahnpasta", "Zahnpasta", ["zahnpasta", "zahnbürste", "mundspülung"]], ["shampoo", "Shampoo", ["shampoo", "duschgel", "seife", "spülung", "deo"]], ["waschmittel", "Waschmittel", ["waschmittel", "weichspüler", "tabs"]], ["haus", "Spülmittel", ["spülmittel", "spüli", "reiniger"]], ["reis", "Reis", ["reis"]],
-    ["broetchen", "Brötchen", ["brötchen", "semmel", "weckle"]], ["toast", "Toast", ["toast"]], ["croissant", "Croissant", ["croissant", "hörnchen"]], ["brot", "Brot", ["brot", "baguette"]],
+    ["pflanzendrink", "Pflanzendrink", ["hafermilch", "haferdrink", "mandelmilch", "mandeldrink", "sojadrink", "sojamilch", "reismilch", "kokosmilch", "pflanzendrink"]],
+    ["reiswaffel", "Reiswaffeln", ["reiswaffel", "waffel", "knäckebrot", "cracker"]],
+    ["erdnussbutter", "Erdnussbutter", ["erdnussbutter", "erdnussmus", "mandelmus", "nussmus"]],
+    ["proteinriegel", "Proteinriegel", ["proteinriegel", "eiweißriegel", "müsliriegel", "riegel"]],
+    ["shaker", "Protein-Shake", ["shake", "shaker"]],
+    ["proteinpulver", "Proteinpulver", ["proteinpulver", "eiweißpulver", "whey", "casein", "protein", "eiweiß"]],
+    ["vitamine", "Vitamine", ["vitamin", "kreatin", "magnesium", "omega", "nahrungsergänzung", "zink", "tabletten"]],
+    ["tomatenmark", "Tomatenmark", ["tomatenmark"]],
+    ["suesskartoffel", "Süßkartoffel", ["süßkartoffel", "süsskartoffel", "batate"]],
+    ["thunfisch", "Thunfisch", ["thunfisch"]],
+    ["garnele", "Garnelen", ["garnele", "shrimp", "scampi", "krabbe"]],
+    ["klopapier", "Klopapier", ["klopapier", "toilettenpapier", "küchenrolle"]],
+    ["tissue", "Taschentücher", ["taschentücher", "kosmetiktücher", "tempo"]],
+    ["zahnbuerste", "Zahnbürste", ["zahnbürste", "zahnseide"]],
+    ["zahnpasta", "Zahnpasta", ["zahnpasta", "mundspülung"]],
+    ["seife", "Seife", ["seife", "handseife"]],
+    ["deo", "Deo", ["deo", "deodorant"]],
+    ["shampoo", "Shampoo & Duschgel", ["shampoo", "duschgel", "spülung"]],
+    ["waschmittel", "Waschmittel", ["waschmittel", "weichspüler", "tabs"]],
+    ["haus", "Spülmittel", ["spülmittel", "spüli", "reiniger"]],
+    ["muellbeutel", "Müllbeutel", ["müllbeutel", "müllsack", "mülltüte"]],
+    ["schwamm", "Schwamm", ["schwamm", "putzlappen"]],
+    ["batterie", "Batterien", ["batterie", "akku"]],
+    ["reis", "Reis", ["reis"]],
+    ["broetchen", "Brötchen", ["brötchen", "semmel", "weckle"]], ["toast", "Toast", ["toast"]], ["croissant", "Croissant", ["croissant", "hörnchen"]],
+    ["brezel", "Brezel", ["brezel", "brezn", "laugen"]], ["wrap", "Wrap", ["wrap", "tortilla", "fladenbrot", "pita"]], ["brot", "Brot", ["brot", "baguette"]],
     ["banane", "Banane", ["banane"]], ["tomate", "Tomate", ["tomate"]], ["gurke", "Gurke", ["gurke", "zucchini"]], ["salat", "Salat", ["salat", "spinat", "rucola"]],
     ["zwiebel", "Zwiebel", ["zwiebel", "lauch"]], ["kartoffel", "Kartoffel", ["kartoffel"]], ["paprika", "Paprika", ["paprika"]], ["zitrone", "Zitrone", ["zitrone", "limette"]],
     ["karotte", "Karotte", ["karotte", "möhre", "mohrrübe"]], ["avocado", "Avocado", ["avocado"]], ["knoblauch", "Knoblauch", ["knoblauch"]],
     ["erdbeere", "Beeren", ["erdbeere", "beere", "himbeer", "heidelbeer"]], ["pilz", "Pilze", ["pilz", "champignon"]], ["brokkoli", "Brokkoli", ["brokkoli", "blumenkohl"]],
-    ["orange", "Orange", ["orange", "mandarine", "clementine"]], ["birne", "Birne", ["birne"]], ["traube", "Trauben", ["traube"]], ["obst", "Apfel", ["apfel", "äpfel"]],
+    ["orange", "Orange", ["orange", "mandarine", "clementine"]], ["birne", "Birne", ["birne"]], ["traube", "Trauben", ["traube"]],
+    ["kiwi", "Kiwi", ["kiwi"]], ["ananas", "Ananas", ["ananas"]], ["melone", "Melone", ["melone"]], ["kirsche", "Kirschen", ["kirsche"]],
+    ["radieschen", "Radieschen", ["radieschen", "rettich", "bete"]], ["ingwer", "Ingwer", ["ingwer"]], ["chili", "Chili", ["chili", "peperoni"]],
+    ["kraeuter", "Kräuter", ["kräuter", "petersilie", "schnittlauch", "koriander", "minze", "dill", "rosmarin", "thymian", "basilikum"]],
+    ["obst", "Apfel", ["apfel", "äpfel"]],
+    ["vorrat", "Konserven", ["dose", "passata", "bohnen", "linsen", "kichererbse", "konserve"]], ["erbse", "Erbsen", ["erbse", "erbsen"]], ["mais", "Mais", ["mais"]],
     ["joghurt", "Joghurt", ["joghurt", "quark", "skyr", "pudding", "sahne", "schmand"]], ["kaese", "Käse", ["käse", "gouda", "emmentaler", "parmesan", "mozzarella", "feta", "camembert"]],
     ["butter", "Butter", ["butter", "margarine"]], ["ei", "Eier", ["ei", "eier"]], ["kuehl", "Milch", ["milch"]],
-    ["wurst", "Wurst", ["wurst", "salami", "schinken", "speck", "bacon", "würstchen"]], ["fisch", "Fisch", ["fisch", "lachs", "thunfisch", "garnele"]],
-    ["steak", "Hack & Steak", ["hack", "steak", "schnitzel", "rind", "schwein", "gulasch"]], ["fleisch", "Hähnchen", ["hähnchen", "huhn", "pute", "keule"]],
+    ["wurst", "Wurst", ["wurst", "salami", "schinken", "speck", "bacon", "würstchen", "aufschnitt"]], ["fisch", "Fisch", ["fisch", "lachs"]],
+    ["steak", "Hack & Steak", ["hack", "steak", "schnitzel", "rind", "schwein", "gulasch"]], ["fleisch", "Hähnchen & Pute", ["hähnchen", "huhn", "pute", "keule"]],
     ["nudeln", "Nudeln", ["nudel", "spaghetti", "pasta", "penne", "fusilli"]], ["mehl", "Mehl", ["mehl", "backpulver", "hefe", "stärke"]],
     ["streuer", "Zucker & Salz", ["zucker", "salz", "pfeffer", "gewürz"]], ["oel", "Öl & Essig", ["olivenöl", "rapsöl", "sonnenblumenöl", "öl", "essig"]],
-    ["kaffee", "Kaffee", ["kaffee", "espresso"]], ["tee", "Tee", ["tee", "teebeutel"]], ["muesli", "Müsli", ["müsli", "haferflocken", "cornflakes", "cerealien", "granola"]],
+    ["kaffee", "Kaffee", ["kaffee", "espresso"]], ["tee", "Tee", ["tee", "teebeutel"]], ["muesli", "Müsli & Haferflocken", ["müsli", "haferflocken", "cornflakes", "cerealien", "granola"]],
     ["honig", "Honig", ["honig"]], ["nutella", "Nuss-Nougat", ["nutella", "nussnugat", "schokocreme"]], ["marmelade", "Marmelade", ["marmelade", "konfitüre", "gelee"]],
-    ["schoko", "Schokolade", ["schoko", "schokolade", "riegel"]], ["chips", "Chips & Snacks", ["chips", "flips", "nüsse", "erdnüsse", "popcorn"]], ["kekse", "Kekse", ["keks", "kekse", "gebäck", "kuchen"]],
-    ["ketchup", "Soßen", ["ketchup", "senf", "mayo", "soße", "sauce", "dressing", "pesto"]], ["vorrat", "Konserven", ["dose", "passata", "bohnen", "linsen", "erbsen", "mais"]],
-    ["wasser", "Wasser", ["wasser", "sprudel"]], ["cola", "Cola", ["cola"]], ["saft", "Saft & Limo", ["saft", "schorle", "limo", "fanta", "sprite"]], ["bier", "Bier", ["bier", "radler"]], ["wein", "Wein", ["wein", "sekt", "prosecco"]],
-    ["pizza", "Pizza", ["pizza", "tiefkühl"]], ["eis", "Eis", ["eis", "eiscreme"]],
+    ["schoko", "Schokolade", ["schoko", "schokolade"]], ["chips", "Chips & Snacks", ["chips", "flips", "popcorn"]], ["kekse", "Kekse", ["keks", "kekse", "gebäck", "kuchen"]],
+    ["ketchup", "Soßen", ["ketchup", "soße", "sauce", "dressing", "pesto"]], ["mayo", "Mayo", ["mayo", "majo", "remoulade"]], ["senf", "Senf", ["senf"]],
+    ["bruehe", "Brühe", ["brühe", "bouillon", "fond"]], ["trockenobst", "Trockenobst", ["datteln", "rosinen", "trockenfrüchte", "trockenobst", "feigen", "cranberr"]],
+    ["getreide", "Quinoa & Couscous", ["quinoa", "couscous", "bulgur", "hirse", "amaranth"]], ["tofu", "Tofu", ["tofu", "tempeh", "seitan"]], ["hummus", "Hummus", ["hummus"]],
+    ["nuss", "Nüsse & Mandeln", ["nüsse", "nuss", "mandel", "walnuss", "cashew", "erdnuss", "haselnuss", "pistazie"]],
+    ["wasser", "Wasser", ["wasser", "sprudel"]], ["cola", "Cola", ["cola"]], ["energy", "Energy Drink", ["energy", "redbull", "monster"]],
+    ["sportdrink", "Sportdrink", ["isodrink", "isotonisch", "sportdrink", "elektrolyt", "bcaa"]],
+    ["saft", "Saft & Limo", ["saft", "schorle", "limo", "fanta", "sprite"]], ["bier", "Bier", ["bier", "radler"]], ["wein", "Wein", ["wein", "sekt", "prosecco"]],
+    ["pizza", "Pizza", ["pizza", "tiefkühl"]], ["pommes", "Pommes", ["pommes", "kroketten", "rösti"]], ["eis", "Eis", ["eis", "eiscreme"]]
   ];
   function itemSprite(name) {
     const words = name.toLowerCase().split(/[^a-zäöüß]+/).filter(Boolean);
@@ -116,19 +191,19 @@
   /* ---------- Einkaufsliste: Gänge, Daten, Oberfläche ---------- */
   const DAY = 86400000;
   const AISLES = [
-    { id: "obst", label: "Obst & Gemüse", kw: ["apfel", "äpfel", "banane", "tomate", "gurke", "salat", "zwiebel", "kartoffel", "paprika", "zitrone", "karotte", "möhre", "avocado", "beere", "knoblauch", "pilz", "brokkoli", "ingwer", "basilikum", "orange", "birne", "traube", "zucchini", "limette"] },
-    { id: "brot", label: "Brot & Backwaren", kw: ["brot", "brötchen", "toast", "mehl", "hefe", "croissant", "backpulver", "pizzateig"] },
-    { id: "kuehl", label: "Milch & Kühlregal", kw: ["milch", "joghurt", "käse", "butter", "quark", "sahne", "ei", "eier", "skyr", "mozzarella", "parmesan", "schmand", "margarine"] },
-    { id: "fleisch", label: "Fleisch & Fisch", kw: ["hähnchen", "hack", "lachs", "wurst", "schinken", "fleisch", "speck", "thunfisch", "steak", "salami"] },
-    { id: "vorrat", label: "Vorrat", kw: ["nudel", "spaghetti", "pasta", "reis", "öl", "olivenöl", "rapsöl", "zucker", "salz", "müsli", "haferflocken", "dose", "passata", "bohnen", "linsen", "kaffee", "tee", "soße", "sauce", "gewürz", "pesto", "honig", "ketchup", "senf", "chips", "schokolade", "kekse"] },
-    { id: "tk", label: "Tiefkühl", kw: ["pizza", "tiefkühl", "eis", "pommes"] },
-    { id: "getr", label: "Getränke", kw: ["wasser", "saft", "cola", "bier", "wein", "limo", "sprudel"] },
-    { id: "haus", label: "Drogerie & Haushalt", kw: ["zahnpasta", "shampoo", "duschgel", "spüli", "spülmittel", "klopapier", "toilettenpapier", "waschmittel", "müllbeutel", "küchenrolle"] },
+    { id: "obst", label: "Obst & Gemüse", kw: ["apfel", "äpfel", "banane", "tomate", "gurke", "salat", "zwiebel", "kartoffel", "paprika", "zitrone", "karotte", "möhre", "avocado", "beere", "knoblauch", "pilz", "brokkoli", "ingwer", "basilikum", "orange", "birne", "traube", "zucchini", "limette", "kiwi", "ananas", "melone", "kirsche", "radieschen", "rettich", "chili", "peperoni", "kräuter", "petersilie", "schnittlauch", "koriander", "minze", "dill", "rosmarin", "thymian", "champignon", "blumenkohl", "spinat", "rucola", "lauch", "süßkartoffel"] },
+    { id: "brot", label: "Brot & Backwaren", kw: ["brot", "brötchen", "toast", "mehl", "hefe", "croissant", "backpulver", "pizzateig", "wrap", "tortilla", "reiswaffel", "brezel", "laugen", "baguette", "knäckebrot", "fladenbrot", "pita"] },
+    { id: "kuehl", label: "Milch & Kühlregal", kw: ["milch", "joghurt", "käse", "butter", "quark", "sahne", "ei", "eier", "skyr", "mozzarella", "parmesan", "schmand", "margarine", "tofu", "hummus", "frischkäse", "haferdrink", "hafermilch", "mandelmilch", "sojadrink", "tempeh"] },
+    { id: "fleisch", label: "Fleisch & Fisch", kw: ["hähnchen", "hack", "lachs", "wurst", "schinken", "fleisch", "speck", "steak", "salami", "garnele", "shrimp", "scampi", "pute", "aufschnitt", "bacon", "hähnchenbrust", "=fisch"] },
+    { id: "vorrat", label: "Vorrat", kw: ["nudel", "spaghetti", "pasta", "reis", "öl", "olivenöl", "rapsöl", "zucker", "salz", "müsli", "haferflocken", "dose", "passata", "bohnen", "linsen", "kaffee", "tee", "soße", "sauce", "gewürz", "pesto", "honig", "ketchup", "senf", "chips", "schokolade", "kekse", "quinoa", "couscous", "bulgur", "kichererbse", "erbsen", "mais", "protein", "eiweiß", "whey", "riegel", "nüsse", "mandeln", "erdnussbutter", "datteln", "rosinen", "brühe", "bouillon", "tomatenmark", "mayo", "nutella", "marmelade", "thunfisch", "popcorn", "cracker", "essig", "pfeffer"] },
+    { id: "tk", label: "Tiefkühl", kw: ["pizza", "tiefkühl", "eis", "pommes", "kroketten", "tiefkühlpizza", "rösti", "eiscreme"] },
+    { id: "getr", label: "Getränke", kw: ["wasser", "saft", "cola", "bier", "wein", "limo", "sprudel", "sportdrink", "energy", "isodrink", "shake", "schorle", "fanta", "sprite", "sekt", "prosecco", "radler", "redbull"] },
+    { id: "haus", label: "Drogerie & Haushalt", kw: ["zahnpasta", "shampoo", "duschgel", "spüli", "spülmittel", "klopapier", "toilettenpapier", "waschmittel", "müllbeutel", "küchenrolle", "zahnbürste", "zahnseide", "seife", "handseife", "deo", "taschentücher", "tempo", "müllsack", "schwamm", "batterie", "akku", "vitamin", "kreatin", "magnesium", "omega", "weichspüler", "reiniger", "mundspülung", "spülung"] },
     { id: "misc", label: "Sonstiges", kw: [] }
   ];
   const AISLE_IDS = new Set(AISLES.map((a) => a.id));
   // Stichwort-Treffer wie bei den Symbolen: bis 3 Buchstaben nur als ganzes Wort ("ei" soll nicht in "Reis" treffen)
-  const kwHit = (words, k) => words.some((w) => (k.length <= 3 ? w === k : w.includes(k)));
+  const kwHit = (words, k) => (k[0] === "=" ? words.includes(k.slice(1)) : words.some((w) => (k.length <= 3 ? w === k : w.includes(k)))); // "=wort" = nur als ganzes Wort
   const wordsOf = (name) => name.toLowerCase().split(/[^a-zäöüß]+/).filter(Boolean);
   const guessAisle = (name, learned) => {
     const l = name.toLowerCase();
@@ -436,9 +511,30 @@
       applyRemote(remote) {
         if (!remote) return;
         const r = sanitize(remote, newId);
-        if (!remoteWins(r.updatedAt, state.updatedAt, hasContent(r), hasContent(state))) return;
+        // Einmal eingegebene Preise (und gemerkte Gänge) sind dauerhaft: egal welche Seite gewinnt, es wird
+        // immer vereinigt. Es gibt keine Funktion, die einen Preis löscht, also kann nichts versehentlich
+        // verloren gehen, auch nicht bei gleichzeitigen Änderungen auf zwei Geräten. Bei gleichem Artikel
+        // gilt der Wert der gewinnenden Seite.
+        const union = (into, from, lower) => {
+          Object.entries(from).forEach(([k, v]) => {
+            const lk = k.toLowerCase();
+            if (!Object.keys(into).some((x) => x.toLowerCase() === lk)) into[lower ? lk : k] = v;
+          });
+        };
+        if (!remoteWins(r.updatedAt, state.updatedAt, hasContent(r), hasContent(state))) {
+          const before = Object.keys(state.prices).length + Object.keys(state.learned).length;
+          union(state.prices, r.prices, false);
+          union(state.learned, r.learned, true);
+          if (Object.keys(state.prices).length + Object.keys(state.learned).length !== before) { persist(); scheduleAutoSync("syncdata"); }
+          return;
+        }
+        const old = state;
         state = r;
+        const missing = Object.keys(old.prices).length + Object.keys(old.learned).length;
+        union(state.prices, old.prices, false);
+        union(state.learned, old.learned, true);
         persist();
+        if (missing && (Object.keys(state.prices).length > Object.keys(r.prices).length || Object.keys(state.learned).length > Object.keys(r.learned).length)) scheduleAutoSync("syncdata");
         const ids = new Set(state.items.map((i) => i.id));
         [...doneIds].forEach((id) => { if (!ids.has(id)) doneIds.delete(id); });
         render();

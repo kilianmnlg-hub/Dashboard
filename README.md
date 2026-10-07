@@ -405,12 +405,14 @@ eingebunden von `script.js`). Alles in einer kompakten Karte, vier Reiter klappe
 - **Rezepte:** Gerichte mit Zutaten. CRAFT legt alle Zutaten auf die Liste, Vorhandenes wird nicht doppelt
   eingetragen. Neue Rezepte entstehen über Name + Zutaten (mit Komma getrennt) oder aus der aktuellen Liste.
 
-**Symbole:** Jeder Gang hat ein Symbol, dazu gibt es 59 eigene Artikel-Symbole (Banane, Nudeln, Cola und so
-weiter). Das erste passende Wort im Namen bestimmt das Symbol, sonst zeigt der Artikel das Symbol seines Gangs.
+**Symbole:** Jeder Gang hat ein Symbol, dazu gibt es 100 eigene Artikel-Symbole (Banane, Nudeln, Cola, Proteinpulver, Skyr,
+Süßkartoffel, Thunfisch, Zahnbürste und so weiter), die über Stichwörter hunderte Artikelnamen abdecken. Das erste passende Wort im Namen bestimmt das Symbol, sonst zeigt der Artikel das Symbol seines Gangs.
 Der aufklappbare "Symbol-Katalog" unter der Karte zeigt alle.
 
 **Preise:** Beim Eintippen kann ein Preis mitgegeben werden ("Butter 2,39"), oder der Preis-Button in der
-Zeile wird angetippt. Der zuletzt bekannte Preis pro Artikel wird gemerkt. Die Münze oben rechts zeigt den
+Zeile wird angetippt. Der zuletzt bekannte Preis pro Artikel wird gemerkt und bleibt **dauerhaft** gespeichert: Es gibt keine Funktion, die
+einen Preis löscht, und beim Abgleich mit der Cloud werden Preise (und gemerkte Gänge) immer vereinigt, auch wenn
+ein anderes Gerät einen neueren Stand ohne sie schreibt. Die Münze oben rechts zeigt den
 geschätzten Preis der offenen Liste ("+2?" heißt: zwei Artikel ohne Preis). Alle Beträge werden auf volle
 Euro aufgerundet angezeigt. Der **Shop-Modus** blendet Eingabe und Reiter aus und macht die Zeilen groß.
 
