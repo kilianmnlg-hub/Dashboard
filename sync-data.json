@@ -104,6 +104,12 @@
         "name": "Light Käse",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "ed07a279-f28d-4003-9b33-5179afcb3b1c",
+        "name": "Bohnen",
+        "qty": "",
+        "aisle": "vorrat"
       }
     ],
     "history": {},
@@ -115,6 +121,6 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360337120
+    "updatedAt": 1791360384044
   }
 }
