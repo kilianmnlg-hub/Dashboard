@@ -200,11 +200,12 @@
       "Hähnchen": 6,
       "Tiefkühlgemüse": 2,
       "Sojagranulat": 3,
-      "Tomaten": 2
+      "Tomaten": 2,
+      "Salat": 1
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373144530
+    "updatedAt": 1791373146380
   },
   "timetracker": {
     "entries": [],
