@@ -266,9 +266,11 @@
   },
   "fold": {
     "collapsed": [
-      "kalender"
+      "kalender",
+      "todo",
+      "aufgaben"
     ],
-    "updatedAt": 1791376443550,
+    "updatedAt": 1791376446715,
     "lvl": 5
   }
 }
