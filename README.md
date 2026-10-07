@@ -542,6 +542,13 @@ nur als Fallback für die App-Dateien ohne Internetverbindung. Bei jedem Laden w
 (`habits-data.json`, `sync-data.json`) und alle fremden Hosts (GitHub-API, Google)
 ignoriert er komplett, damit nie ein veralteter Cloud-Stand ausgeliefert wird.
 
+**Versionsnummer gegen veraltete Dateien:** `styles.css`, `shopping.js`, `timetracker.js` und `script.js` hängen in `index.html`
+mit einem `?v=…`-Parameter, damit der Browser sie nach einem Deploy immer zusammen in der neuen Version lädt (sonst kann eine
+alte `script.js` mit einer neuen `index.html` kombiniert werden, und ganze Sektionen bleiben leer). Bei jedem Deploy mit
+Code-Änderungen die Version in `index.html` hochzählen und den Cache-Namen in `sw.js` erhöhen. `data.js` hat bewusst keinen
+Parameter, ändert sich täglich und wird vom Service Worker immer beim Server nachgefragt; der Zeittracker lädt seine
+Notion-Historie zusätzlich frisch nach.
+
 Das App-Icon (`icon.svg`) ist ein einfaches generiertes SVG im Farbschema des
 Dashboards. Für optimale iOS-Darstellung kannst du es bei Bedarf einmal extern
 in eine PNG-Datei (z.B. 180×180) umwandeln und den `apple-touch-icon`-Link in

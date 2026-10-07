@@ -54,16 +54,21 @@
     const $ = (id) => document.getElementById(id);
     const KEY = "dashboard-timetracker-v1";
 
-    // Historie aus Notion (read-only, kommt mit data.js)
-    const notion = [];
-    (Array.isArray(notionEntries) ? notionEntries : []).forEach((e) => {
-      const cat = e && typeof e.cat === "string" ? e.cat.toLowerCase() : "";
-      if (!CATS.includes(cat) || !isNum(e.start)) return;
-      const end = isNum(e.end) ? e.end : e.start + (isNum(e.min) ? e.min * MIN : 0);
-      const dur = isNum(e.min) ? e.min * MIN : Math.max(0, end - e.start);
-      notion.push({ id: e.id, cat, start: e.start, end, dur, k: keyOf(cat, e.start), notion: true });
-    });
-    const notionKeys = new Set(notion.map((e) => e.k));
+    // Historie aus Notion (read-only, kommt mit data.js). Wird beim Laden zusaetzlich frisch nachgeladen, damit eine
+    // veraltete Kopie von data.js im Browser-Zwischenspeicher nie einen leeren Verlauf zeigt.
+    let notion = [], notionKeys = new Set(), notionStamp = notionAt;
+    function setNotion(list) {
+      notion = [];
+      (Array.isArray(list) ? list : []).forEach((e) => {
+        const cat = e && typeof e.cat === "string" ? e.cat.toLowerCase() : "";
+        if (!CATS.includes(cat) || !isNum(e.start)) return;
+        const end = isNum(e.end) ? e.end : e.start + (isNum(e.min) ? e.min * MIN : 0);
+        const dur = isNum(e.min) ? e.min * MIN : Math.max(0, end - e.start);
+        notion.push({ id: e.id, cat, start: e.start, end, dur, k: keyOf(cat, e.start), notion: true });
+      });
+      notionKeys = new Set(notion.map((e) => e.k));
+    }
+    setNotion(notionEntries);
 
     let state = emptyState();
     try {
@@ -224,7 +229,7 @@
       const list = buildIndex().list.slice().sort((a, b) => b.start - a.start).slice(0, 100);
       $("ttEntries").innerHTML = list.length
         ? list.map((e) => `<div class="tt-er ${e.k === freshKey ? "tt-fresh" : ""}" style="--c:var(--tt-${e.cat === "youtube" ? "yt" : "bl"})"><i></i><span class="tt-nm">${LABEL[e.cat]}</span><span class="tt-wh">${fmtDateTime(e.start)}</span><span class="tt-du">${fmtHM(e.dur)}</span><button class="tt-del" data-k="${esc(e.k)}" type="button" aria-label="Eintrag löschen">×</button></div>`).join("")
-        : `<div class="tt-empty">Noch keine Einträge. Starte oben einen Timer oder füge manuell einen Eintrag hinzu.</div>`;
+        : `<div class="tt-empty">${notion.length ? "Noch keine Einträge." : "Der Notion-Verlauf ist noch nicht geladen (der nächste Sync um 08:00 Uhr oder der Sync-Knopf oben holt ihn)."} Starte oben einen Timer oder füge manuell einen Eintrag hinzu.</div>`;
       freshKey = null;
     }
     $("ttEntries").addEventListener("click", (e) => {
@@ -255,9 +260,9 @@
     /* ---------- Kopf: Sync-Anzeige ---------- */
     function renderSync(msg) {
       const pending = state.entries.filter((e) => !notionKeys.has(e.k)).length;
-      const at = notionAt ? new Date(notionAt) : null;
+      const at = notionStamp ? new Date(notionStamp) : null;
       const atTxt = at && !isNaN(at) ? pad(at.getDate()) + "." + pad(at.getMonth() + 1) + ". " + pad(at.getHours()) + ":" + pad(at.getMinutes()) : "?";
-      $("ttSyncT").textContent = msg || "NOTION " + atTxt + (pending ? " · " + pending + " OFFEN" : "");
+      $("ttSyncT").textContent = msg || (notion.length ? "NOTION " + atTxt : "KEINE NOTION-DATEN") + (pending ? " · " + pending + " OFFEN" : "");
       $("ttSync").classList.toggle("tt-busy", pending > 0 || !!msg);
       $("ttSync").title = pending ? pending + " Eintrag/Einträge warten auf den nächsten Notion-Abgleich (täglich 08:00 oder per Sync-Knopf oben)" : "Alle Einträge sind in Notion";
     }
@@ -269,6 +274,22 @@
 
     function renderAll() { index = null; renderTimers(); renderStats(); renderChart(); renderEntries(); renderSync(); }
     renderAll();
+    async function loadFreshNotion() {
+      try {
+        const res = await fetch("data.js?fresh=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) return;
+        const txt = await res.text();
+        const d = JSON.parse(txt.slice(txt.indexOf("{"), txt.lastIndexOf("};") + 1));
+        const list = d && d.timeTracker && d.timeTracker.entries;
+        if (!Array.isArray(list)) return;
+        if (list.length !== notion.length || (d.meta && d.meta.lastSyncedAt !== notionStamp)) {
+          notionStamp = d.meta && d.meta.lastSyncedAt;
+          setNotion(list);
+          renderAll();
+        }
+      } catch (e) { /* offline o.ae.: die mitgelieferten Daten bleiben */ }
+    }
+    loadFreshNotion();
     setInterval(() => { if (state.active.youtube || state.active.bricklink) { renderTimers(); renderStats(); } }, 1000);
 
     return {
