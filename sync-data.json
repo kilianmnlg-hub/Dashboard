@@ -67,17 +67,24 @@
     "updatedAt": 0
   },
   "timetracker": {
-    "entries": [],
+    "entries": [
+      {
+        "id": "4b142cfc-b8e8-4450-b4fc-4ddc5bc674b6",
+        "cat": "youtube",
+        "start": 1791367200000,
+        "end": 1791370800000
+      }
+    ],
     "removed": [],
     "active": {
-      "youtube": null,
+      "youtube": 1791389517664,
       "bricklink": null
     },
     "targets": {
       "youtube": 20,
       "bricklink": 8
     },
-    "updatedAt": 0
+    "updatedAt": 1791389517664
   },
   "inbox": {
     "items": [],
