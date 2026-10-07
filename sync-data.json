@@ -98,12 +98,18 @@
         "name": "Mais",
         "qty": "",
         "aisle": "misc"
+      },
+      {
+        "id": "cfcecf83-d806-4621-84b7-e187aedff020",
+        "name": "Light Käse",
+        "qty": "",
+        "aisle": "kuehl"
       }
     ],
     "history": {},
     "prices": {},
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360284696
+    "updatedAt": 1791360289089
   }
 }
