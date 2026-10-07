@@ -1,6 +1,6 @@
 {
-  "name": "Kilian – Überblick",
-  "short_name": "Überblick",
+  "name": "Kilian – Dashboard",
+  "short_name": "Dashboard",
   "description": "Bricklink, YouTube-Kanäle, Ziele, Zeittracker und Tages-To-Do auf einen Blick.",
   "start_url": "./index.html",
   "scope": "./",
