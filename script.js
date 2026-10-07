@@ -1752,57 +1752,58 @@
 
   renderTodos();
 
-  // ---------- Aufgaben (persistent, kein täglicher Reset) ----------
-  const TASKS_STORAGE_KEY = "dashboard-tasks-v1";
-
-  // Cloud-Sync ueber sync-data.json, gleiches Zeitstempel-Prinzip wie beim Habit-Tracker.
-  const loadTasksState = () => {
-    try {
-      const raw = dataStore.getItem(TASKS_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return { items: parsed, updatedAt: 0 }; // Altformat: reines Array
-        if (parsed && Array.isArray(parsed.items)) {
-          if (typeof parsed.updatedAt !== "number") parsed.updatedAt = 0;
-          return parsed;
+  // ---------- Aufgaben + Remote Tasks (persistent, kein täglicher Reset) ----------
+  // Beide Listen funktionieren identisch und unterscheiden sich nur in Storage-Key, Feld in
+  // sync-data.json und den DOM-Elementen - daher eine gemeinsame Fabrik.
+  function createTaskBoard({ storageKey, listId, inputId, addBtnId }) {
+    // Cloud-Sync ueber sync-data.json, gleiches Zeitstempel-Prinzip wie beim Habit-Tracker.
+    const loadState = () => {
+      try {
+        const raw = dataStore.getItem(storageKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) return { items: parsed, updatedAt: 0 }; // Altformat: reines Array
+          if (parsed && Array.isArray(parsed.items)) {
+            if (typeof parsed.updatedAt !== "number") parsed.updatedAt = 0;
+            return parsed;
+          }
         }
+      } catch (e) {
+        /* corrupted storage, fall back to empty */
       }
-    } catch (e) {
-      /* corrupted storage, fall back to empty */
+      return { items: [], updatedAt: -1 };
+    };
+    const board = { items: loadState().items, loadState };
+    const listEl = document.getElementById(listId);
+    const inputEl = document.getElementById(inputId);
+    board.listEl = listEl;
+
+    board.save = () => {
+      dataStore.setItem(storageKey, JSON.stringify({ items: board.items, updatedAt: Date.now() }));
+      scheduleAutoSync("syncdata");
+    };
+
+    // Verschiebt eine Aufgabe zurueck ins heutige Tages-To-Do (in die gewaehlte Spalte) - das
+    // Gegenstueck zu migrateStaleTodosToTasks() weiter unten, das den umgekehrten Weg geht.
+    function moveToTodo(id, categoryId) {
+      const item = board.items.find((t) => t.id === id);
+      if (!item) return;
+      board.items = board.items.filter((t) => t.id !== id);
+      todos[categoryId] = todos[categoryId] || [];
+      const newItem = { id: newId(), text: item.text, done: false };
+      todos[categoryId].push(newItem);
+      board.save();
+      saveTodos(todos);
+      board.render();
+      renderTodos();
+      flashNewItem(todoGrid, newItem.id);
     }
-    return { items: [], updatedAt: -1 };
-  };
-  const loadTasks = () => loadTasksState().items;
-  const saveTasks = (items) => {
-    dataStore.setItem(TASKS_STORAGE_KEY, JSON.stringify({ items, updatedAt: Date.now() }));
-    scheduleAutoSync("syncdata");
-  };
 
-  let tasks = loadTasks();
-  const taskList = document.getElementById("taskList");
-  const taskInput = document.getElementById("taskInput");
-
-  // Verschiebt eine Aufgabe zurueck ins heutige Tages-To-Do (in die gewaehlte Spalte) - das
-  // Gegenstueck zu migrateStaleTodosToTasks() weiter unten, das den umgekehrten Weg geht.
-  function moveTaskToTodo(id, categoryId) {
-    const item = tasks.find((t) => t.id === id);
-    if (!item) return;
-    tasks = tasks.filter((t) => t.id !== id);
-    todos[categoryId] = todos[categoryId] || [];
-    const newItem = { id: newId(), text: item.text, done: false };
-    todos[categoryId].push(newItem);
-    saveTasks(tasks);
-    saveTodos(todos);
-    renderTasks();
-    renderTodos();
-    flashNewItem(todoGrid, newItem.id);
-  }
-
-  function renderTasks() {
-    taskList.innerHTML = tasks.length
-      ? tasks
-          .map(
-            (item) => `
+    board.render = () => {
+      listEl.innerHTML = board.items.length
+        ? board.items
+            .map(
+              (item) => `
       <li class="todo-item ${item.done ? "done" : ""}" data-id="${item.id}">
         <input type="checkbox" ${item.done ? "checked" : ""} />
         <span>${escapeHtml(item.text)}</span>
@@ -1814,68 +1815,105 @@
         </div>
         <button type="button" class="todo-remove" aria-label="Entfernen">×</button>
       </li>`
-          )
-          .join("")
-      : `<li class="todo-empty">Noch nichts eingetragen.</li>`;
+            )
+            .join("")
+        : `<li class="todo-empty">Noch nichts eingetragen.</li>`;
 
-    const closeAllMoveMenus = () => taskList.querySelectorAll(".todo-move-menu").forEach((m) => (m.hidden = true));
+      const closeAllMoveMenus = () => listEl.querySelectorAll(".todo-move-menu").forEach((m) => (m.hidden = true));
 
-    taskList.querySelectorAll(".todo-item").forEach((row) => {
-      const id = row.getAttribute("data-id");
-      row.querySelector("input[type=checkbox]").addEventListener("change", () => {
-        // Abhaken = erledigt: kurz sichtbar durchgestrichen, dann automatisch aus der Liste
-        // entfernt (im Gegensatz zum Tages-To-Do, das bleibt hier nichts dauerhaft "erledigt"
-        // liegen — das ist ja gerade der Sinn dieser Liste, anders als beim täglichen Reset).
-        row.classList.add("done");
-        setTimeout(() => {
-          tasks = tasks.filter((t) => t.id !== id);
-          saveTasks(tasks);
-          renderTasks();
-        }, 400);
-      });
-      row.querySelector(".todo-remove").addEventListener("click", () => {
-        tasks = tasks.filter((t) => t.id !== id);
-        saveTasks(tasks);
-        renderTasks();
-      });
-      const menu = row.querySelector(".todo-move-menu");
-      row.querySelector(".todo-move").addEventListener("click", (e) => {
-        e.stopPropagation();
-        const wasHidden = menu.hidden;
-        closeAllMoveMenus();
-        menu.hidden = !wasHidden;
-      });
-      menu.querySelectorAll("button").forEach((btn) => {
-        btn.addEventListener("click", (e) => {
+      listEl.querySelectorAll(".todo-item").forEach((row) => {
+        const id = row.getAttribute("data-id");
+        row.querySelector("input[type=checkbox]").addEventListener("change", () => {
+          // Abhaken = erledigt: kurz sichtbar durchgestrichen, dann automatisch aus der Liste
+          // entfernt (im Gegensatz zum Tages-To-Do, das bleibt hier nichts dauerhaft "erledigt"
+          // liegen — das ist ja gerade der Sinn dieser Liste, anders als beim täglichen Reset).
+          row.classList.add("done");
+          setTimeout(() => {
+            board.items = board.items.filter((t) => t.id !== id);
+            board.save();
+            board.render();
+          }, 400);
+        });
+        row.querySelector(".todo-remove").addEventListener("click", () => {
+          board.items = board.items.filter((t) => t.id !== id);
+          board.save();
+          board.render();
+        });
+        const menu = row.querySelector(".todo-move-menu");
+        row.querySelector(".todo-move").addEventListener("click", (e) => {
           e.stopPropagation();
-          moveTaskToTodo(id, btn.getAttribute("data-cat"));
+          const wasHidden = menu.hidden;
+          closeAllMoveMenus();
+          menu.hidden = !wasHidden;
+        });
+        menu.querySelectorAll("button").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            moveToTodo(id, btn.getAttribute("data-cat"));
+          });
         });
       });
+
+      if (!listEl.dataset.moveMenuOutsideClickBound) {
+        listEl.dataset.moveMenuOutsideClickBound = "1";
+        document.addEventListener("click", closeAllMoveMenus);
+      }
+      staggerListOnce(listEl);
+    };
+
+    function add() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+      const newItem = { id: newId(), text, done: false };
+      board.items.push(newItem);
+      board.save();
+      inputEl.value = "";
+      board.render();
+      flashNewItem(listEl, newItem.id);
+    }
+    document.getElementById(addBtnId).addEventListener("click", add);
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") add();
     });
 
-    if (!taskList.dataset.moveMenuOutsideClickBound) {
-      taskList.dataset.moveMenuOutsideClickBound = "1";
-      document.addEventListener("click", closeAllMoveMenus);
-    }
-    staggerListOnce(taskList);
+    // Cloud-Stand uebernehmen (Regeln siehe remoteWins). Direkt in den Speicher mit dem
+    // Cloud-Zeitstempel, ohne save(): kein unnoetiger Rueck-Push.
+    board.applyRemote = (remote) => {
+      if (!remote) return;
+      const localState = loadState();
+      const remoteUpdatedAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
+      const remoteItems = remote.items || [];
+      if (remoteWins(remoteUpdatedAt, localState.updatedAt, remoteItems.length > 0, localState.items.length > 0)) {
+        board.items = remoteItems;
+        dataStore.setItem(storageKey, JSON.stringify({ items: board.items, updatedAt: remoteUpdatedAt }));
+        board.render();
+      }
+    };
+
+    // Fuer den Push nach sync-data.json; -1 ("nie gespeichert") auf 0 normalisieren.
+    board.payload = () => {
+      const st = loadState();
+      return { items: st.items, updatedAt: Math.max(0, st.updatedAt) };
+    };
+
+    board.render();
+    return board;
   }
 
-  function addTask() {
-    const text = taskInput.value.trim();
-    if (!text) return;
-    const newItem = { id: newId(), text, done: false };
-    tasks.push(newItem);
-    saveTasks(tasks);
-    taskInput.value = "";
-    renderTasks();
-    flashNewItem(taskList, newItem.id);
-  }
-  document.getElementById("taskAddBtn").addEventListener("click", addTask);
-  taskInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") addTask();
+  const taskBoard = createTaskBoard({
+    storageKey: "dashboard-tasks-v1",
+    listId: "taskList",
+    inputId: "taskInput",
+    addBtnId: "taskAddBtn"
   });
-
-  renderTasks();
+  const remoteTaskBoard = createTaskBoard({
+    storageKey: "dashboard-remote-tasks-v1",
+    listId: "remoteTaskList",
+    inputId: "remoteTaskInput",
+    addBtnId: "remoteTaskAddBtn"
+  });
+  const taskList = taskBoard.listEl;
+  const remoteTaskList = remoteTaskBoard.listEl;
 
   // Nicht abgehakte Tages-To-Dos VERGANGENER Tage nach "Aufgaben" uebernehmen, bevor der
   // alte Tages-Eintrag verworfen wird. Jeder Tag hat einen eigenen Storage-Key
@@ -1898,7 +1936,7 @@
           TODO_CATEGORIES.forEach((cat) => {
             (state.items[cat.id] || []).forEach((item) => {
               if (!item.done) {
-                tasks.push({ id: newId(), text: item.text, done: false });
+                taskBoard.items.push({ id: newId(), text: item.text, done: false });
                 moved = true;
               }
             });
@@ -1907,8 +1945,8 @@
         dataStore.removeItem(key);
       });
     if (moved) {
-      saveTasks(tasks);
-      renderTasks();
+      taskBoard.save();
+      taskBoard.render();
     }
   }
   // Wird erst nach dem Laden der Cloud-Daten ausgefuehrt (siehe loadAllFromCloud) - nur dann
@@ -2458,12 +2496,12 @@
     const studium = loadStudiumDeadline();
     const studiumDeadline = { label: studium.label, date: studium.date, updatedAt: clampedAt(studium.updatedAt) };
     const todosState = loadTodosState();
-    const tasksState = loadTasksState();
     const payload = {
       ideas,
       studiumDeadline,
       todos: { date: todayKey(), items: todosState.items, updatedAt: clampedAt(todosState.updatedAt) },
-      tasks: { items: tasksState.items, updatedAt: clampedAt(tasksState.updatedAt) }
+      tasks: taskBoard.payload(),
+      remoteTasks: remoteTaskBoard.payload()
     };
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${SYNC_DATA_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
@@ -2556,14 +2594,14 @@
         TODO_CATEGORIES.forEach((cat) => {
           (remoteTodos.items?.[cat.id] || []).forEach((item) => {
             if (!item.done) {
-              tasks.push({ id: newId(), text: item.text, done: false });
+              taskBoard.items.push({ id: newId(), text: item.text, done: false });
               moved = true;
             }
           });
         });
         if (moved) {
-          saveTasks(tasks);
-          renderTasks();
+          taskBoard.save();
+          taskBoard.render();
         }
       }
       return;
@@ -2579,18 +2617,6 @@
     }
   }
 
-  function applyRemoteTasks(remoteTasks) {
-    if (!remoteTasks) return;
-    const localState = loadTasksState();
-    const remoteUpdatedAt = typeof remoteTasks.updatedAt === "number" ? remoteTasks.updatedAt : 0;
-    const remoteItems = remoteTasks.items || [];
-    if (remoteWins(remoteUpdatedAt, localState.updatedAt, remoteItems.length > 0, localState.items.length > 0)) {
-      tasks = remoteItems;
-      dataStore.setItem(TASKS_STORAGE_KEY, JSON.stringify({ items: tasks, updatedAt: remoteUpdatedAt }));
-      renderTasks();
-    }
-  }
-
   // Gibt true zurueck, wenn der Cloud-Stand sicher bekannt ist (auch "Datei existiert noch nicht"),
   // false bei einem Ladefehler - dann bleibt cloudLoaded.syncdata false und nichts wird geschrieben.
   async function fetchRemoteSyncData() {
@@ -2600,7 +2626,8 @@
       if (remote) {
         applyRemoteIdeas(remote.ideas);
         applyRemoteStudium(remote.studiumDeadline);
-        applyRemoteTasks(remote.tasks);
+        taskBoard.applyRemote(remote.tasks);
+        remoteTaskBoard.applyRemote(remote.remoteTasks);
         applyRemoteTodos(remote.todos);
       }
       cloudLoaded.syncdata = true;
@@ -2619,6 +2646,7 @@
     // Beim ersten echten Rendern der Cloud-Daten sollen Listen wieder gestaffelt einfliegen
     // (das Rendern des noch leeren Arbeitsspeichers hat die Einmal-Flags sonst schon verbraucht).
     delete taskList.dataset.staggered;
+    delete remoteTaskList.dataset.staggered;
     todoGridStaggeredOnce = false;
     Object.values(ideaWidgets).forEach((w) => delete w.backlogEl.dataset.staggered);
 

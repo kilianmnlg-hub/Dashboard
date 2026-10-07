@@ -25,7 +25,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
   direkt aus dem Browser aktualisiert (siehe Abschnitt "Habit-Tracker")
 - `sync-data.json` — Cloud-Kopie von Video-Ideen, Studium-Termin, Tages-To-Do und
   Aufgaben, ebenfalls vom Sync-Button direkt aus dem Browser aktualisiert (siehe
-  Abschnitt "Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben")
+  Abschnitt "Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben / Remote Tasks")
 
 ## Lokal ansehen
 
@@ -380,7 +380,15 @@ Menü mit den drei Tages-To-Do-Spalten (Business, Studium & Job, Privates) —
 Klick auf eine Spalte verschiebt die Aufgabe dorthin (als neuer, nicht
 abgehakter Punkt) und entfernt sie aus "Aufgaben".
 
-## Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben
+## Remote Tasks
+
+Eigene Liste direkt unter "Aufgaben" für alles, was remote/unterwegs erledigt wird. Sie
+funktioniert exakt wie "Aufgaben" (gleicher Code): kein täglicher Reset, Abhaken entfernt
+den Eintrag, der Pfeil (↩) verschiebt ihn ins Tages-To-Do, und der Stand liegt als eigenes
+Feld `remoteTasks` in `sync-data.json` (Cloud-only, siehe unten). Offene Punkte aus dem
+Tages-To-Do vergangener Tage wandern weiterhin nur nach "Aufgaben".
+
+## Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben / Remote Tasks
 
 Diese vier kleinen, unabhängigen Felder teilen sich eine gemeinsame Cloud-Datei
 (`sync-data.json`) und funktionieren nach demselben Prinzip wie der
