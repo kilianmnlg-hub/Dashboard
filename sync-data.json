@@ -188,6 +188,18 @@
         "name": "Tiefkühl-Obst",
         "qty": "",
         "aisle": "tk"
+      },
+      {
+        "id": "3c0669a4-00aa-4a4c-97da-3d71659fae1b",
+        "name": "Bananen",
+        "qty": "",
+        "aisle": "obst"
+      },
+      {
+        "id": "8fe68c8b-a7ba-468d-9ee5-cab92b19258f",
+        "name": "Kartoffeln",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {
@@ -222,7 +234,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791375378905
+    "updatedAt": 1791375384042
   },
   "timetracker": {
     "entries": [],
