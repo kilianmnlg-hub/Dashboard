@@ -110,6 +110,12 @@
         "name": "Grünebohnen",
         "qty": "",
         "aisle": "vorrat"
+      },
+      {
+        "id": "fac0259d-2a7a-4c36-a9dd-eba2bde87d40",
+        "name": "Sauce Holland",
+        "qty": "",
+        "aisle": "vorrat"
       }
     ],
     "history": {},
@@ -122,6 +128,6 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360399650
+    "updatedAt": 1791360434653
   }
 }
