@@ -23,6 +23,31 @@
   // ---------- Kleine Belebungs-Helfer (Mikro-Animationen) ----------
   const prefersReducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Kleine Pixel-Belohnung beim Abhaken: Funken und ein Schriftzug an der Stelle des Elements (nur Optik, nichts wird gespeichert)
+  let pixelFx = null;
+  function pixelBurst(el, label) {
+    if (!el || prefersReducedMotion()) return;
+    const r = el.getBoundingClientRect();
+    if (!r.width) return;
+    if (!pixelFx) { pixelFx = document.createElement("div"); pixelFx.className = "px-fx"; pixelFx.setAttribute("aria-hidden", "true"); document.body.appendChild(pixelFx); }
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    for (let i = 0; i < 10; i++) {
+      const sp = document.createElement("span"), a = (Math.PI * 2 * i) / 10, d = 22 + (i % 3) * 8;
+      sp.className = "px-spark";
+      sp.style.cssText = `left:${x}px;top:${y}px;--dx:${Math.round(Math.cos(a) * d)}px;--dy:${Math.round(Math.sin(a) * d)}px`;
+      pixelFx.appendChild(sp);
+      setTimeout(() => sp.remove(), 650);
+    }
+    if (label) {
+      const g = document.createElement("span");
+      g.className = "px-gain";
+      g.textContent = label;
+      g.style.cssText = `left:${x + 10}px;top:${y - 10}px`;
+      pixelFx.appendChild(g);
+      setTimeout(() => g.remove(), 900);
+    }
+  }
+
   // Zaehlt eine Statistik-Zahl beim ersten Rendern kurz hoch statt sie sofort dazustehen zu
   // lassen. Erkennt automatisch die (ggf. deutsch formatierte, z.B. "8.227,1") Zahl im Text
   // und laesst Praefix/Suffix (Waehrungszeichen, Einheiten, umgebender Text) unangetastet.
@@ -241,6 +266,7 @@
   const cloudLoaded = { habits: false, syncdata: false };
   const setCloudState = (state) => {
     document.body.dataset.cloud = state;
+    if (state === "ready") document.dispatchEvent(new CustomEvent("cloud-ready"));
   };
   setCloudState("loading");
 
@@ -1600,6 +1626,7 @@
         row.querySelector("input[type=checkbox]").addEventListener("change", (e) => {
           const item = todos[cat.id].find((i) => i.id === id);
           if (item) item.done = e.target.checked;
+          if (e.target.checked) pixelBurst(e.target, "ERLEDIGT!");
           saveTodos(todos);
           renderTodos();
         });
@@ -1694,6 +1721,7 @@
           // entfernt (im Gegensatz zum Tages-To-Do, das bleibt hier nichts dauerhaft "erledigt"
           // liegen — das ist ja gerade der Sinn dieser Liste, anders als beim täglichen Reset).
           row.classList.add("done");
+          pixelBurst(row.querySelector("input[type=checkbox]"), "ERLEDIGT!");
           setTimeout(() => {
             board.items = board.items.filter((t) => t.id !== id);
             board.save();
@@ -2089,6 +2117,7 @@
       document.querySelectorAll(`.habit-daycell[data-habit="${habitId}"][data-date="${key}"]`).forEach((cell) => {
         cell.classList.add("just-toggled");
         cell.addEventListener("animationend", () => cell.classList.remove("just-toggled"), { once: true });
+        pixelBurst(cell, "ERLEDIGT!");
       });
     }
   }
@@ -2950,9 +2979,12 @@
     // Level = Durchschnitt aller Ziele in 10%-Schritten (z.B. 52 % im Schnitt = LVL 5, noch 8 % bis LVL 6)
     const lvlBox = document.getElementById("lvlBox");
     const lvlGoals = (data.goals || []).filter((g) => !g.isMilestone && g.target > 0);
+    let currentLevel = null, goalsAvg = null;
     if (lvlBox && lvlGoals.length) {
       const avg = lvlGoals.reduce((sum, g) => sum + Math.max(0, Math.min(100, (g.current / g.target) * 100)), 0) / lvlGoals.length;
       const level = Math.floor(avg / 10);
+      currentLevel = level;
+      goalsAvg = avg;
       const into = avg >= 100 ? 10 : avg - level * 10;
       lvlBox.querySelector(".lvl-n").textContent = `LVL ${level}`;
       lvlBox.querySelector(".xp").innerHTML = Array.from({ length: 10 }, (_, i) => `<i class="${i < Math.round(into) ? "on" : ""}"></i>`).join("");
@@ -2960,6 +2992,62 @@
       lvlBox.title = avg >= 100 ? `Alle Ziele erreicht (Ø ${avg.toFixed(1)} %)` : `Durchschnitt aller Ziele: ${avg.toFixed(1)} %. Bei ${(level + 1) * 10} % ist Level ${level + 1} erreicht.`;
       lvlBox.hidden = false;
     }
+
+    // Level-up: steigt das Level gegenueber dem zuletzt gesehenen (gemerkt in der Cloud, siehe fold.js), blinkt die Anzeige kurz.
+    // Erst nach dem Laden der Cloud, damit auf keinem Geraet doppelt gefeiert wird.
+    document.addEventListener("cloud-ready", () => {
+      if (currentLevel === null || !foldBoard || !foldBoard.noteLevel(currentLevel)) return;
+      lvlBox.classList.add("lvl-up");
+      const txt = document.createElement("span");
+      txt.className = "lvl-up-txt";
+      txt.textContent = "LEVEL UP!";
+      lvlBox.appendChild(txt);
+      pixelBurst(lvlBox, "");
+      setTimeout(() => { lvlBox.classList.remove("lvl-up"); txt.remove(); }, 3200);
+    });
+
+    // Kennzahl in der Titelzeile jedes Fensters, auch sichtbar wenn es eingeklappt ist (aktualisiert sich selbst)
+    const fmtH1 = (h) => String(Math.round(h * 10) / 10).replace(".", ",");
+    const openCount = (items) => (Array.isArray(items) ? items.filter((i) => !i.done).length : 0);
+    const bizStat = (label) => parseInt(String((data.business?.bricklink?.stats || []).find((st) => st.label === label)?.value ?? "").replace(/\./g, ""), 10) || 0;
+    const metricFns = {
+      kalender: () => {
+        const n = calendarEventList ? calendarEventList.querySelectorAll(".todo-item").length : 0;
+        if (n) return `${n} ${n === 1 ? "TERMIN" : "TERMINE"} HEUTE`;
+        return calendarEventList && calendarEventList.querySelector(".todo-empty")?.textContent.startsWith("Keine") ? "KEINE TERMINE" : "";
+      },
+      todo: () => {
+        let open = 0, total = 0;
+        Object.values(todos || {}).forEach((list) => { if (Array.isArray(list)) { total += list.length; open += openCount(list); } });
+        return !total ? "" : open ? `${open} OFFEN` : "ALLES ERLEDIGT";
+      },
+      aufgaben: () => { const n = openCount(taskBoard.items); return n ? `${n} OFFEN` : "ALLES ERLEDIGT"; },
+      "remote-tasks": () => { const n = openCount(remoteTaskBoard.items); return n ? `${n} OFFEN` : "ALLES ERLEDIGT"; },
+      habits: () => {
+        const hs = habitState.habits || [], log = habitState.log?.[dateKey(new Date())] || {};
+        return hs.length ? `${hs.filter((h) => log[h.id]).length} / ${hs.length} HEUTE` : "";
+      },
+      ziele: () => (goalsAvg === null ? "" : `Ø ${Math.round(goalsAvg)} %`),
+      business: () => { const m = bizStat("Drive-Thru-Mail offen"); return m ? `${m} MAILS OFFEN` : ""; },
+      zeit: () => { const w = timeTrackerBoard && timeTrackerBoard.weekSummary(); return w ? `WOCHE ${fmtH1(w.ist)} / ${fmtH1(w.soll)} H` : ""; },
+      einkauf: () => { const t = (document.getElementById("shopCoinN")?.textContent || "").trim(); return t && !/^0\s?€/.test(t) ? `≈ ${t}` : ""; },
+      notizen: () => { const p = inboxBoard ? inboxBoard.pending() : 0; return p ? `${p} VOM HANDY` : (data.notes || []).length ? `${data.notes.length} NOTIZEN` : ""; }
+    };
+    const metricEls = Object.keys(metricFns).map((id) => {
+      const h2 = document.querySelector(`#${id} > .section-head h2`);
+      if (!h2) return null;
+      const el = document.createElement("span");
+      el.className = "sec-metric";
+      h2.appendChild(el);
+      return { id, el };
+    }).filter(Boolean);
+    const updateMetrics = () => metricEls.forEach(({ id, el }) => {
+      let t = "";
+      try { t = metricFns[id](); } catch (e) { /* Quelle noch nicht bereit: Kennzahl bleibt leer */ }
+      if (el.textContent !== t) el.textContent = t;
+    });
+    updateMetrics();
+    setInterval(updateMetrics, 1000);
 
     // Handy: Karten-Reihen (Ziele, Business, Tages-To-Do) sind seitlich wischbar, Punkte zeigen die Position
     const mqMobile = matchMedia("(max-width: 720px)");

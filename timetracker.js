@@ -335,6 +335,8 @@
 
     return {
       render: renderAll,
+      // Fuer die Kennzahl in der Titelzeile: Stunden dieser Woche und Wochen-Soll
+      weekSummary() { const c = weekSums(0); return { ist: (c.youtube + c.bricklink) / HOUR, soll: state.targets.youtube + state.targets.bricklink }; },
       // Cloud-Stand uebernehmen. Eintraege und Loeschmarken werden immer vereinigt (kein Eintrag geht bei gleichzeitigen
       // Aenderungen auf zwei Geraeten verloren); nur die laufenden Timer entscheidet der neuere Zeitstempel.
       applyRemote(remote) {

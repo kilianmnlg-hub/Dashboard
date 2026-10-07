@@ -427,6 +427,18 @@ aus dem Upload-Rhythmus des Kanals. Ohne Messwerte (z.B. Umsatz, Bricklink-Teile
 (rot ab 1,5-fachem Rhythmus, sonst gelb; Shorts zählen nicht) und offene Bricklink-Drive-Thru-Mails bzw. Bestellungen ohne Feedback.
 "Wegklicken" gilt nur für die aktuelle Sitzung.
 
+## Kennzahlen, Bereichsfarben und Pixel-Effekte
+
+- **Kennzahl in der Titelzeile:** Jedes Fenster zeigt neben dem Titel das Wichtigste, auch wenn es eingeklappt ist (z.B. "2 OFFEN" bei Aufgaben,
+  "2 / 10 HEUTE" bei Habits, "WOCHE 8,2 / 27 H" beim Zeittracker, "≈ 48 €" bei der Einkaufsliste, "1 VOM HANDY" bei Notizen). Die Werte
+  werden aus den bestehenden Daten berechnet und aktualisieren sich von selbst; ohne Daten (z.B. Kalender nicht verbunden) bleibt das Feld weg.
+- **Farbe pro Bereich:** Der harte Schatten der Karten trägt die Farbe des Bereichs: blau Kalender und Remote Tasks, orange To-Do und
+  Business, violett Aufgaben und Notizen, grün Habits, gold Ziele, korall Zeittracker (die Einkaufsliste behält ihre eigene Farbe).
+- **Pixel-Funken:** Beim Abhaken eines To-Dos, einer Aufgabe oder eines Habits gibt es kurze Funken und "ERLEDIGT!" (nur Optik, bei
+  reduzierter Bewegung abgeschaltet).
+- **Level-up:** Steigt das Level (Durchschnitt der Ziele) über das zuletzt gesehene, blinkt die Level-Anzeige oben mit "LEVEL UP!".
+  Das zuletzt gesehene Level liegt in der Cloud (Feld `fold.lvl`), damit es nicht auf jedem Gerät noch einmal gefeiert wird.
+
 ## Einklappbare Fenster
 
 Jedes Fenster (Brain-Karte oben und alle Sektionen von Kalender bis Notizen) hat vorn in der Überschrift einen Pfeil-Knopf. Ein Klick

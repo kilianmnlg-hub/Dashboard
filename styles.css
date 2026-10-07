@@ -1667,3 +1667,25 @@ svg.links line.lit { stroke: var(--accent); stroke-width: 2; }
 .brain-card.is-folded { min-height: 0; margin-bottom: 28px; }
 .brain-card.is-folded .brain-scene-wrap, .brain-card.is-folded .brain-hint, .brain-card.is-folded .area-pop { display: none !important; }
 .brain-card.is-folded .brain-copy { flex: 1 1 auto; padding: 22px 64px 22px 24px; }
+
+/* ---------- Farbe pro Bereich, Kennzahl in der Titelzeile, Pixel-Funken ---------- */
+:root { --sc-pr: var(--accent-privat); --sc-bl: var(--accent-bricklink); --sc-bw: var(--accent-brainwalkers); --sc-yt: var(--accent-bricks); --sc-tt: var(--accent-tiktok); --sc-goal: var(--gold); }
+#kalender, #remote-tasks { --sc: var(--sc-pr); } #todo, #business { --sc: var(--sc-bl); } #aufgaben, #notizen { --sc: var(--sc-bw); }
+#habits, #einkauf { --sc: var(--sc-tt); } #ziele { --sc: var(--sc-goal); } #zeit { --sc: var(--sc-yt); }
+.section .card, .section .panel, .section .tt-card { box-shadow: 5px 5px 0 var(--sc, var(--pxs)); }
+.section .card:hover { box-shadow: 6px 6px 0 var(--sc, var(--pxs)); }
+@media (hover: none) { .section .card:hover { box-shadow: 5px 5px 0 var(--sc, var(--pxs)); } }
+@media (max-width: 720px) { .section .card, .section .panel { box-shadow: 4px 4px 0 var(--sc, var(--pxs)); } .section .card:hover { box-shadow: 4px 4px 0 var(--sc, var(--pxs)); } }
+.sec-metric { flex: none; font-family: var(--px); font-weight: 400; font-size: 8px; line-height: 1.5; letter-spacing: 0; color: var(--sc, var(--accent)); border: 2px solid currentColor; padding: 5px 7px; white-space: nowrap; }
+.sec-metric:empty { display: none; }
+.px-fx { position: fixed; inset: 0; pointer-events: none; z-index: 90; overflow: hidden; }
+.px-spark { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; background: var(--gold); animation: pxSpark .55s steps(5) forwards; } .px-spark:nth-child(odd) { background: var(--accent); }
+.px-gain { position: absolute; font-family: var(--px); font-size: 9px; color: var(--gold); text-shadow: 2px 2px 0 var(--pxs); white-space: nowrap; animation: pxGain .8s steps(8) forwards; }
+@keyframes pxSpark { to { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
+@keyframes pxGain { to { transform: translateY(-30px); opacity: 0; } }
+.lvl { position: relative; }
+.lvl.lvl-up { animation: pxLvl .9s steps(3) 2; }
+.lvl-up-txt { position: absolute; left: 50%; top: calc(100% + 6px); transform: translateX(-50%); font-family: var(--px); font-size: 9px; color: var(--gold); text-shadow: 2px 2px 0 var(--pxs); white-space: nowrap; z-index: 6; }
+@keyframes pxLvl { 33% { background: color-mix(in srgb, var(--gold) 28%, var(--surface)); } 66% { background: var(--surface); } }
+@media (prefers-reduced-motion: reduce) { .px-spark, .px-gain, .lvl.lvl-up { animation: none; } }
+@media (max-width: 720px) { .section-head h2 { flex-wrap: wrap; row-gap: 6px; } }

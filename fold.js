@@ -7,9 +7,10 @@
   const CHEVRON = '<svg viewBox="0 0 8 4" width="16" height="8" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M0 0h2v1H0zM6 0h2v1H6zM1 1h2v1H1zM5 1h2v1H5zM2 2h4v1H2zM3 3h2v1H3z"/></svg>';
 
   function sanitize(raw) {
-    const out = { collapsed: [], updatedAt: 0 };
+    const out = { collapsed: [], updatedAt: 0, lvl: null };
     if (!raw || typeof raw !== "object") return out;
     if (isNum(raw.updatedAt)) out.updatedAt = raw.updatedAt;
+    if (isNum(raw.lvl) && raw.lvl >= 0) out.lvl = raw.lvl;
     (Array.isArray(raw.collapsed) ? raw.collapsed : []).forEach((id) => { if (typeof id === "string" && id && !out.collapsed.includes(id)) out.collapsed.push(id); });
     return out;
   }
@@ -17,7 +18,7 @@
   window.createFold = function (deps) {
     const { dataStore, scheduleAutoSync } = deps;
     const KEY = "dashboard-fold-v1";
-    let state = { collapsed: [], updatedAt: 0 };
+    let state = { collapsed: [], updatedAt: 0, lvl: null };
     try {
       const raw = dataStore.getItem(KEY);
       if (raw) state = sanitize(JSON.parse(raw));
@@ -63,15 +64,26 @@
     render();
     return {
       render,
+      // Hoechstes bisher gesehenes Level. true = es ist neu gestiegen (dann gibt es die Level-up-Animation); beim allerersten
+      // Mal wird nur gemerkt, nichts gefeiert.
+      noteLevel(level) {
+        if (!isNum(level)) return false;
+        if (state.lvl === null) { state.lvl = level; dataStore.setItem(KEY, JSON.stringify(state)); scheduleAutoSync("syncdata"); return false; }
+        if (level <= state.lvl) return false;
+        state.lvl = level;
+        dataStore.setItem(KEY, JSON.stringify(state));
+        scheduleAutoSync("syncdata");
+        return true;
+      },
       applyRemote(remote) {
         if (!remote) return;
         const r = sanitize(remote);
-        if (r.updatedAt <= state.updatedAt) return;
-        state = r;
+        if (r.lvl !== null && (state.lvl === null || r.lvl > state.lvl)) state.lvl = r.lvl;
+        if (r.updatedAt > state.updatedAt) { state.collapsed = r.collapsed; state.updatedAt = r.updatedAt; }
         dataStore.setItem(KEY, JSON.stringify(state));
         render();
       },
-      payload() { return { collapsed: state.collapsed.slice(), updatedAt: Math.max(0, state.updatedAt) }; }
+      payload() { return { collapsed: state.collapsed.slice(), updatedAt: Math.max(0, state.updatedAt), ...(state.lvl !== null ? { lvl: state.lvl } : {}) }; }
     };
   };
 })();
