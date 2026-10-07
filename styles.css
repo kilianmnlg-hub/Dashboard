@@ -326,7 +326,13 @@ a { color: inherit; }
 
 /* ---------- Layout: volle Breite ---------- */
 
-main { padding: clamp(24px, 3vw, 48px) clamp(20px, 3vw, 48px) 80px; }
+main { padding: clamp(24px, 3vw, 48px) clamp(20px, 3vw, 48px) 80px; transition: opacity .2s ease; }
+/* Cloud-only: solange die Daten noch nicht sicher aus der Cloud geladen sind (oder das Laden
+   fehlgeschlagen ist), ist die Seite gesperrt - Bearbeiten auf einem leeren Arbeitsspeicher
+   koennte sonst spaeter echte Cloud-Daten ueberschreiben. Siehe loadAllFromCloud() in script.js. */
+body[data-cloud="loading"] main, body[data-cloud="failed"] main { pointer-events: none; }
+body[data-cloud="loading"] main { opacity: .7; }
+body[data-cloud="failed"] main { opacity: .5; }
 
 .hero-sub { margin: 0; color: var(--text-muted); font-size: 15px; max-width: 34ch; }
 

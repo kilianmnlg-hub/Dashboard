@@ -159,7 +159,8 @@ Access Token** — anlegen unter
   Habit-Stand landet dann nicht in der Cloud
 
 Dieser Token landet **nirgends im Code oder Repo** — er wird nur einmal im
-Browser abgefragt und lokal in `localStorage` auf deinem eigenen Gerät gespeichert.
+Browser abgefragt und lokal in `localStorage` auf deinem eigenen Gerät gespeichert
+(einer der wenigen Werte, die bewusst im Browser bleiben — siehe Abschnitt "Cloud-only").
 Ein Token mit voller Repo-Berechtigung würde ich hier nicht eintragen; die
 fine-grained Variante oben kann wirklich nur Workflows anstoßen und diese zwei Dateien
 schreiben, sonst nichts.
@@ -223,10 +224,9 @@ verschwindet kurz durchgestrichen aus der Liste. Neue Ideen über das
 größere Textfeld darunter eintragen (Enter fügt hinzu, Shift+Enter für einen
 Zeilenumbruch).
 
-Speichert sofort im Browser (`localStorage`) und läuft automatisch in die
-Cloud (siehe Abschnitt "Auto-Sync" unten) sowie zusätzlich beim nächsten Klick
-auf "Sync" — bewusst kein Sync-Feld in `data.js`, das läuft über eine eigene,
-kleinere Datei (`sync-data.json`).
+Wird ausschließlich in der Cloud gespeichert (siehe Abschnitt "Cloud-only" unten) —
+bewusst kein Sync-Feld in `data.js`, das läuft über eine eigene, kleinere Datei
+(`sync-data.json`).
 
 ## Wochenvergleich-Trendpfeile
 
@@ -251,8 +251,7 @@ Kleine Karte in der Ziele-Sektion für die nächste Prüfung/Abgabe (z.B. IU
 Berlin) — bewusst nur eine einzelne editierbare Karte, kein voller
 Termin-Manager und keine Rückkehr zu einer großen "Privat"-Sektion. Bezeichnung
 und Datum trägst du über den "Termin eintragen"/"Ändern"-Link ein (zwei simple
-Eingabefelder), gespeichert lokal im Browser (`localStorage`) und per
-Cloud-Sync geräteübergreifend (siehe unten).
+Eingabefelder), gespeichert in der Cloud (siehe unten).
 
 ## Habit-Tracker
 
@@ -271,22 +270,15 @@ brechen die Serie), erscheint neben dem Namen ein kleines Badge mit der Streak-L
 allen drei Ansichten (Woche/Monat/Jahr). Ist der heutige Tag noch nicht abgehakt, zählt die
 Serie trotzdem ab gestern weiter, statt sofort auf 0 zu springen.
 
-**Speicherung, zweistufig:**
-1. **Sofort lokal** (`localStorage`) bei jedem Klick — funktioniert immer, auch offline.
-2. **Cloud-Kopie in `habits-data.json`** im Repo — automatisch, ca. 2,5 Sekunden nach
-   der letzten Änderung (siehe Abschnitt "Auto-Sync" unten), sobald einmal ein
-   GitHub-Token hinterlegt ist. Zusätzlich laufen alle Habit-/Sync-Daten-Aenderungen
-   auch am "Sync"-Button oben rechts mit, der daneben noch die Business-Daten
-   aktualisiert. Voraussetzung: der GitHub-Token braucht "Contents: Read and write".
-3. Beim Laden der Seite wird `habits-data.json` gelesen (funktioniert ohne Token, da
-   öffentliche Datei über GitHub Pages) und mit dem lokalen Stand abgeglichen: beide
-   Seiten tragen einen Zeitstempel (`updatedAt`), der bei jeder Änderung aktualisiert
-   wird — beim Laden gewinnt schlicht der neuere komplette Stand. Dadurch synct auch
-   ein **Entfernen** eines Häkchens korrekt auf andere Geräte (vorheriges Verhalten:
-   ein additiver Merge, bei dem ein einmal gesetztes Häkchen nie wieder verschwinden
-   konnte). Einzige Einschränkung: ändert man auf zwei Geräten annähernd gleichzeitig
-   etwas, ohne zwischendurch zu syncen, gewinnt der Stand mit dem späteren Zeitstempel
-   vollständig — die dazwischen verpasste Änderung des anderen Geräts geht verloren.
+**Speicherung: nur Cloud.** Der Habit-Stand liegt ausschließlich in `habits-data.json`
+im Repo — nichts davon wird im Browser gespeichert (Details im Abschnitt "Cloud-only"
+unten). Jede Änderung wird nach ca. 0,7 Sekunden automatisch gepusht; Voraussetzung ist
+ein GitHub-Token mit "Contents: Read and write". Beim Laden wird die Datei frisch über die
+GitHub-API gelesen (nicht über GitHub Pages, dessen Cache bis zu 10 Minuten alt sein kann).
+Der Stand trägt einen Zeitstempel (`updatedAt`), der bei jeder Änderung aktualisiert wird.
+Dadurch synct auch ein **Entfernen** eines Häkchens korrekt auf andere Geräte. Einzige
+Einschränkung: ändert man auf zwei Geräten annähernd gleichzeitig etwas, gewinnt der Stand
+mit dem späteren Zeitstempel vollständig.
 
 **Warum GitHub und nicht Notion, obwohl du dort schon einen "Habit Tracker" hast:**
 Notions API blockiert direkte Aufrufe aus dem Browser (kein CORS) — ein Klick im
@@ -364,23 +356,19 @@ Kalender als deinen Haupt-Kalender einbetten willst.
 ## Tages-To-Do
 
 Trägst du direkt im Dashboard ein (drei Spalten: Business, Studium & Job,
-Privates). Wird im Browser gespeichert (`localStorage`) und setzt sich jeden
-Tag automatisch zurück. Der aktuelle Tagesstand wird zusätzlich per Cloud-Sync
-geräteübergreifend gehalten (siehe unten) — ein Reset auf einem Gerät um
-Mitternacht überschreibt dabei nicht den Stand eines anderen Geräts, das den
-Tag noch nicht gewechselt hat: die Cloud-Kopie trägt das jeweilige Datum und
-wird nur übernommen, wenn es mit dem heutigen Datum übereinstimmt.
+Privates). Wird ausschließlich in der Cloud gespeichert (siehe unten) und setzt
+sich jeden Tag automatisch zurück. Die Cloud-Kopie trägt das jeweilige Datum.
 
 **Nicht abgehakte Punkte verfallen nicht** — beim nächsten Laden des
 Dashboards an einem neuen Tag wandert jeder noch offene (nicht abgehakte)
-Punkt aus dem alten Tages-To-Do automatisch nach "Aufgaben" (siehe unten), wo
-er dauerhaft stehen bleibt statt zu verschwinden. Abgehakte Punkte verfallen
-wie bisher einfach mit dem Tageswechsel.
+Punkt aus dem alten Tages-To-Do (so wie es in der Cloud steht) automatisch nach
+"Aufgaben" (siehe unten), wo er dauerhaft stehen bleibt statt zu verschwinden.
+Abgehakte Punkte verfallen wie bisher einfach mit dem Tageswechsel.
 
 ## Aufgaben
 
-Direkt unter dem Tages-To-Do, aber bewusst getrennt gespeichert (eigener
-`localStorage`-Key ohne Datum) — im Gegensatz zum Tages-To-Do **kein täglicher
+Direkt unter dem Tages-To-Do, aber bewusst getrennt gespeichert (eigenes
+Feld ohne Datum in `sync-data.json`) — im Gegensatz zum Tages-To-Do **kein täglicher
 Reset**. Einträge bleiben stehen, bis du sie abhakst; nach dem Abhaken werden
 sie automatisch (kurz sichtbar durchgestrichen) aus der Liste entfernt. Läuft
 ebenfalls über den Cloud-Sync (siehe unten). Sammelt zusätzlich automatisch
@@ -398,19 +386,14 @@ Diese vier kleinen, unabhängigen Felder teilen sich eine gemeinsame Cloud-Datei
 (`sync-data.json`) und funktionieren nach demselben Prinzip wie der
 Habit-Tracker oben:
 
-1. **Sofort lokal** (`localStorage`) bei jeder Änderung — funktioniert immer,
-   auch offline.
-2. **Cloud-Kopie in `sync-data.json`** im Repo — automatisch, ca. 2,5 Sekunden
-   nach der letzten Änderung (siehe Abschnitt "Auto-Sync" unten), sobald einmal
-   ein GitHub-Token hinterlegt ist. Läuft daneben auch am "Sync"-Button oben
-   rechts mit. Voraussetzung: der GitHub-Token braucht "Contents: Read and
+1. **Nur in der Cloud** (`sync-data.json` im Repo), nichts im Browser — siehe
+   Abschnitt "Cloud-only". Jede Änderung wird nach ca. 0,7 Sekunden automatisch
+   gepusht. Voraussetzung: der GitHub-Token braucht "Contents: Read and
    write" (siehe Abschnitt "Sync-Button" oben).
-3. Beim Laden der Seite wird `sync-data.json` gelesen (kein Token nötig) und
-   pro Feld einzeln mit dem lokalen Stand abgeglichen: jedes Feld trägt einen
-   eigenen Zeitstempel (`updatedAt`), und der jeweils neuere komplette Stand
-   gewinnt. Beim Tages-To-Do zählt zusätzlich das Datum — ein Cloud-Stand von
-   einem anderen Tag wird ignoriert, da der tägliche Reset ohnehin lokal über
-   den datumsbasierten Storage-Key läuft.
+2. Beim Laden der Seite wird `sync-data.json` frisch über die GitHub-API gelesen.
+   Jedes Feld trägt einen eigenen Zeitstempel (`updatedAt`); beim Tages-To-Do
+   zählt zusätzlich das Datum — ein Cloud-Stand von einem früheren Tag wird nicht
+   übernommen, stattdessen wandern dessen offene Punkte einmalig nach "Aufgaben".
 
 **Einschränkung:** wie beim Habit-Tracker gilt "neuester Zeitstempel gewinnt
 komplett" pro Feld — änderst du z.B. dieselbe Video-Idee auf zwei Geräten
@@ -418,38 +401,38 @@ annähernd gleichzeitig, ohne dazwischen zu syncen, geht eine der beiden
 Fassungen verloren. Bei normaler Nutzung (ein Gerät nach dem anderen) fällt
 das nicht ins Gewicht.
 
-## Auto-Sync
+## Cloud-only
 
-Damit du nicht nach jeder Kleinigkeit auf "Sync" klicken musst: jede Änderung
-am Habit-Tracker, an Video-Ideen, Studium-Termin, Tages-To-Do oder Aufgaben
-löst automatisch (debounced, ca. 2,5s nach der letzten Änderung in genau
-diesem Bereich) einen Push in die Cloud aus — **aber nur für die eine Datei,
-die den geänderten Bereich enthält** (`habits-data.json` *oder*
-`sync-data.json`, nie beide auf einmal, wenn sich nur ein Bereich geändert
-hat). Der aktuelle Stand steht klein oben rechts neben dem "Sync"-Button
-("☁️ Automatisch gesichert · HH:MM").
+Alle Nutzdaten — Habits, Aufgaben, Tages-To-Dos, Video-Ideen und Studium-Termin —
+liegen **ausschließlich in der Cloud** (`habits-data.json` und `sync-data.json` im
+Repo). Der Browser hält davon keine Kopie: kein `localStorage`, und der Service
+Worker fasst diese Dateien nicht an.
 
-**Voraussetzungen und Einschränkungen:**
-- Läuft nur, wenn auf diesem Gerät **schon einmal ein GitHub-Token hinterlegt
-  wurde** (z.B. durch einen früheren manuellen Sync-Klick). Ohne Token bleibt
-  alles beim Alten: sofort lokal gespeichert, Cloud erst beim nächsten
-  manuellen Klick. So gibt es beim allerersten Eintrag auf einem neuen Gerät
-  keinen überraschenden Token-Prompt mitten in der Nutzung.
-- Der **"Sync"-Button selbst bleibt bewusst manuell/täglich** — er stößt
-  zusätzlich den GitHub-Actions-Workflow für die Business-Daten an
-  (Bricklink/YouTube/TikTok/Notion, 15–30s Laufzeit, externe API-Aufrufe).
-  Eine Habit-Änderung soll nicht nebenbei diesen Workflow mit anstoßen.
-- **Mehr Commits im Repo:** da jede Änderung (statt gesammelt beim
-  Sync-Klick) einen eigenen Commit erzeugt, wächst die Commit-Historie von
-  `habits-data.json`/`sync-data.json` entsprechend schneller — funktional
-  unproblematisch, aber sichtbar in der Historie.
-- **GitHub-API-Limit:** 5.000 Anfragen/Stunde pro Token — bei normaler
-  persönlicher Nutzung (auch bei reger Habit-/To-Do-Pflege) realistisch nie
-  erreichbar.
-- Schließt du den Tab **innerhalb der 2,5s-Wartezeit**, bevor der Push
-  rausgegangen ist, geht die letzte Änderung nur cloud-seitig verloren (lokal
-  bleibt sie immer erhalten) — betrifft nur den seltenen Fall "Änderung, dann
-  sofort Tab schließen".
+**Was bewusst im Browser bleibt** (gehört nicht in ein öffentliches Repo bzw. ist
+pro Gerät): GitHub-Token, Kalender-Zugang (inkl. Refresh-Token), Theme und das
+Merkzeichen für bereits gezeigte Level-Up-Meldungen.
+
+**Verhalten:**
+- Beim Laden wird der Cloud-Stand frisch über die GitHub-API gelesen. Bis er da ist,
+  ist die Seite kurz gesperrt (leicht ausgegraut). Schlägt das Laden fehl, bleibt sie
+  gesperrt, zeigt "Cloud nicht erreichbar" und versucht es alle 10 Sekunden erneut —
+  ein Ladefehler wird nie als leerer Stand behandelt und kann daher nichts überschreiben.
+- Jede Änderung wird nach ca. 0,7 Sekunden automatisch in genau die betroffene Datei
+  gepusht (Status oben rechts neben dem Sync-Button). Bei einem Konflikt (z.B. paralleler
+  Workflow-Commit) wird bis zu zweimal automatisch neu versucht.
+- **Kein Offline-Bearbeiten.** Ohne Token ist das Dashboard praktisch nur lesbar: bei der
+  ersten Änderung fragt es einmal pro Sitzung nach dem Token; lehnst du ab, steht
+  "Nicht gespeichert — GitHub-Token fehlt". Beim Schließen mit ungespeicherten
+  Änderungen warnt der Browser.
+- **Einmalige Übernahme alter Daten:** liegen auf einem Gerät noch alte lokale Daten aus
+  früheren Versionen, werden sie beim Laden mit der Cloud abgeglichen (neuerer
+  Zeitstempel gewinnt, ein leerer Stand überschreibt nie einen gefüllten), hochgeladen
+  und erst nach erfolgreichem Push aus dem Browser gelöscht.
+- **GitHub-API-Limit:** 5.000 Anfragen/Stunde pro Token — bei persönlicher Nutzung
+  praktisch nicht erreichbar. Mehr Commits in der Historie von `habits-data.json` /
+  `sync-data.json` sind die Folge davon, dass jede Änderung sofort gepusht wird.
+- Der **"Sync"-Button** stößt zusätzlich den GitHub-Actions-Workflow für die Business-Daten
+  an (Bricklink/YouTube/TikTok/Notion) und bleibt bewusst manuell/täglich.
 
 ## PWA ("Zum Homescreen hinzufügen")
 
@@ -460,8 +443,9 @@ geht es über Safari → Teilen → "Zum Home-Bildschirm". Technisch dahinter:
 
 Der Service Worker ist bewusst simpel gehalten: **network-first** für alle
 Dateien inklusive `data.js` — das Netzwerk hat immer Vorrang, der Cache dient
-nur als Fallback ohne Internetverbindung. So gibt es nie veraltete Zahlen durch
-einen zu aggressiven Cache.
+nur als Fallback für die App-Dateien ohne Internetverbindung. Die Daten-Dateien
+(`habits-data.json`, `sync-data.json`) und alle fremden Hosts (GitHub-API, Google)
+ignoriert er komplett, damit nie ein veralteter Cloud-Stand ausgeliefert wird.
 
 Das App-Icon (`icon.svg`) ist ein einfaches generiertes SVG im Farbschema des
 Dashboards. Für optimale iOS-Darstellung kannst du es bei Bedarf einmal extern

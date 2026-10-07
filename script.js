@@ -269,6 +269,93 @@
     return true;
   };
 
+  // ---------- Cloud-only-Datenhaltung ----------
+  // Habits, Aufgaben, To-Dos, Video-Ideen und Studium-Termin liegen NUR in der Cloud
+  // (habits-data.json / sync-data.json im Repo). Im Browser steht davon nichts mehr in
+  // localStorage: dataStore ist ein reiner Arbeitsspeicher mit derselben getItem/setItem-
+  // Schnittstelle und ist nach dem Neuladen leer, bis die Cloud-Daten geladen sind.
+  // Im Browser (localStorage) bleiben nur Dinge, die nicht in ein oeffentliches Repo
+  // koennen oder rein geraetebezogen sind: GitHub-Token, Kalender-Zugang, Theme,
+  // "Meilenstein schon gesehen".
+  const cloudMem = new Map();
+  const dataStore = {
+    getItem: (k) => (cloudMem.has(k) ? cloudMem.get(k) : null),
+    setItem: (k, v) => cloudMem.set(k, String(v)),
+    removeItem: (k) => cloudMem.delete(k)
+  };
+
+  // Einmalige Uebernahme alter lokaler Staende (aus der Zeit vor Cloud-only): sie werden in
+  // den Arbeitsspeicher kopiert und nach dem Laden der Cloud ganz normal per Zeitstempel
+  // abgeglichen (neuerer Stand gewinnt) und hochgeladen. Erst NACH einem erfolgreichen Push
+  // werden die alten localStorage-Eintraege geloescht - so geht nichts verloren, was bisher
+  // nur lokal lag (z.B. Aufgaben, die nie hochgeladen wurden).
+  const legacyKeysByKind = { habits: [], syncdata: [] };
+  (function importLegacyLocalData() {
+    try {
+      const re = /^dashboard-(habits-v1|tasks-v1|studium-deadline|idea-.+|todo-\d{4}-\d{2}-\d{2})$/;
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || !re.test(k)) continue;
+        cloudMem.set(k, localStorage.getItem(k));
+        (k === "dashboard-habits-v1" ? legacyKeysByKind.habits : legacyKeysByKind.syncdata).push(k);
+      }
+    } catch (e) {
+      /* localStorage nicht verfuegbar - dann gibt es auch nichts zu uebernehmen */
+    }
+  })();
+  function clearLegacyKeys(kind) {
+    legacyKeysByKind[kind].forEach((k) => {
+      try {
+        localStorage.removeItem(k);
+      } catch (e) {
+        /* egal */
+      }
+    });
+    legacyKeysByKind[kind] = [];
+  }
+
+  // Zustand des Cloud-Ladens: "loading" (Seite gesperrt, damit nicht in einen noch leeren
+  // Arbeitsspeicher geschrieben und damit die Cloud ueberschrieben wird), "ready" oder
+  // "failed" (Cloud nicht erreichbar - weiter gesperrt und automatischer Neuversuch).
+  const cloudLoaded = { habits: false, syncdata: false };
+  const setCloudState = (state) => {
+    document.body.dataset.cloud = state;
+  };
+  setCloudState("loading");
+
+  const decodeGithubBase64 = (b64) => decodeURIComponent(escape(atob(String(b64 || "").replace(/\n/g, ""))));
+
+  // Liest eine Daten-Datei immer frisch ueber die GitHub-API (nicht ueber GitHub Pages: dessen
+  // CDN liefert bis zu 10 Minuten alte Stände, und auf einem alten Stand weiterzuarbeiten
+  // wuerde neuere Aenderungen ueberschreiben). Ohne Token geht das Lesen trotzdem (oeffentliches
+  // Repo, 60 Anfragen/Std.); ist ein gespeicherter Token abgelaufen, wird ohne ihn nochmal gelesen.
+  // 404 = Datei existiert noch nicht -> json: null. Alles andere Unerwartete wirft, damit ein
+  // Ladefehler NIE als "leerer Stand" missverstanden wird.
+  async function readCloudJson(file) {
+    const owner = data.github?.owner || localStorage.getItem("dashboard-gh-owner");
+    const repo = data.github?.repo || localStorage.getItem("dashboard-gh-repo");
+    const token = localStorage.getItem("dashboard-gh-token");
+    if (!owner || !repo) throw new Error("Repo nicht konfiguriert");
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${file}`;
+    const get = (withToken) =>
+      fetch(url, {
+        cache: "no-store",
+        headers: { Accept: "application/vnd.github+json", ...(withToken && token ? { Authorization: `Bearer ${token}` } : {}) }
+      });
+    let res = await get(true);
+    if ((res.status === 401 || res.status === 403) && token) res = await get(false);
+    if (res.status === 404) return { json: null, sha: null };
+    if (!res.ok) throw new Error(res.status === 403 ? "GitHub-Limit erreicht oder Zugriff verweigert (403)" : `Status ${res.status}`);
+    const meta = await res.json();
+    let json = null;
+    try {
+      json = JSON.parse(decodeGithubBase64(meta.content));
+    } catch (e) {
+      /* Datei leer oder kein valides JSON - als "noch kein Stand" behandeln */
+    }
+    return { json, sha: meta.sha };
+  }
+
   // ---------- Auto-Sync ----------
   // Statt jedes Mal auf "Sync" klicken zu muessen: jede Aenderung an Habit-Tracker,
   // Video-Ideen, Studium-Termin, Tages-To-Do oder Aufgaben stoesst nach kurzer Pause
@@ -292,41 +379,81 @@
       saving: "☁️ Speichere…",
       saved: `☁️ Automatisch gesichert · ${time}`,
       error: `⚠️ Auto-Sync fehlgeschlagen${detail ? " — " + detail : ""}`,
-      "no-token": '☁️ Nicht mit der Cloud verbunden — einmal auf „Sync" klicken'
+      "no-token": "⚠️ Nicht gespeichert — GitHub-Token fehlt (Änderungen gehen beim Schließen verloren)",
+      "cloud-failed": "⚠️ Cloud nicht erreichbar — Änderungen gesperrt, neuer Versuch läuft"
     };
     autoSyncStatusEl.hidden = false;
     autoSyncStatusEl.textContent = map[state] || "";
   }
 
+  // Seit Cloud-only ist der Auto-Sync der EINZIGE Weg, auf dem Aenderungen gespeichert werden
+  // (es gibt keine lokale Kopie mehr). Deshalb: kurze Pause (700 ms, nur um schnelle Klicks
+  // zu einem Push zu buendeln), pro Datei hoechstens ein Push gleichzeitig (weitere Aenderungen
+  // waehrend eines laufenden Pushs loesen direkt danach einen weiteren aus), bei einem
+  // Konflikt (409, anderes Geraet hat parallel geschrieben) zwei automatische Neuversuche,
+  // und eine Warnung beim Schliessen des Tabs, solange noch etwas nicht gespeichert ist.
+  // Fehlt der Token, wird einmal pro Sitzung danach gefragt - ohne ihn kann nichts
+  // gespeichert werden.
   const autoSyncTimers = {};
+  const autoSyncInFlight = {};
+  const autoSyncPending = {};
+  const unsavedKinds = new Set();
+  // Letzte Push-Fehlerursache pro Datei ({message, conflict}) - wird vom jeweiligen Pusher
+  // gesetzt und im Status-Badge angezeigt, damit man nicht in die Konsole schauen muss.
+  const lastPushError = { habits: null, syncdata: null };
+  let tokenPromptDeclined = false;
   const AUTO_SYNC_PUSHERS = { habits: () => pushHabitsToCloud(), syncdata: () => pushSyncDataToCloud() };
-  function scheduleAutoSync(kind) {
-    if (!localStorage.getItem("dashboard-gh-token")) {
-      // Ohne Token wuerde ein Push sofort nach einem GitHub-Token fragen - das waere ein
-      // ueberraschender Prompt mitten in einer simplen Aenderung (Haekchen, neue Aufgabe).
-      // Bisher blieb das komplett STILL: die Aenderung landete nur lokal, ohne jeden Hinweis,
-      // dass sie nie in der Cloud ankommt - genau das hat auf einem frisch genutzten Geraet
-      // dazu gefuehrt, dass neue Aufgaben "verschwanden" (nie zu anderen Geraeten synct waren).
-      // Jetzt zumindest sichtbar (aber nicht aufdringlich) im Status-Badge markieren.
-      setAutoSyncStatus("no-token");
+
+  async function runAutoSync(kind, attempt) {
+    if (autoSyncInFlight[kind]) {
+      autoSyncPending[kind] = true;
       return;
     }
-    clearTimeout(autoSyncTimers[kind]);
-    autoSyncTimers[kind] = setTimeout(async () => {
-      setAutoSyncStatus("saving");
-      try {
-        // pushHabitsToCloud/pushSyncDataToCloud fangen ihre eigenen Fehler bereits intern ab
-        // (Detail-Status ueber setHabitSyncStatus bzw. console.warn) und werfen NIE - ihr
-        // Rueckgabewert (true/false) ist deshalb die einzige Quelle, um den uebergeordneten
-        // Indikator hier ehrlich zu halten (sonst wuerde er bei einem Fehlschlag faelschlich
-        // "gesichert" zeigen, obwohl z.B. der Token ungueltig war).
-        const ok = await AUTO_SYNC_PUSHERS[kind]();
-        setAutoSyncStatus(ok ? "saved" : "error");
-      } catch (err) {
-        setAutoSyncStatus("error", err.message);
+    if (!localStorage.getItem("dashboard-gh-token")) {
+      if (!tokenPromptDeclined && !getGithubConfig()) tokenPromptDeclined = true;
+      if (!localStorage.getItem("dashboard-gh-token")) {
+        setAutoSyncStatus("no-token");
+        return;
       }
-    }, 2500);
+    }
+    autoSyncInFlight[kind] = true;
+    setAutoSyncStatus("saving");
+    let ok = false;
+    try {
+      // Die Pusher fangen ihre Fehler selbst ab und werfen nie - ihr Rueckgabewert (true/false)
+      // ist die einzige Quelle fuer einen ehrlichen Indikator.
+      ok = await AUTO_SYNC_PUSHERS[kind]();
+    } catch (err) {
+      lastPushError[kind] = { message: err.message };
+    }
+    autoSyncInFlight[kind] = false;
+    if (ok) {
+      unsavedKinds.delete(kind);
+      if (legacyKeysByKind[kind].length) clearLegacyKeys(kind);
+    } else if (lastPushError[kind]?.conflict && attempt < 2) {
+      setTimeout(() => runAutoSync(kind, attempt + 1), 600);
+      return;
+    }
+    if (autoSyncPending[kind]) {
+      autoSyncPending[kind] = false;
+      runAutoSync(kind, 0);
+      return;
+    }
+    setAutoSyncStatus(ok ? "saved" : "error", ok ? undefined : lastPushError[kind]?.message);
   }
+
+  function scheduleAutoSync(kind) {
+    unsavedKinds.add(kind);
+    clearTimeout(autoSyncTimers[kind]);
+    autoSyncTimers[kind] = setTimeout(() => runAutoSync(kind, 0), 700);
+  }
+
+  window.addEventListener("beforeunload", (e) => {
+    if (unsavedKinds.size) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
 
   // ---------- Theme ----------
   const root = document.documentElement;
@@ -989,7 +1116,7 @@
   const STUDIUM_STORAGE_KEY = "dashboard-studium-deadline";
   const loadStudiumDeadline = () => {
     try {
-      const raw = localStorage.getItem(STUDIUM_STORAGE_KEY);
+      const raw = dataStore.getItem(STUDIUM_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (typeof parsed.updatedAt !== "number") parsed.updatedAt = 0;
@@ -1002,7 +1129,7 @@
   };
   const saveStudiumDeadline = (d) => {
     const state = { label: d.label || "", date: d.date || "", updatedAt: Date.now() };
-    localStorage.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(state));
+    dataStore.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(state));
     scheduleAutoSync("syncdata");
     return state;
   };
@@ -1103,7 +1230,7 @@
   // wo Position 0 implizit "naechste Idee" war), {text, updatedAt} (Einzelidee vor jeglicher
   // Liste) und ein purer String (vor jeglichem Wrapper).
   const loadIdeaState = (key) => {
-    const raw = localStorage.getItem(`dashboard-idea-${key}`);
+    const raw = dataStore.getItem(`dashboard-idea-${key}`);
     if (raw === null) return { nextId: null, items: [], updatedAt: -1 };
     try {
       const parsed = JSON.parse(raw);
@@ -1132,7 +1259,7 @@
   };
   const saveIdeaState = (key, nextId, items) => {
     const state = { nextId, items, updatedAt: Date.now() };
-    localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(state));
+    dataStore.setItem(`dashboard-idea-${key}`, JSON.stringify(state));
     scheduleAutoSync("syncdata");
     return state;
   };
@@ -1527,7 +1654,7 @@
     }
   };
   const loadTodosState = () => {
-    const raw = localStorage.getItem(TODO_STORAGE_KEY);
+    const raw = dataStore.getItem(TODO_STORAGE_KEY);
     if (raw) {
       const parsed = parseTodosPayload(raw);
       if (parsed) return parsed;
@@ -1538,7 +1665,7 @@
   };
   const loadTodos = () => loadTodosState().items;
   const saveTodos = (items) => {
-    localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify({ items, updatedAt: Date.now() }));
+    dataStore.setItem(TODO_STORAGE_KEY, JSON.stringify({ items, updatedAt: Date.now() }));
     scheduleAutoSync("syncdata");
   };
 
@@ -1631,7 +1758,7 @@
   // Cloud-Sync ueber sync-data.json, gleiches Zeitstempel-Prinzip wie beim Habit-Tracker.
   const loadTasksState = () => {
     try {
-      const raw = localStorage.getItem(TASKS_STORAGE_KEY);
+      const raw = dataStore.getItem(TASKS_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) return { items: parsed, updatedAt: 0 }; // Altformat: reines Array
@@ -1647,7 +1774,7 @@
   };
   const loadTasks = () => loadTasksState().items;
   const saveTasks = (items) => {
-    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify({ items, updatedAt: Date.now() }));
+    dataStore.setItem(TASKS_STORAGE_KEY, JSON.stringify({ items, updatedAt: Date.now() }));
     scheduleAutoSync("syncdata");
   };
 
@@ -1760,12 +1887,12 @@
   function migrateStaleTodosToTasks() {
     const todayK = todayKey();
     let moved = false;
-    Object.keys(localStorage)
+    [...cloudMem.keys()]
       .filter((k) => /^dashboard-todo-\d{4}-\d{2}-\d{2}$/.test(k) && k !== TODO_STORAGE_KEY)
       .forEach((key) => {
         const dateStr = key.slice("dashboard-todo-".length);
         if (dateStr >= todayK) return; // heute oder in der Zukunft (Zeitzonen-Kuriosum): unberuehrt lassen
-        const raw = localStorage.getItem(key);
+        const raw = dataStore.getItem(key);
         const state = raw ? parseTodosPayload(raw) : null;
         if (state) {
           TODO_CATEGORIES.forEach((cat) => {
@@ -1777,14 +1904,15 @@
             });
           });
         }
-        localStorage.removeItem(key);
+        dataStore.removeItem(key);
       });
     if (moved) {
       saveTasks(tasks);
       renderTasks();
     }
   }
-  migrateStaleTodosToTasks();
+  // Wird erst nach dem Laden der Cloud-Daten ausgefuehrt (siehe loadAllFromCloud) - nur dann
+  // sind importierte Alt-Staende und der Cloud-Stand schon zusammengefuehrt.
 
   // ---------- Habit-Tracker ----------
   const HABIT_STORAGE_KEY = "dashboard-habits-v1";
@@ -1820,7 +1948,7 @@
 
   function loadHabitState() {
     try {
-      const raw = localStorage.getItem(HABIT_STORAGE_KEY);
+      const raw = dataStore.getItem(HABIT_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
         // Stand existiert schon lokal (ggf. aus der Zeit vor Einfuehrung von
@@ -1855,9 +1983,9 @@
     if (!habitSyncStatusEl) return;
     const time = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
     const map = {
-      idle: "☁️ Wird beim nächsten Klick auf \"Sync\" oben rechts gesichert",
-      synced: `☁️ Zuletzt mit Sync gesichert · ${time}`,
-      "local-only": "💾 Nur lokal — für Cloud-Sync oben rechts auf \"Sync\" klicken",
+      idle: "☁️ Änderungen werden automatisch in der Cloud gespeichert",
+      synced: `☁️ In der Cloud gespeichert · ${time}`,
+      "local-only": "⚠️ Nicht gespeichert — GitHub-Token fehlt",
       error: `⚠️ Cloud-Sync fehlgeschlagen${detail ? " — " + detail : ""}`
     };
     habitSyncStatusEl.textContent = map[state] || map.idle;
@@ -1873,19 +2001,27 @@
   // bereits befuellten grundlos ersetzt.
   const habitHasContent = (state) => (state?.habits?.length || 0) > 0 || Object.keys(state?.log || {}).length > 0;
 
+  // Laedt den Habit-Stand aus der Cloud. Gibt true zurueck, wenn der Cloud-Stand sicher
+  // bekannt ist (auch "Datei existiert noch nicht"), false bei einem Ladefehler - dann darf
+  // NICHT geschrieben werden (siehe pushHabitsToCloud), sonst wuerde ein leerer Arbeits-
+  // speicher die Cloud ueberschreiben.
   async function fetchRemoteHabits() {
     try {
-      const res = await fetch(HABIT_REMOTE_FILE, { cache: "no-store" });
-      if (!res.ok) return;
-      const remote = await res.json();
-      const remoteUpdatedAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
-      if (remoteWins(remoteUpdatedAt, habitState.updatedAt, habitHasContent(remote), habitHasContent(habitState))) {
-        habitState = { habits: (remote.habits || []).map(normalizeHabit), log: remote.log || {}, updatedAt: remoteUpdatedAt };
-        localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
-        renderHabits();
+      const { json: remote, sha } = await readCloudJson(HABIT_REMOTE_FILE);
+      if (sha) habitCloudSha = sha;
+      if (remote) {
+        const remoteUpdatedAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
+        if (remoteWins(remoteUpdatedAt, habitState.updatedAt, habitHasContent(remote), habitHasContent(habitState))) {
+          habitState = { habits: (remote.habits || []).map(normalizeHabit), log: remote.log || {}, updatedAt: remoteUpdatedAt };
+          dataStore.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
+          renderHabits();
+        }
       }
+      cloudLoaded.habits = true;
+      return true;
     } catch (err) {
-      /* offline, file:// geöffnet, oder Datei existiert noch nicht — lokaler Stand bleibt gültig */
+      lastPushError.habits = { message: `Laden fehlgeschlagen: ${err.message}` };
+      return false;
     }
   }
 
@@ -1901,29 +2037,52 @@
       setHabitSyncStatus("local-only");
       return false;
     }
+    lastPushError.habits = null;
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${HABIT_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
+    const rejectToken = (msg) => {
+      localStorage.removeItem("dashboard-gh-token");
+      lastPushError.habits = { message: msg };
+      setHabitSyncStatus("error", msg);
+      return false;
+    };
     try {
+      // Ohne bekannten Cloud-Stand nie schreiben: der Arbeitsspeicher kann noch leer/default
+      // sein, ein Push wuerde dann echte Daten in der Cloud ueberschreiben.
+      if (!cloudLoaded.habits && !(await fetchRemoteHabits())) {
+        setHabitSyncStatus("error", lastPushError.habits?.message);
+        return false;
+      }
       // Immer frisch abrufen (nicht nur beim allerersten Push cachen) und, falls die Cloud
       // inzwischen einen ECHT neueren UND inhaltlich mindestens gleichwertigen Stand hat
       // (anderes, fast zeitgleich synchronisierendes Geraet), diesen zuerst uebernehmen.
       // Sonst kann ein Push blind einen neueren Cloud-Stand mit einem aelteren lokalen
       // ueberschreiben — beobachtet bei mehreren Sync-Klicks kurz hintereinander.
-      const getRes = await fetch(apiUrl, { headers });
+      const getRes = await fetch(apiUrl, { headers, cache: "no-store" });
+      if (getRes.status === 401 || getRes.status === 403) {
+        return rejectToken("Token ungültig oder ohne 'Contents'-Berechtigung (entfernt, beim nächsten Mal neu eingeben)");
+      }
+      if (!getRes.ok && getRes.status !== 404) {
+        lastPushError.habits = { message: `Status ${getRes.status} beim Lesen` };
+        setHabitSyncStatus("error", lastPushError.habits.message);
+        return false;
+      }
       if (getRes.ok) {
         const meta = await getRes.json();
         habitCloudSha = meta.sha;
         try {
-          const remote = JSON.parse(decodeURIComponent(escape(atob(meta.content.replace(/\n/g, "")))));
+          const remote = JSON.parse(decodeGithubBase64(meta.content));
           const remoteUpdatedAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
           if (remoteWins(remoteUpdatedAt, habitState.updatedAt, habitHasContent(remote), habitHasContent(habitState))) {
             habitState = { habits: (remote.habits || []).map(normalizeHabit), log: remote.log || {}, updatedAt: remoteUpdatedAt };
-            localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
+            dataStore.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
             renderHabits();
           }
         } catch (e) {
-          /* Datei leer/kein valides JSON — mit lokalem Stand weitermachen */
+          /* Datei leer/kein valides JSON — mit dem aktuellen Stand weitermachen */
         }
+      } else {
+        habitCloudSha = null; // Datei existiert noch nicht: wird beim Schreiben neu angelegt
       }
       // -1 ist nur ein interner Marker fuer "noch nie lokal gespeichert" (siehe loadHabitState())
       // und wuerde extern nur verwirren - beim Export auf 0 normalisieren.
@@ -1939,18 +2098,20 @@
         setHabitSyncStatus("synced");
         return true;
       } else if (putRes.status === 401 || putRes.status === 403) {
-        localStorage.removeItem("dashboard-gh-token");
-        setHabitSyncStatus("error", "Token ungültig oder ohne 'Contents'-Berechtigung (entfernt, beim nächsten Mal neu eingeben)");
-        return false;
+        return rejectToken("Token ungültig oder ohne 'Contents'-Berechtigung (entfernt, beim nächsten Mal neu eingeben)");
       } else if (putRes.status === 409) {
         habitCloudSha = null; // jemand anders hat parallel geschrieben — sha neu holen beim nächsten Versuch
-        setHabitSyncStatus("error", "Konflikt, bitte erneut versuchen");
+        lastPushError.habits = { message: "Konflikt, bitte erneut versuchen", conflict: true };
+        setHabitSyncStatus("error", lastPushError.habits.message);
         return false;
       } else {
-        setHabitSyncStatus("error", `Status ${putRes.status}`);
+        const msg = putRes.status === 404 ? "Kein Zugriff aufs Repo (404) — Token prüfen: richtiges Repo ausgewählt?" : `Status ${putRes.status}`;
+        lastPushError.habits = { message: msg };
+        setHabitSyncStatus("error", msg);
         return false;
       }
     } catch (err) {
+      lastPushError.habits = { message: err.message };
       setHabitSyncStatus("error", err.message);
       return false;
     }
@@ -1958,7 +2119,7 @@
 
   const saveHabitState = () => {
     habitState.updatedAt = Date.now();
-    localStorage.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
+    dataStore.setItem(HABIT_STORAGE_KEY, JSON.stringify(habitState));
     scheduleAutoSync("habits");
   };
 
@@ -2257,7 +2418,7 @@
 
   renderHabits();
   setHabitSyncStatus(localStorage.getItem("dashboard-gh-token") ? "idle" : "local-only");
-  fetchRemoteHabits();
+  // Das Laden aus der Cloud startet gesammelt in loadAllFromCloud() weiter unten.
 
   // ---------- Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben ----------
   // Gleiches Prinzip wie beim Habit-Tracker weiter oben (GitHub Contents API, Zeitstempel-
@@ -2272,12 +2433,20 @@
   // uebergeordneten Auto-Sync-Indikator in der Topbar ehrlich halten kann.
   async function pushSyncDataToCloud(config) {
     config = config || getGithubConfig();
-    if (!config) return false;
+    if (!config) {
+      lastPushError.syncdata = { message: "GitHub-Token fehlt" };
+      return false;
+    }
+    lastPushError.syncdata = null;
     // Vor dem Push erst den aktuellen Cloud-Stand ziehen (mit denselben Sicherheitsregeln
     // wie beim Laden, siehe applyRemote* unten): falls ein anderes Geraet zwischenzeitlich
     // einen echt neueren UND inhaltlich nicht-leeren Stand gepusht hat, den zuerst
     // uebernehmen. Sonst kann ein Push blind einen neueren Cloud-Stand ueberschreiben.
-    await fetchRemoteSyncData();
+    // Gelingt das Lesen nicht, wird NICHT geschrieben (ohne bekannten Cloud-Stand koennte ein
+    // noch leerer Arbeitsspeicher echte Daten ueberschreiben). Der gelesene sha stammt aus
+    // demselben Abruf wie der Inhalt - so bekommt ein zwischenzeitlicher fremder Schreibzugriff
+    // einen echten 409-Konflikt statt still ueberschrieben zu werden.
+    if (!(await fetchRemoteSyncData())) return false;
     // -1 ist nur ein interner Marker fuer "noch nie lokal gespeichert" (siehe load*State()-
     // Funktionen) und wuerde extern nur verwirren - beim Export auf 0 normalisieren.
     const clampedAt = (v) => Math.max(0, v);
@@ -2298,11 +2467,12 @@
     };
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${SYNC_DATA_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
+    const fail = (msg, extra) => {
+      lastPushError.syncdata = { message: msg, ...extra };
+      console.warn(`Cloud-Sync (Video-Ideen/Studium/To-Do/Aufgaben) fehlgeschlagen: ${msg}`);
+      return false;
+    };
     try {
-      if (!syncDataCloudSha) {
-        const getRes = await fetch(apiUrl, { headers });
-        if (getRes.ok) syncDataCloudSha = (await getRes.json()).sha;
-      }
       const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
       const putRes = await fetch(apiUrl, {
         method: "PUT",
@@ -2312,20 +2482,19 @@
       if (putRes.ok) {
         syncDataCloudSha = (await putRes.json()).content?.sha || syncDataCloudSha;
         return true;
-      } else if (putRes.status === 401 || putRes.status === 403) {
-        localStorage.removeItem("dashboard-gh-token");
-        console.warn("Cloud-Sync (Video-Ideen/Studium/To-Do/Aufgaben) fehlgeschlagen: Token ungültig oder ohne 'Contents'-Berechtigung.");
-        return false;
-      } else if (putRes.status === 409) {
-        syncDataCloudSha = null; // jemand anders hat parallel geschrieben — sha neu holen beim naechsten Versuch
-        return false;
-      } else {
-        console.warn(`Cloud-Sync (Video-Ideen/Studium/To-Do/Aufgaben) fehlgeschlagen: Status ${putRes.status}`);
-        return false;
       }
+      if (putRes.status === 401 || putRes.status === 403) {
+        localStorage.removeItem("dashboard-gh-token");
+        return fail("Token ungültig oder ohne 'Contents'-Berechtigung (entfernt, beim nächsten Mal neu eingeben)");
+      }
+      if (putRes.status === 409) {
+        syncDataCloudSha = null; // jemand anders hat parallel geschrieben — beim naechsten Versuch frisch lesen
+        return fail("Konflikt, bitte erneut versuchen", { conflict: true });
+      }
+      if (putRes.status === 404) return fail("Kein Zugriff aufs Repo (404) — Token prüfen: richtiges Repo ausgewählt?");
+      return fail(`Status ${putRes.status}`);
     } catch (err) {
-      console.warn("Cloud-Sync (Video-Ideen/Studium/To-Do/Aufgaben) fehlgeschlagen:", err.message);
-      return false;
+      return fail(err.message);
     }
   }
 
@@ -2353,7 +2522,7 @@
       }
       if (remoteWins(remoteUpdatedAt, local.updatedAt, remoteItems.length > 0, local.items.length > 0)) {
         const merged = { nextId: remoteNextId, items: remoteItems, updatedAt: remoteUpdatedAt };
-        localStorage.setItem(`dashboard-idea-${key}`, JSON.stringify(merged));
+        dataStore.setItem(`dashboard-idea-${key}`, JSON.stringify(merged));
         renderIdeaWidget(key);
       }
     });
@@ -2365,22 +2534,47 @@
     const remoteUpdatedAt = typeof remoteStudium.updatedAt === "number" ? remoteStudium.updatedAt : 0;
     if (remoteWins(remoteUpdatedAt, local.updatedAt, !!remoteStudium.date, !!local.date)) {
       const merged = { label: remoteStudium.label || "", date: remoteStudium.date || "", updatedAt: remoteUpdatedAt };
-      localStorage.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(merged));
+      dataStore.setItem(STUDIUM_STORAGE_KEY, JSON.stringify(merged));
       refreshStudiumCard();
     }
   }
 
   const todosHaveContent = (items) => TODO_CATEGORIES.some((c) => (items?.[c.id]?.length || 0) > 0);
 
+  // Der Tages-To-Do-Stand in der Cloud gehoert immer zu EINEM Datum. Ist es ein frueherer Tag,
+  // wandern dessen noch offene Punkte (einmalig pro Seitenaufruf, sonst gaebe es Duplikate bei
+  // jedem Merge) nach "Aufgaben" - der heutige Tag beginnt leer, und der naechste Push ersetzt
+  // den alten Tagesstand in der Cloud. Muss NACH applyRemoteTasks laufen, sonst wuerde der
+  // Cloud-Aufgabenstand die gerade uebernommenen Punkte wieder ueberschreiben.
+  let staleCloudTodosMigrated = false;
   function applyRemoteTodos(remoteTodos) {
-    // Andere/aeltere Tagesdaten aus der Cloud ignorieren — der taegliche Reset laeuft
-    // ueber den datumsbasierten Storage-Key ohnehin lokal von selbst.
-    if (!remoteTodos || remoteTodos.date !== todayKey()) return;
+    if (!remoteTodos) return;
+    if (remoteTodos.date !== todayKey()) {
+      if (remoteTodos.date && remoteTodos.date < todayKey() && !staleCloudTodosMigrated) {
+        staleCloudTodosMigrated = true;
+        let moved = false;
+        TODO_CATEGORIES.forEach((cat) => {
+          (remoteTodos.items?.[cat.id] || []).forEach((item) => {
+            if (!item.done) {
+              tasks.push({ id: newId(), text: item.text, done: false });
+              moved = true;
+            }
+          });
+        });
+        if (moved) {
+          saveTasks(tasks);
+          renderTasks();
+        }
+      }
+      return;
+    }
     const localState = loadTodosState();
     const remoteUpdatedAt = typeof remoteTodos.updatedAt === "number" ? remoteTodos.updatedAt : 0;
     if (remoteWins(remoteUpdatedAt, localState.updatedAt, todosHaveContent(remoteTodos.items), todosHaveContent(localState.items))) {
+      // Direkt in den Arbeitsspeicher, OHNE saveTodos(): ein aus der Cloud uebernommener Stand
+      // behaelt seinen Zeitstempel und soll keinen unnoetigen Rueck-Push ausloesen.
       todos = remoteTodos.items || {};
-      saveTodos(todos);
+      dataStore.setItem(TODO_STORAGE_KEY, JSON.stringify({ items: todos, updatedAt: remoteUpdatedAt }));
       renderTodos();
     }
   }
@@ -2392,25 +2586,59 @@
     const remoteItems = remoteTasks.items || [];
     if (remoteWins(remoteUpdatedAt, localState.updatedAt, remoteItems.length > 0, localState.items.length > 0)) {
       tasks = remoteItems;
-      saveTasks(tasks);
+      dataStore.setItem(TASKS_STORAGE_KEY, JSON.stringify({ items: tasks, updatedAt: remoteUpdatedAt }));
       renderTasks();
     }
   }
 
+  // Gibt true zurueck, wenn der Cloud-Stand sicher bekannt ist (auch "Datei existiert noch nicht"),
+  // false bei einem Ladefehler - dann bleibt cloudLoaded.syncdata false und nichts wird geschrieben.
   async function fetchRemoteSyncData() {
     try {
-      const res = await fetch(SYNC_DATA_REMOTE_FILE, { cache: "no-store" });
-      if (!res.ok) return;
-      const remote = await res.json();
-      applyRemoteIdeas(remote.ideas);
-      applyRemoteStudium(remote.studiumDeadline);
-      applyRemoteTodos(remote.todos);
-      applyRemoteTasks(remote.tasks);
+      const { json: remote, sha } = await readCloudJson(SYNC_DATA_REMOTE_FILE);
+      syncDataCloudSha = sha;
+      if (remote) {
+        applyRemoteIdeas(remote.ideas);
+        applyRemoteStudium(remote.studiumDeadline);
+        applyRemoteTasks(remote.tasks);
+        applyRemoteTodos(remote.todos);
+      }
+      cloudLoaded.syncdata = true;
+      return true;
     } catch (err) {
-      /* offline, file:// geöffnet, oder Datei existiert noch nicht — lokaler Stand bleibt gültig */
+      lastPushError.syncdata = { message: `Laden fehlgeschlagen: ${err.message}` };
+      return false;
     }
   }
-  fetchRemoteSyncData();
+
+  // Erstladen beim Start: die Seite bleibt gesperrt (body[data-cloud]), bis BEIDE Dateien sicher
+  // geladen sind. Schlaegt das fehl (Netz, GitHub-Limit), bleibt sie gesperrt und es wird alle
+  // 10 Sekunden neu versucht - bearbeiten waere sonst auf einem leeren Arbeitsspeicher moeglich
+  // und koennte spaeter echte Cloud-Daten ueberschreiben.
+  async function loadAllFromCloud() {
+    // Beim ersten echten Rendern der Cloud-Daten sollen Listen wieder gestaffelt einfliegen
+    // (das Rendern des noch leeren Arbeitsspeichers hat die Einmal-Flags sonst schon verbraucht).
+    delete taskList.dataset.staggered;
+    todoGridStaggeredOnce = false;
+    Object.values(ideaWidgets).forEach((w) => delete w.backlogEl.dataset.staggered);
+
+    const [habitsOk, syncOk] = await Promise.all([fetchRemoteHabits(), fetchRemoteSyncData()]);
+    if (habitsOk && syncOk) {
+      setCloudState("ready");
+      if (autoSyncStatusEl && autoSyncStatusEl.textContent.includes("Cloud nicht erreichbar")) autoSyncStatusEl.hidden = true;
+      // Alt-Aufgaben vergangener Tage aus uebernommenen lokalen Staenden (siehe importLegacyLocalData)
+      migrateStaleTodosToTasks();
+      // Hat dieses Geraet noch alte lokale Staende, jetzt hochladen und danach lokal loeschen.
+      ["habits", "syncdata"].forEach((kind) => {
+        if (legacyKeysByKind[kind].length) scheduleAutoSync(kind);
+      });
+      return;
+    }
+    setCloudState("failed");
+    setAutoSyncStatus("cloud-failed");
+    setTimeout(loadAllFromCloud, 10000);
+  }
+  loadAllFromCloud();
 
   // ---------- Google Kalender ----------
   // Google Identity Services (GIS) fuer den OAuth2-Authorization-Code-Flow, Google Calendar

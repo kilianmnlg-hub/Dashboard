@@ -9,9 +9,11 @@
 // (siehe "activate" unten) - sonst kann ein Geraet mit wackliger Verbindung (v.a. Handy im
 // Mobilfunknetz) nach einem fehlgeschlagenen Netzwerk-Request beliebig lange auf einer
 // alten, im Cache haengengebliebenen script.js/index.html sitzen bleiben.
-const CACHE_NAME = "dashboard-v11";
+const CACHE_NAME = "dashboard-v12";
+// habits-data.json / sync-data.json bewusst NICHT im Cache (Cloud-only): Nutzdaten duerfen weder
+// lokal liegen bleiben noch bei einem Netzausfall als scheinbar aktueller Stand ausgeliefert werden.
 const APP_SHELL = [
-  "./", "index.html", "styles.css", "script.js", "data.js", "habits-data.json", "sync-data.json", "manifest.webmanifest", "icon.svg",
+  "./", "index.html", "styles.css", "script.js", "data.js", "manifest.webmanifest", "icon.svg",
   "fonts/fraunces-var.woff2", "fonts/publicsans-var.woff2", "fonts/plexmono-500.woff2", "fonts/plexmono-600.woff2", "fonts/pressstart2p-400.woff2"
 ];
 
@@ -29,6 +31,12 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  // Fremde Hosts (GitHub-API, Google, Worker) und die Daten-Dateien gar nicht anfassen: immer
+  // direkt ans Netz, nie aus dem Cache - sonst koennte ein Ladefehler stillschweigend einen
+  // alten Cloud-Stand liefern.
+  const reqUrl = new URL(event.request.url);
+  if (reqUrl.origin !== self.location.origin) return;
+  if (/\/(habits-data|sync-data)\.json$/.test(reqUrl.pathname)) return;
 
   event.respondWith(
     fetch(event.request)
