@@ -86,12 +86,18 @@
         "name": "Milch",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "52d4864f-a695-4919-89e9-7880414d82c1",
+        "name": "Kartoffeln",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {},
     "prices": {},
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791360257311
+    "updatedAt": 1791360266461
   }
 }
