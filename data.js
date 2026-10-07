@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-10-06",
-    "lastSyncedAt": "2026-10-06T13:49:52.218Z",
+    "lastUpdated": "2026-10-07",
+    "lastSyncedAt": "2026-10-07T06:27:46.140Z",
     "owner": "Kilian"
   },
   "github": {
@@ -103,10 +103,6 @@ const DASHBOARD_DATA = {
   ],
   "metricsHistory": {
     "bricksOnTheFloorAbos": [
-      {
-        "date": "2026-08-08",
-        "value": 28400
-      },
       {
         "date": "2026-08-09",
         "value": 28400
@@ -342,13 +338,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-06",
         "value": 29300
+      },
+      {
+        "date": "2026-10-07",
+        "value": 29300
       }
     ],
     "brainwalkersAbos": [
-      {
-        "date": "2026-08-08",
-        "value": 254
-      },
       {
         "date": "2026-08-09",
         "value": 254
@@ -584,13 +580,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-06",
         "value": 537
+      },
+      {
+        "date": "2026-10-07",
+        "value": 537
       }
     ],
     "tiktokFollower": [
-      {
-        "date": "2026-08-08",
-        "value": 2713
-      },
       {
         "date": "2026-08-09",
         "value": 2717
@@ -826,6 +822,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-06",
         "value": 2792
+      },
+      {
+        "date": "2026-10-07",
+        "value": 2791
       }
     ]
   },
@@ -861,7 +861,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2792,
+      "current": 2791,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -895,12 +895,12 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-06T13:49:50.743Z",
+    "checkedAt": "2026-10-07T06:27:45.185Z",
     "openOrdersCount": 286,
     "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-06T13:49:51.060Z",
+    "checkedAt": "2026-10-07T06:27:45.386Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -1071,10 +1071,10 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-10-05"
+      "to": "2026-10-06"
     },
     "totalsByCategory": {
-      "YouTube": 45572.03,
+      "YouTube": 45692.21,
       "Bricklink": 3630.79
     },
     "daily": [
@@ -1362,6 +1362,11 @@ const DASHBOARD_DATA = {
         "date": "2026-10-05",
         "YouTube": 291.28,
         "Bricklink": 79.9
+      },
+      {
+        "date": "2026-10-06",
+        "YouTube": 120.18,
+        "Bricklink": 0
       }
     ]
   }
