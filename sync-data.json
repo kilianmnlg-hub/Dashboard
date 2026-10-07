@@ -201,11 +201,12 @@
       "Tiefkühlgemüse": 2,
       "Sojagranulat": 3,
       "Tomaten": 2,
-      "Salat": 1
+      "Salat": 1,
+      "Frischkäse": 1
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791373146380
+    "updatedAt": 1791373149915
   },
   "timetracker": {
     "entries": [],
