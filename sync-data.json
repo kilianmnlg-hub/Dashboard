@@ -78,5 +78,20 @@
       }
     ],
     "updatedAt": 1791356613887
+  },
+  "shopping": {
+    "items": [
+      {
+        "id": "3f016df4-a8d9-4004-82ae-518594ea6b59",
+        "name": "Milch",
+        "qty": "",
+        "aisle": "kuehl"
+      }
+    ],
+    "history": {},
+    "prices": {},
+    "learned": {},
+    "dishes": [],
+    "updatedAt": 1791360257311
   }
 }
