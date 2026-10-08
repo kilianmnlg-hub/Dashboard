@@ -113,12 +113,6 @@
         "aisle": "obst"
       },
       {
-        "id": "1513498c-1457-47ac-9d42-994990dde7c2",
-        "name": "Eier",
-        "qty": "",
-        "aisle": "kuehl"
-      },
-      {
         "id": "6b6331b3-9675-410b-8dcb-61234b998aae",
         "name": "Tiefkühlgemüse",
         "qty": "",
@@ -200,6 +194,9 @@
       ],
       "Harzer Käse": [
         1791442473320
+      ],
+      "Eier": [
+        1791442474652
       ]
     },
     "prices": {
@@ -226,7 +223,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791442473320
+    "updatedAt": 1791442474652
   },
   "timetracker": {
     "entries": [
