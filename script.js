@@ -431,12 +431,17 @@
   const syncedLabel = data.meta.lastSyncedAt
     ? new Date(data.meta.lastSyncedAt).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })
     : fmtDate(data.meta.lastUpdated);
-  document.getElementById("lastUpdated").textContent = syncedLabel;
   document.getElementById("footerUpdated").textContent = syncedLabel;
 
   const hour = now.getHours();
   const greetingWord = hour < 11 ? "Guten Morgen" : hour < 18 ? "Schönen Tag" : "Guten Abend";
   document.getElementById("greeting").textContent = `${greetingWord}, ${data.meta.owner || ""}`.trim();
+
+  // Spruch des Tages (quotes.js): ein neuer Satz pro Datum; bei einem ueber Mitternacht offenen Tab wechselt er mit
+  const quoteEl = document.getElementById("dailyQuote");
+  const showQuote = () => { if (quoteEl && window.dailyQuote) quoteEl.textContent = window.dailyQuote(new Date()); };
+  showQuote();
+  setInterval(showQuote, 60000);
 
   // ---------- Versand-Alarm ----------
   const shipAlert = document.getElementById("shipAlert");

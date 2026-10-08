@@ -338,7 +338,6 @@ body[data-cloud="loading"] main, body[data-cloud="failed"] main { pointer-events
 body[data-cloud="loading"] main { opacity: .7; }
 body[data-cloud="failed"] main { opacity: .5; }
 
-.hero-sub { margin: 0; color: var(--text-muted); font-size: 15px; max-width: 34ch; }
 
 /* ---------- Brain-Hero ---------- */
 .brain-card {
@@ -354,7 +353,6 @@ body[data-cloud="failed"] main { opacity: .5; }
   font-family: 'Fraunces', serif; font-weight: 700; font-size: clamp(26px, 2.8vw, 36px);
   margin: 0; letter-spacing: -0.015em; text-wrap: balance;
 }
-.brain-hint { margin: 4px 0 0; font-size: 12px; color: var(--text-faint); max-width: 30ch; }
 
 .brain-scene-wrap { flex: 1; position: relative; cursor: pointer; overflow: hidden; border-radius: 0 20px 20px 0; }
 .brain-scene { position: absolute; inset: 0; perspective: 1100px; }
@@ -1283,7 +1281,6 @@ body { background-image: radial-gradient(color-mix(in srgb, var(--text) 6%, tran
 
 /* ---------- Brain-Karte als Weltkarte ---------- */
 .brain-copy h1 { font-family: var(--px); font-weight: 400; font-size: clamp(14px, 1.8vw, 20px); line-height: 1.7; letter-spacing: 0; text-transform: uppercase; }
-.hero-sub { font-size: 14px; }
 .brain-scene-wrap { border-radius: 0; border-left: 2px solid var(--text); background-color: var(--surface-2);
   background-image: linear-gradient(color-mix(in srgb, var(--text) 6%, transparent) 2px, transparent 2px), linear-gradient(90deg, color-mix(in srgb, var(--text) 6%, transparent) 2px, transparent 2px); background-size: 24px 24px; }
 .brain-fade { display: none; }
@@ -1669,7 +1666,7 @@ svg.links line.lit { stroke: var(--accent); stroke-width: 2; }
 .section.is-folded > :not(.section-head) { display: none !important; }
 .section.is-folded > .section-head { margin-bottom: 0; }
 .brain-card.is-folded { min-height: 0; margin-bottom: 28px; }
-.brain-card.is-folded .brain-scene-wrap, .brain-card.is-folded .brain-hint, .brain-card.is-folded .area-pop { display: none !important; }
+.brain-card.is-folded .brain-scene-wrap, .brain-card.is-folded .area-pop { display: none !important; }
 .brain-card.is-folded .brain-copy { flex: 1 1 auto; padding: 22px 64px 22px 24px; }
 
 /* ---------- Farbe pro Bereich, Kennzahl in der Titelzeile, Pixel-Funken ---------- */
@@ -1706,3 +1703,9 @@ svg.links line.lit { stroke: var(--accent); stroke-width: 2; }
   .lvl { margin-left: auto; }
   .section { scroll-margin-top: 130px; }
 }
+
+/* ---------- Spruch des Tages ---------- */
+.hero-quote { margin: 4px 0 0; display: grid; gap: 8px; max-width: 32ch; }
+.quote-lbl { font-family: var(--px, 'Press Start 2P', monospace); font-size: 7px; line-height: 1.6; color: var(--accent); letter-spacing: 0; }
+.hero-quote blockquote { margin: 0; font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 400; font-size: 17px; line-height: 1.45; color: var(--text); text-wrap: balance; }
+@media (max-width: 720px) { .hero-quote blockquote { font-size: 16px; } }

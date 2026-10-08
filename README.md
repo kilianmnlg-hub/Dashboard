@@ -439,6 +439,13 @@ aus dem Upload-Rhythmus des Kanals. Ohne Messwerte (z.B. Umsatz, Bricklink-Teile
 - **Level-up:** Steigt das Level (Durchschnitt der Ziele) über das zuletzt gesehene, blinkt die Level-Anzeige oben mit "LEVEL UP!".
   Das zuletzt gesehene Level liegt in der Cloud (Feld `fold.lvl`), damit es nicht auf jedem Gerät noch einmal gefeiert wird.
 
+## Spruch des Tages
+
+Unter der Begrüßung oben steht jeden Tag ein anderer Satz ("SPRUCH DES TAGES"), statt der früheren Erklärungstexte. Die Liste (177 Sätze)
+steckt in `quotes.js`, braucht also kein Netz; der Satz ergibt sich aus dem Datum, ist auf allen Geräten gleich und wechselt um Mitternacht.
+Erst nach allen 177 Tagen wiederholt sich einer. Neue Sätze einfach in die Liste in `quotes.js` eintragen. Der Stand der Daten steht weiter
+unten im Fuß der Seite ("zuletzt synchronisiert").
+
 ## Einklappbare Fenster
 
 Jedes Fenster (Brain-Karte oben und alle Sektionen von Kalender bis Notizen) hat vorn in der Überschrift einen Pfeil-Knopf. Ein Klick
