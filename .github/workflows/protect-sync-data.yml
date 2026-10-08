@@ -1,0 +1,30 @@
+# Schutz gegen ueberschreibende Geraete: nach jedem Schreiben von sync-data.json / habits-data.json wird geprueft, ob dabei
+# Bereiche verloren gingen (z.B. weil ein Geraet mit altem Dashboard-Code die ganze Datei neu geschrieben hat). Verlorene
+# Bereiche werden aus dem Stand davor zurueckgeholt, siehe scripts/protect-sync-data.py.
+name: Protect sync data
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - sync-data.json
+      - habits-data.json
+
+permissions:
+  contents: write
+
+# Ein Lauf nach dem anderen, damit sich zwei Wiederherstellungen nicht ins Gehege kommen
+concurrency:
+  group: protect-sync-data
+  cancel-in-progress: false
+
+jobs:
+  protect:
+    runs-on: ubuntu-latest
+    # Eigene Wiederherstellungs-Commits nicht noch einmal pruefen
+    if: github.actor != 'dashboard-bot'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: python3 scripts/protect-sync-data.py "${{ github.event.before }}" "${{ github.sha }}"

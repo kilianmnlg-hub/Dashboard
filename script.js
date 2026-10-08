@@ -1981,11 +1981,13 @@
   // bekannt ist (auch "Datei existiert noch nicht"), false bei einem Ladefehler - dann darf
   // NICHT geschrieben werden (siehe pushHabitsToCloud), sonst wuerde ein leerer Arbeits-
   // speicher die Cloud ueberschreiben.
+  let lastRemoteHabitJson = null; // wie bei sync-data.json: unbekannte Felder der Cloud-Datei beim Speichern behalten
   async function fetchRemoteHabits() {
     try {
       const { json: remote, sha } = await readCloudJson(HABIT_REMOTE_FILE);
       if (sha) habitCloudSha = sha;
       if (remote) {
+        lastRemoteHabitJson = remote;
         const remoteUpdatedAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
         if (remoteWins(remoteUpdatedAt, habitState.updatedAt, habitHasContent(remote), habitHasContent(habitState))) {
           habitState = { habits: (remote.habits || []).map(normalizeHabit), log: remote.log || {}, updatedAt: remoteUpdatedAt };
@@ -2062,7 +2064,7 @@
       }
       // -1 ist nur ein interner Marker fuer "noch nie lokal gespeichert" (siehe loadHabitState())
       // und wuerde extern nur verwirren - beim Export auf 0 normalisieren.
-      const exportState = { ...habitState, updatedAt: Math.max(0, habitState.updatedAt) };
+      const exportState = { ...(lastRemoteHabitJson || {}), ...habitState, updatedAt: Math.max(0, habitState.updatedAt) };
       const content = btoa(unescape(encodeURIComponent(JSON.stringify(exportState, null, 2))));
       const putRes = await fetch(apiUrl, {
         method: "PUT",
@@ -2400,6 +2402,9 @@
   // laeuft am selben "Sync"-Klick mit wie Habit-Tracker und Business-Daten.
   const SYNC_DATA_REMOTE_FILE = "sync-data.json";
   let syncDataCloudSha = null;
+  // Letzter gelesener Cloud-Stand: Bereiche darin, die dieser Code nicht kennt (z.B. von einer neueren Version), werden beim
+  // Speichern mitgeschrieben statt geloescht. So kann ein Geraet mit aelterem Code neuere Bereiche nicht mehr wegwischen.
+  let lastRemoteSyncJson = null;
 
   // Gibt true/false zurueck (nicht nur console.warn), damit scheduleAutoSync() den
   // uebergeordneten Auto-Sync-Indikator in der Topbar ehrlich halten kann.
@@ -2445,6 +2450,7 @@
     if (payload.fold == null) delete payload.fold;
     if (payload.shopping == null) delete payload.shopping;
     if (payload.timetracker == null) delete payload.timetracker;
+    if (lastRemoteSyncJson) Object.keys(lastRemoteSyncJson).forEach((k) => { if (!(k in payload)) payload[k] = lastRemoteSyncJson[k]; });
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${SYNC_DATA_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
     const fail = (msg, extra) => {
@@ -2566,6 +2572,7 @@
       const { json: remote, sha } = await readCloudJson(SYNC_DATA_REMOTE_FILE);
       syncDataCloudSha = sha;
       if (remote) {
+        lastRemoteSyncJson = remote;
         applyRemoteIdeas(remote.ideas);
         applyRemoteStudium(remote.studiumDeadline);
         taskBoard.applyRemote(remote.tasks);

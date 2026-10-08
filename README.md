@@ -446,6 +446,20 @@ steckt in `quotes.js`, braucht also kein Netz; der Satz ergibt sich aus dem Datu
 Erst nach allen 170 Tagen wiederholt sich einer. Neue Sätze einfach in die Liste in `quotes.js` eintragen. Der Stand der Daten steht weiter
 unten im Fuß der Seite ("zuletzt synchronisiert").
 
+## Schutz gegen überschreibende Geräte
+
+Ein Gerät mit altem Dashboard-Code kann `sync-data.json` komplett neu schreiben und dabei Bereiche löschen, die es noch nicht kennt (so ging
+am 07.10. die Einkaufsliste verloren). Dagegen gibt es zwei Schutzschichten:
+
+- **Workflow `Protect sync data`** (`.github/workflows/protect-sync-data.yml`, Skript `scripts/protect-sync-data.py`): läuft nach jedem Schreiben von
+  `sync-data.json` und `habits-data.json`. Fehlt ein Bereich im neuen Stand, oder steht ein Bereich mit eigenem Zeitstempel plötzlich auf
+  "nie gespeichert" (updatedAt 0), holt er ihn aus dem Stand davor zurück und committet das als `dashboard-bot`. Bewusst geleerte Bereiche
+  (neuer Zeitstempel) bleiben leer. Probelauf lokal: `DRY_RUN=1 python scripts/protect-sync-data.py <vorher> <nachher>`.
+- **Im Dashboard selbst:** Beim Speichern behält der Code Bereiche der Cloud-Datei, die er nicht kennt (Felder neuerer Versionen), statt sie zu
+  löschen. Das schützt künftig vor Geräten, die auf dieser Version hängen bleiben.
+
+Zusätzlich liegt jeder Stand in der Git-Historie: mit `git show <commit>:sync-data.json` lässt sich ein früherer Stand jederzeit nachlesen.
+
 ## Einklappbare Fenster
 
 Jedes Fenster (Brain-Karte oben und alle Sektionen von Kalender bis Notizen) hat vorn in der Überschrift einen Pfeil-Knopf. Ein Klick
