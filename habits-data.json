@@ -31,11 +31,6 @@
       "targetPerWeek": 7
     },
     {
-      "id": "e9d7a0a6-7834-4bc9-aeba-044f02061eda",
-      "label": "Intervallfasten",
-      "targetPerWeek": 7
-    },
-    {
       "id": "1d8f6548-bdad-4bab-a63c-167a8563b147",
       "label": "Wiegen",
       "targetPerWeek": 7
@@ -54,28 +49,23 @@
     "2026-08-04": {
       "gym": true,
       "koffein": true,
-      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-08-05": {
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
-      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-08-06": {
       "koffein": true,
       "07b53929-622d-4cdf-baf0-47645c841575": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true
     },
     "2026-08-10": {
       "gym": true,
-      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true
     },
     "2026-08-17": {
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "gym": true,
       "koffein": true,
@@ -84,41 +74,34 @@
     },
     "2026-08-18": {
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
       "gym": true
     },
     "2026-08-19": {
       "gym": true,
-      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true
     },
     "2026-08-25": {
-      "koffein": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "koffein": true
     },
     "2026-08-26": {
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "koffein": true
     },
     "2026-08-27": {
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "07b53929-622d-4cdf-baf0-47645c841575": true,
-      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-08-28": {
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
       "koffein": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "07b53929-622d-4cdf-baf0-47645c841575": true,
-      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-08-29": {
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "gym": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
@@ -126,13 +109,11 @@
     "2026-08-30": {
       "koffein": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "07b53929-622d-4cdf-baf0-47645c841575": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-08-31": {
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "koffein": true,
@@ -148,29 +129,25 @@
     "2026-09-09": {
       "gym": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
-      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-09-08": {
       "gym": true,
       "koffein": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
-      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-09-10": {
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
       "gym": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
-      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-09-11": {
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     },
     "2026-09-14": {
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "b07e389a-dfc6-4ab9-830c-5daf53425daf": true
@@ -179,13 +156,11 @@
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "07b53929-622d-4cdf-baf0-47645c841575": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
       "b07e389a-dfc6-4ab9-830c-5daf53425daf": true
     },
     "2026-09-16": {
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "gym": true,
@@ -193,14 +168,12 @@
     },
     "2026-09-17": {
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "koffein": true
     },
     "2026-09-18": {
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
       "07b53929-622d-4cdf-baf0-47645c841575": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
@@ -212,13 +185,11 @@
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "07b53929-622d-4cdf-baf0-47645c841575": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     },
     "2026-09-20": {
       "gym": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     },
     "2026-09-21": {
@@ -227,15 +198,13 @@
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "07b53929-622d-4cdf-baf0-47645c841575": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     },
     "2026-09-22": {
       "gym": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
-      "07b53929-622d-4cdf-baf0-47645c841575": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "07b53929-622d-4cdf-baf0-47645c841575": true
     },
     "2026-09-23": {
       "rauchfrei": true,
@@ -243,7 +212,6 @@
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "07b53929-622d-4cdf-baf0-47645c841575": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     },
     "2026-09-24": {
@@ -251,12 +219,10 @@
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "07b53929-622d-4cdf-baf0-47645c841575": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     },
     "2026-09-25": {
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true,
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
@@ -265,8 +231,7 @@
       "koffein": true,
       "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
       "07b53929-622d-4cdf-baf0-47645c841575": true,
-      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
-      "e9d7a0a6-7834-4bc9-aeba-044f02061eda": true
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     },
     "2026-09-26": {
       "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
@@ -298,5 +263,5 @@
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     }
   },
-  "updatedAt": 1791442121929
+  "updatedAt": 1791442124834
 }
