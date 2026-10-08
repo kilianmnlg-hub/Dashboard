@@ -75,12 +75,161 @@
     "updatedAt": 1791442071271
   },
   "shopping": {
-    "items": [],
-    "history": {},
-    "prices": {},
+    "items": [
+      {
+        "id": "3f016df4-a8d9-4004-82ae-518594ea6b59",
+        "name": "Milch",
+        "qty": "",
+        "aisle": "kuehl"
+      },
+      {
+        "id": "aff36a33-bc93-43f9-9f9b-85c8c2587650",
+        "name": "Mais",
+        "qty": "",
+        "aisle": "misc"
+      },
+      {
+        "id": "cfcecf83-d806-4621-84b7-e187aedff020",
+        "name": "Light Käse",
+        "qty": "",
+        "aisle": "kuehl"
+      },
+      {
+        "id": "8c22c5f9-acd0-4179-ac90-eb1c0894d7a6",
+        "name": "Grünebohnen",
+        "qty": "",
+        "aisle": "vorrat"
+      },
+      {
+        "id": "fac0259d-2a7a-4c36-a9dd-eba2bde87d40",
+        "name": "Sauce Holland",
+        "qty": "",
+        "aisle": "vorrat"
+      },
+      {
+        "id": "8d7fad26-9bc5-4428-af2a-d4171cbe04bf",
+        "name": "Avocado",
+        "qty": "",
+        "aisle": "obst"
+      },
+      {
+        "id": "1513498c-1457-47ac-9d42-994990dde7c2",
+        "name": "Eier",
+        "qty": "",
+        "aisle": "kuehl"
+      },
+      {
+        "id": "15272164-d044-49a5-be26-65e708e5d13e",
+        "name": "Harzer Käse",
+        "qty": "",
+        "aisle": "kuehl"
+      },
+      {
+        "id": "6b6331b3-9675-410b-8dcb-61234b998aae",
+        "name": "Tiefkühlgemüse",
+        "qty": "",
+        "aisle": "tk"
+      },
+      {
+        "id": "de022181-39b6-41c7-9821-4cf8f83a2f64",
+        "name": "Skyr",
+        "qty": "",
+        "aisle": "kuehl"
+      },
+      {
+        "id": "e437564e-2ef4-4766-82a1-3528dff5af73",
+        "name": "Hähnchen",
+        "qty": "",
+        "aisle": "fleisch"
+      },
+      {
+        "id": "24b3d7c1-8029-458d-8666-e2650fc287ef",
+        "name": "Sojagranulat",
+        "qty": "",
+        "aisle": "misc"
+      },
+      {
+        "id": "e8f83a11-ae06-4372-b8d4-f9ff0547117c",
+        "name": "Tomaten",
+        "qty": "",
+        "aisle": "obst"
+      },
+      {
+        "id": "077f7cb2-fa40-43b5-aa4d-9ce0c5add179",
+        "name": "Salat",
+        "qty": "",
+        "aisle": "obst"
+      },
+      {
+        "id": "a9c945fa-f4c0-4bbf-9c8f-eeee00ff33b3",
+        "name": "Frischkäse",
+        "qty": "",
+        "aisle": "kuehl"
+      },
+      {
+        "id": "cfad10fc-28a3-4ed7-ad3f-0b2dd1de7e1a",
+        "name": "Magerquark",
+        "qty": "",
+        "aisle": "kuehl"
+      },
+      {
+        "id": "e5674f6f-66b0-4c5f-b810-7f8b90bc63f5",
+        "name": "Kuchen",
+        "qty": "",
+        "aisle": "misc"
+      },
+      {
+        "id": "e2f5a3c0-6bfe-46c3-942b-0b7d72073bc3",
+        "name": "Tiefkühl-Obst",
+        "qty": "",
+        "aisle": "tk"
+      },
+      {
+        "id": "3c0669a4-00aa-4a4c-97da-3d71659fae1b",
+        "name": "Bananen",
+        "qty": "",
+        "aisle": "obst"
+      },
+      {
+        "id": "8fe68c8b-a7ba-468d-9ee5-cab92b19258f",
+        "name": "Kartoffeln",
+        "qty": "",
+        "aisle": "obst"
+      }
+    ],
+    "history": {
+      "Kartoffeln": [
+        1791375377977
+      ],
+      "Bananen": [
+        1791375378905
+      ]
+    },
+    "prices": {
+      "Milch": 1,
+      "Light Käse": 2,
+      "Mais": 1,
+      "Kartoffeln": 4,
+      "Grünebohnen": 2,
+      "Sauce Holland": 2,
+      "Avocado": 4,
+      "Bananen": 2,
+      "Eier": 4,
+      "Harzer Käse": 2,
+      "Skyr": 2,
+      "Hähnchen": 6,
+      "Tiefkühlgemüse": 2,
+      "Sojagranulat": 3,
+      "Tomaten": 2,
+      "Salat": 1,
+      "Frischkäse": 1,
+      "Tiefkühl-Obst": 3,
+      "Kuchen": 2,
+      "Magerquark": 2
+    },
     "learned": {},
     "dishes": [],
-    "updatedAt": 0
+    "updatedAt": 1791442434139
   },
   "timetracker": {
     "entries": [
@@ -103,7 +252,10 @@
         "end": 1791400018502
       }
     ],
-    "removed": [],
+    "removed": [
+      "youtube|29856143",
+      "youtube|29749714"
+    ],
     "active": {
       "youtube": null,
       "bricklink": null
@@ -115,9 +267,16 @@
     "updatedAt": 1791400018503
   },
   "inbox": {
-    "items": [],
+    "items": [
+      {
+        "id": "b1621851-86f3-4c1d-ad24-10181cb3d90b",
+        "text": "Name: Brick'n'Collect",
+        "cat": "Laden",
+        "at": 1791375342047
+      }
+    ],
     "removed": [],
-    "updatedAt": 0
+    "updatedAt": 1791375342047
   },
   "fold": {
     "collapsed": [],
