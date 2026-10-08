@@ -31,13 +31,13 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-10-07",
+    "date": "2026-10-08",
     "items": {
       "business": [],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1791389448110
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -65,9 +65,14 @@
         "id": "081a1c0e-0244-4f94-a723-f360e7522e42",
         "text": "Bluebrixx",
         "done": false
+      },
+      {
+        "id": "566bf676-1207-46c5-8259-0d87c612888a",
+        "text": "kfo email",
+        "done": false
       }
     ],
-    "updatedAt": 1791401512954
+    "updatedAt": 1791442071271
   },
   "shopping": {
     "items": [],
