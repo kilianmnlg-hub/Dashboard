@@ -60,9 +60,14 @@
         "id": "b08b3c28-a855-41bb-b49b-d5e08bd4b7c7",
         "text": "At-te",
         "done": false
+      },
+      {
+        "id": "cb94e1a9-2931-4141-80b4-a615fd482d93",
+        "text": "youtube post",
+        "done": false
       }
     ],
-    "updatedAt": 1791463862154
+    "updatedAt": 1791483481315
   },
   "shopping": {
     "items": [
@@ -265,14 +270,14 @@
       "youtube|29749714"
     ],
     "active": {
-      "youtube": null,
+      "youtube": 1791483464475,
       "bricklink": null
     },
     "targets": {
       "youtube": 20,
       "bricklink": 8
     },
-    "updatedAt": 1791480949886
+    "updatedAt": 1791483464475
   },
   "inbox": {
     "items": [
