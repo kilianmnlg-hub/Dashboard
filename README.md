@@ -441,9 +441,9 @@ aus dem Upload-Rhythmus des Kanals. Ohne Messwerte (z.B. Umsatz, Bricklink-Teile
 
 ## Spruch des Tages
 
-Unter der Begrüßung oben steht jeden Tag ein anderer Satz ("SPRUCH DES TAGES"), statt der früheren Erklärungstexte. Die Liste (177 Sätze)
+Unter der Begrüßung oben steht jeden Tag ein anderer Satz ("SPRUCH DES TAGES"), statt der früheren Erklärungstexte, im Ton hart und direkt (Richtung David Goggins) oder philosophisch (stoisch). Die Liste (170 Sätze)
 steckt in `quotes.js`, braucht also kein Netz; der Satz ergibt sich aus dem Datum, ist auf allen Geräten gleich und wechselt um Mitternacht.
-Erst nach allen 177 Tagen wiederholt sich einer. Neue Sätze einfach in die Liste in `quotes.js` eintragen. Der Stand der Daten steht weiter
+Erst nach allen 170 Tagen wiederholt sich einer. Neue Sätze einfach in die Liste in `quotes.js` eintragen. Der Stand der Daten steht weiter
 unten im Fuß der Seite ("zuletzt synchronisiert").
 
 ## Einklappbare Fenster
