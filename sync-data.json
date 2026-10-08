@@ -119,12 +119,6 @@
         "aisle": "kuehl"
       },
       {
-        "id": "15272164-d044-49a5-be26-65e708e5d13e",
-        "name": "Harzer Käse",
-        "qty": "",
-        "aisle": "kuehl"
-      },
-      {
         "id": "6b6331b3-9675-410b-8dcb-61234b998aae",
         "name": "Tiefkühlgemüse",
         "qty": "",
@@ -203,6 +197,9 @@
       ],
       "Bananen": [
         1791375378905
+      ],
+      "Harzer Käse": [
+        1791442473320
       ]
     },
     "prices": {
@@ -229,7 +226,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791442434139
+    "updatedAt": 1791442473320
   },
   "timetracker": {
     "entries": [
