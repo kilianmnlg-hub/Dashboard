@@ -38,7 +38,7 @@
     {
       "id": "b07e389a-dfc6-4ab9-830c-5daf53425daf",
       "label": "Lesen",
-      "targetPerWeek": 7
+      "targetPerWeek": 4
     },
     {
       "id": "9473d02d-64a6-4dab-8017-3e4a354c855b",
@@ -270,5 +270,5 @@
       "9473d02d-64a6-4dab-8017-3e4a354c855b": true
     }
   },
-  "updatedAt": 1791442197108
+  "updatedAt": 1791442206592
 }
