@@ -405,8 +405,8 @@ Wisch-Helfer in `shopping.js`) und speichert nichts. Es gilt weiterhin: alle Nut
 - **Ziele:** Die Ringe der Ziele bestehen aus 24 Pixel-Blöcken, die beim
   Laden nacheinander aufleuchten. Balkendiagramme sind aus gestapelten Pixel-Blöcken aufgebaut. Habit-Serien ab 7 Tagen
   zeigen das Flammen-Badge.
-- **Level oben in der Leiste:** "LVL 5" ist der Durchschnitt aller Ziele in 10%-Schritten (52 % im Schnitt = Level 5, die
-  zehn Kästchen zeigen den Weg bis 60 % = Level 6). Reine Anzeige, wird jedes Mal aus den Zielwerten berechnet.
+- **Level oben in der Leiste:** "LVL 5" mit zehn Kästchen bis zum nächsten Level, daneben die XP ("37 / 120 XP"). Der Level kommt aus dem
+  Punktesystem, siehe "Level-System" weiter unten.
 - **Handy (bis 720px Breite):**
   - Menü als zweite, seitlich wischbare Zeile, der aktive Eintrag bleibt mittig.
   - Ziele, Business und Tages-To-Do sind wischbare Karten-Reihen mit Einrasten und Positions-Punkten.
@@ -434,10 +434,8 @@ aus dem Upload-Rhythmus des Kanals. Ohne Messwerte (z.B. Umsatz, Bricklink-Teile
   werden aus den bestehenden Daten berechnet und aktualisieren sich von selbst; ohne Daten (z.B. Kalender nicht verbunden) bleibt das Feld weg.
 - **Farbe pro Bereich:** Der harte Schatten der Karten trägt die Farbe des Bereichs: blau Kalender und Remote Tasks, orange To-Do und
   Business, violett Aufgaben und Notizen, grün Habits, gold Ziele, korall Zeittracker (die Einkaufsliste behält ihre eigene Farbe).
-- **Pixel-Funken:** Beim Abhaken eines To-Dos, einer Aufgabe oder eines Habits gibt es kurze Funken und "ERLEDIGT!" (nur Optik, bei
-  reduzierter Bewegung abgeschaltet).
-- **Level-up:** Steigt das Level (Durchschnitt der Ziele) über das zuletzt gesehene, blinkt die Level-Anzeige oben mit "LEVEL UP!".
-  Das zuletzt gesehene Level liegt in der Cloud (Feld `fold.lvl`), damit es nicht auf jedem Gerät noch einmal gefeiert wird.
+- **Pixel-Funken:** Beim Abhaken gibt es kurze Funken mit den gewonnenen Punkten ("+10 XP", nur Optik, bei reduzierter Bewegung abgeschaltet).
+- **Level-up:** Steigt das Level durch einen Abhaken-Punkt, blinkt die Level-Anzeige oben mit "LEVEL UP!", bei einem neuen Rang mit "NEUER RANG: …".
 
 ## Spruch des Tages
 
@@ -478,6 +476,31 @@ Auf dem Handy (bis 720 px Breite) entfällt die kleine wischbare Menüzeile oben
 Bereichs und der aktuellen Kennzahl (z.B. "2 OFFEN"). Der Bereich, in dem du gerade bist, ist markiert. Ein Tipp springt zum Bereich (klappt ihn
 auf, falls eingeklappt) und schließt das Menü; auch Tippen daneben, das ×-Symbol und die Esc-Taste schließen es. Auf PC und Tablet bleibt die
 Menüleiste oben. Das Menü speichert nichts, die Kennzahlen kommen aus den gleichen Cloud-Daten wie in den Titelzeilen.
+
+## Level-System (XP)
+
+Der Level startete am 10.10.2026 bei 0. Jedes Abhaken gibt Punkte (XP), die automatisch gezählt werden; Level 1 kostet 50 XP, jedes weitere Level
+20 % mehr (60, 72, 86, ...). Keine Tageshöchstwerte.
+
+| Was | XP |
+|---|---|
+| Ziel erreicht (einmal pro Ziel) | so viel wie ein ganzer Levelaufstieg (Meilenstein die Hälfte) |
+| Aufgabe / Remote Task erledigt | 12 |
+| Tages-To-Do abgehakt | 10 |
+| Habit abgehakt (nur für heute) | 6 |
+| Alle Habits eines Tages erledigt | +10 Bonus |
+| Habit erreicht sein Wochenziel (Mo bis So) | +15 Bonus, pro Habit und Woche einmal |
+| Erfasste Zeit | 4 pro volle halbe Stunde |
+| Notiz vom Handy | 3 |
+| Einkaufsartikel abgehakt | 2 |
+
+**Ränge** alle fünf Level: Anfänger (0), Lehrling (5), Geselle (10), Experte (15), Meister (20), Großmeister (25), Veteran (30), Champion (35),
+Legende (40), Mythos (50). Der Rang steht im Tooltip der Level-Anzeige (auf sehr breiten Bildschirmen auch daneben) und beim Rangwechsel im Level-up.
+
+**Speicherung und Sync:** In der Cloud (Feld `xp` in `sync-data.json`, Code in `xp.js`). Jede Buchung hat einen festen Schlüssel (z.B. `habit:gym@2026-10-10`) und
+zählt genau einmal, egal auf welchem Gerät; die Geräte vereinigen ihre Buchungen. Tage älter als 60 Tage werden zu einer Summe verdichtet. Haken
+zurücknehmen und erneut setzen bringt keine neuen Punkte. Ziele, die beim Start des Systems schon erreicht waren, geben keine Punkte (`xp.goals`).
+Neustart auf 0: das Feld `xp` in `sync-data.json` löschen; beim nächsten Laden werden die dann erreichten Ziele wieder still als erledigt markiert.
 
 ## Einklappbare Fenster
 
@@ -590,7 +613,7 @@ Worker fasst diese Dateien nicht an.
 
 **Was bewusst im Browser bleibt** (gehört nicht in ein öffentliches Repo bzw. ist
 pro Gerät): GitHub-Token, Kalender-Zugang (inkl. Refresh-Token), Theme und das
-Merkzeichen für bereits gezeigte Level-Up-Meldungen.
+(das Level selbst liegt nicht hier, sondern in der Cloud).
 
 **Verhalten:**
 - Beim Laden wird der Cloud-Stand frisch über die GitHub-API gelesen. Bis er da ist,

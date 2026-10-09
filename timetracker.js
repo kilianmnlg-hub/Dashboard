@@ -49,7 +49,7 @@
   }
 
   window.createTimeTracker = function (deps) {
-    const { dataStore, scheduleAutoSync, newId, notionEntries, notionAt, refresh } = deps;
+    const { dataStore, scheduleAutoSync, newId, notionEntries, notionAt, refresh, xp } = deps;
     const root = document.getElementById("zeit");
     if (!root || !window.PixelSprites) return null;
     const { spr, attachSwipe } = window.PixelSprites;
@@ -145,7 +145,14 @@
       if (!state.entries.some((e) => e.k === k) && !notionKeys.has(k)) state.entries.push({ id: newId(), cat, start, end, k });
       state.active[cat] = null;
       freshKey = k;
+      xpForEntry(k, start, end, $("ttBtn-" + cat));
       save(); renderAll();
+    }
+    // Level-System: 4 XP pro volle halbe Stunde einer erfassten Zeit (jede halbe Stunde zaehlt genau einmal)
+    function xpForEntry(k, start, end, anchor) {
+      if (!xp) return;
+      const halves = Math.floor((end - start) / (30 * MIN));
+      if (halves > 0) xp.awardMany(Array.from({ length: halves }, (_, i) => ["time:" + k + ":" + i, 4]), anchor);
     }
     function toggle(cat) {
       if (!state.active[cat]) { state.active[cat] = Date.now(); save(); renderAll(); return; }
@@ -280,6 +287,7 @@
       if (!state.entries.some((e) => e.k === k) && !notionKeys.has(k)) state.entries.push({ id: newId(), cat, start, end, k });
       freshKey = k;
       $("ttLogCard").open = true;
+      xpForEntry(k, start, end, null);
       save(); renderAll();
     }
 

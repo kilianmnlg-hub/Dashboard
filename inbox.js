@@ -26,7 +26,7 @@
   }
 
   window.createInbox = function (deps) {
-    const { dataStore, scheduleAutoSync, newId, areas, notes } = deps;
+    const { dataStore, scheduleAutoSync, newId, areas, notes, xp } = deps;
     const $ = (id) => document.getElementById(id);
     const fab = $("inboxFab");
     if (!fab) return null;
@@ -90,7 +90,9 @@
     function add() {
       const text = txt.value.trim();
       if (!text) return;
-      state.items.unshift({ id: newId(), text: text.slice(0, 2000), cat, at: Date.now() });
+      const noteId = newId();
+      state.items.unshift({ id: noteId, text: text.slice(0, 2000), cat, at: Date.now() });
+      if (xp) xp.award("note:" + noteId, 3, $("inboxSave")); // Level-System: Notiz = 3 XP
       txt.value = "";
       save(); render();
       msg.textContent = "Gespeichert. Beim nächsten Abgleich am PC landet sie bei „" + cat + "“ in Obsidian.";

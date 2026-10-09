@@ -1773,3 +1773,7 @@ body[data-cloud="failed"] .cl-txt { color: var(--status-warning); }
   .mm-fab:focus-visible, .mm-x:focus-visible, .mm-tile:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 }
 @media (prefers-reduced-motion: reduce) { .mm-panel { animation: none; } }
+
+/* ---------- Rang neben dem Level (nur auf breiten Bildschirmen, sonst im Tooltip und beim Level-up) ---------- */
+.lvl-rank { display: none; font-family: var(--px); font-size: 7px; line-height: 1.5; color: var(--text-muted); white-space: nowrap; }
+@media (min-width: 1760px) { .lvl-rank { display: inline; } }

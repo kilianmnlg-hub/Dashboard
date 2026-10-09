@@ -348,7 +348,7 @@
   const hasContent = (s) => s.items.length > 0 || s.dishes.length > 0 || Object.keys(s.history).length > 0 || Object.keys(s.prices).length > 0;
 
   window.createShoppingBoard = function (deps) {
-    const { dataStore, scheduleAutoSync, remoteWins, newId } = deps;
+    const { dataStore, scheduleAutoSync, remoteWins, newId, xp } = deps;
     const root = document.getElementById("shopRoot");
     if (!root) return null;
     const $ = (id) => document.getElementById(id);
@@ -427,6 +427,7 @@
       }
       doneIds.add(id);
       const row = root.querySelector(`[data-row="${CSS.escape(id)}"]`);
+      if (xp) xp.award("shop:" + id, 2, row && row.querySelector("input[type=checkbox]")); // Level-System: Einkaufsartikel = 2 XP
       if (row) {
         row.classList.add("done");
         const c = costOf(it), fx = document.createElement("div");

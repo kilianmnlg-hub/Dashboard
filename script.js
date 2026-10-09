@@ -23,6 +23,21 @@
   // ---------- Kleine Belebungs-Helfer (Mikro-Animationen) ----------
   const prefersReducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // Level-up: die Level-Anzeige oben blinkt kurz mit "LEVEL UP!" (nur Optik)
+  function celebrateLevelUp(level, rank, rankUp) {
+    const box = document.getElementById("lvlBox");
+    if (!box) return;
+    box.classList.remove("lvl-up");
+    void box.offsetWidth;
+    box.classList.add("lvl-up");
+    const txt = document.createElement("span");
+    txt.className = "lvl-up-txt";
+    txt.textContent = rankUp ? `NEUER RANG: ${String(rank).toUpperCase()}!` : "LEVEL UP!";
+    box.appendChild(txt);
+    pixelBurst(box, "");
+    setTimeout(() => { box.classList.remove("lvl-up"); txt.remove(); }, 3200);
+  }
+
   // Kleine Pixel-Belohnung beim Abhaken: Funken und ein Schriftzug an der Stelle des Elements (nur Optik, nichts wird gespeichert)
   let pixelFx = null;
   function pixelBurst(el, label) {
@@ -1683,7 +1698,7 @@
         row.querySelector("input[type=checkbox]").addEventListener("change", (e) => {
           const item = todos[cat.id].find((i) => i.id === id);
           if (item) item.done = e.target.checked;
-          if (e.target.checked) pixelBurst(e.target, "ERLEDIGT!");
+          if (e.target.checked && xpBoard) xpBoard.award(`todo:${id}`, 10, e.target); // Tages-To-Do = 10 XP
           saveTodos(todos);
           renderTodos();
         });
@@ -1705,7 +1720,7 @@
   // ---------- Aufgaben + Remote Tasks (persistent, kein täglicher Reset) ----------
   // Beide Listen funktionieren identisch und unterscheiden sich nur in Storage-Key, Feld in
   // sync-data.json und den DOM-Elementen - daher eine gemeinsame Fabrik.
-  function createTaskBoard({ storageKey, listId, inputId, addBtnId }) {
+  function createTaskBoard({ storageKey, listId, inputId, addBtnId, xpKey }) {
     // Cloud-Sync ueber sync-data.json, gleiches Zeitstempel-Prinzip wie beim Habit-Tracker.
     const loadState = () => {
       try {
@@ -1778,7 +1793,7 @@
           // entfernt (im Gegensatz zum Tages-To-Do, das bleibt hier nichts dauerhaft "erledigt"
           // liegen — das ist ja gerade der Sinn dieser Liste, anders als beim täglichen Reset).
           row.classList.add("done");
-          pixelBurst(row.querySelector("input[type=checkbox]"), "ERLEDIGT!");
+          if (xpBoard) xpBoard.award(`${xpKey}:${id}`, 12, row.querySelector("input[type=checkbox]")); // Aufgabe = 12 XP
           setTimeout(() => {
             board.items = board.items.filter((t) => t.id !== id);
             board.save();
@@ -1851,13 +1866,26 @@
     return board;
   }
 
+  // Level-System (xp.js): jedes Abhaken gibt Punkte, die automatisch gezaehlt werden; Stand in der Cloud (Feld "xp" in sync-data.json)
+  const xpBoard = window.createXp
+    ? window.createXp({
+        dataStore,
+        scheduleAutoSync,
+        onGain: (pts, el) => pixelBurst(el || document.getElementById("lvlBox"), `+${pts} XP`),
+        onLevelUp: (level, rank, rankUp) => celebrateLevelUp(level, rank, rankUp)
+      })
+    : null;
+  let remoteXpRaw = null;
+
   const taskBoard = createTaskBoard({
+    xpKey: "task",
     storageKey: "dashboard-tasks-v1",
     listId: "taskList",
     inputId: "taskInput",
     addBtnId: "taskAddBtn"
   });
   const remoteTaskBoard = createTaskBoard({
+    xpKey: "rtask",
     storageKey: "dashboard-remote-tasks-v1",
     listId: "remoteTaskList",
     inputId: "remoteTaskInput",
@@ -1869,7 +1897,7 @@
   // Einkaufsliste (Logik, Symbole und Oberfläche in shopping.js). Liegt wie alles andere nur in der
   // Cloud: Feld "shopping" in sync-data.json, gleiche Zeitstempel-/Merge-Regeln wie die Aufgaben.
   const shoppingBoard = window.createShoppingBoard
-    ? window.createShoppingBoard({ dataStore, scheduleAutoSync, remoteWins, newId })
+    ? window.createShoppingBoard({ dataStore, scheduleAutoSync, remoteWins, newId, xp: xpBoard })
     : null;
   // Rohstand aus der Cloud: falls shopping.js mal nicht geladen ist, wird er beim Push unveraendert
   // zurueckgeschrieben statt versehentlich geloescht.
@@ -1892,7 +1920,7 @@
   // Handy-Notiz (inbox.js): Notizen von jedem Geraet in eine Cloud-Inbox; das lokale Skript sync-brainmap.ps1 uebernimmt
   // sie am PC nach Obsidian, danach tauchen sie in data.notes auf und die Liste zeigt ein Haekchen.
   const inboxBoard = window.createInbox
-    ? window.createInbox({ dataStore, scheduleAutoSync, newId, areas: data.brainMap?.areas, notes: data.notes })
+    ? window.createInbox({ dataStore, scheduleAutoSync, newId, areas: data.brainMap?.areas, notes: data.notes, xp: xpBoard })
     : null;
   let remoteInboxRaw = null;
 
@@ -2176,8 +2204,23 @@
       document.querySelectorAll(`.habit-daycell[data-habit="${habitId}"][data-date="${key}"]`).forEach((cell) => {
         cell.classList.add("just-toggled");
         cell.addEventListener("animationend", () => cell.classList.remove("just-toggled"), { once: true });
-        pixelBurst(cell, "ERLEDIGT!");
       });
+    }
+    // Level-System: Habit = 6 XP (nur fuer heute, pro Habit und Tag einmal), alle Habits des Tages erledigt = 10 Bonus
+    if (turningOn && xpBoard && key === todayKey()) {
+      const anchor = [...document.querySelectorAll(`.habit-daycell[data-habit="${habitId}"][data-date="${key}"]`)].find((c) => c.offsetParent) || null;
+      const items = [[`habit:${habitId}@${key}`, 6]];
+      const log = habitState.log[key] || {};
+      if (habitState.habits.length && habitState.habits.every((h) => log[h.id])) items.push([`habitbonus@${key}`, 10]);
+      // Wochenbonus: erreicht dieses Habit sein Wochenziel (Montag bis Sonntag), gibt es 15 XP, pro Habit und Woche einmal
+      const hb = habitState.habits.find((h) => h.id === habitId);
+      if (hb) {
+        const d0 = new Date(key + "T12:00:00"), mon = new Date(d0.getTime() - ((d0.getDay() + 6) % 7) * 86400000);
+        let n = 0;
+        for (let i = 0; i < 7; i++) if (habitState.log[dateKey(new Date(mon.getTime() + i * 86400000))]?.[habitId]) n++;
+        if (n >= (hb.targetPerWeek || 7)) items.push([`habitweek:${habitId}@${dateKey(mon)}`, 15]);
+      }
+      xpBoard.awardMany(items, anchor);
     }
   }
 
@@ -2491,8 +2534,10 @@
       shopping: shoppingBoard ? shoppingBoard.payload() : remoteShoppingRaw,
       timetracker: timeTrackerBoard ? timeTrackerBoard.payload() : remoteTimeTrackerRaw,
       inbox: inboxBoard ? inboxBoard.payload() : remoteInboxRaw,
-      fold: foldBoard ? foldBoard.payload() : remoteFoldRaw
+      fold: foldBoard ? foldBoard.payload() : remoteFoldRaw,
+      xp: xpBoard ? xpBoard.payload() : remoteXpRaw
     };
+    if (payload.xp == null) delete payload.xp;
     if (payload.inbox == null) delete payload.inbox;
     if (payload.fold == null) delete payload.fold;
     if (payload.shopping == null) delete payload.shopping;
@@ -2632,6 +2677,8 @@
         if (inboxBoard) inboxBoard.applyRemote(remote.inbox);
         remoteFoldRaw = remote.fold ?? null;
         if (foldBoard) foldBoard.applyRemote(remote.fold);
+        remoteXpRaw = remote.xp ?? null;
+        if (xpBoard) xpBoard.applyRemote(remote.xp);
         applyRemoteTodos(remote.todos);
       }
       cloudLoaded.syncdata = true;
@@ -3040,34 +3087,23 @@
     const syncIcon = document.getElementById("syncButtonIcon");
     if (syncIcon) syncIcon.innerHTML = PX.spr("floppy", 16);
 
-    // Level = Durchschnitt aller Ziele in 10%-Schritten (z.B. 52 % im Schnitt = LVL 5, noch 8 % bis LVL 6)
-    const lvlBox = document.getElementById("lvlBox");
+    // Durchschnitt aller Ziele: nur noch fuer die Kennzahl der Ziele-Sektion (der Level kommt aus dem XP-System, siehe xp.js)
     const lvlGoals = (data.goals || []).filter((g) => !g.isMilestone && g.target > 0);
-    let currentLevel = null, goalsAvg = null;
-    if (lvlBox && lvlGoals.length) {
-      const avg = lvlGoals.reduce((sum, g) => sum + Math.max(0, Math.min(100, (g.current / g.target) * 100)), 0) / lvlGoals.length;
-      const level = Math.floor(avg / 10);
-      currentLevel = level;
-      goalsAvg = avg;
-      const into = avg >= 100 ? 10 : avg - level * 10;
-      lvlBox.querySelector(".lvl-n").textContent = `LVL ${level}`;
-      lvlBox.querySelector(".xp").innerHTML = Array.from({ length: 10 }, (_, i) => `<i class="${i < Math.round(into) ? "on" : ""}"></i>`).join("");
-      lvlBox.querySelector(".lvl-avg").textContent = `Ø ${Math.round(avg)} %`;
-      lvlBox.title = avg >= 100 ? `Alle Ziele erreicht (Ø ${avg.toFixed(1)} %)` : `Durchschnitt aller Ziele: ${avg.toFixed(1)} %. Bei ${(level + 1) * 10} % ist Level ${level + 1} erreicht.`;
-      lvlBox.hidden = false;
-    }
+    const goalsAvg = lvlGoals.length ? lvlGoals.reduce((sum, g) => sum + Math.max(0, Math.min(100, (g.current / g.target) * 100)), 0) / lvlGoals.length : null;
 
-    // Level-up: steigt das Level gegenueber dem zuletzt gesehenen (gemerkt in der Cloud, siehe fold.js), blinkt die Anzeige kurz.
-    // Erst nach dem Laden der Cloud, damit auf keinem Geraet doppelt gefeiert wird.
+    // Ziele: ein neu erreichtes Ziel gibt so viel wie ein ganzer Levelaufstieg (Meilenstein die Haelfte), jedes nur einmal. Beim allerersten
+    // Start des Systems (noch kein Stand in der Cloud) gelten schon erreichte Ziele als erledigt und geben nichts. Erst nach dem Laden der Cloud.
     document.addEventListener("cloud-ready", () => {
-      if (currentLevel === null || !foldBoard || !foldBoard.noteLevel(currentLevel)) return;
-      lvlBox.classList.add("lvl-up");
-      const txt = document.createElement("span");
-      txt.className = "lvl-up-txt";
-      txt.textContent = "LEVEL UP!";
-      lvlBox.appendChild(txt);
-      pixelBurst(lvlBox, "");
-      setTimeout(() => { lvlBox.classList.remove("lvl-up"); txt.remove(); }, 3200);
+      if (!xpBoard) return;
+      const reached = (data.goals || []).filter((g) => g.target > 0 && g.current >= g.target);
+      if (!xpBoard.cloudHad()) {
+        xpBoard.markGoalsSeen(reached.map((g) => g.id));
+        return;
+      }
+      reached.forEach((g) => {
+        if (xpBoard.hasGoal(g.id)) return;
+        if (xpBoard.claimGoal(g.id, !!g.isMilestone)) pixelBurst(document.getElementById("lvlBox"), "ZIEL ERREICHT!");
+      });
     });
 
     // Kennzahl in der Titelzeile jedes Fensters, auch sichtbar wenn es eingeklappt ist (aktualisiert sich selbst)
