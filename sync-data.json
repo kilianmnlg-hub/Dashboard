@@ -73,12 +73,6 @@
   "shopping": {
     "items": [
       {
-        "id": "3f016df4-a8d9-4004-82ae-518594ea6b59",
-        "name": "Milch",
-        "qty": "",
-        "aisle": "kuehl"
-      },
-      {
         "id": "aff36a33-bc93-43f9-9f9b-85c8c2587650",
         "name": "Mais",
         "qty": "",
@@ -156,6 +150,9 @@
       ],
       "Tiefkühlgemüse": [
         1791569396302
+      ],
+      "Milch": [
+        1791569398102
       ]
     },
     "prices": {
@@ -182,7 +179,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791569396302
+    "updatedAt": 1791569398102
   },
   "timetracker": {
     "entries": [
