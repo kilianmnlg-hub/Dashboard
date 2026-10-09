@@ -73,12 +73,6 @@
   "shopping": {
     "items": [
       {
-        "id": "aff36a33-bc93-43f9-9f9b-85c8c2587650",
-        "name": "Mais",
-        "qty": "",
-        "aisle": "misc"
-      },
-      {
         "id": "24b3d7c1-8029-458d-8666-e2650fc287ef",
         "name": "Sojagranulat",
         "qty": "",
@@ -141,6 +135,9 @@
       ],
       "Light Käse": [
         1791569403836
+      ],
+      "Mais": [
+        1791569406368
       ]
     },
     "prices": {
@@ -167,7 +164,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791569403836
+    "updatedAt": 1791569406368
   },
   "timetracker": {
     "entries": [
@@ -294,7 +291,8 @@
         "shop:de022181-39b6-41c7-9821-4cf8f83a2f64": 2,
         "shop:a9c945fa-f4c0-4bbf-9c8f-eeee00ff33b3": 2,
         "shop:cfad10fc-28a3-4ed7-ad3f-0b2dd1de7e1a": 2,
-        "shop:cfcecf83-d806-4621-84b7-e187aedff020": 2
+        "shop:cfcecf83-d806-4621-84b7-e187aedff020": 2,
+        "shop:aff36a33-bc93-43f9-9f9b-85c8c2587650": 2
       }
     },
     "archive": {
@@ -302,6 +300,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791569403231
+    "updatedAt": 1791569405766
   }
 }
