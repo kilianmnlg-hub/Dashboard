@@ -127,12 +127,6 @@
         "aisle": "misc"
       },
       {
-        "id": "e8f83a11-ae06-4372-b8d4-f9ff0547117c",
-        "name": "Tomaten",
-        "qty": "",
-        "aisle": "obst"
-      },
-      {
         "id": "a9c945fa-f4c0-4bbf-9c8f-eeee00ff33b3",
         "name": "Frischkäse",
         "qty": "",
@@ -182,6 +176,9 @@
       ],
       "Avocado": [
         1791568554780
+      ],
+      "Tomaten": [
+        1791568576663
       ]
     },
     "prices": {
@@ -208,7 +205,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791568556071
+    "updatedAt": 1791568576663
   },
   "timetracker": {
     "entries": [
@@ -322,7 +319,8 @@
         "todo:1d050c7c-83b8-44b6-b275-d1d548f4f190": 10,
         "shop:077f7cb2-fa40-43b5-aa4d-9ce0c5add179": 2,
         "shop:8d7fad26-9bc5-4428-af2a-d4171cbe04bf": 2,
-        "shop:3c0669a4-00aa-4a4c-97da-3d71659fae1b": 2
+        "shop:3c0669a4-00aa-4a4c-97da-3d71659fae1b": 2,
+        "shop:e8f83a11-ae06-4372-b8d4-f9ff0547117c": 2
       }
     },
     "archive": {
@@ -330,6 +328,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791568555467
+    "updatedAt": 1791568576059
   }
 }
