@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Kilian – Dashboard</title>
-<link rel="stylesheet" href="styles.css?v=20261008b" />
+<link rel="stylesheet" href="styles.css?v=20261009b" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-64.png" type="image/png" sizes="64x64" />
 <link rel="apple-touch-icon" href="icon-200.png" />
@@ -35,6 +35,7 @@
     <div class="lvl" id="lvlBox" hidden>
       <b class="lvl-n">LVL 0</b><div class="xp" aria-hidden="true"></div><span class="lvl-avg"></span>
     </div>
+    <div class="top-timers" id="topTimers" aria-live="off"></div>
     <nav class="nav" id="mainNav">
       <a href="#kalender">Kalender</a>
       <a href="#todo">To-Do</a>
@@ -53,6 +54,12 @@
     <button class="theme-toggle" id="themeToggle" type="button" aria-label="Theme wechseln">◑</button>
   </div>
 </header>
+
+<div class="cloud-load" id="cloudLoad" role="status" aria-live="polite">
+  <span class="cl-txt" id="cloudLoadTxt">LADE DEINE DATEN …</span>
+  <div class="cl-bar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="cl-skel" aria-hidden="true"><div></div><div></div></div>
+</div>
 
 <main>
   <section class="brain-card">
@@ -368,11 +375,11 @@
 </footer>
 
 <script src="data.js"></script>
-<script src="quotes.js?v=20261008b"></script>
-<script src="shopping.js?v=20261008b"></script>
-<script src="timetracker.js?v=20261008b"></script>
-<script src="inbox.js?v=20261008b"></script>
-<script src="fold.js?v=20261008b"></script>
-<script src="script.js?v=20261008b"></script>
+<script src="quotes.js?v=20261009b"></script>
+<script src="shopping.js?v=20261009b"></script>
+<script src="timetracker.js?v=20261009b"></script>
+<script src="inbox.js?v=20261009b"></script>
+<script src="fold.js?v=20261009b"></script>
+<script src="script.js?v=20261009b"></script>
 </body>
 </html>

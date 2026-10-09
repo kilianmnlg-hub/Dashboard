@@ -4,7 +4,7 @@
    (scripts/push-timetracker.mjs) schreibt neue Dashboard-Eintraege nach Notion und verschiebt geloeschte in den Papierkorb.
    script.js uebergibt dataStore, Auto-Sync und die Merge-Regeln und ruft applyRemote()/payload() auf. */
 (function () {
-  const MIN = 60000, DAY = 86400000, MAX_TIMER = 2 * 3600000; // Ein Timer stoppt automatisch nach 2 Stunden
+  const MIN = 60000, DAY = 86400000, MAX_TIMER = 5 * 3600000; // Ein Timer stoppt automatisch nach 5 Stunden
   const CATS = ["youtube", "bricklink"];
   const LABEL = { youtube: "YouTube", bricklink: "Bricklink" };
   const SPRITE = { youtube: "play", bricklink: "brickblue" };
@@ -117,7 +117,19 @@
 
     /* ---------- Timer ---------- */
     $("ttTimers").innerHTML = CATS.map((c) => `<div class="tt-card tt-timer" data-c="${c}"><div class="tt-head">${spr(SPRITE[c], 26)}<h3>${LABEL[c]}</h3><span class="tt-tag"><i></i>LÄUFT</span></div><div class="tt-clock tt-px" id="ttClk-${c}">00:00:00</div><div class="tt-sub" id="ttSub-${c}"></div><button class="tt-tbtn tt-px" id="ttBtn-${c}" type="button">START</button></div>`).join("");
+    // Laufende Timer immer sichtbar: Chip(s) oben in der Leiste und die Zeit im Tab-Titel. Der Stand kommt aus der Cloud, ein am
+    // Handy gestarteter Timer taucht also auch am PC auf.
+    const topEl = document.getElementById("topTimers"), baseTitle = document.title;
+    function renderTop() {
+      const run = CATS.filter((c) => state.active[c]);
+      if (topEl) {
+        topEl.innerHTML = run.map((c) => `<a class="top-timer" href="#zeit" style="--c:var(--tt-${c === "youtube" ? "yt" : "bl"})" title="${LABEL[c]}-Timer läuft, stoppt automatisch um ${fmtClockTime(state.active[c] + MAX_TIMER)}"><i></i><span class="top-clk">${fmtClock(live(c))}</span><small>${LABEL[c]}</small></a>`).join("");
+      }
+      document.body.classList.toggle("has-timer", run.length > 0);
+      document.title = run.length ? `▶ ${fmtClock(live(run[0])).slice(0, 5)} ${LABEL[run[0]]}${run.length > 1 ? " +1" : ""} · Dashboard` : baseTitle;
+    }
     function renderTimers() {
+      renderTop();
       const t = dayTotals(new Date());
       CATS.forEach((c) => {
         const run = !!state.active[c];
@@ -140,7 +152,7 @@
       const start = state.active[cat];
       commit(cat, start, Math.min(Date.now(), start + MAX_TIMER));
     }
-    // Laeuft ein Timer seit 2 Stunden, wird er mit genau dieser Dauer gespeichert (auch wenn das Dashboard zu war: der Start
+    // Laeuft ein Timer seit 5 Stunden, wird er mit genau dieser Dauer gespeichert (auch wenn das Dashboard zu war: der Start
     // steht in der Cloud, beim naechsten Oeffnen wird nachgeholt).
     function autoStop() {
       const now = Date.now();
@@ -335,6 +347,8 @@
 
     return {
       render: renderAll,
+      // Fuer die Kurzbefehle am Handy-Icon: Timer starten, falls er nicht schon laeuft
+      startIfIdle(cat) { if (CATS.includes(cat) && !state.active[cat]) toggle(cat); },
       // Fuer die Kennzahl in der Titelzeile: Stunden dieser Woche und Wochen-Soll
       weekSummary() { const c = weekSums(0); return { ist: (c.youtube + c.bricklink) / HOUR, soll: state.targets.youtube + state.targets.bricklink }; },
       // Cloud-Stand uebernehmen. Eintraege und Loeschmarken werden immer vereinigt (kein Eintrag geht bei gleichzeitigen

@@ -64,6 +64,8 @@
     render();
     return {
       render,
+      // Fenster aufklappen (z.B. wenn ein Kurzbefehl direkt dorthin fuehrt)
+      expand(id) { if (!state.collapsed.includes(id)) return; state.collapsed = state.collapsed.filter((x) => x !== id); state.updatedAt = Date.now(); dataStore.setItem(KEY, JSON.stringify(state)); render(); scheduleAutoSync("syncdata"); },
       // Hoechstes bisher gesehenes Level. true = es ist neu gestiegen (dann gibt es die Level-up-Animation); beim allerersten
       // Mal wird nur gemerkt, nichts gefeiert.
       noteLevel(level) {

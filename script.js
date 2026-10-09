@@ -266,6 +266,8 @@
   const cloudLoaded = { habits: false, syncdata: false };
   const setCloudState = (state) => {
     document.body.dataset.cloud = state;
+    const clTxt = document.getElementById("cloudLoadTxt");
+    if (clTxt) clTxt.textContent = state === "failed" ? "CLOUD NICHT ERREICHBAR, NEUER VERSUCH …" : "LADE DEINE DATEN …";
     if (state === "ready") document.dispatchEvent(new CustomEvent("cloud-ready"));
   };
   setCloudState("loading");
@@ -509,6 +511,51 @@
       try { sessionStorage.setItem(`dashboard-alert-dismissed-${row.dataset.alert}`, "1"); } catch (err) { /* egal */ }
       row.remove();
     });
+  })();
+
+  // ---------- Hinweis "Neue Version verfuegbar" ----------
+  // Gleiche Optik wie die anderen Hinweise ganz oben. Verglichen wird die Versionsnummer an den Skripten in index.html: ist die
+  // auf dem Server neuer als die geladene, laeuft dieser Tab oder diese App mit altem Code. Ein Klick laedt neu.
+  (function versionWatch() {
+    const host = document.getElementById("topAlerts");
+    const mine = (document.querySelector('script[src^="script.js"]')?.getAttribute("src") || "").match(/[?&]v=([\w.-]+)/)?.[1];
+    if (!host || !mine) return;
+    let shownFor = null;
+    async function check() {
+      try {
+        const res = await fetch(`index.html?vcheck=${Date.now()}`, { cache: "no-store" });
+        if (!res.ok) return;
+        const latest = (await res.text()).match(/script\.js\?v=([\w.-]+)/)?.[1];
+        if (!latest || latest === mine || shownFor === latest) return;
+        try { if (sessionStorage.getItem(`dashboard-alert-dismissed-update-${latest}`)) return; } catch (e) { /* egal */ }
+        shownFor = latest;
+        host.insertAdjacentHTML("afterbegin", `<div class="ship-alert top-alert yellow" data-alert="update-${escapeHtml(latest)}"><div class="ship-alert-inner">${pxSpr("bell", 22)}<span class="ship-alert-text"><b>Neue Version verfügbar</b><span class="ta-sub">Lade neu, damit alles wieder zusammenpasst.</span></span><button type="button" class="ta-action">NEU LADEN</button><button type="button" class="ship-alert-dismiss" aria-label="Ausblenden">×</button></div></div>`);
+      } catch (e) { /* offline: spaeter nochmal */ }
+    }
+    host.addEventListener("click", async (e) => {
+      if (!e.target.closest(".ta-action")) return;
+      try { const reg = await navigator.serviceWorker?.getRegistration(); if (reg) await reg.update(); } catch (err) { /* egal */ }
+      location.reload();
+    });
+    setTimeout(check, 4000);
+    setInterval(check, 10 * 60000);
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") check(); });
+  })();
+
+  // ---------- Kurzbefehle vom Handy-Icon (?action=...) ----------
+  // Lange auf das App-Icon druecken: Schnelle Notiz, YouTube-Timer starten, Einkaufsliste (siehe "shortcuts" im Manifest).
+  // Ausgefuehrt wird erst, wenn die Cloud geladen ist, sonst wuerde der Start vom noch leeren Stand ueberschrieben.
+  (function appShortcuts() {
+    const action = new URLSearchParams(location.search).get("action");
+    if (!action) return;
+    try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) { /* egal */ }
+    const run = () => {
+      if (action === "note") inboxBoard && inboxBoard.open();
+      else if (action === "timer-youtube") { timeTrackerBoard && timeTrackerBoard.startIfIdle("youtube"); document.getElementById("zeit")?.scrollIntoView({ block: "start" }); }
+      else if (action === "shopping") { foldBoard && foldBoard.expand("einkauf"); document.getElementById("einkauf")?.scrollIntoView({ block: "start" }); }
+    };
+    if (document.body.dataset.cloud === "ready") run();
+    else document.addEventListener("cloud-ready", run, { once: true });
   })();
 
   // ---------- Sync-Button ----------

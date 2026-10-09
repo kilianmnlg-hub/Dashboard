@@ -460,6 +460,17 @@ am 07.10. die Einkaufsliste verloren). Dagegen gibt es zwei Schutzschichten:
 
 Zusätzlich liegt jeder Stand in der Git-Historie: mit `git show <commit>:sync-data.json` lässt sich ein früherer Stand jederzeit nachlesen.
 
+## Timer in der Leiste, Kurzbefehle, Update-Hinweis, Ladebalken
+
+- **Laufender Timer:** Solange ein Timer läuft, steht er als Chip oben in der Kopfleiste (Uhrzeit und Bereich, Klick springt zum Zeittracker) und im
+  Tab-Titel ("▶ 00:42 YouTube · Dashboard"). Der Stand kommt aus der Cloud: ein am Handy gestarteter Timer erscheint auch am PC.
+- **Kurzbefehle am Handy-Icon (Android):** Langes Drücken auf das App-Icon bietet "Schnelle Notiz", "YouTube-Timer starten" und "Einkaufsliste"
+  (`shortcuts` im Manifest, Aufruf als `?action=note`, `?action=timer-youtube`, `?action=shopping`). Ausgeführt wird erst, wenn die Cloud geladen ist,
+  damit der Timer-Start nicht vom noch leeren Stand überschrieben wird. Unter iOS zeigt das Betriebssystem solche Menüs bei Web-Apps nicht an.
+- **Neue Version verfügbar:** Das Dashboard vergleicht beim Start, beim Zurückkehren zum Tab und alle 10 Minuten die Versionsnummer in `index.html`
+  mit der geladenen. Ist der Server neuer, erscheint oben ein gelber Hinweis im Stil der anderen Banner mit "NEU LADEN".
+- **Ladebalken:** Solange die Cloud lädt (und bei Nichterreichbarkeit), zeigt ein Pixel-Balken mit Platzhaltern den Zustand an.
+
 ## Einklappbare Fenster
 
 Jedes Fenster (Brain-Karte oben und alle Sektionen von Kalender bis Notizen) hat vorn in der Überschrift einen Pfeil-Knopf. Ein Klick
@@ -473,7 +484,7 @@ Ersetzt die frühere Zeit-Balance. Der Arbeitszeit-Tracker ist direkt im Dashboa
 der Rest):
 
 - **Timer** für YouTube und Bricklink mit Start/Stop. Ein laufender Timer liegt in der Cloud, ein Timer vom Handy läuft
-  also auch am PC weiter. Ein Timer stoppt automatisch nach 2 Stunden und wird mit genau dieser Dauer gespeichert (auch wenn das Dashboard
+  also auch am PC weiter. Ein Timer stoppt automatisch nach 5 Stunden und wird mit genau dieser Dauer gespeichert (auch wenn das Dashboard
   inzwischen zu war: beim nächsten Öffnen wird es nachgeholt). Unter "Läuft" steht die Uhrzeit des Auto-Stopps.
 - **Kacheln** Heute / Diese Woche / Dieser Monat mit Anteil YouTube vs. Bricklink.
 - **Ausklappfenster:** "Übersicht" (Diagramm) und "Verlauf" sind standardmäßig zugeklappt und sparen Platz. In der Titelzeile steht

@@ -102,6 +102,7 @@
     render();
     return {
       render,
+      open,
       pending() { return state.items.filter((i) => !state.removed.includes(i.id) && !inVault(i)).length; },
       // Eintraege und Loeschmarken werden immer vereinigt, damit keine Notiz bei gleichzeitigen Aenderungen verloren geht
       applyRemote(remote) {
