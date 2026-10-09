@@ -55,14 +55,8 @@
     "updatedAt": 1791389448111
   },
   "remoteTasks": {
-    "items": [
-      {
-        "id": "cb94e1a9-2931-4141-80b4-a615fd482d93",
-        "text": "youtube post",
-        "done": false
-      }
-    ],
-    "updatedAt": 1791529301862
+    "items": [],
+    "updatedAt": 1791529302856
   },
   "shopping": {
     "items": [
