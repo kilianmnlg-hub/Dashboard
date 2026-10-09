@@ -103,12 +103,6 @@
         "aisle": "vorrat"
       },
       {
-        "id": "8d7fad26-9bc5-4428-af2a-d4171cbe04bf",
-        "name": "Avocado",
-        "qty": "",
-        "aisle": "obst"
-      },
-      {
         "id": "6b6331b3-9675-410b-8dcb-61234b998aae",
         "name": "Tiefkühlgemüse",
         "qty": "",
@@ -163,12 +157,6 @@
         "aisle": "tk"
       },
       {
-        "id": "3c0669a4-00aa-4a4c-97da-3d71659fae1b",
-        "name": "Bananen",
-        "qty": "",
-        "aisle": "obst"
-      },
-      {
         "id": "8fe68c8b-a7ba-468d-9ee5-cab92b19258f",
         "name": "Kartoffeln",
         "qty": "",
@@ -180,7 +168,8 @@
         1791375377977
       ],
       "Bananen": [
-        1791375378905
+        1791375378905,
+        1791568556071
       ],
       "Harzer Käse": [
         1791442473320
@@ -190,6 +179,9 @@
       ],
       "Salat": [
         1791568524509
+      ],
+      "Avocado": [
+        1791568554780
       ]
     },
     "prices": {
@@ -216,7 +208,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791568524509
+    "updatedAt": 1791568556071
   },
   "timetracker": {
     "entries": [
@@ -328,7 +320,9 @@
         "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-09": 6,
         "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-09": 6,
         "todo:1d050c7c-83b8-44b6-b275-d1d548f4f190": 10,
-        "shop:077f7cb2-fa40-43b5-aa4d-9ce0c5add179": 2
+        "shop:077f7cb2-fa40-43b5-aa4d-9ce0c5add179": 2,
+        "shop:8d7fad26-9bc5-4428-af2a-d4171cbe04bf": 2,
+        "shop:3c0669a4-00aa-4a4c-97da-3d71659fae1b": 2
       }
     },
     "archive": {
@@ -336,6 +330,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791568523904
+    "updatedAt": 1791568555467
   }
 }
