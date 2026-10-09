@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-10-09",
-    "lastSyncedAt": "2026-10-09T08:10:02.465Z",
+    "lastSyncedAt": "2026-10-09T12:25:21.910Z",
     "owner": "Kilian"
   },
   "github": {
@@ -870,7 +870,7 @@ const DASHBOARD_DATA = {
       "id": "bricklink-parts",
       "label": "Bricklink – Teile verkauft",
       "project": "bricklink",
-      "current": 84108,
+      "current": 84060,
       "target": 100000,
       "unit": "Teile",
       "due": "2026-12-31"
@@ -895,12 +895,21 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-09T08:10:00.952Z",
-    "openOrdersCount": 286,
-    "pendingShipments": []
+    "checkedAt": "2026-10-09T12:25:21.300Z",
+    "openOrdersCount": 287,
+    "pendingShipments": [
+      {
+        "orderId": 32769727,
+        "buyer": "David4285",
+        "status": "PAID",
+        "orderedDate": "2026-10-09T11:44:14.397Z",
+        "total": "18.3046",
+        "currency": "EUR"
+      }
+    ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-09T08:10:01.228Z",
+    "checkedAt": "2026-10-09T12:25:21.330Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -945,8 +954,8 @@ const DASHBOARD_DATA = {
       },
       {
         "weekStart": "2026-10-05",
-        "total": 100,
-        "orderCount": 1
+        "total": 118.3,
+        "orderCount": 2
       }
     ],
     "monthly": [
@@ -982,8 +991,8 @@ const DASHBOARD_DATA = {
       },
       {
         "month": "2026-10",
-        "total": 120.22,
-        "orderCount": 2
+        "total": 138.52,
+        "orderCount": 3
       }
     ]
   },
