@@ -79,34 +79,10 @@
         "aisle": "misc"
       },
       {
-        "id": "cfcecf83-d806-4621-84b7-e187aedff020",
-        "name": "Light Käse",
-        "qty": "",
-        "aisle": "kuehl"
-      },
-      {
-        "id": "de022181-39b6-41c7-9821-4cf8f83a2f64",
-        "name": "Skyr",
-        "qty": "",
-        "aisle": "kuehl"
-      },
-      {
         "id": "24b3d7c1-8029-458d-8666-e2650fc287ef",
         "name": "Sojagranulat",
         "qty": "",
         "aisle": "misc"
-      },
-      {
-        "id": "a9c945fa-f4c0-4bbf-9c8f-eeee00ff33b3",
-        "name": "Frischkäse",
-        "qty": "",
-        "aisle": "kuehl"
-      },
-      {
-        "id": "cfad10fc-28a3-4ed7-ad3f-0b2dd1de7e1a",
-        "name": "Magerquark",
-        "qty": "",
-        "aisle": "kuehl"
       }
     ],
     "history": {
@@ -153,6 +129,18 @@
       ],
       "Milch": [
         1791569398102
+      ],
+      "Skyr": [
+        1791569400327
+      ],
+      "Frischkäse": [
+        1791569401582
+      ],
+      "Magerquark": [
+        1791569402743
+      ],
+      "Light Käse": [
+        1791569403836
       ]
     },
     "prices": {
@@ -179,7 +167,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791569398102
+    "updatedAt": 1791569403836
   },
   "timetracker": {
     "entries": [
@@ -302,7 +290,11 @@
         "shop:fac0259d-2a7a-4c36-a9dd-eba2bde87d40": 2,
         "shop:e2f5a3c0-6bfe-46c3-942b-0b7d72073bc3": 2,
         "shop:6b6331b3-9675-410b-8dcb-61234b998aae": 2,
-        "shop:3f016df4-a8d9-4004-82ae-518594ea6b59": 2
+        "shop:3f016df4-a8d9-4004-82ae-518594ea6b59": 2,
+        "shop:de022181-39b6-41c7-9821-4cf8f83a2f64": 2,
+        "shop:a9c945fa-f4c0-4bbf-9c8f-eeee00ff33b3": 2,
+        "shop:cfad10fc-28a3-4ed7-ad3f-0b2dd1de7e1a": 2,
+        "shop:cfcecf83-d806-4621-84b7-e187aedff020": 2
       }
     },
     "archive": {
@@ -310,6 +302,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791569397499
+    "updatedAt": 1791569403231
   }
 }
