@@ -479,7 +479,7 @@ Menüleiste oben. Das Menü speichert nichts, die Kennzahlen kommen aus den glei
 
 ## Level-System (XP)
 
-Der Level startete am 10.10.2026 bei 0. Jedes Abhaken gibt Punkte (XP), die automatisch gezählt werden; Level 1 kostet 50 XP, jedes weitere Level
+Der Level startete am 09.10.2026 bei 0. Jedes Abhaken gibt Punkte (XP), die automatisch gezählt werden; Level 1 kostet 50 XP, jedes weitere Level
 20 % mehr (60, 72, 86, ...). Keine Tageshöchstwerte.
 
 | Was | XP |
