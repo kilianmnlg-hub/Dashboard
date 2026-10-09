@@ -471,6 +471,14 @@ Zusätzlich liegt jeder Stand in der Git-Historie: mit `git show <commit>:sync-d
   mit der geladenen. Ist der Server neuer, erscheint oben ein gelber Hinweis im Stil der anderen Banner mit "NEU LADEN".
 - **Ladebalken:** Solange die Cloud lädt (und bei Nichterreichbarkeit), zeigt ein Pixel-Balken mit Platzhaltern den Zustand an.
 
+## Handy-Menü zum Springen
+
+Auf dem Handy (bis 720 px Breite) entfällt die kleine wischbare Menüzeile oben. Stattdessen sitzt unten rechts über dem "+"-Knopf ein Menü-Knopf
+(Raster-Symbol, mit dem Daumen erreichbar). Er öffnet ein Raster mit großen Kacheln für alle neun Bereiche, jede mit Pixel-Symbol, Farbe des
+Bereichs und der aktuellen Kennzahl (z.B. "2 OFFEN"). Der Bereich, in dem du gerade bist, ist markiert. Ein Tipp springt zum Bereich (klappt ihn
+auf, falls eingeklappt) und schließt das Menü; auch Tippen daneben, das ×-Symbol und die Esc-Taste schließen es. Auf PC und Tablet bleibt die
+Menüleiste oben. Das Menü speichert nichts, die Kennzahlen kommen aus den gleichen Cloud-Daten wie in den Titelzeilen.
+
 ## Einklappbare Fenster
 
 Jedes Fenster (Brain-Karte oben und alle Sektionen von Kalender bis Notizen) hat vorn in der Überschrift einen Pfeil-Knopf. Ein Klick

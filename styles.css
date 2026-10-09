@@ -1751,3 +1751,25 @@ body[data-cloud="failed"] .cl-txt { color: var(--status-warning); }
 :root { --tt-yt: #e27a5e; --tt-bl: #6aa6d6; }
 :root[data-theme="light"] { --tt-yt: #c1442c; --tt-bl: #2b5f8a; }
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --tt-yt: #c1442c; --tt-bl: #2b5f8a; } }
+
+/* ---------- Handy-Menue: Knopf mit Raster statt Menueleiste oben ---------- */
+.mm-fab, .mm-ov { display: none; }
+@media (max-width: 720px) {
+  .nav { display: none; }
+  .section { scroll-margin-top: 84px; }
+  .mm-fab { display: grid; place-items: center; position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 66px); z-index: 45; width: 54px; height: 54px; padding: 0; border: 2px solid var(--text); border-radius: 3px; background: var(--surface-2); color: var(--text); box-shadow: 4px 4px 0 var(--pxs); cursor: pointer; transition: transform .08s steps(2), box-shadow .08s steps(2); }
+  .mm-fab:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--pxs); }
+  .mm-ov:not([hidden]) { display: flex; position: fixed; inset: 0; z-index: 60; align-items: flex-end; background: color-mix(in srgb, var(--bg) 70%, transparent); }
+  .mm-panel { width: 100%; max-height: 88vh; overflow-y: auto; background: var(--surface); border: 2px solid var(--text); border-bottom: 0; border-radius: 12px 12px 0 0; box-shadow: 0 -4px 0 var(--pxs); padding: 14px 14px max(16px, env(safe-area-inset-bottom)); display: grid; gap: 14px; animation: ibUp .25s steps(5) both; }
+  .mm-panel header { display: flex; justify-content: space-between; align-items: center; font-family: var(--px); font-size: 9px; color: var(--text-muted); }
+  .mm-x { width: 36px; height: 36px; padding: 0; border: 2px solid var(--text); border-radius: 3px; background: var(--surface-2); color: var(--text); font-size: 20px; line-height: 1; cursor: pointer; }
+  .mm-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding-right: 4px; }
+  .mm-tile { --c: var(--accent); display: grid; gap: 7px; justify-items: center; align-content: center; min-height: 92px; padding: 10px 4px; border: 2px solid var(--text); border-radius: 3px; background: var(--surface-2); color: var(--text); box-shadow: 3px 3px 0 var(--c); cursor: pointer; min-width: 0; }
+  .mm-tile:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--c); }
+  .mm-tile span { font-family: var(--px); font-size: 8px; line-height: 1.4; text-align: center; overflow-wrap: anywhere; }
+  .mm-tile small { font-family: var(--px); font-size: 7px; line-height: 1.4; color: var(--c); text-align: center; min-height: 10px; max-width: 100%; overflow-wrap: anywhere; }
+  .mm-tile.on { background: var(--c); color: var(--accent-ink); } .mm-tile.on small { color: var(--accent-ink); }
+  body.mm-open { overflow: hidden; }
+  .mm-fab:focus-visible, .mm-x:focus-visible, .mm-tile:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { .mm-panel { animation: none; } }

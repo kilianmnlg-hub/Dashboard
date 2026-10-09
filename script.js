@@ -3113,6 +3113,77 @@
     updateMetrics();
     setInterval(updateMetrics, 1000);
 
+    // Handy-Menue: statt der kleinen wischbaren Zeile oben oeffnet ein Knopf unten rechts (mit dem Daumen erreichbar) ein Raster mit
+    // allen Bereichen. Jede Kachel zeigt die Kennzahl, der aktuelle Bereich ist markiert; ein Tipp springt hin (klappt den Bereich
+    // bei Bedarf auf) und schliesst das Menue. Rein lokal, ohne gespeicherten Zustand. Die Leiste oben bleibt auf PC und Tablet.
+    (function mobileMenu() {
+      const navAs = Array.from(document.querySelectorAll("#mainNav a"));
+      if (!navAs.length) return;
+      const GRID_ICON = '<svg width="22" height="22" viewBox="0 0 6 6" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><path d="M0 0h2v2H0zM4 0h2v2H4zM0 4h2v2H0zM4 4h2v2H4zM2 2h2v2H2z"/></svg>';
+      const fab = document.createElement("button");
+      fab.type = "button";
+      fab.className = "mm-fab";
+      fab.setAttribute("aria-label", "Menü: zu einem Bereich springen");
+      fab.setAttribute("aria-haspopup", "dialog");
+      fab.setAttribute("aria-expanded", "false");
+      fab.innerHTML = GRID_ICON;
+      const ov = document.createElement("div");
+      ov.className = "mm-ov";
+      ov.hidden = true;
+      ov.innerHTML = `<div class="mm-panel" role="dialog" aria-modal="true" aria-labelledby="mmTtl"><header><span id="mmTtl">SPRINGEN ZU</span><button type="button" class="mm-x" aria-label="Menü schließen">×</button></header><div class="mm-grid"></div></div>`;
+      document.body.append(fab, ov);
+      const grid = ov.querySelector(".mm-grid"), closeBtn = ov.querySelector(".mm-x");
+
+      // Aktueller Bereich = der letzte, dessen Oberkante schon im oberen Drittel des Bildschirms angekommen ist
+      const currentId = () => {
+        let cur = "";
+        navAs.forEach((a) => {
+          const sec = document.getElementById(a.getAttribute("href").slice(1));
+          if (sec && sec.getBoundingClientRect().top <= window.innerHeight * 0.35) cur = sec.id;
+        });
+        // ganz unten auf der Seite ist der letzte Bereich gemeint, auch wenn seine Oberkante nie bis nach oben kommt
+        if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4) cur = (navAs[navAs.length - 1].getAttribute("href") || "").slice(1);
+        return cur || (navAs[0].getAttribute("href") || "").slice(1);
+      };
+      function fill() {
+        const cur = currentId();
+        grid.innerHTML = navAs.map((a) => {
+          const id = a.getAttribute("href").slice(1), sec = document.getElementById(id);
+          const metric = sec?.querySelector(".sec-metric")?.textContent || "";
+          const color = sec ? getComputedStyle(sec).getPropertyValue("--sc").trim() : "";
+          return `<button type="button" class="mm-tile${id === cur ? " on" : ""}" data-id="${escapeHtml(id)}" style="${color ? `--c:${color}` : ""}"${id === cur ? ' aria-current="true"' : ""}>${SECTION_SPRITES[id] && PX ? PX.spr(SECTION_SPRITES[id], 26) : ""}<span>${escapeHtml(a.textContent.trim().toUpperCase())}</span><small>${escapeHtml(metric)}</small></button>`;
+        }).join("");
+      }
+      function openMenu() {
+        fill();
+        ov.hidden = false;
+        document.body.classList.add("mm-open");
+        fab.setAttribute("aria-expanded", "true");
+        closeBtn.focus();
+      }
+      function closeMenu(refocus = true) {
+        if (ov.hidden) return;
+        ov.hidden = true;
+        document.body.classList.remove("mm-open");
+        fab.setAttribute("aria-expanded", "false");
+        if (refocus) fab.focus();
+      }
+      fab.addEventListener("click", openMenu);
+      closeBtn.addEventListener("click", () => closeMenu());
+      ov.addEventListener("click", (e) => { if (e.target === ov) closeMenu(); });
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
+      window.addEventListener("resize", () => { if (window.innerWidth > 720) closeMenu(false); });
+      grid.addEventListener("click", (e) => {
+        const tile = e.target.closest(".mm-tile");
+        if (!tile) return;
+        const id = tile.dataset.id;
+        closeMenu(false);
+        if (foldBoard) foldBoard.expand(id);
+        // erst nach dem Schliessen (Scroll-Sperre weg) und nach dem Aufklappen springen
+        setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" }), 60);
+      });
+    })();
+
     // Handy: Karten-Reihen (Ziele, Business, Tages-To-Do) sind seitlich wischbar, Punkte zeigen die Position
     const mqMobile = matchMedia("(max-width: 720px)");
     ["goalsGrid", "businessGrid", "todoGrid"].forEach((id) => {
