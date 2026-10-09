@@ -31,7 +31,7 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-10-08",
+    "date": "2026-10-09",
     "items": {
       "business": [],
       "studium": [],
@@ -263,6 +263,12 @@
         "cat": "youtube",
         "start": 1791475902131,
         "end": 1791480949885
+      },
+      {
+        "id": "9aaf210a-7267-41c8-a3ac-3aa151a2c2c1",
+        "cat": "youtube",
+        "start": 1791483464475,
+        "end": 1791490664475
       }
     ],
     "removed": [
@@ -270,14 +276,14 @@
       "youtube|29749714"
     ],
     "active": {
-      "youtube": 1791483464475,
+      "youtube": null,
       "bricklink": null
     },
     "targets": {
       "youtube": 20,
       "bricklink": 8
     },
-    "updatedAt": 1791483464475
+    "updatedAt": 1791527925195
   },
   "inbox": {
     "items": [
