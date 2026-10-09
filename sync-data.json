@@ -299,8 +299,10 @@
     "updatedAt": 1791375342047
   },
   "fold": {
-    "collapsed": [],
-    "updatedAt": 1791532240706,
+    "collapsed": [
+      "notizen"
+    ],
+    "updatedAt": 1791532248859,
     "lvl": 5
   }
 }
