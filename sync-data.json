@@ -115,12 +115,6 @@
         "aisle": "kuehl"
       },
       {
-        "id": "e437564e-2ef4-4766-82a1-3528dff5af73",
-        "name": "Hähnchen",
-        "qty": "",
-        "aisle": "fleisch"
-      },
-      {
         "id": "24b3d7c1-8029-458d-8666-e2650fc287ef",
         "name": "Sojagranulat",
         "qty": "",
@@ -171,6 +165,9 @@
       ],
       "Kuchen": [
         1791568617645
+      ],
+      "Hähnchen": [
+        1791568757810
       ]
     },
     "prices": {
@@ -197,7 +194,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791568617645
+    "updatedAt": 1791568757810
   },
   "timetracker": {
     "entries": [
@@ -314,7 +311,8 @@
         "shop:3c0669a4-00aa-4a4c-97da-3d71659fae1b": 2,
         "shop:e8f83a11-ae06-4372-b8d4-f9ff0547117c": 2,
         "shop:8fe68c8b-a7ba-468d-9ee5-cab92b19258f": 2,
-        "shop:e5674f6f-66b0-4c5f-b810-7f8b90bc63f5": 2
+        "shop:e5674f6f-66b0-4c5f-b810-7f8b90bc63f5": 2,
+        "shop:e437564e-2ef4-4766-82a1-3528dff5af73": 2
       }
     },
     "archive": {
@@ -322,6 +320,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791568614949
+    "updatedAt": 1791568757207
   }
 }
