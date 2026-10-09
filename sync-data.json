@@ -272,13 +272,13 @@
     ],
     "active": {
       "youtube": null,
-      "bricklink": null
+      "bricklink": 1791530444924
     },
     "targets": {
       "youtube": 20,
       "bricklink": 8
     },
-    "updatedAt": 1791530425113
+    "updatedAt": 1791530444924
   },
   "inbox": {
     "items": [
