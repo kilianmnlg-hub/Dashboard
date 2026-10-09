@@ -139,12 +139,6 @@
         "aisle": "kuehl"
       },
       {
-        "id": "e5674f6f-66b0-4c5f-b810-7f8b90bc63f5",
-        "name": "Kuchen",
-        "qty": "",
-        "aisle": "misc"
-      },
-      {
         "id": "e2f5a3c0-6bfe-46c3-942b-0b7d72073bc3",
         "name": "Tiefkühl-Obst",
         "qty": "",
@@ -174,6 +168,9 @@
       ],
       "Tomaten": [
         1791568576663
+      ],
+      "Kuchen": [
+        1791568617645
       ]
     },
     "prices": {
@@ -200,7 +197,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791568579477
+    "updatedAt": 1791568617645
   },
   "timetracker": {
     "entries": [
