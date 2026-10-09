@@ -91,12 +91,6 @@
         "aisle": "kuehl"
       },
       {
-        "id": "6b6331b3-9675-410b-8dcb-61234b998aae",
-        "name": "Tiefkühlgemüse",
-        "qty": "",
-        "aisle": "tk"
-      },
-      {
         "id": "de022181-39b6-41c7-9821-4cf8f83a2f64",
         "name": "Skyr",
         "qty": "",
@@ -119,12 +113,6 @@
         "name": "Magerquark",
         "qty": "",
         "aisle": "kuehl"
-      },
-      {
-        "id": "e2f5a3c0-6bfe-46c3-942b-0b7d72073bc3",
-        "name": "Tiefkühl-Obst",
-        "qty": "",
-        "aisle": "tk"
       }
     ],
     "history": {
@@ -162,6 +150,12 @@
       ],
       "Sauce Holland": [
         1791569131164
+      ],
+      "Tiefkühl-Obst": [
+        1791569395844
+      ],
+      "Tiefkühlgemüse": [
+        1791569396302
       ]
     },
     "prices": {
@@ -188,7 +182,7 @@
     },
     "learned": {},
     "dishes": [],
-    "updatedAt": 1791569131164
+    "updatedAt": 1791569396302
   },
   "timetracker": {
     "entries": [
@@ -308,7 +302,10 @@
         "shop:e5674f6f-66b0-4c5f-b810-7f8b90bc63f5": 2,
         "shop:e437564e-2ef4-4766-82a1-3528dff5af73": 2,
         "shop:8c22c5f9-acd0-4179-ac90-eb1c0894d7a6": 2,
-        "shop:fac0259d-2a7a-4c36-a9dd-eba2bde87d40": 2
+        "shop:fac0259d-2a7a-4c36-a9dd-eba2bde87d40": 2,
+        "shop:e2f5a3c0-6bfe-46c3-942b-0b7d72073bc3": 2,
+        "shop:6b6331b3-9675-410b-8dcb-61234b998aae": 2,
+        "shop:3f016df4-a8d9-4004-82ae-518594ea6b59": 2
       }
     },
     "archive": {
@@ -316,6 +313,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791569130561
+    "updatedAt": 1791569397499
   }
 }
