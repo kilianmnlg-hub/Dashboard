@@ -31,25 +31,13 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-10-09",
+    "date": "2026-10-10",
     "items": {
-      "business": [
-        {
-          "id": "fb509cac-cb7b-4fdb-9ef7-742048872953",
-          "text": "Set fertig bauen",
-          "done": false
-        }
-      ],
+      "business": [],
       "studium": [],
-      "privat": [
-        {
-          "id": "1d050c7c-83b8-44b6-b275-d1d548f4f190",
-          "text": "Bett beziehen",
-          "done": true
-        }
-      ]
+      "privat": []
     },
-    "updatedAt": 1791567457691
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -62,9 +50,14 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
+      },
+      {
+        "id": "7a5f9bd0-bd85-4304-bfcd-b73bd09ed10d",
+        "text": "Set fertig bauen",
+        "done": false
       }
     ],
-    "updatedAt": 1791389448111
+    "updatedAt": 1791634226573
   },
   "remoteTasks": {
     "items": [],
