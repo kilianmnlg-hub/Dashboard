@@ -286,6 +286,11 @@
         "shop:cfad10fc-28a3-4ed7-ad3f-0b2dd1de7e1a": 2,
         "shop:cfcecf83-d806-4621-84b7-e187aedff020": 2,
         "shop:aff36a33-bc93-43f9-9f9b-85c8c2587650": 2
+      },
+      "2026-10-10": {
+        "habit:gym@2026-10-10": 6,
+        "habitweek:gym@2026-10-05": 15,
+        "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-10": 6
       }
     },
     "archive": {
@@ -293,6 +298,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791569405766
+    "updatedAt": 1791634239634
   }
 }
