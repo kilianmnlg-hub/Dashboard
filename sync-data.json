@@ -156,8 +156,19 @@
       "Magerquark": 2
     },
     "learned": {},
-    "dishes": [],
-    "updatedAt": 1791569406368
+    "dishes": [
+      {
+        "name": "Kartoffeln und Bohnen",
+        "items": [
+          "Kartoffeln",
+          "Grühnebohnen",
+          "Weiße Soße",
+          "Zwiebeln",
+          "Hähnchen"
+        ]
+      }
+    ],
+    "updatedAt": 1791729342836
   },
   "timetracker": {
     "entries": [
