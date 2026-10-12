@@ -98,6 +98,12 @@
         "name": "Beeren",
         "qty": "",
         "aisle": "obst"
+      },
+      {
+        "id": "c7dcccff-e24d-4498-96ca-7a1c78ea14df",
+        "name": "Bananen",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {
@@ -197,7 +203,7 @@
         ]
       }
     ],
-    "updatedAt": 1791837870290
+    "updatedAt": 1791837875433
   },
   "timetracker": {
     "entries": [
