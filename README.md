@@ -21,6 +21,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `.github/workflows/sync-all.yml` — automatischer Sync jeden Tag um 08:00 Uhr
   (plus manuell auslösbar über den Sync-Button im Dashboard oder den Actions-Tab)
 - `manifest.webmanifest`, `icon-*.png`, `sw.js` — machen das Dashboard als PWA installierbar
+- `scenery.js` — Pixel-Dschungel: das animierte Pixelbild in der Brain-Karte mit den Easter Eggs (siehe Abschnitt "Pixel-Dschungel")
 - `habits-data.json` — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
   direkt aus dem Browser aktualisiert (siehe Abschnitt "Habit-Tracker")
 - `sync-data.json` — Cloud-Kopie von Video-Ideen, Studium-Termin, Tages-To-Do und
@@ -502,6 +503,53 @@ zählt genau einmal, egal auf welchem Gerät; die Geräte vereinigen ihre Buchun
 zurücknehmen und erneut setzen bringt keine neuen Punkte. Ziele, die beim Start des Systems schon erreicht waren, geben keine Punkte (`xp.goals`).
 Neustart auf 0: das Feld `xp` in `sync-data.json` löschen; beim nächsten Laden werden die dann erreichten Ziele wieder still als erledigt markiert.
 
+## Pixel-Dschungel (Bild und Easter Eggs)
+
+Oben in der Brain-Karte steht ein großes, animiertes Pixelbild (ein Wasserfall-Tal im Dschungel), dazu je ein schmaler Streifen mit einem anderen
+Ausschnitt über To-Do, Habits, Zeittracker und Notizen. Das Bild ist komplett per Code gezeichnet (`scenery.js`), es gibt keine Bilddatei. Ein Klick auf
+das Bild oder einen Streifen öffnet das ganze Bild mit der Liste der Easter Eggs.
+
+- **Tageszeit nach Uhr:** Morgen (5 bis 10 Uhr), Tag (10 bis 17), Abend (17 bis 20), Nacht (20 bis 5). Licht und Farben ändern sich; nachts leuchten
+  Laterne, Lagerfeuer, Lotus, Tempelzeichen und die Augen von Eule, Fuchs und Katzenstatue.
+- **Easter Eggs hängen am Level** (siehe Level-System): Level 0 ist schon ein fertiges Bild, mit jedem Meilenstein kommt eine Kleinigkeit dazu. Die Liste
+  zeigt gefundene Eggs mit Fundort; ein Klick darauf (oder auf das Egg im großen Bild) markiert die Stelle. Noch gesperrte stehen als "???" mit ihrem Level da.
+- **Neues Egg:** Steigt der Level über ein Egg-Level, erscheint unten ein Hinweis "Neues Easter Egg" (ein Klick öffnet die Liste) und die Fundstelle blinkt
+  kurz. Auf einem Gerät, das das Dashboard zum ersten Mal öffnet, kommt kein Hinweis, nur das Bild.
+
+| Level | Easter Egg | Fundort |
+|---|---|---|
+| 1 | Blauer Morpho-Schmetterling | flattert über dem Blumenbeet und landet ab und zu |
+| 2 | Fliegenpilze | neben dem Wegweiser am Brückenanfang |
+| 3 | Rotaugenlaubfrosch | auf dem Trittstein im Bach, quakt manchmal |
+| 4 | Kolibri | schwebt von Blüte zu Blüte |
+| 5 | Schatztruhe | zwischen den Wurzeln des großen Stamms, glitzert |
+| 6 | Tukan | auf dem Ast, klappert mit dem Schnabel |
+| 7 | Regenbogen | im Nebel über dem Becken am Fuß der Kaskade |
+| 8 | Laterne | am Brückenpfosten, leuchtet abends |
+| 9 | Fuchs | sitzt im Farn zwischen den Stämmen, blinzelt, die Ohren zucken |
+| 10 | Eule | im Baumloch; nachts leuchten ihre Augen |
+| 11 | Bricklink-Stein | roter 2x4-Stein auf einem Trittstein |
+| 12 | Wegweiser mit Play-Knopf | am Beginn der Brücke |
+| 13 | Libelle | patrouilliert über dem Becken und spiegelt sich im Wasser |
+| 14 | Zeltlager mit Lagerfeuer | auf der Lichtung; abends brennt das Feuer |
+| 15 | Kleiner Drache | fliegt ab und zu durchs Himmelsband und taucht in die Schlucht ein |
+| 16 | Leuchtlotus | blüht im Becken und leuchtet nachts |
+| 18 | Verborgenes Tempeltor | am Fuß der Felswand, die Zeichen leuchten |
+| 22 | Polarlicht | über der Kaskade, am hellsten nachts |
+| 26 | Leuchtbaum | rosa Geisterbaum auf der Felsinsel im Becken |
+| 30 | Goldener Wächter | Katzenstatue auf dem Stein vor der Kaskade; nachts glühen ihre Augen |
+
+Zum Einordnen, was ein Level an XP kostet (Summe aller Level davor): Level 5 ≈ 370, 10 ≈ 1.300, 16 ≈ 4.400, 18 ≈ 6.400, 22 ≈ 13.600, 26 ≈ 28.400,
+30 ≈ 59.100. Die Level der Eggs stehen in `scenery.js` in der Liste `EGGS` (Feld `lv`) und lassen sich dort einzeln ändern.
+
+**Speicherung und Sync:** Das Bild speichert nichts in der Cloud. Es liest nur den Level aus dem XP-Stand (`xp.js` meldet jede Änderung über `onChange`
+an `scenery.js`), und der ist auf allen Geräten gleich. Im Browser liegt nur der Merker `dashboard-scn-seen` (bis zu welchem Level die Eggs auf diesem
+Gerät schon angezeigt wurden, damit der Hinweis nur einmal erscheint).
+
+**Technik:** `scenery.js` ist in Abschnitte gegliedert (Zeichenwerkzeuge, Szene, Sprites, Easter Eggs, Laufzeit, Oberfläche). Der Aufbau dauert ca. 0,3 Sekunden
+und passiert erst nach dem ersten Anzeigen der Seite; danach läuft das Bild mit ca. 6 Bildern pro Sekunde, nur solange es im sichtbaren Bereich ist und der
+Tab offen ist. Bei "Bewegung reduzieren" im System zeigt es ein ruhiges Standbild. Auf dem Handy schwenkt der Banner sehr langsam über das Bild.
+
 ## Einklappbare Fenster
 
 Jedes Fenster (Brain-Karte oben und alle Sektionen von Kalender bis Notizen) hat vorn in der Überschrift einen Pfeil-Knopf. Ein Klick
@@ -612,8 +660,9 @@ Repo). Der Browser hält davon keine Kopie: kein `localStorage`, und der Service
 Worker fasst diese Dateien nicht an.
 
 **Was bewusst im Browser bleibt** (gehört nicht in ein öffentliches Repo bzw. ist
-pro Gerät): GitHub-Token, Kalender-Zugang (inkl. Refresh-Token), Theme und das
-(das Level selbst liegt nicht hier, sondern in der Cloud).
+pro Gerät): GitHub-Token, Kalender-Zugang (inkl. Refresh-Token), Theme und der Merker, bis zu
+welchem Level die Easter Eggs schon angezeigt wurden (`dashboard-scn-seen`, nur Optik; das Level
+selbst liegt nicht hier, sondern in der Cloud).
 
 **Verhalten:**
 - Beim Laden wird der Cloud-Stand frisch über die GitHub-API gelesen. Bis er da ist,

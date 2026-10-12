@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Kilian – Dashboard</title>
-<link rel="stylesheet" href="styles.css?v=20261010b" />
+<link rel="stylesheet" href="styles.css?v=20261012a" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-64.png" type="image/png" sizes="64x64" />
 <link rel="apple-touch-icon" href="icon-200.png" />
@@ -63,6 +63,11 @@
 
 <main>
   <section class="brain-card">
+    <div class="scn-banner" id="scnBanner" role="button" tabindex="0" aria-label="Pixel-Dschungel und Easter Eggs ansehen">
+      <canvas aria-hidden="true"></canvas>
+      <span class="scn-chip scn-eggs" id="scnEggChip">EASTER EGGS 0/20</span>
+      <span class="scn-chip scn-phase" id="scnPhaseChip"></span>
+    </div>
     <div class="brain-copy">
       <p class="brain-eyebrow">Brain</p>
       <h1 id="greeting">Willkommen zurück</h1>
@@ -118,6 +123,18 @@
       <div class="calendar-embed-wrap">
         <iframe id="calendarEmbedFrame" title="Google Kalender" loading="lazy"></iframe>
       </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="eggOverlay">
+    <div class="modal modal-wide egg-modal" role="dialog" aria-modal="true" aria-labelledby="eggTitle">
+      <div class="modal-head">
+        <h2 id="eggTitle">Pixel-Dschungel</h2>
+        <button class="modal-close" id="eggClose" type="button" aria-label="Schließen">×</button>
+      </div>
+      <p class="modal-sub" id="eggSub"></p>
+      <div class="egg-view"><canvas id="eggCanvas" aria-label="Das ganze Bild; Klick auf ein gefundenes Easter Egg zeigt es in der Liste"></canvas></div>
+      <ol class="egg-list" id="eggList"></ol>
     </div>
   </div>
 
@@ -375,12 +392,13 @@
 </footer>
 
 <script src="data.js"></script>
-<script src="quotes.js?v=20261010b"></script>
-<script src="xp.js?v=20261010b"></script>
-<script src="shopping.js?v=20261010b"></script>
-<script src="timetracker.js?v=20261010b"></script>
-<script src="inbox.js?v=20261010b"></script>
-<script src="fold.js?v=20261010b"></script>
-<script src="script.js?v=20261010b"></script>
+<script src="quotes.js?v=20261012a"></script>
+<script src="xp.js?v=20261012a"></script>
+<script src="shopping.js?v=20261012a"></script>
+<script src="timetracker.js?v=20261012a"></script>
+<script src="inbox.js?v=20261012a"></script>
+<script src="scenery.js?v=20261012a"></script>
+<script src="fold.js?v=20261012a"></script>
+<script src="script.js?v=20261012a"></script>
 </body>
 </html>

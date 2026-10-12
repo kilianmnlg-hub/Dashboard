@@ -1777,3 +1777,46 @@ body[data-cloud="failed"] .cl-txt { color: var(--status-warning); }
 /* ---------- Rang neben dem Level (nur auf breiten Bildschirmen, sonst im Tooltip und beim Level-up) ---------- */
 .lvl-rank { display: none; font-family: var(--px); font-size: 7px; line-height: 1.5; color: var(--text-muted); white-space: nowrap; }
 @media (min-width: 1760px) { .lvl-rank { display: inline; } }
+
+/* ==========================================================================
+   Pixel-Dschungel (scenery.js): Bild oben in der Brain-Karte, Streifen ueber einigen Bereichen, Easter-Egg-Liste
+   und Hinweis bei neuen Eiern. Das Bild selbst wird per Code in <canvas> gezeichnet (keine Bilddatei).
+   ========================================================================== */
+@media (min-width: 861px) { .brain-card { flex-wrap: wrap; align-content: flex-start; min-height: 0; } .brain-card .brain-copy, .brain-card .brain-scene-wrap { min-height: 300px; } }
+.scn-banner { flex: none; width: 100%; position: relative; height: clamp(150px, 18vw, 340px); border-bottom: 2px solid var(--text); background: #06242c; overflow: hidden; cursor: pointer; }
+.scn-banner canvas, .scn-strip canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; opacity: 0; transition: opacity .5s steps(5); }
+.scn-banner.ready canvas, .scn-strip.ready canvas { opacity: 1; }
+.scn-banner:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+.brain-card.is-folded .scn-banner { display: none; }
+.scn-chip { position: absolute; z-index: 2; font-family: var(--px); font-size: 8px; line-height: 1; padding: 6px 7px 5px; background: color-mix(in srgb, var(--bg) 84%, transparent); color: var(--text); border: 2px solid var(--text); box-shadow: 2px 2px 0 var(--pxs); white-space: nowrap; pointer-events: none; }
+.scn-eggs { left: 10px; bottom: 12px; color: var(--gold); }
+.scn-phase { right: 12px; bottom: 12px; color: var(--text-muted); }
+.scn-banner:hover .scn-eggs, .scn-banner:focus-visible .scn-eggs { border-color: var(--accent); }
+.scn-chip.scn-new { border-color: var(--gold); animation: pxBlink .9s steps(1) infinite; }
+.scn-strip { position: relative; height: 60px; margin: 0 0 22px; border: 2px solid var(--text); box-shadow: 4px 4px 0 var(--pxs); background: #06242c; overflow: hidden; cursor: pointer; }
+@media (max-width: 720px) { .scn-banner { height: 172px; } .scn-strip { height: 52px; margin-bottom: 18px; } }
+
+/* Liste der Easter Eggs mit dem ganzen Bild */
+body.scn-lock { overflow: hidden; }
+.egg-modal { max-width: 1000px; padding: 20px 22px 22px; max-height: calc(100vh - 40px); overflow: auto; }
+.egg-view { border: 2px solid var(--text); background: #06242c; line-height: 0; text-align: center; margin-bottom: 14px; }
+.egg-view canvas { image-rendering: pixelated; display: inline-block; max-width: 100%; height: auto; cursor: crosshair; }
+.egg-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.egg-list li { display: grid; grid-template-columns: 52px minmax(0, 1fr); column-gap: 8px; row-gap: 2px; align-items: baseline; padding: 8px 10px; border: 2px solid var(--border); border-radius: 3px; background: var(--surface-2); }
+.egg-list li.on { border-color: var(--text); cursor: pointer; }
+.egg-list li.on:hover, .egg-list li.sel { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); }
+.egg-list li.off { opacity: .5; }
+.egg-list .lv { font-family: var(--px); font-size: 8px; color: var(--gold); }
+.egg-list .nm { font-weight: 600; font-size: 13px; }
+.egg-list .ht { grid-column: 2; font-size: 11.5px; line-height: 1.4; color: var(--text-faint); }
+.egg-list .nw { font-family: var(--px); font-size: 7px; color: var(--accent-ink); background: var(--gold); padding: 2px 4px; margin-left: 4px; }
+@media (max-width: 700px) { .egg-list { grid-template-columns: 1fr; } .egg-modal { padding: 16px; } }
+
+/* Hinweis bei neuen Easter Eggs */
+.scn-toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 60; display: grid; gap: 4px; text-align: left; padding: 10px 14px 9px; background: var(--surface); color: var(--text); border: 2px solid var(--text); border-radius: 3px; box-shadow: 4px 4px 0 var(--accent); cursor: pointer; max-width: calc(100vw - 32px); font-family: inherit; animation: scnIn .35s steps(5) backwards; }
+.scn-toast .k { font-family: var(--px); font-size: 8px; line-height: 1.4; color: var(--gold); }
+.scn-toast .v { font-weight: 700; font-size: 14px; }
+.scn-toast .h { font-family: var(--px); font-size: 7px; line-height: 1.4; color: var(--text-faint); }
+.scn-toast.out { opacity: 0; transition: opacity .35s steps(4); }
+@keyframes scnIn { from { transform: translate(-50%, 24px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .scn-toast { animation: none; } .scn-chip.scn-new { animation: none; } }

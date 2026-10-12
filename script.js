@@ -1867,10 +1867,13 @@
   }
 
   // Level-System (xp.js): jedes Abhaken gibt Punkte, die automatisch gezaehlt werden; Stand in der Cloud (Feld "xp" in sync-data.json)
+  // Pixel-Dschungel (scenery.js): Bild oben in der Brain-Karte; die Easter Eggs haengen am Level (nur Anzeige, speichert nichts)
+  const scenery = window.createScenery ? window.createScenery({}) : null;
   const xpBoard = window.createXp
     ? window.createXp({
         dataStore,
         scheduleAutoSync,
+        onChange: (i) => { if (scenery) scenery.setLevel(i.level); },
         onGain: (pts, el) => pixelBurst(el || document.getElementById("lvlBox"), `+${pts} XP`),
         onLevelUp: (level, rank, rankUp) => celebrateLevelUp(level, rank, rankUp)
       })

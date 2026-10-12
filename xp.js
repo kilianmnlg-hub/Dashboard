@@ -35,7 +35,7 @@
   }
 
   window.createXp = function (deps) {
-    const { dataStore, scheduleAutoSync, onGain, onLevelUp } = deps;
+    const { dataStore, scheduleAutoSync, onGain, onLevelUp, onChange } = deps;
     const KEY = "dashboard-xp-v1";
     let state = empty(), cloudHad = false;
     try {
@@ -78,6 +78,7 @@
       if (rk) rk.textContent = i.rank.toUpperCase();
       box.title = "Level " + i.level + " · Rang " + i.rank + " · noch " + (i.need - i.into) + " XP bis Level " + (i.level + 1) + " · insgesamt " + i.total + " XP";
       box.hidden = false;
+      if (onChange) onChange(i);
     }
 
     /* Buchungen: items = [[schluessel, punkte], ...]; zaehlt nur, was noch nicht gebucht ist. Gibt die neuen Punkte zurueck. */
