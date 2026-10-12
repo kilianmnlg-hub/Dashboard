@@ -98,6 +98,12 @@
         "name": "Beeren",
         "qty": "",
         "aisle": "obst"
+      },
+      {
+        "id": "6ecd622b-cc83-4794-9bde-791012ea1f56",
+        "name": "Kartoffeln",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {
@@ -196,7 +202,7 @@
         ]
       }
     ],
-    "updatedAt": 1791837855818
+    "updatedAt": 1791837865615
   },
   "timetracker": {
     "entries": [
