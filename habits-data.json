@@ -286,11 +286,13 @@
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     },
     "2026-10-11": {
-      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true,
+      "rauchfrei": true,
+      "koffein": true
     },
     "2026-10-12": {
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     }
   },
-  "updatedAt": 1791794628017
+  "updatedAt": 1791794647927
 }
