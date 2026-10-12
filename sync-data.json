@@ -47,7 +47,7 @@
         {
           "id": "0fe79c6c-75ef-486c-b815-7b646739f14c",
           "text": "thumbnail",
-          "done": false
+          "done": true
         },
         {
           "id": "aa158439-ff8f-4b1d-9d9d-07e4af303ae7",
@@ -58,7 +58,7 @@
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1791822885675
+    "updatedAt": 1791822886622
   },
   "tasks": {
     "items": [
@@ -364,7 +364,8 @@
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-12": 6,
         "task:7a5f9bd0-bd85-4304-bfcd-b73bd09ed10d": 12,
         "todo:ccbdff2a-70f3-498a-9e43-1935563938a4": 10,
-        "todo:0716044f-c15e-4769-9c3e-f417c806c98f": 10
+        "todo:0716044f-c15e-4769-9c3e-f417c806c98f": 10,
+        "todo:0fe79c6c-75ef-486c-b815-7b646739f14c": 10
       }
     },
     "archive": {
@@ -372,6 +373,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791822885673
+    "updatedAt": 1791822886619
   }
 }
