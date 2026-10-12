@@ -71,14 +71,9 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
-      },
-      {
-        "id": "7a5f9bd0-bd85-4304-bfcd-b73bd09ed10d",
-        "text": "Set fertig bauen",
-        "done": false
       }
     ],
-    "updatedAt": 1791634226573
+    "updatedAt": 1791794736705
   },
   "remoteTasks": {
     "items": [],
@@ -359,7 +354,8 @@
         "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-11": 6
       },
       "2026-10-12": {
-        "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-12": 6
+        "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-12": 6,
+        "task:7a5f9bd0-bd85-4304-bfcd-b73bd09ed10d": 12
       }
     },
     "archive": {
@@ -367,6 +363,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791794628025
+    "updatedAt": 1791794736295
   }
 }
