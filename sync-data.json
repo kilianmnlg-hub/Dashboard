@@ -86,6 +86,12 @@
         "name": "Sojagranulat",
         "qty": "",
         "aisle": "misc"
+      },
+      {
+        "id": "eccee066-d171-4a9a-a538-6aca5daea385",
+        "name": "Magerquark",
+        "qty": "",
+        "aisle": "kuehl"
       }
     ],
     "history": {
@@ -184,7 +190,7 @@
         ]
       }
     ],
-    "updatedAt": 1791729342836
+    "updatedAt": 1791837839556
   },
   "timetracker": {
     "entries": [
