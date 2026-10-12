@@ -33,11 +33,17 @@
   "todos": {
     "date": "2026-10-12",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "ccbdff2a-70f3-498a-9e43-1935563938a4",
+          "text": "brainwalkers video cutten",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1791794706715
   },
   "tasks": {
     "items": [
