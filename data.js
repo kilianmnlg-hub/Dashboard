@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-10-11",
-    "lastSyncedAt": "2026-10-11T13:42:04.137Z",
+    "lastUpdated": "2026-10-12",
+    "lastSyncedAt": "2026-10-12T14:08:57.570Z",
     "owner": "Kilian"
   },
   "github": {
@@ -113,10 +113,6 @@ const DASHBOARD_DATA = {
   ],
   "metricsHistory": {
     "bricksOnTheFloorAbos": [
-      {
-        "date": "2026-08-13",
-        "value": 28400
-      },
       {
         "date": "2026-08-14",
         "value": 28400
@@ -352,13 +348,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-11",
         "value": 29400
+      },
+      {
+        "date": "2026-10-12",
+        "value": 29400
       }
     ],
     "brainwalkersAbos": [
-      {
-        "date": "2026-08-13",
-        "value": 259
-      },
       {
         "date": "2026-08-14",
         "value": 261
@@ -594,13 +590,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-11",
         "value": 540
+      },
+      {
+        "date": "2026-10-12",
+        "value": 538
       }
     ],
     "tiktokFollower": [
-      {
-        "date": "2026-08-13",
-        "value": 2725
-      },
       {
         "date": "2026-08-14",
         "value": 2727
@@ -836,6 +832,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-11",
         "value": 2793
+      },
+      {
+        "date": "2026-10-12",
+        "value": 2796
       }
     ]
   },
@@ -862,7 +862,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 540,
+      "current": 538,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -871,7 +871,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2793,
+      "current": 2796,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -905,7 +905,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-11T13:42:03.189Z",
+    "checkedAt": "2026-10-12T14:08:56.807Z",
     "openOrdersCount": 288,
     "pendingShipments": [
       {
@@ -927,18 +927,13 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-11T13:42:03.358Z",
+    "checkedAt": "2026-10-12T14:08:56.941Z",
     "currency": "EUR",
     "weekly": [
       {
-        "weekStart": "2026-08-10",
-        "total": 13.22,
-        "orderCount": 1
-      },
-      {
         "weekStart": "2026-08-17",
-        "total": 205.25,
-        "orderCount": 4
+        "total": 188.54,
+        "orderCount": 3
       },
       {
         "weekStart": "2026-08-24",
@@ -1080,7 +1075,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "540"
+          "value": "538"
         },
         {
           "label": "Videos",
@@ -1098,11 +1093,11 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-10-10"
+      "to": "2026-10-12"
     },
     "totalsByCategory": {
-      "YouTube": 13488.01,
-      "Bricklink": 3711.57
+      "YouTube": 14035.56,
+      "Bricklink": 3768.86
     },
     "daily": [
       {
@@ -1413,6 +1408,16 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-10",
         "YouTube": 137.32,
+        "Bricklink": 0
+      },
+      {
+        "date": "2026-10-11",
+        "YouTube": 247.55,
+        "Bricklink": 57.29
+      },
+      {
+        "date": "2026-10-12",
+        "YouTube": 300,
         "Bricklink": 0
       }
     ],
@@ -3068,6 +3073,34 @@ const DASHBOARD_DATA = {
         "start": 1791634680000,
         "end": 1791637500000,
         "min": 47.32
+      },
+      {
+        "id": "3f7430d3-4cf3-8126-a547-cae745de8413",
+        "cat": "youtube",
+        "start": 1791724080000,
+        "end": 1791735480000,
+        "min": 190.63
+      },
+      {
+        "id": "3f7430d3-4cf3-8197-8f87-f75dac086812",
+        "cat": "bricklink",
+        "start": 1791735540000,
+        "end": 1791738960000,
+        "min": 57.29
+      },
+      {
+        "id": "3f7430d3-4cf3-8139-94f2-d038515ace1f",
+        "cat": "youtube",
+        "start": 1791741480000,
+        "end": 1791744900000,
+        "min": 56.92
+      },
+      {
+        "id": "3f7430d3-4cf3-8152-8bc7-d429628ba4ef",
+        "cat": "youtube",
+        "start": 1791794580000,
+        "end": 1791812580000,
+        "min": 300
       }
     ]
   }
