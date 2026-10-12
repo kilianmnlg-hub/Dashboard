@@ -98,18 +98,13 @@
         "name": "Beeren",
         "qty": "",
         "aisle": "obst"
-      },
-      {
-        "id": "6ecd622b-cc83-4794-9bde-791012ea1f56",
-        "name": "Kartoffeln",
-        "qty": "",
-        "aisle": "obst"
       }
     ],
     "history": {
       "Kartoffeln": [
         1791375377977,
-        1791568579477
+        1791568579477,
+        1791837870290
       ],
       "Bananen": [
         1791375378905,
@@ -202,7 +197,7 @@
         ]
       }
     ],
-    "updatedAt": 1791837865615
+    "updatedAt": 1791837870290
   },
   "timetracker": {
     "entries": [
@@ -398,7 +393,8 @@
         "todo:0fe79c6c-75ef-486c-b815-7b646739f14c": 10,
         "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-12": 6,
         "habit:07b53929-622d-4cdf-baf0-47645c841575@2026-10-12": 6,
-        "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-12": 6
+        "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-12": 6,
+        "shop:6ecd622b-cc83-4794-9bde-791012ea1f56": 2
       }
     },
     "archive": {
@@ -406,6 +402,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791836446734
+    "updatedAt": 1791837869679
   }
 }
