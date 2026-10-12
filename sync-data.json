@@ -43,12 +43,17 @@
           "id": "0716044f-c15e-4769-9c3e-f417c806c98f",
           "text": "video uploaden",
           "done": false
+        },
+        {
+          "id": "0fe79c6c-75ef-486c-b815-7b646739f14c",
+          "text": "thumbnail",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1791794714987
+    "updatedAt": 1791794719820
   },
   "tasks": {
     "items": [
