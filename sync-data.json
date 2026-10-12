@@ -38,12 +38,17 @@
           "id": "ccbdff2a-70f3-498a-9e43-1935563938a4",
           "text": "brainwalkers video cutten",
           "done": false
+        },
+        {
+          "id": "0716044f-c15e-4769-9c3e-f417c806c98f",
+          "text": "video uploaden",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1791794706715
+    "updatedAt": 1791794714987
   },
   "tasks": {
     "items": [
