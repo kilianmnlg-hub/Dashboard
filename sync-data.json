@@ -92,6 +92,12 @@
         "name": "Magerquark",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "e877c568-53f9-477a-aed4-90eb1190932b",
+        "name": "Beeren",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {
@@ -190,7 +196,7 @@
         ]
       }
     ],
-    "updatedAt": 1791837839556
+    "updatedAt": 1791837855818
   },
   "timetracker": {
     "entries": [
