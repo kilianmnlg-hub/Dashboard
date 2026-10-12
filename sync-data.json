@@ -48,12 +48,17 @@
           "id": "0fe79c6c-75ef-486c-b815-7b646739f14c",
           "text": "thumbnail",
           "done": false
+        },
+        {
+          "id": "aa158439-ff8f-4b1d-9d9d-07e4af303ae7",
+          "text": "lego waschen",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1791794719820
+    "updatedAt": 1791794730994
   },
   "tasks": {
     "items": [
