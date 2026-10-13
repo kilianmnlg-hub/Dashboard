@@ -150,6 +150,12 @@
         "name": "Harzer Käse",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "6604477d-a5aa-4df4-bfaf-2ec234747b54",
+        "name": "Tiefkühl-Obst",
+        "qty": "",
+        "aisle": "tk"
       }
     ],
     "history": {
@@ -250,7 +256,7 @@
         ]
       }
     ],
-    "updatedAt": 1791912343771
+    "updatedAt": 1791912350964
   },
   "timetracker": {
     "entries": [
