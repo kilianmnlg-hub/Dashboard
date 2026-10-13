@@ -33,7 +33,7 @@
     {
       "id": "1d8f6548-bdad-4bab-a63c-167a8563b147",
       "label": "Wiegen",
-      "targetPerWeek": 7
+      "targetPerWeek": 5
     },
     {
       "id": "b07e389a-dfc6-4ab9-830c-5daf53425daf",
@@ -305,5 +305,5 @@
       "koffein": true
     }
   },
-  "updatedAt": 1791912827268
+  "updatedAt": 1791912842412
 }
