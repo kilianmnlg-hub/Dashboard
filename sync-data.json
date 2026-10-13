@@ -110,9 +110,14 @@
         "id": "2cfb43c8-7fe8-4650-8fb1-819c2f68c823",
         "text": "nach upload checkliste",
         "done": false
+      },
+      {
+        "id": "100d3e46-db84-4a40-bff6-5c74be9f0646",
+        "text": "september recap",
+        "done": false
       }
     ],
-    "updatedAt": 1791877910854
+    "updatedAt": 1791901576748
   },
   "shopping": {
     "items": [
