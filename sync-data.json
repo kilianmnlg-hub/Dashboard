@@ -272,9 +272,21 @@
           "Zwiebeln",
           "Hähnchen"
         ]
+      },
+      {
+        "name": "Tofu Sahne Kartoffeln",
+        "items": [
+          "Tofu",
+          "Kartoffeln",
+          "Frischkäse",
+          "Tiefkühlgemüse",
+          "Harzer Käse",
+          "Sahne",
+          "Zwiebeln"
+        ]
       }
     ],
-    "updatedAt": 1791912359014
+    "updatedAt": 1791912435499
   },
   "timetracker": {
     "entries": [
