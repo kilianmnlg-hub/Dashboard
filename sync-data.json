@@ -385,13 +385,13 @@
     ],
     "active": {
       "youtube": null,
-      "bricklink": null
+      "bricklink": 1791909760377
     },
     "targets": {
       "youtube": 20,
       "bricklink": 7
     },
-    "updatedAt": 1791907857534
+    "updatedAt": 1791909760377
   },
   "inbox": {
     "items": [
