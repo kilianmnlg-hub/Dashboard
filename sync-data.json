@@ -33,11 +33,17 @@
   "todos": {
     "date": "2026-10-13",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "c4dac3df-67c1-4040-b373-81354bb7f5e8",
+          "text": "Vlog fertig cutten",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1791876433903
   },
   "tasks": {
     "items": [
