@@ -87,9 +87,14 @@
         "id": "f8be3894-f59e-44a7-8c06-bfff3c066914",
         "text": "clips erstellen",
         "done": false
+      },
+      {
+        "id": "17048d1c-8b4f-4e5a-b292-01df34b43fc0",
+        "text": "Fitness Tracker programmieren",
+        "done": false
       }
     ],
-    "updatedAt": 1791877098760
+    "updatedAt": 1791877214385
   },
   "shopping": {
     "items": [
