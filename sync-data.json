@@ -63,11 +63,11 @@
         {
           "id": "1d4c0c57-754e-48b5-a1a5-51ca682a079f",
           "text": "Geschirr",
-          "done": false
+          "done": true
         }
       ]
     },
-    "updatedAt": 1791880967751
+    "updatedAt": 1791901585600
   },
   "tasks": {
     "items": [
@@ -452,7 +452,8 @@
       },
       "2026-10-13": {
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-13": 6,
-        "habit:9473d02d-64a6-4dab-8017-3e4a354c855b@2026-10-13": 6
+        "habit:9473d02d-64a6-4dab-8017-3e4a354c855b@2026-10-13": 6,
+        "todo:1d4c0c57-754e-48b5-a1a5-51ca682a079f": 10
       }
     },
     "archive": {
@@ -460,6 +461,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791877394186
+    "updatedAt": 1791901585587
   }
 }
