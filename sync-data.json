@@ -59,10 +59,15 @@
           "id": "0a9d3f38-3e75-4d2d-a332-9814d8d0f4ee",
           "text": "Gym",
           "done": false
+        },
+        {
+          "id": "1d4c0c57-754e-48b5-a1a5-51ca682a079f",
+          "text": "Geschirr",
+          "done": false
         }
       ]
     },
-    "updatedAt": 1791877652706
+    "updatedAt": 1791880967751
   },
   "tasks": {
     "items": [
