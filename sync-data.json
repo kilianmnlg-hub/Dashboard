@@ -168,6 +168,12 @@
         "name": "Skyr",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "6757f721-a33f-4eb3-a35a-db112afc7187",
+        "name": "Light Käse",
+        "qty": "",
+        "aisle": "kuehl"
       }
     ],
     "history": {
@@ -268,7 +274,7 @@
         ]
       }
     ],
-    "updatedAt": 1791912356531
+    "updatedAt": 1791912359014
   },
   "timetracker": {
     "entries": [
