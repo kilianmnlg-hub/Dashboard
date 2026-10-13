@@ -156,6 +156,12 @@
         "name": "Tiefkühl-Obst",
         "qty": "",
         "aisle": "tk"
+      },
+      {
+        "id": "6189fb69-e121-45d5-9cb3-f183dc23e485",
+        "name": "Tiefkühlgemüse",
+        "qty": "",
+        "aisle": "tk"
       }
     ],
     "history": {
@@ -256,7 +262,7 @@
         ]
       }
     ],
-    "updatedAt": 1791912350964
+    "updatedAt": 1791912353625
   },
   "timetracker": {
     "entries": [
