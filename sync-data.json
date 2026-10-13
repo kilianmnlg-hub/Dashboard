@@ -58,7 +58,7 @@
         {
           "id": "0a9d3f38-3e75-4d2d-a332-9814d8d0f4ee",
           "text": "Gym",
-          "done": false
+          "done": true
         },
         {
           "id": "1d4c0c57-754e-48b5-a1a5-51ca682a079f",
@@ -67,7 +67,7 @@
         }
       ]
     },
-    "updatedAt": 1791901585600
+    "updatedAt": 1791901587342
   },
   "tasks": {
     "items": [
@@ -453,7 +453,8 @@
       "2026-10-13": {
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-13": 6,
         "habit:9473d02d-64a6-4dab-8017-3e4a354c855b@2026-10-13": 6,
-        "todo:1d4c0c57-754e-48b5-a1a5-51ca682a079f": 10
+        "todo:1d4c0c57-754e-48b5-a1a5-51ca682a079f": 10,
+        "todo:0a9d3f38-3e75-4d2d-a332-9814d8d0f4ee": 10
       }
     },
     "archive": {
@@ -461,6 +462,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791901585587
+    "updatedAt": 1791901587339
   }
 }
