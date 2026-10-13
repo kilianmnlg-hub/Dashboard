@@ -205,7 +205,8 @@
       "Frischkäse": 1,
       "Tiefkühl-Obst": 3,
       "Kuchen": 2,
-      "Magerquark": 2
+      "Magerquark": 2,
+      "Beeren": 2
     },
     "learned": {},
     "dishes": [
@@ -220,7 +221,7 @@
         ]
       }
     ],
-    "updatedAt": 1791837875433
+    "updatedAt": 1791877676854
   },
   "timetracker": {
     "entries": [
