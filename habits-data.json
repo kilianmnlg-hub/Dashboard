@@ -23,7 +23,7 @@
     {
       "id": "07b53929-622d-4cdf-baf0-47645c841575",
       "label": "Chalories",
-      "targetPerWeek": 7
+      "targetPerWeek": 5
     },
     {
       "id": "5f32178a-636b-448a-9c3e-0fb1708cebc7",
@@ -304,5 +304,5 @@
       "gym": true
     }
   },
-  "updatedAt": 1791901688339
+  "updatedAt": 1791901708136
 }
