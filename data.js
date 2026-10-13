@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-10-13",
-    "lastSyncedAt": "2026-10-13T13:20:46.884Z",
+    "lastSyncedAt": "2026-10-13T14:43:33.168Z",
     "owner": "Kilian"
   },
   "github": {
@@ -835,7 +835,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-10-13",
-        "value": 2797
+        "value": 2796
       }
     ]
   },
@@ -871,7 +871,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2797,
+      "current": 2796,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -880,7 +880,7 @@ const DASHBOARD_DATA = {
       "id": "bricklink-parts",
       "label": "Bricklink – Teile verkauft",
       "project": "bricklink",
-      "current": 83687,
+      "current": 83684,
       "target": 100000,
       "unit": "Teile",
       "due": "2026-12-31"
@@ -905,12 +905,21 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-13T13:20:46.263Z",
-    "openOrdersCount": 289,
-    "pendingShipments": []
+    "checkedAt": "2026-10-13T14:43:32.170Z",
+    "openOrdersCount": 290,
+    "pendingShipments": [
+      {
+        "orderId": 32802672,
+        "buyer": "Lenford83",
+        "status": "PAID",
+        "orderedDate": "2026-10-13T14:20:57.833Z",
+        "total": "14.4942",
+        "currency": "EUR"
+      }
+    ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-13T13:20:46.300Z",
+    "checkedAt": "2026-10-13T14:43:32.322Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -952,6 +961,11 @@ const DASHBOARD_DATA = {
         "weekStart": "2026-10-05",
         "total": 39.81,
         "orderCount": 2
+      },
+      {
+        "weekStart": "2026-10-12",
+        "total": 14.49,
+        "orderCount": 1
       }
     ],
     "monthly": [
@@ -987,8 +1001,8 @@ const DASHBOARD_DATA = {
       },
       {
         "month": "2026-10",
-        "total": 60.03,
-        "orderCount": 3
+        "total": 74.52,
+        "orderCount": 4
       }
     ]
   },
@@ -1076,10 +1090,10 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-10-12"
+      "to": "2026-10-13"
     },
     "totalsByCategory": {
-      "YouTube": 14051.57,
+      "YouTube": 14141.57,
       "Bricklink": 3768.86
     },
     "daily": [
@@ -1401,6 +1415,11 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-12",
         "YouTube": 316.01,
+        "Bricklink": 0
+      },
+      {
+        "date": "2026-10-13",
+        "YouTube": 90,
         "Bricklink": 0
       }
     ],
@@ -3098,6 +3117,13 @@ const DASHBOARD_DATA = {
         "start": 1791823920000,
         "end": 1791837780000,
         "min": 231.68
+      },
+      {
+        "id": "3f8430d3-4cf3-81c0-a686-fbabcb3a61bb",
+        "cat": "youtube",
+        "start": 1791885600000,
+        "end": 1791891000000,
+        "min": 90
       }
     ]
   }
