@@ -162,6 +162,12 @@
         "name": "Tiefkühlgemüse",
         "qty": "",
         "aisle": "tk"
+      },
+      {
+        "id": "2f40d68d-cbfe-47d6-9b49-d3be0b3ce7bf",
+        "name": "Skyr",
+        "qty": "",
+        "aisle": "kuehl"
       }
     ],
     "history": {
@@ -262,7 +268,7 @@
         ]
       }
     ],
-    "updatedAt": 1791912353625
+    "updatedAt": 1791912356531
   },
   "timetracker": {
     "entries": [
