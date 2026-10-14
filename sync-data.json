@@ -102,11 +102,6 @@
   "remoteTasks": {
     "items": [
       {
-        "id": "e5f84b7a-693a-4b29-8745-aeb94e567259",
-        "text": "Vlog 2 THumbnail",
-        "done": false
-      },
-      {
         "id": "b482340f-b900-41e8-a434-24d8b8111d91",
         "text": "nach brickowl informieren",
         "done": false
@@ -132,7 +127,7 @@
         "done": false
       }
     ],
-    "updatedAt": 1791901576748
+    "updatedAt": 1791993702326
   },
   "shopping": {
     "items": [
@@ -548,7 +543,8 @@
         "habit:9473d02d-64a6-4dab-8017-3e4a354c855b@2026-10-14": 6,
         "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-14": 6,
         "habit:koffein@2026-10-14": 6,
-        "todo:59aeb8ab-365f-4e31-abb6-3166293d77f0": 10
+        "todo:59aeb8ab-365f-4e31-abb6-3166293d77f0": 10,
+        "rtask:e5f84b7a-693a-4b29-8745-aeb94e567259": 12
       }
     },
     "archive": {
@@ -556,6 +552,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791993680679
+    "updatedAt": 1791993701910
   }
 }
