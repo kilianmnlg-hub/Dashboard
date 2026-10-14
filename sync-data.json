@@ -442,6 +442,12 @@
         "cat": "youtube",
         "start": 1791972000000,
         "end": 1791979200000
+      },
+      {
+        "id": "8d3c0c63-d46c-4620-b629-282aecc5e539",
+        "cat": "youtube",
+        "start": 1791987200243,
+        "end": 1791991738626
       }
     ],
     "removed": [
@@ -453,14 +459,14 @@
       "youtube|29749714"
     ],
     "active": {
-      "youtube": 1791987200243,
-      "bricklink": null
+      "youtube": null,
+      "bricklink": 1791991739440
     },
     "targets": {
       "youtube": 20,
       "bricklink": 7
     },
-    "updatedAt": 1791987209897
+    "updatedAt": 1791991739440
   },
   "inbox": {
     "items": [
@@ -538,7 +544,8 @@
       },
       "2026-10-14": {
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-14": 6,
-        "task:0bd7aa15-c40c-46cd-9fd9-d0dfea04b653": 12
+        "task:0bd7aa15-c40c-46cd-9fd9-d0dfea04b653": 12,
+        "habit:9473d02d-64a6-4dab-8017-3e4a354c855b@2026-10-14": 6
       }
     },
     "archive": {
@@ -546,6 +553,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791958305191
+    "updatedAt": 1791992846190
   }
 }
