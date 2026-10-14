@@ -61,11 +61,17 @@
   "todos": {
     "date": "2026-10-14",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "f3f64313-06d2-404c-9934-92ee139a0aef",
+          "text": "18+ JW Skript",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1791958320918
   },
   "tasks": {
     "items": [
