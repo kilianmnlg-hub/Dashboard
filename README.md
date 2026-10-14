@@ -217,7 +217,9 @@ Limit) als Short. Faustregel für die Ampel: 🟢 im Ziel-Rhythmus, 🟡 bis zum
 
 Auf beiden YouTube-Karten: eine kleine Ideen-Liste statt eines einzelnen
 Notizfelds. Eine Idee ist farblich hervorgehoben als "die nächste
-Video-Idee"; darunter der Rest als "Weitere Ideen". Welche Idee oben steht,
+Video-Idee"; darunter der Rest als "Weitere Ideen", der eingeklappt ist (mit der
+Anzahl daneben) und erst per Klick aufgeht. Beim Laden ist er immer zu, damit nur
+die nächste Idee zu sehen ist. Welche Idee oben steht,
 wird **ausschließlich manuell** per Klick festgelegt (Text oder ↑-Pfeil in
 "Weitere Ideen") — es rutscht nichts automatisch nach. Hakst du die aktuelle
 "nächste Idee" ab (Video ist fertig), bleibt der Platz bewusst **leer**, bis

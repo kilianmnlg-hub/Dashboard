@@ -1401,6 +1401,10 @@
       });
     }
 
+    // Weitere Ideen: nur die naechste Idee ist sichtbar, der Rest steckt in einem Ausklappfeld (beim Laden immer zu)
+    widget.moreEl.hidden = backlogItems.length === 0;
+    widget.moreNEl.textContent = String(backlogItems.length);
+    if (!backlogItems.length) widget.moreEl.open = false;
     widget.backlogEl.innerHTML = backlogItems
       .map(
         (item) => `
@@ -1480,7 +1484,10 @@
           ? `<div class="idea-note">
               <p class="idea-note-label">Nächste Video-Idee</p>
               <div class="idea-next" id="idea-next-${key}"></div>
-              <ul class="idea-backlog" id="idea-backlog-${key}"></ul>
+              <details class="idea-more" id="idea-more-${key}" hidden>
+                <summary><span>Weitere Ideen</span><em id="idea-more-n-${key}">0</em></summary>
+                <ul class="idea-backlog" id="idea-backlog-${key}"></ul>
+              </details>
               <div class="idea-add">
                 <textarea id="idea-input-${key}" rows="3" placeholder="Neue Video-Idee… (Enter zum Hinzufügen, Shift+Enter für Zeilenumbruch)" maxlength="300"></textarea>
                 <button type="button" id="idea-add-btn-${key}" aria-label="Idee hinzufügen">+</button>
@@ -1497,7 +1504,9 @@
       const backlogEl = card.querySelector(`#idea-backlog-${key}`);
       const addInput = card.querySelector(`#idea-input-${key}`);
       const addBtn = card.querySelector(`#idea-add-btn-${key}`);
-      ideaWidgets[key] = { nextEl, backlogEl };
+      const moreEl = card.querySelector(`#idea-more-${key}`);
+      const moreNEl = card.querySelector(`#idea-more-n-${key}`);
+      ideaWidgets[key] = { nextEl, backlogEl, moreEl, moreNEl };
       renderIdeaWidget(key);
 
       const addIdea = () => {
@@ -1512,6 +1521,13 @@
         addInput.value = "";
         renderIdeaWidget(key);
         flashNewItem(backlogEl, newItem.id);
+        const badge = ideaWidgets[key].moreNEl;
+        if (!prefersReducedMotion() && badge) {
+          badge.classList.remove("li-enter");
+          void badge.offsetWidth;
+          badge.classList.add("li-enter");
+          badge.addEventListener("animationend", () => badge.classList.remove("li-enter"), { once: true });
+        }
       };
       addBtn.addEventListener("click", addIdea);
       addInput.addEventListener("keydown", (e) => {
