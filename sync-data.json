@@ -468,14 +468,14 @@
       "youtube|29749714"
     ],
     "active": {
-      "youtube": null,
+      "youtube": 1792001339540,
       "bricklink": null
     },
     "targets": {
       "youtube": 20,
       "bricklink": 7
     },
-    "updatedAt": 1791998867636
+    "updatedAt": 1792001339540
   },
   "inbox": {
     "items": [
@@ -491,10 +491,9 @@
   },
   "fold": {
     "collapsed": [
-      "notizen",
-      "einkauf"
+      "notizen"
     ],
-    "updatedAt": 1791958796930,
+    "updatedAt": 1792001497348,
     "lvl": 5
   },
   "xp": {
