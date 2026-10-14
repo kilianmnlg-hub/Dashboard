@@ -560,7 +560,8 @@
         "todo:59aeb8ab-365f-4e31-abb6-3166293d77f0": 10,
         "rtask:e5f84b7a-693a-4b29-8745-aeb94e567259": 12,
         "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-14": 6,
-        "habit:b07e389a-dfc6-4ab9-830c-5daf53425daf@2026-10-14": 6
+        "habit:b07e389a-dfc6-4ab9-830c-5daf53425daf@2026-10-14": 6,
+        "habit:07b53929-622d-4cdf-baf0-47645c841575@2026-10-14": 6
       }
     },
     "archive": {
@@ -568,6 +569,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792001515449
+    "updatedAt": 1792001517066
   }
 }
