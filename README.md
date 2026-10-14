@@ -21,7 +21,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `.github/workflows/sync-all.yml` — automatischer Sync jeden Tag um 08:00 Uhr
   (plus manuell auslösbar über den Sync-Button im Dashboard oder den Actions-Tab)
 - `manifest.webmanifest`, `icon-*.png`, `sw.js` — machen das Dashboard als PWA installierbar
-- `scenery.js` — Pixel-Dschungel: das animierte Pixelbild in der Brain-Karte mit den Easter Eggs (siehe Abschnitt "Pixel-Dschungel")
+- `scenery.js` — Pixel-Dschungel: das animierte Pixelbild hinter der Brain-Karte (und als Streifen über einigen Bereichen) mit den Easter Eggs (siehe Abschnitt "Pixel-Dschungel")
 - `habits-data.json` — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
   direkt aus dem Browser aktualisiert (siehe Abschnitt "Habit-Tracker")
 - `sync-data.json` — Cloud-Kopie von Video-Ideen, Studium-Termin, Tages-To-Do und
@@ -505,9 +505,10 @@ Neustart auf 0: das Feld `xp` in `sync-data.json` löschen; beim nächsten Laden
 
 ## Pixel-Dschungel (Bild und Easter Eggs)
 
-Oben in der Brain-Karte steht ein großes, animiertes Pixelbild (ein Wasserfall-Tal im Dschungel), dazu je ein schmaler Streifen mit einem anderen
-Ausschnitt über To-Do, Habits, Zeittracker und Notizen. Das Bild ist komplett per Code gezeichnet (`scenery.js`), es gibt keine Bilddatei. Ein Klick auf
-das Bild oder einen Streifen öffnet das ganze Bild mit der Liste der Easter Eggs.
+Die Brain-Karte liegt auf einem großen, animierten Pixelbild (ein Wasserfall-Tal im Dschungel); Begrüßung und Brain-Graph stehen davor, auf kleinen
+Platten, damit sie lesbar bleiben. Dazu kommt über To-Do, Habits, Zeittracker und Notizen je ein schmaler Streifen mit einem anderen Ausschnitt. Das Bild
+ist komplett per Code gezeichnet (`scenery.js`), es gibt keine Bilddatei. Ein Klick auf das Schild "EASTER EGGS" in der Brain-Karte oder auf einen Streifen
+öffnet das ganze Bild mit der Liste der Easter Eggs (ein Tippen auf das Bild selbst tut in der Karte nichts, damit der Brain-Graph bedienbar bleibt).
 
 - **Tageszeit nach Uhr:** Morgen (5 bis 10 Uhr), Tag (10 bis 17), Abend (17 bis 20), Nacht (20 bis 5). Licht und Farben ändern sich; nachts leuchten
   Laterne, Lagerfeuer, Lotus, Tempelzeichen und die Augen von Eule, Fuchs und Katzenstatue.
@@ -548,7 +549,7 @@ Gerät schon angezeigt wurden, damit der Hinweis nur einmal erscheint).
 
 **Technik:** `scenery.js` ist in Abschnitte gegliedert (Zeichenwerkzeuge, Szene, Sprites, Easter Eggs, Laufzeit, Oberfläche). Der Aufbau dauert ca. 0,3 Sekunden
 und passiert erst nach dem ersten Anzeigen der Seite; danach läuft das Bild mit ca. 6 Bildern pro Sekunde, nur solange es im sichtbaren Bereich ist und der
-Tab offen ist. Bei "Bewegung reduzieren" im System zeigt es ein ruhiges Standbild. Auf dem Handy schwenkt der Banner sehr langsam über das Bild.
+Tab offen ist. Bei "Bewegung reduzieren" im System zeigt es ein ruhiges Standbild. Auf dem Handy schwenkt das Bild sehr langsam hinter der Karte. Zugeklappt bleibt von der Brain-Karte ein schmales Band mit dem Bild dahinter.
 
 ## Einklappbare Fenster
 

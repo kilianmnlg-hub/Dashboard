@@ -1779,22 +1779,45 @@ body[data-cloud="failed"] .cl-txt { color: var(--status-warning); }
 @media (min-width: 1760px) { .lvl-rank { display: inline; } }
 
 /* ==========================================================================
-   Pixel-Dschungel (scenery.js): Bild oben in der Brain-Karte, Streifen ueber einigen Bereichen, Easter-Egg-Liste
+   Pixel-Dschungel (scenery.js): Bild als Hintergrund der Brain-Karte, Streifen ueber einigen Bereichen, Easter-Egg-Liste
    und Hinweis bei neuen Eiern. Das Bild selbst wird per Code in <canvas> gezeichnet (keine Bilddatei).
    ========================================================================== */
-@media (min-width: 861px) { .brain-card { flex-wrap: wrap; align-content: flex-start; min-height: 0; } .brain-card .brain-copy, .brain-card .brain-scene-wrap { min-height: 300px; } }
-.scn-banner { flex: none; width: 100%; position: relative; height: clamp(150px, 18vw, 340px); border-bottom: 2px solid var(--text); background: #06242c; overflow: hidden; cursor: pointer; }
+
+/* Brain-Karte: das Bild liegt hinter Begruessung und Brain-Graph, die Karte wird dadurch nicht hoeher */
+.brain-card { isolation: isolate; padding-bottom: 38px; } /* unten bleibt Platz fuer die zwei Schilder auf dem Bild */
+@media (min-width: 861px) { .brain-card { min-height: 0; } .brain-card .brain-copy, .brain-card .brain-scene-wrap { min-height: 300px; } }
+.scn-banner { position: absolute; inset: 0; background: #06242c; overflow: hidden; pointer-events: none; }
+.scn-banner::after { content: ""; position: absolute; inset: 0; background: rgba(8, 11, 13, .22); pointer-events: none; }
 .scn-banner canvas, .scn-strip canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; opacity: 0; transition: opacity .5s steps(5); }
 .scn-banner.ready canvas, .scn-strip.ready canvas { opacity: 1; }
 .scn-banner:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
-.brain-card.is-folded .scn-banner { display: none; }
-.scn-chip { position: absolute; z-index: 2; font-family: var(--px); font-size: 8px; line-height: 1; padding: 6px 7px 5px; background: color-mix(in srgb, var(--bg) 84%, transparent); color: var(--text); border: 2px solid var(--text); box-shadow: 2px 2px 0 var(--pxs); white-space: nowrap; pointer-events: none; }
-.scn-eggs { left: 10px; bottom: 12px; color: var(--gold); }
+.scn-chip { position: absolute; z-index: 3; font-family: var(--px); font-size: 8px; line-height: 1; padding: 6px 7px 5px; background: color-mix(in srgb, var(--bg) 84%, transparent); color: var(--text); border: 2px solid var(--text); box-shadow: 2px 2px 0 var(--pxs); white-space: nowrap; pointer-events: none; }
+.scn-eggs { left: 10px; bottom: 12px; color: var(--gold); pointer-events: auto; cursor: pointer; }
 .scn-phase { right: 12px; bottom: 12px; color: var(--text-muted); }
-.scn-banner:hover .scn-eggs, .scn-banner:focus-visible .scn-eggs { border-color: var(--accent); }
+.scn-eggs:hover, .scn-banner:focus-visible .scn-eggs { border-color: var(--accent); }
 .scn-chip.scn-new { border-color: var(--gold); animation: pxBlink .9s steps(1) infinite; }
+
+/* Begruessung als Platte auf dem Bild */
+.brain-card .brain-copy { flex: 0 0 auto; width: 304px; box-sizing: border-box; margin: 22px 0 22px 22px; padding: 22px 22px 24px; align-self: center;
+  background: color-mix(in srgb, var(--surface) 90%, transparent); border: 2px solid var(--text); box-shadow: 4px 4px 0 var(--pxs); min-height: 0; z-index: 2; }
+.brain-card .brain-scene-wrap { background: none; border-left: 0; z-index: 2; }
+
+/* Brain-Graph auf dem Bild: Linien kraeftiger, Beschriftungen auf kleinen Platten */
+.brain-card svg.links line { stroke: var(--text); opacity: .75; }
+.brain-card svg.links line.lit { stroke: var(--accent); opacity: 1; }
+.brain-card .node-label { background: color-mix(in srgb, var(--surface) 92%, transparent); padding: 3px 5px 2px; border: 2px solid var(--text); box-shadow: 2px 2px 0 var(--pxs); }
+
+/* zugeklappt: die Karte bleibt ein schmales Band mit dem Bild dahinter */
+.brain-card.is-folded .brain-copy { flex: 1 1 auto; width: auto; margin: 14px 64px 14px 14px; padding: 16px 18px; }
+
+@media (max-width: 860px) {
+  .brain-card .brain-copy { width: auto; margin: 14px 14px 0; padding: 18px 18px 20px; align-self: stretch; }
+  .brain-card .brain-scene-wrap { min-height: 340px; border-top: 0; }
+}
+
+/* Streifen ueber den Bereichen */
 .scn-strip { position: relative; height: 60px; margin: 0 0 22px; border: 2px solid var(--text); box-shadow: 4px 4px 0 var(--pxs); background: #06242c; overflow: hidden; cursor: pointer; }
-@media (max-width: 720px) { .scn-banner { height: 172px; } .scn-strip { height: 52px; margin-bottom: 18px; } }
+@media (max-width: 720px) { .scn-strip { height: 52px; margin-bottom: 18px; } }
 
 /* Liste der Easter Eggs mit dem ganzen Bild */
 body.scn-lock { overflow: hidden; }

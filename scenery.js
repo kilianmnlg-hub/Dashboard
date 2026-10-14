@@ -947,7 +947,8 @@
       var box = tg.cv.parentNode.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
       var wd = Math.max(1, Math.round(box.width * dpr)), hd = Math.max(1, Math.round(box.height * dpr));
       if (tg.cv.width !== wd || tg.cv.height !== hd) { tg.cv.width = wd; tg.cv.height = hd; }
-      tg.k = Math.max(Math.ceil(wd / W), Math.round(MIN_CSS * dpr), 1);
+      /* auch hohe Flaechen (Bild als Kartenhintergrund) sollen komplett gefuellt sein: das Bild ist nur H Zeilen hoch */
+      tg.k = Math.max(Math.ceil(wd / W), Math.ceil(hd / H), Math.round(MIN_CSS * dpr), 1);
       tg.cols = Math.ceil(wd / tg.k); tg.rows = Math.ceil(hd / tg.k);
       tg.ox = -Math.round((tg.cols * tg.k - wd) / 2); tg.oy = -Math.round((tg.rows * tg.k - hd) / 2);
     }
