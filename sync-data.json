@@ -80,17 +80,12 @@
         "done": false
       },
       {
-        "id": "0bd7aa15-c40c-46cd-9fd9-d0dfea04b653",
-        "text": "Vlog fertig cutten",
-        "done": false
-      },
-      {
         "id": "764fb29a-86a1-4020-ace5-1a087491f5f1",
         "text": "lego waschen",
         "done": false
       }
     ],
-    "updatedAt": 1791957492617
+    "updatedAt": 1791958305673
   },
   "remoteTasks": {
     "items": [
@@ -523,7 +518,8 @@
         "habit:koffein@2026-10-13": 6
       },
       "2026-10-14": {
-        "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-14": 6
+        "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-14": 6,
+        "task:0bd7aa15-c40c-46cd-9fd9-d0dfea04b653": 12
       }
     },
     "archive": {
@@ -531,6 +527,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1791957506165
+    "updatedAt": 1791958305191
   }
 }
