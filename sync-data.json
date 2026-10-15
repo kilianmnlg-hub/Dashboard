@@ -55,30 +55,13 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-10-14",
+    "date": "2026-10-15",
     "items": {
-      "business": [
-        {
-          "id": "f3f64313-06d2-404c-9934-92ee139a0aef",
-          "text": "18+ JW Skript",
-          "done": false
-        },
-        {
-          "id": "59aeb8ab-365f-4e31-abb6-3166293d77f0",
-          "text": "lego waschen",
-          "done": true
-        }
-      ],
+      "business": [],
       "studium": [],
-      "privat": [
-        {
-          "id": "31e5d5ea-b159-4c04-a77b-a0d5a6279520",
-          "text": "Wäsche waschen",
-          "done": false
-        }
-      ]
+      "privat": []
     },
-    "updatedAt": 1791993680682
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -91,9 +74,19 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
+      },
+      {
+        "id": "1881b28b-6567-493a-ba12-f0c413df1ba2",
+        "text": "18+ JW Skript",
+        "done": false
+      },
+      {
+        "id": "36f91720-ae13-449a-a9f0-d5fee6b44c68",
+        "text": "Wäsche waschen",
+        "done": false
       }
     ],
-    "updatedAt": 1791958328263
+    "updatedAt": 1792043547512
   },
   "remoteTasks": {
     "items": [
