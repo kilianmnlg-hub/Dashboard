@@ -57,11 +57,17 @@
   "todos": {
     "date": "2026-10-15",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "f638ea74-1dbe-4344-9f52-ef06acef28a7",
+          "text": "18+ JW Skript",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1792046661556
   },
   "tasks": {
     "items": [
@@ -76,17 +82,12 @@
         "done": false
       },
       {
-        "id": "1881b28b-6567-493a-ba12-f0c413df1ba2",
-        "text": "18+ JW Skript",
-        "done": false
-      },
-      {
         "id": "36f91720-ae13-449a-a9f0-d5fee6b44c68",
         "text": "Wäsche waschen",
         "done": false
       }
     ],
-    "updatedAt": 1792043547512
+    "updatedAt": 1792046661555
   },
   "remoteTasks": {
     "items": [
