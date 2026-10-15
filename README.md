@@ -23,6 +23,8 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `manifest.webmanifest`, `icon-*.png`, `sw.js` — machen das Dashboard als PWA installierbar
 - `scenery.js` — Pixel-Dschungel: das animierte Pixelbild hinter der Brain-Karte (und als Streifen über einigen Bereichen) mit den Easter Eggs (siehe Abschnitt "Pixel-Dschungel")
 - `guests.js`, `guests-data.js` — Pixel-Gäste: 255 Film-, Serien- und Spielfiguren als Easter Eggs im Dashboard mit Skilltree (siehe Abschnitt "Pixel-Gäste"); `guests-data.js` ist erzeugt (Sprites und Level-Themen)
+- `training.js` — Training: Trainingsplan, Workout-Modus und Verlauf mit Statistiken, mit selbst gezeichneten Pixel-Symbolen (siehe Abschnitt "Training")
+- `training-data.json` — Cloud-Datei des Trainings (Pläne, Einheiten, eigene Übungen); entsteht beim ersten Speichern und wird direkt aus dem Browser aktualisiert
 - `habits-data.json` — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
   direkt aus dem Browser aktualisiert (siehe Abschnitt "Habit-Tracker")
 - `sync-data.json` — Cloud-Kopie von Video-Ideen, Studium-Termin, Tages-To-Do und
@@ -56,6 +58,7 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 | Nächste Prüfung/Abgabe (Studium) | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
 | Tages-To-Do | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
 | Aufgaben (persistent) | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
+| Training (Pläne, Einheiten, eigene Übungen) | — | eigene Daten, ✅ Cloud-Sync automatisch und über den Sync-Button, dazu lokale Kopie am Gerät (siehe Abschnitt "Training") |
 
 **Warum nicht alles automatisch geht:**
 - YouTube **Views/Wiedergabezeit/Umsatz** stammen aus YouTube Analytics, nicht aus der
@@ -497,6 +500,10 @@ Der Level startete am 09.10.2026 bei 0. Jedes Abhaken gibt Punkte (XP), die auto
 | Erfasste Zeit | 4 pro volle halbe Stunde |
 | Notiz vom Handy | 3 |
 | Einkaufsartikel abgehakt | 2 |
+| Training: neuer Rekord bei einer Übung (einmal je Übung und Einheit) | 10 |
+| Training: Steigerung gegenüber dem letzten Mal (mehr Gewicht oder mehr Wiederholungen) | 5 |
+
+Beim Training gibt es höchstens 8 solcher Buchungen je Einheit, Ausdauer zählt nicht, beim ersten Mal einer Übung gibt es nichts; dazu wird das Habit "Gym" abgehakt (das gibt die normalen Habit-Punkte).
 
 **Ränge** alle fünf Level: Anfänger (0), Lehrling (5), Geselle (10), Experte (15), Meister (20), Großmeister (25), Veteran (30), Champion (35),
 Legende (40), Mythos (50). Der Rang steht im Tooltip der Level-Anzeige (auf sehr breiten Bildschirmen auch daneben) und beim Rangwechsel im Level-up.
@@ -696,6 +703,45 @@ Es gelten dieselben Regeln wie bei den Aufgaben (siehe "Cloud-only" unten): neue
 leerer Stand überschreibt nie einen gefüllten. Die Einkaufsliste wird als Ganzes synchronisiert, parallele
 Änderungen auf zwei Geräten innerhalb weniger Sekunden können sich also gegenseitig überschreiben.
 
+## Training
+
+Eigener Bereich ganz unten, direkt über den Notizen (Code in `training.js`, Menüpunkt "Training"). Oben steht immer die Karte **Als nächstes**: der nächste Trainingstag
+deines Plans mit den Symbolen seiner Übungen und den Knöpfen START und FREIES TRAINING (läuft schon eins, steht dort "Training läuft" und WEITER). Darunter zwei Reiter:
+
+- **Verlauf** (beim Öffnen sichtbar): Wochenleiste (grün = trainiert, rot = verpasster Trainingstag, grau = Ruhetag), Übersicht mit Einheiten, Stunden und Serie für
+  Woche, Monat, Jahr oder gesamt, dazu kleine Kacheln: Muskelverteilung, Rekorde, Kraft pro Übung (mit geschätztem Maximum nach Epley), Kalender, Jahresübersicht,
+  Sätze je Woche und die letzten Einheiten. Ein Tipp auf eine Kachel öffnet die Einzelheiten in einem Fenster, Einheiten lassen sich dort ansehen und löschen. Export als JSON.
+- **Plan:** mehrere Pläne mit Wechsler, je Plan beliebig viele Trainingstage (Name, Fokus, Farbe, Übungen mit Sätzen, Wiederholungen und Gewicht, gleich für alle Sätze oder je
+  Satz, Notiz). Der Katalog hat 244 Übungen in 8 Muskelgruppen (Suche, Filter nach Gruppe und Gerät, eigene Übungen), dazu vier Vorlagen, Ruhetage (Standard Samstag und
+  Sonntag) und Einstellungen (Pausenzeit, Ton, Vibration, Schrittweite, Plan automatisch nachziehen). Am Anfang sind Pläne und Verlauf leer, nur der Katalog ist da.
+
+**Workout-Modus** (Vollbild): die Übungen als Liste mit Haken je Satz, oder die Ansicht **Live** mit einem Satz groß. Daneben steht "Zuletzt" (die Sätze der letzten Einheit)
+und das Ziel. Nach jedem Haken läuft ein Pause-Timer (mit Ton und Vibration, abschaltbar); dazu Notiz je Übung, Satz oder Übung dazu, umsortieren, ersetzen und minimieren
+(die Leiste unten bringt zurück). Das Display bleibt an (Wake Lock, wo der Browser es erlaubt). Ein laufendes Training überlebt Neuladen und die Zurück-Taste.
+
+**Regeln:**
+- Ziel = gleiches Gewicht wie der beste Satz der letzten Einheit, eine Wiederholung mehr. Ein Satz ist besser, wenn er mehr Gewicht hat, bei gleichem Gewicht mehr Wiederholungen.
+- **Rekord** = bester Satz besser als alles davor, **Steigerung** = besser als beim letzten Mal. Haltübungen zählen Sekunden, Ausdauer (km und Minuten) zählt nicht.
+- Eine Einheit zählt am Tag des Starts. Rot wird erst ab dem Tag der ersten Einheit angezeigt; Ruhetage sind neutral. Serie = Trainingstage in Folge, Ruhetage überspringt sie.
+- Nach dem Training werden die Werte des Plans auf die geschafften Sätze gesetzt (abschaltbar; die Zahl der Sätze schrumpft dabei nie). Startwerte im Workout: die des Plans,
+  wenn er nach der letzten Einheit geändert wurde, sonst die der letzten Einheit.
+
+**XP und Habit:** Beim Beenden gibt ein neuer Rekord 10 XP und eine Steigerung 5 XP (siehe Level-System), und das Habit "Gym" (`gym`) wird für den Tag der Einheit abgehakt.
+Die Abschlussansicht zeigt die Level-Leiste und bei einem Aufstieg "Level up". Jede Buchung hat einen festen Schlüssel (`train:pr:<Einheit>:<Übung>`) und zählt nur einmal.
+Ist die Cloud noch nicht geladen (z.B. im Studio ohne Netz), werden XP und Habit im Browser vorgemerkt (`dashboard-training-pend`) und beim nächsten Laden eingelöst.
+
+**Speicherung (bewusste Ausnahme von "Cloud-only", siehe unten):** Die Daten liegen in `training-data.json` im Repo (`plans`, `rest`, `settings`, `custom`, `sessions`, `del`).
+Am Gerät bleibt zusätzlich eine lokale Kopie (`dashboard-training-cache`), das laufende Workout als Entwurf (`dashboard-training-draft`) und die vorgemerkten Belohnungen
+(`dashboard-training-pend`), damit das Handy im Studio auch ohne Netz weiter bedienbar bleibt; die Sperre der Seite beim Laden (`body[data-cloud]`) gilt für diesen Bereich nicht.
+Änderungen werden nach ca. 0,7 Sekunden gepusht; es wird nie geschrieben, bevor der Cloud-Stand gelesen wurde. Ohne Netz steht "Lokal gesichert · warte auf Netz", beim
+nächsten Netz und alle 60 Sekunden gibt es einen neuen Versuch. Bei einem Konflikt (zweites Gerät) wird neu gelesen, vereinigt und wiederholt: Pläne nach Zeitstempel (ein leerer
+Plan ersetzt nie einen gefüllten), Einheiten und eigene Übungen als Liste mit Lösch-Markern. Der **Sync**-Button liest und sichert das Training mit. Wie alle Daten im Repo sind auch
+diese öffentlich lesbar.
+
+**Technik:** `training.js` (ca. 165 KB) wird aus den Quellen im Arbeitsordner (`training/`) gebaut. Die 16 × 16 Pixel großen Symbole (20 für Übungen und Geräte, 8 für Muskelgruppen)
+sind per Code gezeichnet (Umriss, drei Töne je Material) und ordnen jede der 244 Übungen automatisch zu. Pixel-Gäste stehen auch hier auf freien Stellen (Oberkanten der Karten, Lücken,
+Seitenränder); Fenster und Vollbild liegen über ihnen.
+
 ## Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben / Remote Tasks / Einkaufsliste
 
 Diese vier kleinen, unabhängigen Felder teilen sich eine gemeinsame Cloud-Datei
@@ -730,6 +776,10 @@ welchem Level die Easter Eggs schon angezeigt wurden (`dashboard-scn-seen`, nur 
 selbst liegt nicht hier, sondern in der Cloud) sowie bei den Pixel-Gästen der Merker für "schon angezeigt" (`dashboard-guests-seen`), "ausgeblendet"
 (`dashboard-guests-off`) und die Besetzung der Easter-Egg-Plätze (`dashboard-guests-v2`, pro Gerät, weil das Layout je Gerät anders ist; reine Optik).
 
+**Bewusste Ausnahme: das Training.** Es soll im Studio ohne Netz bedienbar bleiben. Deshalb liegen dort eine lokale Kopie der Trainingsdaten (`dashboard-training-cache`), das laufende
+Workout (`dashboard-training-draft`) und noch nicht eingelöste XP samt Habit "Gym" (`dashboard-training-pend`) im Browser; die Cloud-Datei `training-data.json` bleibt maßgeblich und wird
+bei jedem Laden gelesen und vereinigt, die Kopie wird erst nach erfolgreichem Push als gesichert markiert (Details im Abschnitt "Training").
+
 **Verhalten:**
 - Beim Laden wird der Cloud-Stand frisch über die GitHub-API gelesen. Bis er da ist,
   ist die Seite kurz gesperrt (leicht ausgegraut). Schlägt das Laden fehl, bleibt sie
@@ -762,7 +812,7 @@ geht es über Safari → Teilen → "Zum Home-Bildschirm". Technisch dahinter:
 Der Service Worker ist bewusst simpel gehalten: **network-first** für alle
 Dateien inklusive `data.js` — das Netzwerk hat immer Vorrang, der Cache dient
 nur als Fallback für die App-Dateien ohne Internetverbindung. Bei jedem Laden wird beim Server nachgefragt (`no-cache`), damit GitHub Pages' 10-Minuten-Zwischenspeicher keine alte Version festhält. Die Daten-Dateien
-(`habits-data.json`, `sync-data.json`) und alle fremden Hosts (GitHub-API, Google)
+(`habits-data.json`, `sync-data.json`, `training-data.json`) und alle fremden Hosts (GitHub-API, Google)
 ignoriert er komplett, damit nie ein veralteter Cloud-Stand ausgeliefert wird.
 
 **Versionsnummer gegen veraltete Dateien:** `styles.css`, `shopping.js`, `timetracker.js` und `script.js` hängen in `index.html`

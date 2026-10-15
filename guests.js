@@ -68,9 +68,9 @@
 
   var RANKS = [[0, "Anfänger"], [5, "Lehrling"], [10, "Geselle"], [15, "Experte"], [20, "Meister"], [25, "Großmeister"], [30, "Veteran"], [35, "Champion"], [40, "Legende"], [50, "Mythos"]];
   var rankOf = function (L) { var r = RANKS[0][1]; RANKS.forEach(function (x) { if (L >= x[0]) r = x[1]; }); return r; };
-  var SEC = { kalender: "kalender", todo: "todo", aufgaben: "aufgaben", "remote-tasks": "remote", habits: "habits", ziele: "ziele", business: "business", zeit: "zeit", einkauf: "einkauf", notizen: "notizen" };
-  var WHERE = { brain: "Brain-Karte", kalender: "Kalender", todo: "To-Do", aufgaben: "Aufgaben", remote: "Remote Tasks", habits: "Habits", ziele: "Ziele", business: "Business", zeit: "Zeittracker", einkauf: "Einkauf", notizen: "Notizen", bar: "Kopfzeile", foot: "Seitenende" };
-  var HOST_SEL = ".card, .panel, .tt-card, .shop-card, .brain-card, .scn-strip, footer.footer";
+  var SEC = { kalender: "kalender", todo: "todo", aufgaben: "aufgaben", "remote-tasks": "remote", habits: "habits", ziele: "ziele", business: "business", zeit: "zeit", einkauf: "einkauf", training: "training", notizen: "notizen" };
+  var WHERE = { brain: "Brain-Karte", kalender: "Kalender", todo: "To-Do", aufgaben: "Aufgaben", remote: "Remote Tasks", habits: "Habits", ziele: "Ziele", business: "Business", zeit: "Zeittracker", einkauf: "Einkauf", training: "Training", notizen: "Notizen", bar: "Kopfzeile", foot: "Seitenende" };
+  var HOST_SEL = ".card, .panel, .tt-card, .shop-card, .tr-main .tr-card, .brain-card, .scn-strip, footer.footer";
   var SKIP_SEL = "#guestLayer, .g-tip, .g-toast, .g-bar, .gp, .gp-back, .overlay, .cloud-load, .px-fx, script, style, noscript, template";
   var INK_TAGS = { IMG: 1, CANVAS: 1, SVG: 1, VIDEO: 1, INPUT: 1, SELECT: 1, TEXTAREA: 1, BUTTON: 1, PROGRESS: 1, METER: 1, IFRAME: 1, HR: 1 };
   /* Groessenklassen in Bildpunkten: 1 = Standardfigur (bis 20 x 28), 2 = mittel (bis 38 x 38), 3 = gross (bis 66 x 43) */

@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Kilian – Dashboard</title>
-<link rel="stylesheet" href="styles.css?v=20261015a" />
+<link rel="stylesheet" href="styles.css?v=20261015b" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-64.png" type="image/png" sizes="64x64" />
 <link rel="apple-touch-icon" href="icon-200.png" />
@@ -45,6 +45,7 @@
       <a href="#business">Business</a>
       <a href="#zeit">Zeittracker</a>
       <a href="#einkauf">Einkauf</a>
+      <a href="#training">Training</a>
       <a href="#notizen">Notizen</a>
     </nav>
     <span class="auto-sync-status" id="autoSyncStatus" hidden></span>
@@ -361,6 +362,14 @@
     </div>
   </section>
 
+  <section id="training" class="section tr" aria-label="Training">
+    <div class="section-head">
+      <h2><span class="section-marker"></span>Training</h2>
+      <div class="tr-sync" id="trSync" data-s="load" aria-live="polite"><i></i><span class="tr-sync-t">LADE …</span></div>
+    </div>
+    <div class="tr-main" id="trMain"></div>
+  </section>
+
   <section id="notizen" class="section">
     <div class="section-head">
       <h2><span class="section-marker"></span>Notizen</h2>
@@ -392,15 +401,16 @@
 </footer>
 
 <script src="data.js"></script>
-<script src="quotes.js?v=20261015a"></script>
-<script src="xp.js?v=20261015a"></script>
-<script src="shopping.js?v=20261015a"></script>
-<script src="timetracker.js?v=20261015a"></script>
-<script src="inbox.js?v=20261015a"></script>
-<script src="scenery.js?v=20261015a"></script>
-<script src="guests-data.js?v=20261015a"></script>
-<script src="guests.js?v=20261015a"></script>
-<script src="fold.js?v=20261015a"></script>
-<script src="script.js?v=20261015a"></script>
+<script src="quotes.js?v=20261015b"></script>
+<script src="xp.js?v=20261015b"></script>
+<script src="shopping.js?v=20261015b"></script>
+<script src="timetracker.js?v=20261015b"></script>
+<script src="inbox.js?v=20261015b"></script>
+<script src="training.js?v=20261015b"></script>
+<script src="scenery.js?v=20261015b"></script>
+<script src="guests-data.js?v=20261015b"></script>
+<script src="guests.js?v=20261015b"></script>
+<script src="fold.js?v=20261015b"></script>
+<script src="script.js?v=20261015b"></script>
 </body>
 </html>

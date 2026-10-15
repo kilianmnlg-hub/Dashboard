@@ -612,8 +612,8 @@
     // mit hoch (Contents API, kein Workflow nötig — sofort fertig, nicht Teil des
     // "läuft 15-30s"-Hinweises unten).
     setAutoSyncStatus("saving");
-    Promise.all([pushHabitsToCloud(config), pushSyncDataToCloud(config)])
-      .then(([habitsOk, syncDataOk]) => setAutoSyncStatus(habitsOk && syncDataOk ? "saved" : "error"))
+    Promise.all([pushHabitsToCloud(config), pushSyncDataToCloud(config), trainingBoard ? trainingBoard.sync() : true])
+      .then(([habitsOk, syncDataOk, trainingOk]) => setAutoSyncStatus(habitsOk && syncDataOk && trainingOk ? "saved" : "error"))
       .catch((err) => setAutoSyncStatus("error", err.message));
 
     try {
@@ -1949,6 +1949,23 @@
   const foldBoard = window.createFold ? window.createFold({ dataStore, scheduleAutoSync }) : null;
   let remoteFoldRaw = null;
 
+  // Training (training.js): Plan, Workout-Modus, Verlauf. Eigene Cloud-Datei training-data.json (nicht Teil von sync-data.json) plus lokale
+  // Sicherheitskopie im Browser fuer das Handy im Studio ohne Netz. Rekorde und Steigerungen geben extra XP, am Ende wird das Habit "Gym" abgehakt.
+  const trainingBoard = window.createTraining && document.getElementById("trMain")
+    ? window.createTraining({
+        main: document.getElementById("trMain"),
+        syncEl: document.getElementById("trSync"),
+        readCloudJson,
+        getGithubConfig,
+        escapeHtml,
+        todayKey,
+        xp: xpBoard,
+        habitDone: setHabitDone,
+        cloudReady: () => document.body.dataset.cloud === "ready",
+        status: setAutoSyncStatus
+      })
+    : null;
+
   // Nicht abgehakte Tages-To-Dos VERGANGENER Tage nach "Aufgaben" uebernehmen, bevor der
   // alte Tages-Eintrag verworfen wird. Jeder Tag hat einen eigenen Storage-Key
   // (dashboard-todo-JJJJ-MM-TT) - ein neuer Tag bedeutet bisher einfach einen neuen, leeren
@@ -2209,6 +2226,15 @@
     month: document.getElementById("habitViewMonth"),
     year: document.getElementById("habitViewYear")
   };
+
+  // Das Training hakt am Ende einer Einheit das Habit "Gym" ab: nur einschalten, nie ausschalten. true = jetzt abgehakt, false = war schon abgehakt,
+  // null = es gibt dieses Habit nicht.
+  function setHabitDone(habitId, key) {
+    if (!habitState.habits.some((h) => h.id === habitId)) return null;
+    if (habitState.log[key] && habitState.log[key][habitId]) return false;
+    toggleHabitDay(habitId, key);
+    return true;
+  }
 
   function toggleHabitDay(habitId, key) {
     habitState.log[key] = habitState.log[key] || {};
@@ -3100,7 +3126,7 @@
   // Rein visuell und nur im Arbeitsspeicher: nichts davon wird gespeichert oder synchronisiert.
   (function pixelLook() {
     if (!PX) return;
-    const SECTION_SPRITES = { kalender: "calendar", todo: "scroll", aufgaben: "sword", "remote-tasks": "globe", habits: "flame", ziele: "trophy", business: "chest", zeit: "hourglass", einkauf: "cart", notizen: "book" };
+    const SECTION_SPRITES = { kalender: "calendar", todo: "scroll", aufgaben: "sword", "remote-tasks": "globe", habits: "flame", training: "dumbbell", ziele: "trophy", business: "chest", zeit: "hourglass", einkauf: "cart", notizen: "book" };
     Object.entries(SECTION_SPRITES).forEach(([id, name]) => {
       const marker = document.querySelector(`#${id} .section-head .section-marker`);
       if (marker) marker.outerHTML = `<span class="sec-sprite">${PX.spr(name, 28)}</span>`;
@@ -3148,6 +3174,7 @@
         const hs = habitState.habits || [], log = habitState.log?.[dateKey(new Date())] || {};
         return hs.length ? `${hs.filter((h) => log[h.id]).length} / ${hs.length} HEUTE` : "";
       },
+      training: () => (trainingBoard ? trainingBoard.metric() : ""),
       ziele: () => (goalsAvg === null ? "" : `Ø ${Math.round(goalsAvg)} %`),
       business: () => { const m = bizStat("Drive-Thru-Mail offen"); return m ? `${m} MAILS OFFEN` : ""; },
       zeit: () => { const w = timeTrackerBoard && timeTrackerBoard.weekSummary(); return w ? `WOCHE ${fmtH1(w.ist)} / ${fmtH1(w.soll)} H` : ""; },
