@@ -493,6 +493,12 @@
   "inbox": {
     "items": [
       {
+        "id": "95d84c64-09a1-4fae-a060-ac590309c797",
+        "text": "Training verlauf loöschen",
+        "cat": "Ideen",
+        "at": 1792083916844
+      },
+      {
         "id": "b1621851-86f3-4c1d-ad24-10181cb3d90b",
         "text": "Name: Brick'n'Collect",
         "cat": "Laden",
@@ -500,7 +506,7 @@
       }
     ],
     "removed": [],
-    "updatedAt": 1791375342047
+    "updatedAt": 1792083916916
   },
   "fold": {
     "collapsed": [
@@ -580,7 +586,8 @@
         "habit:9473d02d-64a6-4dab-8017-3e4a354c855b@2026-10-15": 6,
         "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-15": 6,
         "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-15": 6,
-        "habit:gym@2026-10-15": 6
+        "habit:gym@2026-10-15": 6,
+        "note:95d84c64-09a1-4fae-a060-ac590309c797": 3
       }
     },
     "archive": {
@@ -588,6 +595,6 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792083862394
+    "updatedAt": 1792083916845
   }
 }
