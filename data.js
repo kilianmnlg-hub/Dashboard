@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-10-14",
-    "lastSyncedAt": "2026-10-14T12:35:41.603Z",
+    "lastUpdated": "2026-10-15",
+    "lastSyncedAt": "2026-10-15T10:42:31.581Z",
     "owner": "Kilian"
   },
   "github": {
@@ -113,10 +113,6 @@ const DASHBOARD_DATA = {
   ],
   "metricsHistory": {
     "bricksOnTheFloorAbos": [
-      {
-        "date": "2026-08-16",
-        "value": 28500
-      },
       {
         "date": "2026-08-17",
         "value": 28500
@@ -352,13 +348,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-14",
         "value": 29500
+      },
+      {
+        "date": "2026-10-15",
+        "value": 29500
       }
     ],
     "brainwalkersAbos": [
-      {
-        "date": "2026-08-16",
-        "value": 267
-      },
       {
         "date": "2026-08-17",
         "value": 268
@@ -594,13 +590,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-14",
         "value": 538
+      },
+      {
+        "date": "2026-10-15",
+        "value": 540
       }
     ],
     "tiktokFollower": [
-      {
-        "date": "2026-08-16",
-        "value": 2725
-      },
       {
         "date": "2026-08-17",
         "value": 2726
@@ -836,6 +832,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-14",
         "value": 2796
+      },
+      {
+        "date": "2026-10-15",
+        "value": 2799
       }
     ]
   },
@@ -862,7 +862,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 538,
+      "current": 540,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -871,7 +871,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2796,
+      "current": 2799,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -889,7 +889,7 @@ const DASHBOARD_DATA = {
       "id": "bricks-longform-2026",
       "label": "Bricks On The Floor – Longform-Videos 2026",
       "project": "bricksOnTheFloor",
-      "current": 28,
+      "current": 29,
       "target": 52,
       "unit": "Videos",
       "due": "2026-12-31"
@@ -905,7 +905,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-14T12:35:40.429Z",
+    "checkedAt": "2026-10-15T10:42:30.000Z",
     "openOrdersCount": 291,
     "pendingShipments": [
       {
@@ -927,7 +927,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-14T12:35:40.615Z",
+    "checkedAt": "2026-10-15T10:42:30.285Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -1049,7 +1049,7 @@ const DASHBOARD_DATA = {
       "subtitle": "LEGO-YouTube-Kanal · Hauptprojekt",
       "accent": "bricks",
       "uploadRhythmDays": 7,
-      "lastUploadAt": "2026-10-07T18:21:03Z",
+      "lastUploadAt": "2026-10-14T13:55:35Z",
       "stats": [
         {
           "label": "Abonnenten",
@@ -1080,11 +1080,11 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "538"
+          "value": "540"
         },
         {
           "label": "Videos",
-          "value": "82"
+          "value": "83"
         },
         {
           "label": "Rhythmus",
@@ -1098,11 +1098,11 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-10-13"
+      "to": "2026-10-14"
     },
     "totalsByCategory": {
-      "YouTube": 14246.46,
-      "Bricklink": 3881.12
+      "YouTube": 14462.44,
+      "Bricklink": 4034.18
     },
     "daily": [
       {
@@ -1429,6 +1429,11 @@ const DASHBOARD_DATA = {
         "date": "2026-10-13",
         "Bricklink": 112.26,
         "YouTube": 194.89
+      },
+      {
+        "date": "2026-10-14",
+        "Bricklink": 153.06,
+        "YouTube": 215.98
       }
     ],
     "entries": [
@@ -3146,6 +3151,55 @@ const DASHBOARD_DATA = {
         "start": 1791909720000,
         "end": 1791916440000,
         "min": 112.26
+      },
+      {
+        "id": "3fa430d3-4cf3-817e-a13d-f33e11037fe4",
+        "cat": "youtube",
+        "start": 1791972000000,
+        "end": 1791979200000,
+        "min": 120
+      },
+      {
+        "id": "3fa430d3-4cf3-81f5-8c04-cfc967e052a7",
+        "cat": "youtube",
+        "start": 1791987180000,
+        "end": 1791991680000,
+        "min": 75.64
+      },
+      {
+        "id": "3fa430d3-4cf3-819e-820a-ef922038eb2a",
+        "cat": "bricklink",
+        "start": 1791991680000,
+        "end": 1791993960000,
+        "min": 37.17
+      },
+      {
+        "id": "3fa430d3-4cf3-8118-b00e-e88dd7dba632",
+        "cat": "youtube",
+        "start": 1791996120000,
+        "end": 1791996600000,
+        "min": 8.3
+      },
+      {
+        "id": "3fa430d3-4cf3-81a6-ad9f-e651d7a2c3e2",
+        "cat": "bricklink",
+        "start": 1791996600000,
+        "end": 1791998820000,
+        "min": 37.06
+      },
+      {
+        "id": "3fa430d3-4cf3-81ea-beaa-f0d8b9a7c106",
+        "cat": "youtube",
+        "start": 1792001280000,
+        "end": 1792002060000,
+        "min": 12.04
+      },
+      {
+        "id": "3fa430d3-4cf3-811a-929b-d9878a620730",
+        "cat": "bricklink",
+        "start": 1792002060000,
+        "end": 1792006740000,
+        "min": 78.83
       }
     ]
   }
