@@ -509,9 +509,11 @@
       "brain",
       "kalender",
       "todo",
-      "aufgaben"
+      "aufgaben",
+      "remote-tasks",
+      "habits"
     ],
-    "updatedAt": 1792074280099,
+    "updatedAt": 1792074282528,
     "lvl": 5
   },
   "xp": {
