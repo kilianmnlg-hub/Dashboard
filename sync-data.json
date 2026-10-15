@@ -175,6 +175,12 @@
         "name": "Light Käse",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "6ec4fcb2-b1bf-4f16-a4b9-c634c605c9aa",
+        "name": "Kartoffeln",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {
@@ -287,7 +293,7 @@
         ]
       }
     ],
-    "updatedAt": 1791912435499
+    "updatedAt": 1792048430290
   },
   "timetracker": {
     "entries": [
