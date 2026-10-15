@@ -22,6 +22,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
   (plus manuell auslösbar über den Sync-Button im Dashboard oder den Actions-Tab)
 - `manifest.webmanifest`, `icon-*.png`, `sw.js` — machen das Dashboard als PWA installierbar
 - `scenery.js` — Pixel-Dschungel: das animierte Pixelbild hinter der Brain-Karte (und als Streifen über einigen Bereichen) mit den Easter Eggs (siehe Abschnitt "Pixel-Dschungel")
+- `guests.js`, `guests-data.js` — Pixel-Gäste: 255 Film-, Serien- und Spielfiguren als Easter Eggs im Dashboard mit Skilltree (siehe Abschnitt "Pixel-Gäste"); `guests-data.js` ist erzeugt (Sprites und Level-Themen)
 - `habits-data.json` — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
   direkt aus dem Browser aktualisiert (siehe Abschnitt "Habit-Tracker")
 - `sync-data.json` — Cloud-Kopie von Video-Ideen, Studium-Termin, Tages-To-Do und
@@ -553,6 +554,67 @@ Gerät schon angezeigt wurden, damit der Hinweis nur einmal erscheint).
 und passiert erst nach dem ersten Anzeigen der Seite; danach läuft das Bild mit ca. 6 Bildern pro Sekunde, nur solange es im sichtbaren Bereich ist und der
 Tab offen ist. Bei "Bewegung reduzieren" im System zeigt es ein ruhiges Standbild. Auf dem Handy schwenkt das Bild sehr langsam hinter der Karte. Zugeklappt bleibt von der Brain-Karte ein schmales Band mit dem Bild dahinter.
 
+## Pixel-Gäste (Easter Eggs im Dashboard und Skilltree)
+
+255 Figuren und Dinge aus Filmen, Serien und Spielen (Mario, Star Wars, Marvel, Harry Potter, ...) stehen als kleine Pixel-Gäste im Dashboard. Sie kommen mit dem
+Level (siehe Level-System): **jedes Level schaltet ein Thema frei**, immer erst die Figuren einer Welt, danach ihre Symbole und Dinge.
+
+- **Skilltree:** Ein Klick (oder Enter) auf die Level-Anzeige oben öffnet ihn. Er zeigt alle 30 Level mit ihrem Thema, die freigeschalteten und die noch gesperrten Gäste
+  (gesperrte als Silhouette mit Nummer) und die Easter Eggs des Bildes. Ein Tipp auf einen Gast zeigt Name, Level und Platz; dort gibt es auch "Ins Dashboard setzen",
+  "Zeig mir, wo" und "Aus dem Dashboard nehmen". Filter (freigeschaltet, gesperrt, im Dashboard) und Suche nach Nummer, Name oder Thema.
+- **Plätze:** Das Layout wird gemessen (Text, Knöpfe, Bilder, Eingaben zählen als belegt), alles andere ist frei. Auf den freien Stellen entstehen so viele Plätze wie möglich
+  (am Desktop gut 300): stehend auf den Oberkanten der Karten, in ihren unteren Ecken, in Lücken zwischen Karten und am Seitenrand, dazu bis zu vier Plätze in der Kopfzeile.
+  Kein Platz verdeckt Text oder Bedienelemente; die Gäste liegen in einer eigenen Ebene (`#guestLayer`, z-index 4, unter Menüs und Hinweisen) und ändern kein Layout.
+  Karten in scrollbaren Behältern (Karussells auf dem Handy) bekommen keine Plätze.
+- **Automatik:** Neue Gäste ziehen mit dem Levelaufstieg von selbst ein, ein Hinweis nennt das neue Thema. Insgesamt stehen nur so viele, dass das Dashboard ruhig bleibt
+  (Seitenhöhe / 200 px, am Desktop ca. 36); ältere, nicht von dir gesetzte Gäste weichen (höchstens 16 pro Aufstieg). Die Automatik setzt nur Gäste, die voll sichtbar sind.
+- **Tauschen, setzen, leer lassen:** Klick auf einen Gast öffnet die Auswahl aller freigeschalteten Gäste (Suche, Welt, "nicht im Bild", "neu"); "Leer lassen" lässt den Platz leer.
+  **Plätze bearbeiten** (im Skilltree oder in der Auswahl unter "Alle Plätze") zeigt alle Plätze, freie mit einem Plus; ein Klick darauf öffnet die Auswahl. Was du gesetzt oder
+  leer gelassen hast, fasst die Automatik nie an. In der Leiste des Bearbeiten-Modus: "Automatik: Aus" lässt nur stehen, was du gesetzt hast, "Zurücksetzen" fängt neu an,
+  "Alle leeren" räumt auf (beide fragen zweimal), "Neu mischen" im Skilltree würfelt die Plätze neu.
+- **Speicherung:** nichts in der Cloud. Im Browser (pro Gerät) liegen `dashboard-guests-seen`, `dashboard-guests-off` und `dashboard-guests-v2` (Zufallszahl, Besetzung der Plätze,
+  was du selbst gesetzt hast). Beim Drucken sind die Gäste ausgeblendet; bei "Bewegung reduzieren" stehen sie still.
+
+| Level | Thema | Gäste |
+|---|---|---|
+| 1 | DC · Helden | 4 |
+| 2 | DC · Symbole | 5 |
+| 3 | Breaking Bad · Figuren | 5 |
+| 4 | Breaking Bad · Dinge | 6 |
+| 5 | Harry Potter · Figuren | 6 |
+| 6 | Harry Potter · Zauberzubehör | 6 |
+| 7 | Drachenzähmen leicht gemacht | 7 |
+| 8 | The Last of Us | 9 |
+| 9 | Arcane · Figuren | 5 |
+| 10 | Arcane · Waffen & Technik | 7 |
+| 11 | The Witcher · Figuren | 6 |
+| 12 | The Witcher · Zeichen & Waffen | 10 |
+| 13 | Toy Story & Shrek | 11 |
+| 14 | Avatar · Figuren | 8 |
+| 15 | Avatar · Elemente & Symbole | 7 |
+| 16 | Gravity Falls | 12 |
+| 17 | Spiele-Klassiker · Figuren | 10 |
+| 18 | Spiele-Klassiker · Power-Ups & Items | 11 |
+| 19 | Stranger Things | 15 |
+| 20 | LEGO & Magic · Figuren | 11 |
+| 21 | LEGO & Magic · Steine & Mana | 7 |
+| 22 | Jurassic Park | 16 |
+| 23 | Sci-Fi-Cartoons · Rick & Morty, Futurama | 10 |
+| 24 | Sitcom-Cartoons · Simpsons, Family Guy, South Park | 8 |
+| 25 | Star Wars · Rebellen & Droiden | 8 |
+| 26 | Star Wars · Imperium & Kopfgeldjäger | 8 |
+| 27 | Star Wars · Schiffe & Symbole | 10 |
+| 28 | Marvel · Avengers | 11 |
+| 29 | Marvel · Guardians, Gegner & Mutanten | 9 |
+| 30 | Marvel · Waffen & Steine | 7 |
+
+Jeder Gast hat eine feste Nummer (1 bis 255, im Skilltree unter der Figur). Die Themen sind in `guests-data.js` fest eingebaut (`themes` und das Feld `lv` je Gast); sie lassen sich im
+Arbeitsordner (`THEMES` in `build_guests.py`) ändern und neu erzeugen.
+
+**Technik:** `guests.js` (Laufzeit) liest den Level wie `scenery.js` über den `onChange`-Hook von `xp.js` und wartet auf `cloud-ready`. Die Messung (ein 4-px-Raster aller belegten Stellen,
+Plätze nach dem Zufallsprinzip ohne Überlappung gepackt) dauert ca. 30 ms und läuft nach Größenänderungen, nach dem Laden der Daten und beim Ein- und Ausklappen; Bewegung nur im sichtbaren
+Bereich (ca. 12 Bilder pro Sekunde). Die Gäste sind Pixelbilder aus `guests-data.js` (ca. 320 KB), Zeichenwerkzeuge und Quellen liegen nicht im Repo.
+
 ## Einklappbare Fenster
 
 Jedes Fenster (Brain-Karte oben und alle Sektionen von Kalender bis Notizen) hat vorn in der Überschrift einen Pfeil-Knopf. Ein Klick
@@ -665,7 +727,8 @@ Worker fasst diese Dateien nicht an.
 **Was bewusst im Browser bleibt** (gehört nicht in ein öffentliches Repo bzw. ist
 pro Gerät): GitHub-Token, Kalender-Zugang (inkl. Refresh-Token), Theme und der Merker, bis zu
 welchem Level die Easter Eggs schon angezeigt wurden (`dashboard-scn-seen`, nur Optik; das Level
-selbst liegt nicht hier, sondern in der Cloud).
+selbst liegt nicht hier, sondern in der Cloud) sowie bei den Pixel-Gästen der Merker für "schon angezeigt" (`dashboard-guests-seen`), "ausgeblendet"
+(`dashboard-guests-off`) und die Besetzung der Easter-Egg-Plätze (`dashboard-guests-v2`, pro Gerät, weil das Layout je Gerät anders ist; reine Optik).
 
 **Verhalten:**
 - Beim Laden wird der Cloud-Stand frisch über die GitHub-API gelesen. Bis er da ist,
