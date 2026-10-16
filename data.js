@@ -1,6 +1,6 @@
 // Datenquelle für das Dashboard.
 // timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt),
-// goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue und metricsHistory
+// goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue, bricklinkMessages und metricsHistory
 // (für die Wochenvergleich-Trendpfeile) werden automatisch von scripts/sync-all.mjs
 // überschrieben (täglich per GitHub Actions oder manuell über den Sync-Button im
 // Dashboard bzw. "node scripts/sync-all.mjs").
@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-10-15",
-    "lastSyncedAt": "2026-10-15T12:22:26.683Z",
+    "lastUpdated": "2026-10-16",
+    "lastSyncedAt": "2026-10-16T08:00:35.672Z",
     "owner": "Kilian"
   },
   "github": {
@@ -113,10 +113,6 @@ const DASHBOARD_DATA = {
   ],
   "metricsHistory": {
     "bricksOnTheFloorAbos": [
-      {
-        "date": "2026-08-17",
-        "value": 28500
-      },
       {
         "date": "2026-08-18",
         "value": 28500
@@ -352,13 +348,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-15",
         "value": 29500
+      },
+      {
+        "date": "2026-10-16",
+        "value": 29500
       }
     ],
     "brainwalkersAbos": [
-      {
-        "date": "2026-08-17",
-        "value": 268
-      },
       {
         "date": "2026-08-18",
         "value": 271
@@ -594,13 +590,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-15",
         "value": 540
+      },
+      {
+        "date": "2026-10-16",
+        "value": 540
       }
     ],
     "tiktokFollower": [
-      {
-        "date": "2026-08-17",
-        "value": 2726
-      },
       {
         "date": "2026-08-18",
         "value": 2728
@@ -836,6 +832,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-15",
         "value": 2798
+      },
+      {
+        "date": "2026-10-16",
+        "value": 2801
       }
     ]
   },
@@ -871,7 +871,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2798,
+      "current": 2801,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -905,17 +905,9 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-15T12:22:25.924Z",
+    "checkedAt": "2026-10-16T08:00:34.214Z",
     "openOrdersCount": 291,
     "pendingShipments": [
-      {
-        "orderId": 32802672,
-        "buyer": "Lenford83",
-        "status": "PAID",
-        "orderedDate": "2026-10-13T14:20:57.833Z",
-        "total": "14.4942",
-        "currency": "EUR"
-      },
       {
         "orderId": 32809112,
         "buyer": "BrickSannu",
@@ -927,7 +919,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-15T12:22:26.027Z",
+    "checkedAt": "2026-10-16T08:00:35.093Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -1084,7 +1076,7 @@ const DASHBOARD_DATA = {
         },
         {
           "label": "Videos",
-          "value": "83"
+          "value": "84"
         },
         {
           "label": "Rhythmus",
@@ -3202,6 +3194,22 @@ const DASHBOARD_DATA = {
         "min": 78.83
       }
     ]
+  },
+  "bricklinkMessages": {
+    "checkedAt": "2026-10-16T08:00:35.079Z",
+    "unanswered": 7,
+    "checkedOrders": 150,
+    "ordersWithMessages": 42,
+    "failed": 0,
+    "fields": [
+      "body",
+      "dateSent",
+      "from",
+      "messageID",
+      "subject",
+      "to"
+    ],
+    "lastError": null
   }
 };
 
