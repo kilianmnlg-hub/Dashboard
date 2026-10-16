@@ -65,9 +65,15 @@
         }
       ],
       "studium": [],
-      "privat": []
+      "privat": [
+        {
+          "id": "5ae20dee-0ff7-499b-9866-a6d2cb945c8e",
+          "text": "Wäsche waschen",
+          "done": false
+        }
+      ]
     },
-    "updatedAt": 1792128812535
+    "updatedAt": 1792128816131
   },
   "tasks": {
     "items": [
@@ -80,14 +86,9 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
-      },
-      {
-        "id": "3c89e77d-ff1b-464b-bdf1-b090c0f048a6",
-        "text": "Wäsche waschen",
-        "done": false
       }
     ],
-    "updatedAt": 1792128812535
+    "updatedAt": 1792128816131
   },
   "remoteTasks": {
     "items": [
