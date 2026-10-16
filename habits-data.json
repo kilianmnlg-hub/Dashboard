@@ -13,7 +13,7 @@
     {
       "id": "koffein",
       "label": "<2x Koffein",
-      "targetPerWeek": 3
+      "targetPerWeek": 5
     },
     {
       "id": "ba0ab60c-5b39-4842-8060-c464b6e9242b",
@@ -329,5 +329,5 @@
       "koffein": true
     }
   },
-  "updatedAt": 1792165878008
+  "updatedAt": 1792165896972
 }
