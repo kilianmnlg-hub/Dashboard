@@ -1,5 +1,5 @@
 // Datenquelle für das Dashboard.
-// timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt),
+// timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt/recentUploads),
 // goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue, bricklinkMessages und metricsHistory
 // (für die Wochenvergleich-Trendpfeile) werden automatisch von scripts/sync-all.mjs
 // überschrieben (täglich per GitHub Actions oder manuell über den Sync-Button im
@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-10-16",
-    "lastSyncedAt": "2026-10-16T09:17:44.858Z",
+    "lastSyncedAt": "2026-10-16T10:29:26.277Z",
     "owner": "Kilian"
   },
   "github": {
@@ -905,7 +905,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-16T09:17:27.874Z",
+    "checkedAt": "2026-10-16T10:29:22.256Z",
     "openOrdersCount": 291,
     "pendingShipments": [
       {
@@ -919,7 +919,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-16T09:17:42.273Z",
+    "checkedAt": "2026-10-16T10:29:25.121Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -1061,7 +1061,39 @@ const DASHBOARD_DATA = {
           "value": "473,50 €"
         }
       ],
-      "note": "Rhythmus: wöchentlich angestrebt, reißt öfter ab, fängt sich aber immer wieder."
+      "note": "Rhythmus: wöchentlich angestrebt, reißt öfter ab, fängt sich aber immer wieder.",
+      "recentUploads": [
+        {
+          "id": "sIkJAy8NZdA",
+          "title": "LEGOLAND & LEGO House in Billund! 🏰 | LEGO Tour Vlog #2",
+          "at": "2026-10-14T13:55:35Z",
+          "detectedAt": null
+        },
+        {
+          "id": "kSp7btqkjtQ",
+          "title": "Bricks On The Floor wurde gehackt!",
+          "at": "2026-10-07T18:21:03Z",
+          "detectedAt": null
+        },
+        {
+          "id": "Z7KN9nJhcQ0",
+          "title": "Diese LEGO Dinosaurier Sets brauchen wir jetzt! | LEGO Jurassic World",
+          "at": "2026-09-23T16:20:16Z",
+          "detectedAt": null
+        },
+        {
+          "id": "Yg5R3AAzfJo",
+          "title": "Lohnt sich ein LEGO Laden noch 2026? Bardobrick Tour!",
+          "at": "2026-09-13T13:55:02Z",
+          "detectedAt": null
+        },
+        {
+          "id": "Vuna41Czn_A",
+          "title": "Diese neuen LEGO Dino Sets MÜSSEN kommen!🦖🏆",
+          "at": "2026-09-06T13:55:08Z",
+          "detectedAt": null
+        }
+      ]
     },
     "brainwalkers": {
       "title": "The Brainwalkers",
@@ -1083,7 +1115,39 @@ const DASHBOARD_DATA = {
           "value": "alle 2 Wochen"
         }
       ],
-      "note": "Fokus: Commander/EDH-Decks & Produkt-Reviews. Kein Studio-Zugriff für Umsatzdaten."
+      "note": "Fokus: Commander/EDH-Decks & Produkt-Reviews. Kein Studio-Zugriff für Umsatzdaten.",
+      "recentUploads": [
+        {
+          "id": "fLVRZ5uz6Hw",
+          "title": "Dieses süße Commander Deck wird von ALLEN gehasst! | Ms. Bumbleflower Budget",
+          "at": "2026-10-12T16:25:53Z",
+          "detectedAt": null
+        },
+        {
+          "id": "tfbsqZ6nrm0",
+          "title": "Budget Commander Karten die du jetzt kaufen musst! (Unter 5€)",
+          "at": "2026-09-20T13:55:36Z",
+          "detectedAt": null
+        },
+        {
+          "id": "ges4EnhS3QY",
+          "title": "30€ Commander Deck | Magus Lucea Kane X-Spells Combo!",
+          "at": "2026-08-29T13:55:30Z",
+          "detectedAt": null
+        },
+        {
+          "id": "Z1tFV3SS8s0",
+          "title": "Der ultimative EDH Commander Deck Building Guide!",
+          "at": "2026-08-12T14:05:01Z",
+          "detectedAt": null
+        },
+        {
+          "id": "PMbE90FqEXA",
+          "title": "Caesar, Legion's Emperor Commander Deck | Mein BESTES Deck!",
+          "at": "2026-07-29T13:55:39Z",
+          "detectedAt": null
+        }
+      ]
     }
   },
   "timeTracker": {
@@ -3196,7 +3260,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkMessages": {
-    "checkedAt": "2026-10-16T09:17:42.183Z",
+    "checkedAt": "2026-10-16T10:29:25.059Z",
     "unanswered": 7,
     "checkedOrders": 150,
     "ordersWithMessages": 42,
