@@ -1680,7 +1680,7 @@ svg.links line.lit { stroke: var(--accent); stroke-width: 2; }
   .auto-sync-status { max-width: 110px; }
   .auto-sync-status .as-w, .lvl-avg { display: none; }
 }
-@media (min-width: 721px) and (max-width: 1330px) {
+@media (min-width: 721px) and (max-width: 1410px) {
   .topbar-inner { flex-wrap: wrap; row-gap: 10px; }
   .nav { order: 3; flex: 1 1 100%; width: 100%; margin: 0; padding-bottom: 2px; }
   .lvl { margin-left: auto; }
@@ -1692,7 +1692,7 @@ svg.links line.lit { stroke: var(--accent); stroke-width: 2; }
   .nav a { font-size: var(--fs-8); padding: 9px 2px; }
 }
 /* Auf Laptop-Breiten stehen die zehn Bereiche neben Marke, Level und Knoepfen in einer Zeile: engere Abstaende, sonst ist der letzte abgeschnitten */
-@media (min-width: 1331px) and (max-width: 1520px) {
+@media (min-width: 1411px) and (max-width: 1520px) {
   .nav { gap: 1px; }
   .nav a { padding: 9px 3px; }
 }
@@ -2056,6 +2056,52 @@ body.g-lock { overflow: hidden; }
 }
 @media (prefers-reduced-motion: reduce) { .g.in, .g.hop, .g.new canvas, .g-toast, .gt-row.current .gt-node, .gp-it.shake, .gs { animation: none; } }
 /* ==== Ende Pixel-Gaeste ==== */
+
+/* ---------- Schnellsuche (palette.js) ---------- */
+.search-btn svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: square; }
+.theme-toggle.search-btn svg path { fill: none; stroke: currentColor; }
+@media (max-width: 349px) { .search-btn { display: none; } }
+body.pal-lock { overflow: hidden; }
+.pal-ov { position: fixed; inset: 0; z-index: 76; display: flex; justify-content: center; align-items: flex-start; padding: 12vh 16px 16px; background: var(--scrim); }
+.pal-ov[hidden] { display: none; }
+.pal { position: relative; width: min(680px, 100%); max-height: min(72vh, 640px); display: flex; flex-direction: column; overflow: hidden; background: var(--surface); color: var(--text); border: var(--bw) solid var(--text); border-radius: var(--r); box-shadow: var(--sh-l) var(--accent); }
+.pal-in { flex: none; display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 12px 0 16px; border-bottom: var(--bw) solid var(--border); }
+.pal-ico { display: grid; place-items: center; flex: none; color: var(--accent); }
+.pal-ico svg { width: 20px; height: 20px; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: square; }
+.pal-q { flex: 1; min-width: 0; height: 56px; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--text); font-size: var(--fs-16); caret-color: var(--accent); caret-shape: block; outline: 0; }
+.pal-q::placeholder { color: var(--text-faint); }
+.pal-x, .pal kbd { font-family: var(--px); font-size: var(--fs-8); line-height: 1; text-transform: uppercase; color: var(--text-muted); border: var(--bw) solid var(--border); border-radius: var(--r); padding: 6px 7px; background: transparent; }
+.pal-x { cursor: pointer; min-height: 32px; }
+.pal-x:hover { color: var(--text); border-color: var(--text-faint); }
+.pal-k2 { display: none; }
+.pal-list { flex: 1 1 auto; margin: 0; padding: 6px 0; list-style: none; overflow-y: auto; overscroll-behavior: contain; }
+.pal-g { padding: 12px 16px 6px; font-family: var(--px); font-size: var(--fs-8); line-height: 1.5; text-transform: uppercase; color: var(--text-faint); }
+.pal-empty { padding: 12px 16px; font-size: var(--fs-14); color: var(--text-muted); }
+.pal-o { display: flex; align-items: center; gap: 14px; min-height: var(--tap); padding: 6px 16px; cursor: pointer; }
+.pal-o[aria-selected="true"] { background: var(--surface-2); box-shadow: inset 4px 0 0 var(--accent); }
+.pal-oi { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border: var(--bw) solid var(--border); border-radius: var(--r); color: var(--text-muted); }
+.pal-o[aria-selected="true"] .pal-oi { border-color: var(--accent); color: var(--accent); }
+.pal-ot { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.pal-ot b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-14); font-weight: 600; }
+.pal-ot small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-12); color: var(--text-muted); }
+.pal-ot mark { background: transparent; color: var(--accent); font-weight: 700; }
+.pal-oc { flex: none; visibility: hidden; font-family: var(--px); font-size: var(--fs-8); line-height: 1; color: var(--text-muted); border: var(--bw) solid var(--border); border-radius: var(--r); padding: 5px 6px; }
+.pal-o[aria-selected="true"] .pal-oc { visibility: visible; }
+.pal-ft { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; border-top: var(--bw) solid var(--border); background: var(--surface-2); font-size: var(--fs-12); color: var(--text-muted); }
+.pal-ft span { display: inline-flex; align-items: center; gap: 8px; }
+.pal-hint { margin-left: auto; font-family: var(--px); font-size: var(--fs-8); color: var(--text-faint); }
+.pal-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@keyframes palHit { 0%, 49% { outline: var(--focus); outline-offset: 3px; } 50%, 100% { outline: 3px solid transparent; outline-offset: 3px; } }
+.pal-hit { animation: palHit 1.2s steps(1) 2; }
+@media (max-width: 720px) {
+  .pal-ov { padding: 0; align-items: stretch; }
+  .pal { width: 100%; max-height: none; height: 100%; border-width: 0; border-radius: 0; box-shadow: none; }
+  .pal-ft, .pal-oc { display: none; }
+  .pal-k1 { display: none; }
+  .pal-k2 { display: inline; }
+  .pal-x { min-height: var(--tap); padding-inline: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .pal-hit { animation: none; outline: var(--focus); outline-offset: 3px; } }
 /* ==== Training (training.js) ==== */
 /* Alles nutzt die Farb-Variablen des Dashboards (hell und dunkel); eigene Klassen beginnen mit tr- */
 #training { --sc: var(--accent); }

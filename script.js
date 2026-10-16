@@ -2103,6 +2103,30 @@
       })
     : null;
 
+  // Schnellsuche (palette.js): Strg+K, "/" oder die Lupe in der Kopfleiste. Angelegt wird ueber die vorhandenen Eingaben (Einkauf, Aufgaben)
+  // und Boards; nur die Tages-To-Do-Karte bekommt hier eine eigene Funktion, weil ihre Eingabe je Kategorie getrennt ist.
+  const paletteBoard = window.createPalette
+    ? window.createPalette({
+        expand: (id) => { if (foldBoard) foldBoard.expand(id); },
+        toast,
+        training: trainingBoard,
+        openNote: inboxBoard ? () => inboxBoard.open() : null,
+        addNote: inboxBoard ? (text) => inboxBoard.addText(text) : null,
+        todoCats: TODO_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
+        addTodo: (catId, text) => {
+          const t = String(text || "").trim().slice(0, 120);
+          if (!t || !TODO_CATEGORIES.some((c) => c.id === catId) || document.body.dataset.cloud !== "ready") return false;
+          todos[catId] = todos[catId] || [];
+          const item = { id: newId(), text: t, done: false };
+          todos[catId].push(item);
+          saveTodos(todos);
+          renderTodos();
+          flashNewItem(todoGrid, item.id);
+          return true;
+        }
+      })
+    : null;
+
   // Nicht abgehakte Tages-To-Dos VERGANGENER Tage nach "Aufgaben" uebernehmen, bevor der
   // alte Tages-Eintrag verworfen wird. Jeder Tag hat einen eigenen Storage-Key
   // (dashboard-todo-JJJJ-MM-TT) - ein neuer Tag bedeutet bisher einfach einen neuen, leeren

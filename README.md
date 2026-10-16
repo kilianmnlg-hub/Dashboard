@@ -23,6 +23,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `manifest.webmanifest`, `icon-*.png`, `sw.js` — machen das Dashboard als PWA installierbar
 - `scenery.js` — Pixel-Dschungel: das animierte Pixelbild hinter der Brain-Karte (und als Streifen über einigen Bereichen) mit den Easter Eggs (siehe Abschnitt "Pixel-Dschungel")
 - `guests.js`, `guests-data.js` — Pixel-Gäste: 255 Film-, Serien- und Spielfiguren als Easter Eggs im Dashboard mit Skilltree (siehe Abschnitt "Pixel-Gäste"); `guests-data.js` ist erzeugt (Sprites und Level-Themen)
+- `palette.js` — Schnellsuche und Befehle (siehe Abschnitt "Schnellsuche")
 - `training.js` — Training: Trainingsplan, Workout-Modus und Verlauf mit Statistiken, mit selbst gezeichneten Pixel-Symbolen (siehe Abschnitt "Training")
 - `training-data.json` — Cloud-Datei des Trainings (Pläne, Einheiten, eigene Übungen); entsteht beim ersten Speichern und wird direkt aus dem Browser aktualisiert
 - `habits-data.json` — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
@@ -500,6 +501,23 @@ Auf dem Handy (bis 720 px Breite) entfällt die kleine wischbare Menüzeile oben
 Bereichs und der aktuellen Kennzahl (z.B. "2 OFFEN"). Der Bereich, in dem du gerade bist, ist markiert. Ein Tipp springt zum Bereich (klappt ihn
 auf, falls eingeklappt) und schließt das Menü; auch Tippen daneben, das ×-Symbol und die Esc-Taste schließen es. Auf PC und Tablet bleibt die
 Menüleiste oben. Das Menü speichert nichts, die Kennzahlen kommen aus den gleichen Cloud-Daten wie in den Titelzeilen.
+
+## Schnellsuche (Strg+K)
+
+Mit **Strg+K** (Mac: Cmd+K), mit **/** (wenn gerade kein Feld aktiv ist) oder mit der Lupe in der Kopfleiste öffnet sich ein Fenster zum Suchen und für
+Befehle. Am Handy füllt es den ganzen Bildschirm (ab 350 px Breite gibt es die Lupe oben).
+
+- **Suchen:** findet Bereiche und Einträge aus dem sichtbaren Text des Dashboards: Tages-To-Dos, Aufgaben, Remote Tasks, Einkauf (Liste, Vorrat, Rezepte),
+  Habits, Ziele, Notizen, Video-Ideen und Training. Ein Treffer klappt den Bereich auf, scrollt hin und hebt den Eintrag kurz hervor.
+- **Befehle:** Timer YouTube/Bricklink starten oder stoppen, Training starten (oder das laufende Workout fortsetzen), neue Notiz, Design wechseln, synchronisieren,
+  Pixel-Gäste und Skilltree öffnen.
+- **Anlegen:** zu jedem Text gibt es "Zum Einkauf hinzufügen" (erkennt Menge und Preis, z.B. `2x Milch 1,15`), "Aufgabe anlegen", "To-Do für heute anlegen"
+  (die Kategorie wählst du im zweiten Schritt) und "Notiz speichern". Damit nichts aus Versehen angelegt wird, stehen diese Aktionen unter den Treffern und sind erst
+  vorgewählt, wenn du das Wort davor schreibst: `einkauf milch`, `aufgabe Steuer sortieren`, `todo Wäsche`, `notiz Idee`.
+- **Bedienung:** ↑ ↓ wählen, Enter führt aus, Esc geht einen Schritt zurück oder schließt. Der Tabulator bleibt im Fenster, danach springt der Fokus zurück.
+- **Technik:** Gespeichert wird über die vorhandenen Eingaben und Boards (Einkaufsfeld, Aufgabenfeld, Notiz-Eingang, Tages-To-Do), deshalb gelten Cloud-Sync, XP und
+  Pixel-Gäste wie bei einer Eingabe von Hand. Solange die Cloud-Daten laden (oder nicht erreichbar sind), sind Anlegen und Timer gesperrt, wie die ganze Seite.
+  Die Suche selbst speichert nichts.
 
 ## Level-System (XP)
 

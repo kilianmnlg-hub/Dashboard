@@ -106,6 +106,16 @@
       render,
       open,
       pending() { return state.items.filter((i) => !state.removed.includes(i.id) && !inVault(i)).length; },
+      // Notiz direkt anlegen (Schnellsuche), gleiche Regeln wie beim Speichern im Eingabe-Fenster
+      addText(text, category) {
+        const t = String(text || "").trim();
+        if (!t) return false;
+        const noteId = newId();
+        state.items.unshift({ id: noteId, text: t.slice(0, 2000), cat: category || cat, at: Date.now() });
+        if (xp) xp.award("note:" + noteId, 3, $("inboxFab"));
+        save(); render();
+        return true;
+      },
       // Eintraege und Loeschmarken werden immer vereinigt, damit keine Notiz bei gleichzeitigen Aenderungen verloren geht
       applyRemote(remote) {
         if (!remote) return;
