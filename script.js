@@ -681,6 +681,19 @@
     });
   })();
 
+  // ---------- After-Upload-Checkliste ----------
+  // Erscheint ganz oben, sobald der Sync (taeglich um 08:00, der stuendliche Schnellcheck oder der Sync-Knopf) ein neues Longform-Video erkennt
+  // (business.<Kanal>.recentUploads, siehe scripts/lib/uploads.mjs). Haken und Vorlage liegen in der Cloud (Feld afterUpload in sync-data.json),
+  // der Code steht in afterupload.js. Gezeigt wird sie erst, wenn die Cloud geladen ist.
+  const afterUploadBoard = window.createAfterUpload
+    ? window.createAfterUpload({ dataStore, scheduleAutoSync, business: data.business, escapeHtml, toast, getXp: () => xpBoard, expand: (id) => { if (foldBoard) foldBoard.expand(id); } })
+    : null;
+  let remoteAfterUploadRaw = null;
+  if (afterUploadBoard) {
+    if (document.body.dataset.cloud === "ready") afterUploadBoard.start();
+    else document.addEventListener("cloud-ready", () => afterUploadBoard.start(), { once: true });
+  }
+
   // ---------- Achtung-Banner ganz oben ----------
   // Weitere Hinweise im Stil des Versand-Alarms: ueberfaellige Uploads (Rhythmus aus data.business, Shorts zaehlen
   // nicht). Die Bricklink-Nachrichten kommen darueber (renderMessageAlert). Pro Sitzung wegklickbar (sessionStorage, wie beim Versand-Alarm).
@@ -1843,6 +1856,7 @@
       <div class="stat-list">${stats}</div>
       ${biz.note ? `<p class="card-note">${biz.note}</p>` : ""}
       ${renderRhythmBadge(biz)}
+      ${isYoutubeChannel && afterUploadBoard ? '<button type="button" class="au-open" data-au-open>After-Upload-Checkliste</button>' : ""}
       ${
         isYoutubeChannel
           ? `<div class="idea-note">
@@ -1862,6 +1876,7 @@
     `;
     businessGrid.appendChild(card);
     card.querySelectorAll(".stat-value-num").forEach((el) => animateStatValue(el));
+    card.querySelector("[data-au-open]")?.addEventListener("click", () => afterUploadBoard && afterUploadBoard.open(key));
     if (spark) {
       const plot = card.querySelector(".kc-plot");
       bindSparkline(plot, spark.model);
@@ -2362,6 +2377,7 @@
         toast,
         training: trainingBoard,
         openNote: inboxBoard ? () => inboxBoard.open() : null,
+        openAfterUpload: afterUploadBoard ? () => afterUploadBoard.open() : null,
         addNote: inboxBoard ? (text) => inboxBoard.addText(text) : null,
         todoCats: TODO_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
         addTodo: (catId, text) => {
@@ -3028,8 +3044,10 @@
       inbox: inboxBoard ? inboxBoard.payload() : remoteInboxRaw,
       fold: foldBoard ? foldBoard.payload() : remoteFoldRaw,
       xp: xpBoard ? xpBoard.payload() : remoteXpRaw,
-      msgSeen: msgSeenBoard ? msgSeenBoard.payload() : remoteMsgSeenRaw
+      msgSeen: msgSeenBoard ? msgSeenBoard.payload() : remoteMsgSeenRaw,
+      afterUpload: afterUploadBoard ? afterUploadBoard.payload() : remoteAfterUploadRaw
     };
+    if (payload.afterUpload == null) delete payload.afterUpload;
     if (payload.msgSeen == null) delete payload.msgSeen;
     if (payload.xp == null) delete payload.xp;
     if (payload.inbox == null) delete payload.inbox;
@@ -3181,6 +3199,8 @@
         if (xpBoard) xpBoard.applyRemote(remote.xp);
         remoteMsgSeenRaw = remote.msgSeen ?? null;
         if (msgSeenBoard) msgSeenBoard.applyRemote(remote.msgSeen);
+        remoteAfterUploadRaw = remote.afterUpload ?? null;
+        if (afterUploadBoard) afterUploadBoard.applyRemote(remote.afterUpload);
         applyRemoteTodos(remote.todos);
       }
       cloudLoaded.syncdata = true;
@@ -3649,7 +3669,7 @@
   // Rein visuell und nur im Arbeitsspeicher: nichts davon wird gespeichert oder synchronisiert.
   (function pixelLook() {
     if (!PX) return;
-    const SECTION_SPRITES = { kalender: "calendar", todo: "scroll", aufgaben: "sword", "remote-tasks": "globe", habits: "flame", training: "dumbbell", ziele: "trophy", business: "chest", zeit: "hourglass", einkauf: "cart", notizen: "book" };
+    const SECTION_SPRITES = { kalender: "calendar", todo: "scroll", aufgaben: "sword", "remote-tasks": "globe", habits: "flame", training: "dumbbell", ziele: "trophy", business: "chest", zeit: "hourglass", einkauf: "cart", notizen: "book", afterupload: "film" };
     Object.entries(SECTION_SPRITES).forEach(([id, name]) => {
       const marker = document.querySelector(`#${id} .section-head .section-marker`);
       if (marker) marker.outerHTML = `<span class="sec-sprite">${PX.spr(name, 28)}</span>`;
@@ -3698,6 +3718,7 @@
         return hs.length ? `${hs.filter((h) => log[h.id]).length} / ${hs.length} HEUTE` : "";
       },
       training: () => (trainingBoard ? trainingBoard.metric() : ""),
+      afterupload: () => (afterUploadBoard ? afterUploadBoard.metric() : ""),
       ziele: () => (goalsAvg === null ? "" : `Ø ${Math.round(goalsAvg)} %`),
       business: () => { const m = bizStat("Drive-Thru-Mail offen"); return m ? `${m} MAILS OFFEN` : ""; },
       zeit: () => { const w = timeTrackerBoard && timeTrackerBoard.weekSummary(); return w ? `WOCHE ${fmtH1(w.ist)} / ${fmtH1(w.soll)} H` : ""; },

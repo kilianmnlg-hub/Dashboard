@@ -5,6 +5,8 @@
 //   - über den "Jetzt synchronisieren"-Button im Dashboard (löst denselben Workflow aus)
 //   - über den GitHub "Actions"-Tab -> "Run workflow"
 //   - lokal: node scripts/sync-all.mjs (Umgebungsvariablen vorher setzen, siehe README)
+//   - SYNC_ONLY=uploads: stündlicher Schnellcheck (.github/workflows/check-uploads.yml). Fragt nur YouTube nach neuen
+//     Longform-Videos und schreibt data.js nur, wenn eines dazugekommen ist (sonst gäbe es stündlich einen Commit).
 //
 // Jeder Fetcher überspringt sich selbst (mit Warnung), wenn seine Zugangsdaten fehlen,
 // statt den gesamten Sync abzubrechen — so funktioniert z.B. der Notion-Sync auch,
@@ -15,13 +17,15 @@ import { writeFileSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 import { fetchTimeTracker } from "./fetchers/time-tracker.mjs";
-import { fetchYouTube } from "./fetchers/youtube.mjs";
+import { fetchYouTube, UPLOAD_CHANNEL_KEYS } from "./fetchers/youtube.mjs";
+import { uploadsKey } from "./lib/uploads.mjs";
 import { fetchTikTok } from "./fetchers/tiktok.mjs";
 import { fetchBricklink } from "./fetchers/bricklink.mjs";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, "..", "data.js");
+const ONLY_UPLOADS = process.env.SYNC_ONLY === "uploads";
 
 function deepMerge(target, patch) {
   Object.keys(patch).forEach((key) => {
@@ -56,6 +60,7 @@ function pushMetricHistory(history, key, value, todayKey) {
 
 async function main() {
   const DASHBOARD_DATA = require(DATA_FILE);
+  const uploadsBefore = uploadsKey(DASHBOARD_DATA.business, UPLOAD_CHANNEL_KEYS);
   let changed = false;
   const succeeded = {};
 
@@ -63,12 +68,14 @@ async function main() {
   // bevor der nächste Fetcher startet. Wichtig, weil sowohl youtube.mjs als auch
   // tiktok.mjs das goals-Array lesen und schreiben — liefen sie parallel gegen denselben
   // Ausgangsstand, würde der zuletzt gemergte Patch die Änderungen des anderen überschreiben.
-  const fetchers = [
-    ["time-tracker", () => fetchTimeTracker()],
-    ["youtube", () => fetchYouTube(DASHBOARD_DATA)],
-    ["tiktok", () => fetchTikTok(DASHBOARD_DATA)],
-    ["bricklink", () => fetchBricklink(DASHBOARD_DATA)]
-  ];
+  const fetchers = ONLY_UPLOADS
+    ? [["youtube", () => fetchYouTube(DASHBOARD_DATA, { uploadsOnly: true })]]
+    : [
+        ["time-tracker", () => fetchTimeTracker()],
+        ["youtube", () => fetchYouTube(DASHBOARD_DATA)],
+        ["tiktok", () => fetchTikTok(DASHBOARD_DATA)],
+        ["bricklink", () => fetchBricklink(DASHBOARD_DATA)]
+      ];
 
   for (const [label, run] of fetchers) {
     try {
@@ -88,11 +95,17 @@ async function main() {
     return;
   }
 
+  // Schnellcheck: nur schreiben, wenn ein neues Video dazugekommen ist (die Liste der Video-IDs hat sich geändert)
+  if (ONLY_UPLOADS && uploadsKey(DASHBOARD_DATA.business, UPLOAD_CHANNEL_KEYS) === uploadsBefore) {
+    console.log("Keine neuen Videos — data.js bleibt unverändert.");
+    return;
+  }
+
   // Verlauf für die Wochenvergleich-Trendpfeile fortschreiben — nur mit Werten aus
   // Fetchern, die heute tatsächlich erfolgreich waren.
   DASHBOARD_DATA.metricsHistory = DASHBOARD_DATA.metricsHistory || {};
   const todayKey = new Date().toISOString().slice(0, 10);
-  if (succeeded.youtube) {
+  if (succeeded.youtube && !ONLY_UPLOADS) {
     const bricksAbos = DASHBOARD_DATA.goals.find((g) => g.id === "bricks-abos")?.current;
     const bwAbos = DASHBOARD_DATA.goals.find((g) => g.id === "brainwalkers-abos")?.current;
     pushMetricHistory(DASHBOARD_DATA.metricsHistory, "bricksOnTheFloorAbos", bricksAbos, todayKey);
@@ -103,11 +116,14 @@ async function main() {
     pushMetricHistory(DASHBOARD_DATA.metricsHistory, "tiktokFollower", tiktokFollower, todayKey);
   }
 
-  DASHBOARD_DATA.meta.lastUpdated = new Date().toISOString().slice(0, 10);
-  DASHBOARD_DATA.meta.lastSyncedAt = new Date().toISOString();
+  // Der Schnellcheck ist kein Sync: "Stand" im Fuß der Seite bleibt beim letzten richtigen Lauf
+  if (!ONLY_UPLOADS) {
+    DASHBOARD_DATA.meta.lastUpdated = new Date().toISOString().slice(0, 10);
+    DASHBOARD_DATA.meta.lastSyncedAt = new Date().toISOString();
+  }
 
   const output = `// Datenquelle für das Dashboard.
-// timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt),
+// timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt/recentUploads),
 // goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue, bricklinkMessages und metricsHistory
 // (für die Wochenvergleich-Trendpfeile) werden automatisch von scripts/sync-all.mjs
 // überschrieben (täglich per GitHub Actions oder manuell über den Sync-Button im

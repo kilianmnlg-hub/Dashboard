@@ -2677,3 +2677,54 @@ html.tr-lock, html.tr-lock body { overflow: hidden; }
 
 /* ==== Bausteine: Tippflaeche im Training (steht ganz unten, damit sie die Mindesthoehen der Einzelbloecke uebertrifft) ==== */
 @media (pointer: coarse) { .tr-btn, .tr-btn.tr-sm, .tr-tab, .tr-wtab { min-height: var(--tap); } }
+
+/* ==== After-Upload-Checkliste (afterupload.js) ==== */
+.au-host { display: grid; gap: 16px; }
+.au-card { --au: var(--au-accent, var(--accent)); display: grid; gap: 14px; padding: 18px 20px; }
+.au-card:hover { transform: none; box-shadow: var(--sh-l) var(--pxs); }
+.au-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; }
+.au-chip { font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--accent-ink); background: var(--au); border: 2px solid var(--text); border-radius: var(--r); padding: 4px 8px; }
+.au-meta { font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--text-muted); }
+.au-prog { font-weight: 400; color: var(--text); }
+.au-title { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: var(--fs-20); line-height: 1.25; color: var(--text); text-decoration: none; text-wrap: balance; overflow-wrap: anywhere; }
+.au-title:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.au-bar { height: 12px; border: 2px solid var(--text); border-radius: var(--r); background: var(--surface-2); overflow: hidden; }
+.au-bar i { display: block; height: 100%; background: var(--au); transition: width .25s steps(6); }
+.au-card.all .au-bar i { background: var(--status-good); }
+.au-tools, .au-foot, .au-add { display: flex; flex-wrap: wrap; gap: 8px; }
+.au-foot { justify-content: space-between; }
+.au-btn { font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--text); text-decoration: none; background: var(--surface); border: 2px solid var(--text); border-radius: var(--r); padding: 8px 10px; min-height: 34px; display: inline-flex; align-items: center; box-shadow: var(--sh-s) var(--pxs); cursor: pointer; transition: transform .08s steps(2), box-shadow .08s steps(2); }
+.au-btn:hover, .au-btn.au-main { background: var(--au); color: var(--accent-ink); }
+.au-btn:active { transform: translate(2px, 2px); box-shadow: none; }
+.au-btn:focus-visible, .au-go:focus-visible, .au-title:focus-visible, .au-sq:focus-visible, .au-in:focus-visible, .au-item input:focus-visible, .au-open:focus-visible { outline: var(--focus); outline-offset: 2px; }
+.au-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px 28px; }
+.au-gh { margin: 0 0 6px; font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--au); }
+.au-list, .au-edit { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.au-item { display: flex; align-items: center; gap: 6px; }
+.au-lab { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 8px 6px; cursor: pointer; }
+.au-txt { font-size: var(--fs-14); line-height: 1.35; color: var(--text); overflow-wrap: anywhere; }
+.au-item.on .au-txt { color: var(--text-faint); text-decoration: line-through; }
+.au-item input[type="checkbox"] { appearance: none; -webkit-appearance: none; flex: none; width: 20px; height: 20px; margin: 0; display: grid; place-items: center; border: 2px solid var(--text); border-radius: var(--r); background: var(--surface-2); cursor: pointer; }
+.au-item input[type="checkbox"]:checked { background: var(--au); }
+.au-item input[type="checkbox"]:checked::after { content: ""; width: 9px; height: 5px; border-left: 3px solid var(--accent-ink); border-bottom: 3px solid var(--accent-ink); transform: rotate(-45deg) translate(1px, -1px); }
+.au-go { flex: none; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; color: var(--text-muted); text-decoration: none; background: none; border: 2px solid transparent; border-radius: var(--r); cursor: pointer; }
+.au-go:hover { color: var(--text); border-color: var(--text); }
+.au-erow { display: flex; gap: 6px; }
+.au-in { flex: 1; min-width: 0; font: inherit; font-size: var(--fs-14); color: var(--text); background: var(--surface-2); border: 2px solid var(--text); border-radius: var(--r); padding: 8px 10px; }
+.au-sq { flex: none; width: 34px; font-family: var(--px); font-size: var(--fs-10); color: var(--text); background: var(--surface); border: 2px solid var(--text); border-radius: var(--r); cursor: pointer; }
+.au-sq:disabled { opacity: .35; cursor: default; }
+.au-add .au-in { min-width: 200px; }
+/* Knopf in der Kanal-Karte (Business) */
+.au-open { margin-top: 10px; justify-self: start; font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--text); background: var(--surface); border: 2px solid var(--text); border-radius: var(--r); padding: 8px 10px; min-height: 34px; box-shadow: var(--sh-s) var(--pxs); cursor: pointer; transition: transform .08s steps(2), box-shadow .08s steps(2); }
+.au-open:hover { background: var(--card-accent, var(--accent)); color: var(--accent-ink); }
+.au-open:active { transform: translate(2px, 2px); box-shadow: none; }
+@media (max-width: 720px) {
+  .au-card { padding: 14px; }
+  .au-title { font-size: var(--fs-18); }
+}
+@media (pointer: coarse) {
+  .au-btn, .au-sq, .au-in, .au-open { min-height: var(--tap); }
+  .au-go { width: var(--tap); height: var(--tap); }
+  .au-lab { min-height: var(--tap); }
+}
+/* ==== Ende After-Upload ==== */

@@ -1,0 +1,53 @@
+# Stündlicher Schnellcheck auf neue YouTube-Videos: damit die After-Upload-Checkliste im Dashboard kurz nach dem Hochladen erscheint
+# und nicht erst beim täglichen Sync um 08:00. Fragt nur YouTube nach den letzten Longform-Videos (3 Abfragen je Kanal, kostet
+# gut 100 von 10.000 Kontingent-Einheiten am Tag) und schreibt data.js NUR, wenn ein neues Video dazugekommen ist (SYNC_ONLY=uploads in
+# scripts/sync-all.mjs). Sonst gibt es keinen Commit. GitHub startet geplante Läufe manchmal mit einigen Minuten Verspätung.
+#
+# Braucht dasselbe Secret wie der tägliche Sync: YOUTUBE_API_KEY. Manuell anstoßen: Tab "Actions" -> "Check new uploads" -> "Run workflow".
+name: Check new uploads
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Nach neuen Videos suchen und ggf. speichern
+        env:
+          SYNC_ONLY: uploads
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: |
+          git config user.name "dashboard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          n=0
+          until [ $n -ge 5 ]; do
+            node scripts/sync-all.mjs
+            git add data.js
+            if git diff --quiet --cached; then
+              echo "Nichts zu speichern."
+              exit 0
+            fi
+            git commit -m "Neues Video erkannt (stündlicher Schnellcheck)"
+            if git push; then
+              exit 0
+            fi
+            # Push abgelehnt: zeitgleich hat jemand anderes geschrieben (z.B. der tägliche Sync). Mit dem neuesten Stand neu prüfen,
+            # statt denselben Commit erneut zu versuchen.
+            n=$((n+1))
+            echo "Push fehlgeschlagen (Versuch $n/5), hole den neuesten Stand und prüfe erneut ..."
+            git fetch origin main
+            git reset --hard origin/main
+            sleep $((RANDOM % 8 + 3))
+          done
+          echo "Push nach 5 Versuchen weiterhin fehlgeschlagen."
+          exit 1

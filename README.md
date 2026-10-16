@@ -14,17 +14,20 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
   da youtube.mjs und tiktok.mjs beide das `goals`-Array aktualisieren):
   - `time-tracker.mjs` — Notion "Zeittracker" (Historie für die Zeittracker-Sektion), `push-timetracker.mjs` schreibt im Dashboard erfasste Zeiten nach Notion
   - `youtube.mjs` — YouTube-Abonnenten/Video-Anzahl/letztes **Longform**-Upload-Datum
-    (Bricks On The Floor, The Brainwalkers) → speist auch die Upload-Rhythmus-Ampel
+    (Bricks On The Floor, The Brainwalkers) → speist auch die Upload-Rhythmus-Ampel und erkennt neue Videos für die After-Upload-Checkliste
   - `tiktok.mjs` — TikTok-Follower (@bricksonthefloor) per Profilseiten-Scrape
   - `bricklink.mjs` — offene Bricklink-Bestellungen (Versand-Alarm) + Umsatz pro Woche
     und pro Monat (Umsatz-Trend-Charts)
 - `.github/workflows/sync-all.yml` — automatischer Sync jeden Tag um 08:00 Uhr
   (plus manuell auslösbar über den Sync-Button im Dashboard oder den Actions-Tab)
+- `.github/workflows/check-uploads.yml` — stündlicher Schnellcheck auf neue YouTube-Videos (schreibt `data.js` nur, wenn eines dazugekommen ist), siehe Abschnitt "After-Upload-Checkliste"
+- `scripts/lib/uploads.mjs` — Vergleich der abgerufenen Videos mit dem letzten Stand (welches Video ist neu?), ohne Node-Abhängigkeiten
 - `manifest.webmanifest`, `icon-*.png`, `sw.js` — machen das Dashboard als PWA installierbar
 - `scenery.js` — Pixel-Dschungel: das animierte Pixelbild hinter der Brain-Karte (und als Streifen über einigen Bereichen) mit den Easter Eggs (siehe Abschnitt "Pixel-Dschungel")
 - `guests.js`, `guests-data.js` — Pixel-Gäste: 255 Film-, Serien- und Spielfiguren als Easter Eggs im Dashboard mit Skilltree (siehe Abschnitt "Pixel-Gäste"); `guests-data.js` ist erzeugt (Sprites und Level-Themen)
 - `palette.js` — Schnellsuche und Befehle (siehe Abschnitt "Schnellsuche")
 - `msgseen.js` — merkt sich, welche Bricklink-Nachrichten du geöffnet hast (siehe Abschnitt "Ungelesene Nachrichten")
+- `afterupload.js` — After-Upload-Checkliste: erscheint ganz oben, sobald ein neues Video erkannt wird (siehe Abschnitt "After-Upload-Checkliste")
 - `training.js` — Training: Trainingsplan, Workout-Modus und Verlauf mit Statistiken, mit selbst gezeichneten Pixel-Symbolen (siehe Abschnitt "Training")
 - `training-data.json` — Cloud-Datei des Trainings (Pläne, Einheiten, eigene Übungen); entsteht beim ersten Speichern und wird direkt aus dem Browser aktualisiert
 - `habits-data.json` — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
@@ -245,6 +248,46 @@ nicht** — `youtube.mjs` schaut sich die letzten 50 Uploads an, holt deren Län
 Limit) als Short. Faustregel für die Ampel: 🟢 im Ziel-Rhythmus, 🟡 bis zum
 1,5-fachen des Zielrhythmus, 🔴 danach. `uploadRhythmDays` änderst du direkt in
 `data.js`, falls sich dein angestrebter Rhythmus mal ändert.
+
+## After-Upload-Checkliste
+
+Sobald auf einem der beiden Kanäle ein **neues Longform-Video** erscheint, zeigt das Dashboard ganz oben (über dem Brain-Bild) das Fenster "After Upload" mit einer Checkliste für genau
+dieses Video. Shorts lösen sie nicht aus. Der Code steht in `afterupload.js`.
+
+**Die Standardliste** (drei Gruppen; die Reihenfolge und alle Texte lassen sich ändern):
+
+| Gruppe | Punkt |
+|---|---|
+| Auf YouTube | Titel und Thumbnail prüfen · Beschreibung: Kapitel, Links, Hashtags · Playlist zuordnen, Untertitel prüfen · **End Screen** und Karten setzen · **Kommentar** schreiben und anheften · **Post** im Community-Tab veröffentlichen |
+| Verbreiten | **Short** schneiden und hochladen · **Instagram** (Reel oder Story, Link in Bio) · **Facebook** (Seite und Gruppen) · TikTok |
+| Danach | Kommentare beantworten (erste Stunden) · nach 24 Stunden Klickrate und Zuschauerbindung ansehen · nächste Video-Idee festlegen |
+
+**Bedienung:**
+- Punkt anklicken = abgehakt (Fortschritt "4 / 13" und Balken oben, die Kennzahl steht auch in der Titelzeile, wenn das Fenster eingeklappt ist). Bei den meisten Punkten führt der kleine Pfeil
+  direkt an die richtige Stelle in **YouTube Studio** (Details, Editor mit End Screen und Karten, Kommentare, Analytics) bzw. auf die Videoseite; "Nächste Video-Idee" springt zur Ideen-Liste des Kanals.
+- **Link kopieren** legt `https://youtu.be/<ID>` in die Zwischenablage (für Instagram, Facebook und Co.), **Im Studio öffnen** öffnet die Videodetails.
+- **Liste anpassen:** Texte umbenennen, mit ▲ ▼ verschieben, mit × löschen, unten neue Punkte hinzufügen, "Standard wiederherstellen" setzt alles zurück. Gilt für alle Videos beider Kanäle;
+  schon gesetzte Haken bleiben, weil sie am Punkt hängen, nicht an der Position.
+- **Fertig:** Sind alle Punkte abgehakt, steht kurz "ALLES ERLEDIGT" und das Fenster verschwindet. **Schließen** blendet die Liste auch mit offenen Punkten aus. Beides ist endgültig für dieses Video;
+  ohne Zutun verschwindet die Liste nach 7 Tagen.
+- **Wieder öffnen:** Button "After-Upload-Checkliste" in den Karten Bricks On The Floor und The Brainwalkers (öffnet die Liste des letzten Videos dieses Kanals, auch wenn sie schon erledigt war) oder
+  Strg+K → "After-Upload-Checkliste öffnen".
+- **XP:** 3 XP je Punkt (jeder nur einmal je Video, auch nach Abhaken und Wiederabhaken) und +15 XP, wenn die ganze Liste fertig ist (siehe Level-System).
+
+**Wie ein neues Video erkannt wird:**
+1. `youtube.mjs` speichert in `data.business.<Kanal>.recentUploads` die letzten Longform-Videos (`id`, `title`, `at` = Veröffentlichung, `detectedAt`). Ein Video bekommt `detectedAt` (Zeitpunkt der Entdeckung),
+   wenn es im Stand des letzten Abrufs noch nicht stand **und** neuer ist als alles dort (`scripts/lib/uploads.mjs`). Beim allerersten Abruf wird nur der Stand gemerkt: **alte Videos lösen keine Liste aus,
+   erst das nächste neue.** Für das letzte bekannte Video gibt es die Liste über den Button in der Kanal-Karte.
+2. Der Abruf läuft **stündlich** (`check-uploads.yml`, Minute 17; GitHub startet geplante Läufe manchmal einige Minuten später), beim **täglichen Sync** um 08:00 und bei jedem Druck auf den **Sync-Knopf**.
+   Der Stundencheck fragt nur YouTube (3 Abfragen je Kanal) und schreibt `data.js` nur, wenn ein neues Video dabei ist, sonst gibt es keinen Commit. Er braucht dasselbe Secret wie der Sync (`YOUTUBE_API_KEY`).
+3. Die Seite liest `data.js` beim Laden: nach dem Hochladen also **einmal neu laden** (oder Sync drücken und danach neu laden), dann steht die Liste oben. Sie erscheint erst, wenn die Cloud geladen ist.
+
+**Speicherung:** In der Cloud (Feld `afterUpload` in `sync-data.json`): je Video die Haken mit Zeitstempel (`lists.<Video-ID>.d`), dazu `x` (geschlossen), `c` (erledigt) und `u` (zuletzt geändert), und die
+angepasste Vorlage (`items`, Zeitstempel `tAt`). Je Video gewinnt der neuere Stand, die Vorlage nach ihrem eigenen Zeitstempel. Listen älter als 90 Tage werden aufgeräumt; solange nichts abgehakt oder
+angepasst wurde, fehlt das Feld.
+
+**Grenzen:** Die Liste erscheint nur für Videos, die YouTube öffentlich zeigt (kein Entwurf, kein privates Video); ein geplantes Video bekommt sie, sobald es live geht. Links in YouTube Studio öffnen sich im
+zuletzt benutzten Google-Konto des Browsers. Das Posten auf Instagram, Facebook und TikTok kann das Dashboard nicht für dich übernehmen: diese Punkte sind Erinnerungen.
 
 ## Nächste Video-Idee
 
@@ -569,6 +612,8 @@ Der Level startete am 09.10.2026 bei 0. Jedes Abhaken gibt Punkte (XP), die auto
 | Habit erreicht sein Wochenziel (Mo bis So) | +15 Bonus, pro Habit und Woche einmal |
 | Erfasste Zeit | 4 pro volle halbe Stunde |
 | Notiz vom Handy | 3 |
+| After-Upload-Punkt abgehakt (einmal je Video und Punkt) | 3 |
+| After-Upload-Liste komplett abgehakt | +15 Bonus |
 | Einkaufsartikel abgehakt | 2 |
 | Training: neuer Rekord bei einer Übung (einmal je Übung und Einheit) | 10 |
 | Training: Steigerung gegenüber dem letzten Mal (mehr Gewicht oder mehr Wiederholungen) | 5 |
