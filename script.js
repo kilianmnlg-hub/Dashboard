@@ -590,14 +590,14 @@
       });
     });
     const stat = (label) => parseInt(String((data.business?.bricklink?.stats || []).find((s) => s.label === label)?.value ?? "").replace(/\./g, ""), 10) || 0;
-    const mails = stat("Drive-Thru-Mail offen"), noFeedback = stat("Ohne Feedback");
-    if (mails > 0 || noFeedback > 0) {
+    const unanswered = stat("Nachrichten unbeantwortet");
+    if (unanswered > 0) {
       items.push({
-        id: `bricklink-mails-${mails}-${noFeedback}`,
+        id: `bricklink-messages-${unanswered}`,
         level: "info",
         icon: "bell",
-        title: `Bricklink: ${mails} Drive-Thru-Mails offen, ${noFeedback} Bestellungen ohne Feedback`,
-        sub: "Ein paar davon heute abarbeiten?"
+        title: `Bricklink: ${unanswered} ${unanswered === 1 ? "Nachricht" : "Nachrichten"} unbeantwortet`,
+        sub: "Heute noch beantworten?"
       });
     }
     const visible = items.filter((it) => {

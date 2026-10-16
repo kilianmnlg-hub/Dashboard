@@ -52,7 +52,7 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 | TikTok-Follower (@bricksonthefloor) | TikTok-Profilseite (Scrape) | ✅ automatisch, siehe Hinweis unten |
 | Wochenvergleich-Trendpfeile (Abos, Bricklink-Umsatz) | abgeleitet aus obigen Quellen | ✅ automatisch, siehe Hinweis unten |
 | Views/Wiedergabezeit/Umsatz (28 Tage) | — | ❌ manuell (siehe unten, warum) |
-| Bricklink Store-Besuche, Feedback gesamt, Drive-Thru-Mails, Ohne Feedback | — | ❌ manuell (siehe unten, warum) |
+| Bricklink Store-Besuche, Feedback gesamt, Drive-Thru-Mails, Ohne Feedback, Nachrichten unbeantwortet | — | ❌ manuell (siehe unten, warum) |
 | Ziel-Fortschritt (Umsatz) | — | ❌ manuell |
 | Nächste Video-Idee | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
 | Nächste Prüfung/Abgabe (Studium) | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
@@ -431,7 +431,8 @@ Das Tempo kommt bei Abos und Followern aus `metricsHistory` (letzte 28 Tage, min
 aus dem Upload-Rhythmus des Kanals. Ohne Messwerte (z.B. Umsatz, Bricklink-Teile) steht nur die Zeile "nötig".
 
 **Achtung-Banner:** Ganz oben, wie der Versand-Alarm, erscheinen weitere wegklickbare Hinweise: überfälliger Longform-Upload je Kanal
-(rot ab 1,5-fachem Rhythmus, sonst gelb; Shorts zählen nicht) und offene Bricklink-Drive-Thru-Mails bzw. Bestellungen ohne Feedback.
+(rot ab 1,5-fachem Rhythmus, sonst gelb; Shorts zählen nicht) und unbeantwortete Bricklink-Nachrichten (Kennzahl "Nachrichten unbeantwortet" in `data.business.bricklink.stats`, von Hand gepflegt,
+weil Bricklink dafür keine API anbietet; ohne diese Kennzahl oder bei 0 erscheint kein Hinweis).
 "Wegklicken" gilt nur für die aktuelle Sitzung.
 
 ## Kennzahlen, Bereichsfarben und Pixel-Effekte
