@@ -9,12 +9,25 @@
 // weiterhin manuell in data.js gepflegt. Automatisiert wird hier gezielt das, was die
 // Order- und Inventory-API tatsächlich hergeben: offene Bestellungen, deren
 // Versandstatus und Beträge, sowie die Gesamtstückzahl im Store-Inventar.
+//
+// Nachrichten: Die API kennt nur die Nachrichten zu einzelnen Bestellungen
+// (GET /orders/{id}/messages), keinen allgemeinen Posteingang. "Unbeantwortet" heißt hier:
+// die letzte Nachricht zu einer Bestellung stammt vom Käufer. Das Ergebnis steht in
+// data.bricklinkMessages (nur Zahlen und Feldnamen, nie Inhalte, das Repo ist öffentlich).
 
 import { buildAuthHeader } from "../lib/oauth1.mjs";
 
 const BASE_URL = "https://api.bricklink.com/api/store/v1";
 const REVENUE_WEEKS = Number(process.env.BRICKLINK_REVENUE_WEEKS || 8);
 const REVENUE_MONTHS = Number(process.env.BRICKLINK_REVENUE_MONTHS || 6);
+
+// Welche Bestellungen auf Nachrichten geprüft werden: alle noch nicht abgeschlossenen und alle der letzten
+// MESSAGE_DAYS Tage, neueste zuerst, höchstens MAX_MESSAGE_ORDERS Abfragen pro Lauf (das Tageslimit der API liegt bei 5.000 Aufrufen).
+// BRICKLINK_MESSAGES=off schaltet die Prüfung ab.
+const MESSAGES_ENABLED = String(process.env.BRICKLINK_MESSAGES || "on").toLowerCase() !== "off";
+const MESSAGE_DAYS = Number(process.env.BRICKLINK_MESSAGE_DAYS || 120);
+const MAX_MESSAGE_ORDERS = Number(process.env.BRICKLINK_MESSAGE_MAX_ORDERS || 150);
+const CLOSED_STATUSES = ["COMPLETED", "CANCELLED", "NPB", "NPX", "NRS", "NSS"];
 
 // Status-Codes, die für dich "bezahlt, aber noch nicht verschickt" bedeuten.
 // Bricklink-Statusfluss (grob): PENDING -> PROCESSING -> PAID -> PACKED -> SHIPPED -> COMPLETED.
@@ -78,6 +91,54 @@ async function fetchTotalInventoryItems(creds) {
   return (inventory || []).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
 }
 
+const lower = (v) => String(v ?? "").trim().toLowerCase();
+// Feldnamen der Nachrichten sind in der Doku nicht beschrieben: dateSent/from sind die bekannten, die anderen Schreibweisen nur Absicherung.
+const messageTime = (m) => Date.parse(m?.dateSent ?? m?.date_sent ?? m?.date ?? "") || 0;
+const messageFrom = (m) => lower(m?.from ?? m?.from_user ?? m?.sender);
+
+// Zählt Bestellungen, bei denen die letzte Nachricht vom Käufer kommt (also noch keine Antwort des Shops folgte).
+// Prüft nacheinander in kleinen Gruppen; nach mehreren Fehlern in Folge wird abgebrochen (z.B. fehlende Berechtigung).
+async function fetchUnansweredMessages(orders, creds) {
+  const cutoff = Date.now() - MESSAGE_DAYS * 86400000;
+  const candidates = orders
+    .filter((o) => {
+      const t = Date.parse(o.date_ordered);
+      return !CLOSED_STATUSES.includes(String(o.status).toUpperCase()) || (Number.isFinite(t) && t >= cutoff);
+    })
+    .sort((a, b) => (Date.parse(b.date_ordered) || 0) - (Date.parse(a.date_ordered) || 0))
+    .slice(0, MAX_MESSAGE_ORDERS);
+
+  let unanswered = 0;
+  let withMessages = 0;
+  let failed = 0;
+  let lastError = "";
+  let fields = [];
+  const BATCH = 4;
+  for (let i = 0; i < candidates.length && failed < 5; i += BATCH) {
+    const results = await Promise.all(
+      candidates.slice(i, i + BATCH).map(async (o) => {
+        try {
+          return { o, msgs: await bricklinkGet(`/orders/${o.order_id}/messages`, {}, creds) };
+        } catch (err) {
+          failed += 1;
+          lastError = String(err.message || err).slice(0, 160);
+          return null;
+        }
+      })
+    );
+    results.forEach((r) => {
+      if (!r || !Array.isArray(r.msgs) || !r.msgs.length) return;
+      withMessages += 1;
+      if (!fields.length && r.msgs[0] && typeof r.msgs[0] === "object") fields = Object.keys(r.msgs[0]).sort();
+      const last = [...r.msgs].sort((a, b) => messageTime(a) - messageTime(b))[r.msgs.length - 1];
+      const from = messageFrom(last);
+      if (from && from === lower(r.o.buyer_name)) unanswered += 1;
+    });
+  }
+  if (failed >= 5 && !withMessages) throw new Error(lastError || "Nachrichten-Abfrage fehlgeschlagen");
+  return { unanswered, checkedOrders: candidates.length, ordersWithMessages: withMessages, failed, fields };
+}
+
 export async function fetchBricklink(currentData) {
   const creds = {
     consumerKey: process.env.BRICKLINK_CONSUMER_KEY,
@@ -118,6 +179,19 @@ export async function fetchBricklink(currentData) {
       pendingShipments
     }
   };
+
+  // Unbeantwortete Nachrichten (zu Bestellungen). Eigener try/catch: ein Fehler hier darf Versand-Alarm und Umsatzcharts nicht mitreißen.
+  // Bei einem Fehler bleibt der letzte gute Stand in data.bricklinkMessages stehen, nur lastError wird gesetzt (deepMerge in sync-all.mjs).
+  if (MESSAGES_ENABLED) {
+    try {
+      const res = await fetchUnansweredMessages(unfiledOrders, creds);
+      console.log(`[bricklink] Nachrichten: ${res.unanswered} unbeantwortet (${res.ordersWithMessages} von ${res.checkedOrders} geprüften Bestellungen haben Nachrichten, ${res.failed} Abfragen fehlgeschlagen).`);
+      patch.bricklinkMessages = { checkedAt: new Date().toISOString(), ...res, lastError: null };
+    } catch (err) {
+      console.error("[bricklink] Nachrichten übersprungen:", err.message);
+      patch.bricklinkMessages = { lastError: String(err.message || err).slice(0, 160), lastErrorAt: new Date().toISOString() };
+    }
+  }
 
   // Filed = archivierte/abgeschlossene Bestellungen. Für die Umsatz-Trends brauchen wir
   // auch die, sonst würden abgeschlossene Wochen/Monate als 0€ erscheinen. Eigener

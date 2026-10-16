@@ -53,7 +53,8 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 | TikTok-Follower (@bricksonthefloor) | TikTok-Profilseite (Scrape) | ✅ automatisch, siehe Hinweis unten |
 | Wochenvergleich-Trendpfeile (Abos, Bricklink-Umsatz) | abgeleitet aus obigen Quellen | ✅ automatisch, siehe Hinweis unten |
 | Views/Wiedergabezeit/Umsatz (28 Tage) | — | ❌ manuell (siehe unten, warum) |
-| Bricklink Store-Besuche, Feedback gesamt, Drive-Thru-Mails, Ohne Feedback, Nachrichten unbeantwortet | — | ❌ manuell (siehe unten, warum) |
+| Unbeantwortete Bricklink-Nachrichten (nur Nachrichten zu Bestellungen) | Bricklink API | ✅ automatisch, siehe Abschnitt "Unbeantwortete Nachrichten" |
+| Bricklink Store-Besuche, Feedback gesamt, Drive-Thru-Mails, Ohne Feedback | — | ❌ manuell (siehe unten, warum) |
 | Ziel-Fortschritt (Umsatz) | — | ❌ manuell |
 | Nächste Video-Idee | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
 | Nächste Prüfung/Abgabe (Studium) | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
@@ -182,6 +183,18 @@ Der Banner ganz oben im Dashboard erscheint automatisch, sobald
 mindestens einen Eintrag enthält, und verschwindet von selbst, sobald eine
 Bestellung nicht mehr in den "noch zu verschicken"-Status fällt. Mit dem ×
 lässt er sich für die aktuelle Browser-Sitzung ausblenden.
+
+## Unbeantwortete Nachrichten (Bricklink)
+
+Die Bricklink-API kennt **keinen allgemeinen Posteingang**, nur die Nachrichten zu einzelnen Bestellungen (`GET /orders/{id}/messages`). `scripts/fetchers/bricklink.mjs`
+prüft deshalb bei jedem Sync die noch nicht abgeschlossenen Bestellungen und alle der letzten 120 Tage (neueste zuerst, höchstens 150 Abfragen) und zählt die
+Bestellungen, bei denen die **letzte Nachricht vom Käufer** stammt. Das Ergebnis steht in `data.bricklinkMessages` (`unanswered`, `checkedOrders`, `ordersWithMessages`,
+`failed`, `fields` = Feldnamen der Nachrichten, `checkedAt`, `lastError`); es werden nie Inhalte oder Namen gespeichert, weil das Repo öffentlich ist.
+
+- Angezeigt wird die Zahl im Hinweis ganz oben und als Zeile "Nachrichten unbeantwortet" in der Bricklink-Karte (Stand des letzten Syncs, wie bei "Sendung ausstehend").
+- **Nicht erfasst:** Nachrichten, die nicht zu einer Bestellung gehören (z.B. Fragen vor dem Kauf), und Nachrichten zu Bestellungen, die älter als 120 Tage und abgeschlossen sind.
+- Schlägt die Abfrage fehl (z.B. fehlende Berechtigung), bleibt der letzte gute Stand stehen und `lastError` nennt den Grund; der Rest des Syncs läuft normal weiter.
+- Einstellbar über Umgebungsvariablen im Workflow: `BRICKLINK_MESSAGES=off` (abschalten), `BRICKLINK_MESSAGE_DAYS`, `BRICKLINK_MESSAGE_MAX_ORDERS`.
 
 ## Umsatz-Trend (Bricklink)
 
@@ -456,8 +469,8 @@ Das Tempo kommt bei Abos und Followern aus `metricsHistory` (letzte 28 Tage, min
 aus dem Upload-Rhythmus des Kanals. Ohne Messwerte (z.B. Umsatz, Bricklink-Teile) steht nur die Zeile "nötig".
 
 **Achtung-Banner:** Ganz oben, wie der Versand-Alarm, erscheinen weitere wegklickbare Hinweise: überfälliger Longform-Upload je Kanal
-(rot ab 1,5-fachem Rhythmus, sonst gelb; Shorts zählen nicht) und unbeantwortete Bricklink-Nachrichten (Kennzahl "Nachrichten unbeantwortet" in `data.business.bricklink.stats`, von Hand gepflegt,
-weil Bricklink dafür keine API anbietet; ohne diese Kennzahl oder bei 0 erscheint kein Hinweis).
+(rot ab 1,5-fachem Rhythmus, sonst gelb; Shorts zählen nicht) und unbeantwortete Bricklink-Nachrichten (live aus `data.bricklinkMessages`, siehe "Unbeantwortete Nachrichten"; fehlt das, gilt die von Hand gepflegte Kennzahl
+"Nachrichten unbeantwortet" in `data.business.bricklink.stats`; bei 0 oder ohne beides erscheint kein Hinweis).
 "Wegklicken" gilt nur für die aktuelle Sitzung.
 
 ## Kennzahlen, Bereichsfarben und Pixel-Effekte

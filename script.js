@@ -590,7 +590,9 @@
       });
     });
     const stat = (label) => parseInt(String((data.business?.bricklink?.stats || []).find((s) => s.label === label)?.value ?? "").replace(/\./g, ""), 10) || 0;
-    const unanswered = stat("Nachrichten unbeantwortet");
+    // Live aus der Bricklink-API (data.bricklinkMessages, nur Nachrichten zu Bestellungen); fehlt das, gilt die von Hand gepflegte Kennzahl
+    const liveMessages = Number.isFinite(data.bricklinkMessages?.unanswered) ? data.bricklinkMessages.unanswered : null;
+    const unanswered = liveMessages !== null ? liveMessages : stat("Nachrichten unbeantwortet");
     if (unanswered > 0) {
       items.push({
         id: `bricklink-messages-${unanswered}`,
@@ -1675,6 +1677,16 @@
             : s
         )
       };
+    }
+
+    // Unbeantwortete Nachrichten live aus der Bricklink-API: ersetzt die von Hand gepflegte Zeile oder fuegt sie nach "Sendung ausstehend" ein
+    if (key === "bricklink" && Number.isFinite(data.bricklinkMessages?.unanswered)) {
+      const label = "Nachrichten unbeantwortet";
+      const row = { label, value: String(data.bricklinkMessages.unanswered), hint: "via API, nur zu Bestellungen" };
+      const rest = biz.stats.filter((s) => s.label !== label);
+      const after = rest.findIndex((s) => s.label === "Sendung ausstehend");
+      rest.splice(after >= 0 ? after + 1 : rest.length, 0, row);
+      biz = { ...biz, stats: rest };
     }
 
     const statRows = biz.stats.map(
