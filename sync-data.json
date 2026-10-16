@@ -62,6 +62,11 @@
           "id": "0b1ad341-b70a-4980-aed1-9f4c0a8a9523",
           "text": "18+ JW Skript",
           "done": false
+        },
+        {
+          "id": "030b4721-fa4d-422c-9c40-18c579d70116",
+          "text": "18+ jw thumbnail",
+          "done": false
         }
       ],
       "studium": [],
@@ -73,7 +78,7 @@
         }
       ]
     },
-    "updatedAt": 1792128816131
+    "updatedAt": 1792128859651
   },
   "tasks": {
     "items": [
