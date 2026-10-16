@@ -493,6 +493,12 @@
         "cat": "youtube",
         "start": 1792144800000,
         "end": 1792146600000
+      },
+      {
+        "id": "1ca6a67c-a1ca-4ecc-978c-9d18f79e9b23",
+        "cat": "youtube",
+        "start": 1792158959237,
+        "end": 1792161661979
       }
     ],
     "removed": [
@@ -504,14 +510,14 @@
       "youtube|29749714"
     ],
     "active": {
-      "youtube": 1792158959237,
+      "youtube": null,
       "bricklink": null
     },
     "targets": {
       "youtube": 20,
       "bricklink": 7
     },
-    "updatedAt": 1792158959238
+    "updatedAt": 1792161661979
   },
   "inbox": {
     "items": [
