@@ -9,11 +9,8 @@
     });
   // Früh deklariert (nicht erst beim Tages-To-Do weiter unten), weil auch die
   // Studium-Countdown-Karte in der Goals-Sektion sie schon braucht.
-  const escapeHtml = (str) => {
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
-  };
+  const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  const escapeHtml = (str) => String(str ?? "").replace(/[&<>"']/g, (c) => ESC_MAP[c]);
   const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
   // Pixel-Symbole und Wisch-Helfer kommen aus shopping.js (laedt vor diesem Skript). Fehlt die Datei,
   // laeuft alles ohne Symbole weiter.
@@ -22,6 +19,71 @@
 
   // ---------- Kleine Belebungs-Helfer (Mikro-Animationen) ----------
   const prefersReducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- Hinweise und kleine Eingabefenster statt alert() und prompt() ----------
+  // Blockierende Browser-Dialoge unterbrechen die Seite, sehen in der installierten App haesslich aus und fehlen in eingebetteten
+  // Ansichten ganz. toast() zeigt eine kurze Meldung (Klick schliesst sie), askForm() ein kleines Fenster mit Feldern und gibt
+  // die Eingaben zurueck (null = abgebrochen). askText() ist der letzte Notnagel fuer Stellen, die synchron fragen muessen.
+  const toastHost = document.createElement("div");
+  toastHost.id = "toastHost";
+  toastHost.setAttribute("aria-live", "polite");
+  document.body.appendChild(toastHost);
+  function toast(text, kind = "info", ms = 5200) {
+    const el = document.createElement("div");
+    el.className = `dash-toast ${kind}`;
+    el.textContent = text;
+    el.addEventListener("click", () => el.remove());
+    toastHost.appendChild(el);
+    while (toastHost.children.length > 3) toastHost.firstChild.remove();
+    setTimeout(() => el.remove(), ms);
+  }
+  const askText = (message, preset) => {
+    try {
+      return prompt(message, preset);
+    } catch (e) {
+      return null; // Umgebung ohne prompt(): wie "abgebrochen" behandeln
+    }
+  };
+  function askForm({ title, sub, fields, okText = "Speichern" }) {
+    return new Promise((resolve) => {
+      const opener = document.activeElement;
+      const ov = document.createElement("div");
+      ov.className = "overlay open";
+      ov.innerHTML = `<form class="modal ask-modal" role="dialog" aria-modal="true" aria-labelledby="askTitle">
+        <div class="modal-head"><h2 id="askTitle">${escapeHtml(title)}</h2><button type="button" class="modal-close" aria-label="Schließen" data-x>×</button></div>
+        ${sub ? `<p class="modal-sub">${escapeHtml(sub)}</p>` : ""}
+        ${fields
+          .map(
+            (f, i) => `<label class="ask-field"><span>${escapeHtml(f.label)}</span><input name="f${i}" type="${f.type || "text"}" value="${escapeHtml(f.value ?? "")}"${f.min != null ? ` min="${f.min}"` : ""}${f.max != null ? ` max="${f.max}"` : ""}${f.placeholder ? ` placeholder="${escapeHtml(f.placeholder)}"` : ""}${f.maxlength ? ` maxlength="${f.maxlength}"` : ""} /></label>`
+          )
+          .join("")}
+        <div class="modal-actions"><button type="button" class="btn btn-ghost" data-x>Abbrechen</button><button type="submit" class="btn btn-primary">${escapeHtml(okText)}</button></div>
+      </form>`;
+      document.body.appendChild(ov);
+      const form = ov.querySelector("form");
+      const onKey = (e) => {
+        if (e.key === "Escape") {
+          e.stopPropagation();
+          done(null);
+        }
+      };
+      function done(values) {
+        document.removeEventListener("keydown", onKey, true);
+        ov.remove();
+        if (opener && opener.focus && opener.isConnected) opener.focus();
+        resolve(values);
+      }
+      document.addEventListener("keydown", onKey, true);
+      ov.addEventListener("click", (e) => {
+        if (e.target === ov || e.target.closest("[data-x]")) done(null);
+      });
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        done(fields.map((f, i) => form.elements[`f${i}`].value));
+      });
+      setTimeout(() => form.elements.f0 && form.elements.f0.focus(), 30);
+    });
+  }
 
   // Level-up: die Level-Anzeige oben blinkt kurz mit "LEVEL UP!" (nur Optik)
   function celebrateLevelUp(level, rank, rankUp) {
@@ -178,7 +240,13 @@
       return {};
     }
   };
-  const saveGoalMilestonesSeen = (state) => localStorage.setItem(GOAL_MILESTONE_KEY, JSON.stringify(state));
+  const saveGoalMilestonesSeen = (state) => {
+    try {
+      localStorage.setItem(GOAL_MILESTONE_KEY, JSON.stringify(state));
+    } catch (e) {
+      /* Speicher voll oder gesperrt: nur die Merkhilfe geht verloren */
+    }
+  };
 
   let milestoneToastQueue = [];
   let milestoneToastBusy = false;
@@ -427,15 +495,33 @@
   // ---------- Theme ----------
   const root = document.documentElement;
   const themeToggle = document.getElementById("themeToggle");
-  const savedTheme = localStorage.getItem("dashboard-theme");
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  // Die Farbe der Browserleiste (Handy, installierte App) folgt dem Theme
+  const syncThemeColor = () => {
+    const bg = getComputedStyle(root).getPropertyValue("--bg").trim();
+    if (themeMeta && bg) themeMeta.setAttribute("content", bg);
+  };
+  let savedTheme = null;
+  try {
+    savedTheme = localStorage.getItem("dashboard-theme");
+  } catch (e) {
+    /* Speicher gesperrt (z.B. privates Fenster): dann gilt die Einstellung des Systems */
+  }
   if (savedTheme) root.setAttribute("data-theme", savedTheme);
+  syncThemeColor();
+  matchMedia("(prefers-color-scheme: light)").addEventListener?.("change", syncThemeColor);
 
   themeToggle.addEventListener("click", () => {
     const prefersLight = matchMedia("(prefers-color-scheme: light)").matches;
     const current = root.getAttribute("data-theme") || (prefersLight ? "light" : "dark");
     const next = current === "dark" ? "light" : "dark";
     root.setAttribute("data-theme", next);
-    localStorage.setItem("dashboard-theme", next);
+    try {
+      localStorage.setItem("dashboard-theme", next);
+    } catch (e) {
+      /* egal: gilt dann nur bis zum Neuladen */
+    }
+    syncThemeColor();
   });
 
   // ---------- Header ----------
@@ -451,7 +537,7 @@
   document.getElementById("footerUpdated").textContent = syncedLabel;
 
   const hour = now.getHours();
-  const greetingWord = hour < 11 ? "Guten Morgen" : hour < 18 ? "Schönen Tag" : "Guten Abend";
+  const greetingWord = hour < 5 ? "Noch wach" : hour < 11 ? "Guten Morgen" : hour < 18 ? "Schönen Tag" : "Guten Abend";
   document.getElementById("greeting").textContent = `${greetingWord}, ${data.meta.owner || ""}`.trim();
 
   // Spruch des Tages (quotes.js): ein neuer Satz pro Datum; bei einem ueber Mitternacht offenen Tab wechselt er mit
@@ -568,6 +654,7 @@
       if (action === "note") inboxBoard && inboxBoard.open();
       else if (action === "timer-youtube") { timeTrackerBoard && timeTrackerBoard.startIfIdle("youtube"); document.getElementById("zeit")?.scrollIntoView({ block: "start" }); }
       else if (action === "shopping") { foldBoard && foldBoard.expand("einkauf"); document.getElementById("einkauf")?.scrollIntoView({ block: "start" }); }
+      else if (action === "training") { foldBoard && foldBoard.expand("training"); document.getElementById("training")?.scrollIntoView({ block: "start" }); }
     };
     if (document.body.dataset.cloud === "ready") run();
     else document.addEventListener("cloud-ready", run, { once: true });
@@ -581,7 +668,7 @@
     let owner = data.github?.owner || localStorage.getItem("dashboard-gh-owner") || "";
     let repo = data.github?.repo || localStorage.getItem("dashboard-gh-repo") || "";
     if (!owner || !repo) {
-      const input = prompt('GitHub-Repo für den Sync (Format "benutzername/repo-name"):', `${owner}/${repo}`.replace(/^\/$/, ""));
+      const input = askText('GitHub-Repo für den Sync (Format "benutzername/repo-name"):', `${owner}/${repo}`.replace(/^\/$/, ""));
       if (!input || !input.includes("/")) return null;
       [owner, repo] = input.split("/").map((s) => s.trim());
       localStorage.setItem("dashboard-gh-owner", owner);
@@ -589,7 +676,7 @@
     }
     let token = localStorage.getItem("dashboard-gh-token");
     if (!token) {
-      token = prompt(
+      token = askText(
         "GitHub Personal Access Token (fine-grained, mit 'Actions: Read and write' + 'Contents: Read and write' für dieses Repo, für Sync-Button und Habit-Tracker-Cloud-Sync). " +
           "Wird nur in deinem Browser gespeichert, nie im Code:"
       );
@@ -641,7 +728,7 @@
           syncLabel.textContent = "Sync";
           syncButton.disabled = false;
         }, 4000);
-        alert("Sync gestartet. Läuft ca. 15–30 Sekunden — lade die Seite danach neu.");
+        toast("Sync gestartet. Das dauert etwa 15 bis 30 Sekunden, danach die Seite neu laden.", "ok", 9000);
       } else if (res.status === 401 || res.status === 403) {
         localStorage.removeItem("dashboard-gh-token");
         throw new Error("Token ungültig/abgelaufen (entfernt) — bitte beim nächsten Klick neu eingeben.");
@@ -654,7 +741,7 @@
       syncLabel.textContent = "Sync";
       syncButton.disabled = false;
       syncButton.classList.remove("spinning");
-      alert(`Sync fehlgeschlagen: ${err.message}`);
+      toast(`Sync fehlgeschlagen: ${err.message}`, "err", 9000);
     }
   });
 
@@ -770,25 +857,50 @@
     brainTargetY = -10,
     brainCurX = 8,
     brainCurY = -10;
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Die Schleife laeuft nur, solange sich die Szene noch bewegt und im Bild ist (vorher lief sie dauernd, auch ausserhalb des Bildes)
+  let brainRaf = 0;
+  let brainOnScreen = true;
+  const setBrainTransform = () => {
+    brainTilt.style.transform = `rotateX(${brainCurX}deg) rotateY(${brainCurY}deg)`;
+  };
+  function stepBrainTilt() {
+    brainRaf = 0;
+    brainCurX += (brainTargetX - brainCurX) * 0.08;
+    brainCurY += (brainTargetY - brainCurY) * 0.08;
+    if (Math.abs(brainTargetX - brainCurX) < 0.01 && Math.abs(brainTargetY - brainCurY) < 0.01) {
+      brainCurX = brainTargetX;
+      brainCurY = brainTargetY;
+      setBrainTransform();
+      return;
+    }
+    setBrainTransform();
+    kickBrainTilt();
+  }
+  function kickBrainTilt() {
+    if (!brainRaf && !reduceMotion && brainOnScreen) brainRaf = requestAnimationFrame(stepBrainTilt);
+  }
   brainSceneWrap.addEventListener("mousemove", (e) => {
     const r = brainSceneWrap.getBoundingClientRect();
     const px = (e.clientX - r.left) / r.width - 0.5;
     const py = (e.clientY - r.top) / r.height - 0.5;
     brainTargetY = -10 + px * 16;
     brainTargetX = 8 - py * 12;
+    kickBrainTilt();
   });
   brainSceneWrap.addEventListener("mouseleave", () => {
     brainTargetX = 8;
     brainTargetY = -10;
+    kickBrainTilt();
   });
-  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!reduceMotion) {
-    (function animateBrainTilt() {
-      brainCurX += (brainTargetX - brainCurX) * 0.08;
-      brainCurY += (brainTargetY - brainCurY) * 0.08;
-      brainTilt.style.transform = `rotateX(${brainCurX}deg) rotateY(${brainCurY}deg)`;
-      requestAnimationFrame(animateBrainTilt);
-    })();
+    setBrainTransform();
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((entries) => {
+        brainOnScreen = entries[entries.length - 1].isIntersecting;
+        if (brainOnScreen) kickBrainTilt();
+      }).observe(brainSceneWrap);
+    }
   }
 
   // ---------- Bereichs-Popover ----------
@@ -1052,7 +1164,7 @@
     } catch (err) {
       if (err?.name !== "AbortError") {
         console.error("Brain-Notiz speichern fehlgeschlagen:", err);
-        alert(`Speichern fehlgeschlagen: ${err.message}`);
+        toast(`Speichern fehlgeschlagen: ${err.message}`, "err", 9000);
       }
     }
   });
@@ -1274,12 +1386,17 @@
       `;
     }
 
-    card.querySelector("#studiumEditBtn").addEventListener("click", () => {
-      const label = prompt("Bezeichnung (z.B. \"Klausur Marketing\"):", deadline.label || "");
-      if (label === null) return;
-      const dateInput = prompt("Datum (JJJJ-MM-TT):", deadline.date || "");
-      if (dateInput === null) return;
-      saveStudiumDeadline({ label: label.trim(), date: dateInput.trim() });
+    card.querySelector("#studiumEditBtn").addEventListener("click", async () => {
+      const values = await askForm({
+        title: "Nächste Prüfung oder Abgabe",
+        sub: "Daraus wird der Countdown in den Zielen.",
+        fields: [
+          { label: "Bezeichnung", value: deadline.label || "", placeholder: "z.B. Klausur Marketing", maxlength: 60 },
+          { label: "Datum", type: "date", value: deadline.date || "" }
+        ]
+      });
+      if (!values) return;
+      saveStudiumDeadline({ label: values[0].trim(), date: values[1].trim() });
       refreshStudiumCard();
     });
 
@@ -1661,7 +1778,14 @@
   // komplette Spalte neu einfliegen laesst.
   let todoGridStaggeredOnce = false;
 
-  function renderTodos() {
+  function renderTodos(opts = {}) {
+    // Das Grid wird komplett neu gebaut. Damit ein halb getippter Text in einer anderen Spalte (und der Fokus) nicht verloren geht,
+    // werden Entwuerfe und Fokus vorher gemerkt und danach wiederhergestellt.
+    const oldInputs = Array.from(todoGrid.querySelectorAll(".todo-add input"));
+    const drafts = oldInputs.map((i) => i.value);
+    const active = document.activeElement;
+    const focusInput = oldInputs.indexOf(active);
+    const focusCheck = active && active.matches && active.matches(".todo-item input[type=checkbox]") ? active.closest(".todo-item").dataset.id : null;
     todoGrid.innerHTML = "";
     TODO_CATEGORIES.forEach((cat) => {
       const items = todos[cat.id] || [];
@@ -1672,9 +1796,9 @@
             .map(
               (item) => `
         <li class="todo-item ${item.done ? "done" : ""}" data-id="${item.id}">
-          <input type="checkbox" ${item.done ? "checked" : ""} />
+          <input type="checkbox" ${item.done ? "checked" : ""} aria-label="Erledigt: ${escapeHtml(item.text)}" />
           <span>${escapeHtml(item.text)}</span>
-          <button type="button" class="todo-remove" aria-label="Entfernen">×</button>
+          <button type="button" class="todo-remove" aria-label="Entfernen: ${escapeHtml(item.text)}">×</button>
         </li>`
             )
             .join("")
@@ -1701,7 +1825,8 @@
         const newItem = { id: newId(), text, done: false };
         todos[cat.id].push(newItem);
         saveTodos(todos);
-        renderTodos();
+        input.value = "";
+        renderTodos({ focusCat: cat.id });
         flashNewItem(todoGrid, newItem.id);
       };
       card.querySelector(".todo-add button").addEventListener("click", addItem);
@@ -1729,6 +1854,15 @@
       if (!todoGridStaggeredOnce) staggerListItems(card.querySelector(".todo-list"));
     });
     todoGridStaggeredOnce = true;
+
+    const newInputs = Array.from(todoGrid.querySelectorAll(".todo-add input"));
+    drafts.forEach((v, i) => {
+      if (v && newInputs[i]) newInputs[i].value = v;
+    });
+    const focusCatIdx = opts.focusCat ? TODO_CATEGORIES.findIndex((c) => c.id === opts.focusCat) : -1;
+    if (focusCatIdx >= 0 && newInputs[focusCatIdx]) newInputs[focusCatIdx].focus();
+    else if (focusInput >= 0 && newInputs[focusInput]) newInputs[focusInput].focus();
+    else if (focusCheck) todoGrid.querySelector(`.todo-item[data-id="${CSS.escape(focusCheck)}"] input[type=checkbox]`)?.focus();
   }
 
   renderTodos();
@@ -1786,7 +1920,7 @@
             .map(
               (item) => `
       <li class="todo-item ${item.done ? "done" : ""}" data-id="${item.id}">
-        <input type="checkbox" ${item.done ? "checked" : ""} />
+        <input type="checkbox" ${item.done ? "checked" : ""} aria-label="Erledigt: ${escapeHtml(item.text)}" />
         <span>${escapeHtml(item.text)}</span>
         <div class="todo-move-wrap">
           <button type="button" class="todo-move" aria-label="Ins Tages-To-Do verschieben" title="Ins Tages-To-Do verschieben">↩</button>
@@ -1794,7 +1928,7 @@
             ${TODO_CATEGORIES.map((cat) => `<button type="button" data-cat="${cat.id}">${cat.label}</button>`).join("")}
           </div>
         </div>
-        <button type="button" class="todo-remove" aria-label="Entfernen">×</button>
+        <button type="button" class="todo-remove" aria-label="Entfernen: ${escapeHtml(item.text)}">×</button>
       </li>`
             )
             .join("")
@@ -2216,7 +2350,8 @@
 
   let habitState = loadHabitState();
   let habitView = "week";
-  let habitMonthRef = new Date();
+  // Immer der 1. des Monats: setMonth() am 29. bis 31. springt sonst in den uebernaechsten Monat (31. Oktober minus ein Monat waere der 1. Oktober)
+  let habitMonthRef = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   let habitYearRef = new Date().getFullYear();
 
   const habitNewInput = document.getElementById("habitNewInput");
@@ -2287,13 +2422,20 @@
     renderHabits();
   }
 
-  function editHabitTarget(habitId) {
+  async function editHabitTarget(habitId) {
     const habit = habitState.habits.find((h) => h.id === habitId);
     if (!habit) return;
-    const input = prompt(`Wie oft pro Woche soll "${habit.label}" erfuellt sein, damit die Woche zaehlt? (1-7)`, String(habit.targetPerWeek));
-    if (input === null) return;
-    const n = parseInt(input.trim(), 10);
-    if (!Number.isInteger(n) || n < 1 || n > 7) return;
+    const values = await askForm({
+      title: "Wochenziel",
+      sub: `Wie oft pro Woche soll „${habit.label}“ erfüllt sein, damit die Woche zählt?`,
+      fields: [{ label: "Tage pro Woche (1 bis 7)", type: "number", min: 1, max: 7, value: habit.targetPerWeek }]
+    });
+    if (!values) return;
+    const n = parseInt(String(values[0]).trim(), 10);
+    if (!Number.isInteger(n) || n < 1 || n > 7) {
+      toast("Das Wochenziel muss zwischen 1 und 7 liegen.", "warn");
+      return;
+    }
     habit.targetPerWeek = n;
     saveHabitState();
     renderHabits();
@@ -2312,10 +2454,20 @@
     });
   });
 
-  function daycellHtml({ habitId, key, done, today, extraClass, colorIdx }) {
+  // Langes Datum fuer die Vorlesehilfe, je Tag nur einmal berechnet (die Jahresansicht hat hunderte Zellen je Gewohnheit)
+  const dayLabelCache = new Map();
+  const dayLabel = (key) => {
+    let l = dayLabelCache.get(key);
+    if (!l) {
+      l = new Date(key + "T12:00:00").toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      dayLabelCache.set(key, l);
+    }
+    return l;
+  };
+  function daycellHtml({ habitId, key, done, today, extraClass, colorIdx, label }) {
     const color = HABIT_COLORS[colorIdx % HABIT_COLORS.length];
     const classes = ["habit-daycell", extraClass || "", done ? "done" : "", today ? "today" : ""].filter(Boolean).join(" ");
-    return `<button type="button" class="${classes}" style="--habit-color:${color}" data-habit="${habitId}" data-date="${key}"></button>`;
+    return `<button type="button" class="${classes}" style="--habit-color:${color}" data-habit="${habitId}" data-date="${key}" aria-pressed="${done}" aria-label="${escapeHtml(label || "")}, ${dayLabel(key)}"></button>`;
   }
 
   function wireDaycellClicks(container) {
@@ -2372,7 +2524,7 @@
           .map((d) => {
             const key = dateKey(d);
             const done = !!habitState.log[key]?.[h.id];
-            return daycellHtml({ habitId: h.id, key, done, today: key === todayK, colorIdx: idx });
+            return daycellHtml({ habitId: h.id, key, done, today: key === todayK, colorIdx: idx, label: h.label });
           })
           .join("");
         const doneCount = days.filter((d) => habitState.log[dateKey(d)]?.[h.id]).length;
@@ -2422,7 +2574,7 @@
           const d = new Date(year, month, i + 1);
           const key = dateKey(d);
           const done = !!habitState.log[key]?.[h.id];
-          return daycellHtml({ habitId: h.id, key, done, today: key === todayK, colorIdx: idx });
+          return daycellHtml({ habitId: h.id, key, done, today: key === todayK, colorIdx: idx, label: h.label });
         }).join("");
         return `<div class="habit-month-row">
           <div class="habit-month-title">${escapeHtml(h.label)}${streakBadgeHtml(h.id)}</div>
@@ -2435,11 +2587,11 @@
 
     const monthEl = habitViews.month;
     monthEl.querySelector("#habitMonthPrev")?.addEventListener("click", () => {
-      habitMonthRef.setMonth(habitMonthRef.getMonth() - 1);
+      habitMonthRef = new Date(habitMonthRef.getFullYear(), habitMonthRef.getMonth() - 1, 1);
       renderHabits();
     });
     monthEl.querySelector("#habitMonthNext")?.addEventListener("click", () => {
-      habitMonthRef.setMonth(habitMonthRef.getMonth() + 1);
+      habitMonthRef = new Date(habitMonthRef.getFullYear(), habitMonthRef.getMonth() + 1, 1);
       renderHabits();
     });
     wireDaycellClicks(monthEl);
@@ -2492,7 +2644,7 @@
                 if (!d) return `<span class="habit-daycell blank"></span>`;
                 const key = dateKey(d);
                 const done = !!habitState.log[key]?.[h.id];
-                return daycellHtml({ habitId: h.id, key, done, today: key === todayK, colorIdx: idx });
+                return daycellHtml({ habitId: h.id, key, done, today: key === todayK, colorIdx: idx, label: h.label });
               })
               .join("")
           )
@@ -2740,6 +2892,7 @@
   // geladen sind. Schlaegt das fehl (Netz, GitHub-Limit), bleibt sie gesperrt und es wird alle
   // 10 Sekunden neu versucht - bearbeiten waere sonst auf einem leeren Arbeitsspeicher moeglich
   // und koennte spaeter echte Cloud-Daten ueberschreiben.
+  let lastCloudRefresh = Date.now();
   async function loadAllFromCloud() {
     // Beim ersten echten Rendern der Cloud-Daten sollen Listen wieder gestaffelt einfliegen
     // (das Rendern des noch leeren Arbeitsspeichers hat die Einmal-Flags sonst schon verbraucht).
@@ -2750,6 +2903,7 @@
 
     const [habitsOk, syncOk] = await Promise.all([fetchRemoteHabits(), fetchRemoteSyncData()]);
     if (habitsOk && syncOk) {
+      lastCloudRefresh = Date.now();
       setCloudState("ready");
       if (autoSyncStatusEl && autoSyncStatusEl.textContent.includes("Cloud nicht erreichbar")) autoSyncStatusEl.hidden = true;
       // Alt-Aufgaben vergangener Tage aus uebernommenen lokalen Staenden (siehe importLegacyLocalData)
@@ -2765,6 +2919,45 @@
     setTimeout(loadAllFromCloud, 10000);
   }
   loadAllFromCloud();
+
+  // ---------- Tageswechsel und Rueckkehr in den Tab ----------
+  // Ein ueber Nacht offener Tab (oder die installierte App im Hintergrund) behielt bisher den alten Tag: Datum, Begruessung, das Tages-To-Do
+  // und alle "heute"-Markierungen blieben stehen, und Aenderungen vom anderen Geraet kamen erst nach einem Neuladen an.
+  // Jetzt: beim Zurueckkehren (und alle 5 Minuten, solange der Tab sichtbar ist) wird geprueft, ob ein neuer Tag begonnen hat
+  // (dann wird neu geladen oder, falls gerade etwas getippt wird, ein Hinweis gezeigt) und sonst der Cloud-Stand aufgefrischt.
+  const loadedDay = todayKey();
+  let dayBannerShown = false;
+  const userBusy = () => {
+    const a = document.activeElement;
+    const typing = a && (a.tagName === "TEXTAREA" || (a.tagName === "INPUT" && !/^(checkbox|radio|button|submit)$/.test(a.type))) && a.value;
+    const modalOpen = document.querySelector(".overlay.open, .ib-ov.open, .mm-ov:not([hidden]), .tr-app:not([hidden]), .tr-ov:not([hidden]), body.g-lock");
+    return !!(typing || modalOpen || unsavedKinds.size || (trainingBoard && trainingBoard.running()));
+  };
+  function showNewDayBanner() {
+    const host = document.getElementById("topAlerts");
+    if (!host || dayBannerShown) return;
+    dayBannerShown = true;
+    host.insertAdjacentHTML("afterbegin", `<div class="ship-alert top-alert yellow"><div class="ship-alert-inner">${pxSpr("bell", 22)}<span class="ship-alert-text"><b>Ein neuer Tag hat begonnen</b><span class="ta-sub">Lade neu, damit Datum, Tages-To-Do und Habits stimmen.</span></span><button type="button" class="ta-action" data-newday>NEU LADEN</button></div></div>`);
+    host.querySelector("[data-newday]").addEventListener("click", () => location.reload());
+  }
+  function onResume() {
+    if (document.visibilityState !== "visible") return;
+    if (todayKey() !== loadedDay) {
+      if (!userBusy()) location.reload();
+      else showNewDayBanner();
+      return;
+    }
+    // Cloud auffrischen: nur mit Token (sonst gaebe das Lesen das GitHub-Limit von 60 Anfragen pro Stunde schnell her), nicht waehrend getippt wird
+    if (document.body.dataset.cloud !== "ready" || Date.now() - lastCloudRefresh < 120000 || userBusy()) return;
+    if (!localStorage.getItem("dashboard-gh-token")) return;
+    lastCloudRefresh = Date.now();
+    Promise.all([fetchRemoteHabits(), fetchRemoteSyncData()]).catch(() => {});
+    if (trainingBoard) trainingBoard.refresh();
+    if (gcalAccessToken) fetchTodayEvents();
+  }
+  document.addEventListener("visibilitychange", onResume);
+  window.addEventListener("focus", onResume);
+  setInterval(onResume, 5 * 60000);
 
   // ---------- Google Kalender ----------
   // Google Identity Services (GIS) fuer den OAuth2-Authorization-Code-Flow, Google Calendar
@@ -2853,7 +3046,7 @@
   function getGcalClientId() {
     let clientId = data.googleCalendar?.clientId || localStorage.getItem(GCAL_CLIENT_ID_KEY) || "";
     if (!clientId) {
-      const input = prompt(
+      const input = askText(
         "Google OAuth Client-ID für den Kalender (siehe README, Abschnitt \"Google Kalender\" für die Einrichtung):"
       );
       if (!input) return null;
@@ -2866,7 +3059,7 @@
   function getGcalWorkerUrl() {
     let workerUrl = data.googleCalendar?.workerUrl || localStorage.getItem(GCAL_WORKER_URL_KEY) || "";
     if (!workerUrl) {
-      const input = prompt(
+      const input = askText(
         "URL des Cloudflare-Worker-Proxys für den Kalender (siehe README, Abschnitt \"Google Kalender\" für die Einrichtung):"
       );
       if (!input) return null;
@@ -3064,14 +3257,40 @@
     return gcalCodeClient;
   }
 
-  calendarConnectBtn?.addEventListener("click", () => {
+  // Der Google-Anmeldedienst wird nur geladen, wenn man den Kalender wirklich verbinden will (nicht bei jedem Seitenaufruf):
+  // schon beim Darueberfahren oder Antippen des Knopfes, damit er beim Klick meist bereit ist.
+  let gsiPromise = null;
+  function loadGsi() {
+    if (window.google?.accounts?.oauth2) return Promise.resolve(true);
+    if (!gsiPromise) {
+      gsiPromise = new Promise((resolve) => {
+        const script = document.createElement("script");
+        script.src = "https://accounts.google.com/gsi/client";
+        script.async = true;
+        script.onload = () => resolve(true);
+        script.onerror = () => {
+          gsiPromise = null;
+          resolve(false);
+        };
+        document.head.appendChild(script);
+      });
+    }
+    return gsiPromise;
+  }
+  ["pointerenter", "focus", "touchstart"].forEach((ev) => calendarConnectBtn?.addEventListener(ev, loadGsi, { once: true, passive: true }));
+
+  calendarConnectBtn?.addEventListener("click", async () => {
     const clientId = getGcalClientId();
     if (!clientId) return;
     if (!getGcalWorkerUrl()) return;
-    const client = ensureGcalCodeClient(clientId);
+    let client = ensureGcalCodeClient(clientId);
     if (!client) {
-      alert("Google-Anmeldedienst ist noch nicht geladen — bitte kurz warten und nochmal klicken.");
-      return;
+      const loaded = await loadGsi();
+      client = loaded ? ensureGcalCodeClient(clientId) : null;
+      if (!client) {
+        toast("Der Google-Anmeldedienst ist gerade nicht erreichbar. Bitte später noch einmal versuchen.", "warn", 8000);
+        return;
+      }
     }
     client.requestCode();
   });
@@ -3079,7 +3298,7 @@
   calendarOpenFullBtn?.addEventListener("click", async () => {
     const calId = await resolveCalendarId();
     if (!calId) {
-      alert('Kalender-ID noch nicht bekannt — erst auf "Kalender verbinden" klicken, oder googleCalendar.calendarId in data.js eintragen.');
+      toast('Kalender-ID noch nicht bekannt. Erst auf "Kalender verbinden" klicken oder googleCalendar.calendarId in data.js eintragen.', "warn", 9000);
       return;
     }
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;

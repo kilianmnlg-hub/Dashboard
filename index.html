@@ -4,12 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Kilian – Dashboard</title>
-<link rel="stylesheet" href="styles.css?v=20261016a" />
+<meta name="description" content="Persönliches Dashboard: Aufgaben, Gewohnheiten, Ziele, Business-Zahlen, Zeittracker, Einkauf und Training auf einen Blick." />
+<meta name="color-scheme" content="dark light" />
+<link rel="stylesheet" href="styles.css?v=20261016b" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon-64.png" type="image/png" sizes="64x64" />
 <link rel="apple-touch-icon" href="icon-200.png" />
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <meta name="theme-color" content="#14120F" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Dashboard" />
 </head>
 <body>
 
@@ -36,7 +39,7 @@
       <b class="lvl-n">LVL 0</b><span class="lvl-rank"></span><div class="xp" aria-hidden="true"></div><span class="lvl-avg"></span>
     </div>
     <div class="top-timers" id="topTimers" aria-live="off"></div>
-    <nav class="nav" id="mainNav">
+    <nav class="nav" id="mainNav" aria-label="Bereiche">
       <a href="#kalender">Kalender</a>
       <a href="#todo">To-Do</a>
       <a href="#aufgaben">Aufgaben</a>
@@ -63,7 +66,7 @@
 </div>
 
 <main>
-  <section class="brain-card">
+  <section class="brain-card" aria-label="Brain">
     <div class="scn-banner" id="scnBanner" role="button" tabindex="0" aria-label="Pixel-Dschungel und Easter Eggs ansehen">
       <canvas aria-hidden="true"></canvas>
       <span class="scn-chip scn-eggs" id="scnEggChip">EASTER EGGS 0/20</span>
@@ -91,11 +94,11 @@
   </section>
 
   <div class="overlay" id="noteOverlay">
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Schnelle Notiz">
       <div id="noteFormState">
         <div class="modal-head">
           <h2>Schnelle Notiz</h2>
-          <button class="modal-close" id="noteCloseBtn" type="button">×</button>
+          <button class="modal-close" id="noteCloseBtn" type="button" aria-label="Schließen">×</button>
         </div>
         <p class="modal-sub" id="noteModalSub">Landet automatisch an der richtigen Stelle in deinem Vault.</p>
         <p class="modal-status" id="noteConnectionStatus"></p>
@@ -115,10 +118,10 @@
   </div>
 
   <div class="overlay" id="calendarOverlay">
-    <div class="modal modal-wide">
+    <div class="modal modal-wide" role="dialog" aria-modal="true" aria-label="Kalender">
       <div class="modal-head">
         <h2>Kalender</h2>
-        <button class="modal-close" id="calendarModalCloseBtn" type="button">×</button>
+        <button class="modal-close" id="calendarModalCloseBtn" type="button" aria-label="Schließen">×</button>
       </div>
       <p class="modal-sub">Dein voller Google-Kalender — dafür musst du in diesem Browser bei Google eingeloggt sein.</p>
       <div class="calendar-embed-wrap">
@@ -139,9 +142,9 @@
     </div>
   </div>
 
-  <section id="kalender" class="section">
+  <section id="kalender" class="section" aria-labelledby="kalender-h">
     <div class="section-head">
-      <h2><span class="section-marker"></span>Kalender</h2>
+      <h2 id="kalender-h"><span class="section-marker"></span>Kalender</h2>
       <p class="section-sub" id="calendarDateLabel"></p>
     </div>
     <div class="panel">
@@ -163,17 +166,17 @@
     </div>
   </section>
 
-  <section id="todo" class="section">
+  <section id="todo" class="section" aria-labelledby="todo-h">
     <div class="section-head">
-      <h2><span class="section-marker"></span>Tages-To-Do</h2>
+      <h2 id="todo-h"><span class="section-marker"></span>Tages-To-Do</h2>
       <p class="section-sub" id="todoDateLabel"></p>
     </div>
     <div class="grid todo-grid" id="todoGrid"></div>
   </section>
 
-  <section id="aufgaben" class="section">
+  <section id="aufgaben" class="section" aria-labelledby="aufgaben-h">
     <div class="section-head">
-      <h2><span class="section-marker"></span>Aufgaben</h2>
+      <h2 id="aufgaben-h"><span class="section-marker"></span>Aufgaben</h2>
       <p class="section-sub">Bleiben stehen, bis du sie abhakst — kein täglicher Reset</p>
     </div>
     <div class="panel">
@@ -185,9 +188,9 @@
     </div>
   </section>
 
-  <section id="remote-tasks" class="section">
+  <section id="remote-tasks" class="section" aria-labelledby="remote-tasks-h">
     <div class="section-head">
-      <h2><span class="section-marker"></span>Remote Tasks</h2>
+      <h2 id="remote-tasks-h"><span class="section-marker"></span>Remote Tasks</h2>
       <p class="section-sub">Wie Aufgaben: bleiben stehen, bis du sie abhakst — kein täglicher Reset</p>
     </div>
     <div class="panel">
@@ -199,9 +202,9 @@
     </div>
   </section>
 
-  <section id="habits" class="section">
+  <section id="habits" class="section" aria-labelledby="habits-h">
     <div class="section-head">
-      <h2><span class="section-marker"></span>Habit-Tracker</h2>
+      <h2 id="habits-h"><span class="section-marker"></span>Habit-Tracker</h2>
       <div class="habit-view-toggle" id="habitViewToggle">
         <button type="button" data-view="week" class="active">Woche</button>
         <button type="button" data-view="month">Monat</button>
@@ -223,16 +226,16 @@
     </div>
   </section>
 
-  <section id="ziele" class="section">
+  <section id="ziele" class="section" aria-labelledby="ziele-h">
     <div class="section-head">
-      <h2><span class="section-marker"></span>Ziele bis Ende 2026</h2>
+      <h2 id="ziele-h"><span class="section-marker"></span>Ziele bis Ende 2026</h2>
     </div>
     <div class="grid goals-grid" id="goalsGrid"></div>
   </section>
 
-  <section id="business" class="section">
+  <section id="business" class="section" aria-labelledby="business-h">
     <div class="section-head">
-      <h2><span class="section-marker"></span>Business-KPIs</h2>
+      <h2 id="business-h"><span class="section-marker"></span>Business-KPIs</h2>
     </div>
     <div class="grid business-grid" id="businessGrid"></div>
 
@@ -370,9 +373,9 @@
     <div class="tr-main" id="trMain"></div>
   </section>
 
-  <section id="notizen" class="section">
+  <section id="notizen" class="section" aria-labelledby="notizen-h">
     <div class="section-head">
-      <h2><span class="section-marker"></span>Notizen</h2>
+      <h2 id="notizen-h"><span class="section-marker"></span>Notizen</h2>
       <p class="section-sub">Alle über "Brain" erfassten Notizen, unabhängig vom Themen-Ordner</p>
     </div>
     <div class="panel">
@@ -401,16 +404,16 @@
 </footer>
 
 <script src="data.js"></script>
-<script src="quotes.js?v=20261016a"></script>
-<script src="xp.js?v=20261016a"></script>
-<script src="shopping.js?v=20261016a"></script>
-<script src="timetracker.js?v=20261016a"></script>
-<script src="inbox.js?v=20261016a"></script>
-<script src="training.js?v=20261016a"></script>
-<script src="scenery.js?v=20261016a"></script>
-<script src="guests-data.js?v=20261016a"></script>
-<script src="guests.js?v=20261016a"></script>
-<script src="fold.js?v=20261016a"></script>
-<script src="script.js?v=20261016a"></script>
+<script src="quotes.js?v=20261016b"></script>
+<script src="xp.js?v=20261016b"></script>
+<script src="shopping.js?v=20261016b"></script>
+<script src="timetracker.js?v=20261016b"></script>
+<script src="inbox.js?v=20261016b"></script>
+<script src="training.js?v=20261016b"></script>
+<script src="scenery.js?v=20261016b"></script>
+<script src="guests-data.js?v=20261016b"></script>
+<script src="guests.js?v=20261016b"></script>
+<script src="fold.js?v=20261016b"></script>
+<script src="script.js?v=20261016b"></script>
 </body>
 </html>

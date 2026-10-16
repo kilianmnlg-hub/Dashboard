@@ -469,8 +469,8 @@ Zusätzlich liegt jeder Stand in der Git-Historie: mit `git show <commit>:sync-d
 
 - **Laufender Timer:** Solange ein Timer läuft, steht er als Chip oben in der Kopfleiste (Uhrzeit und Bereich, Klick springt zum Zeittracker) und im
   Tab-Titel ("▶ 00:42 YouTube · Dashboard"). Der Stand kommt aus der Cloud: ein am Handy gestarteter Timer erscheint auch am PC.
-- **Kurzbefehle am Handy-Icon (Android):** Langes Drücken auf das App-Icon bietet "Schnelle Notiz", "YouTube-Timer starten" und "Einkaufsliste"
-  (`shortcuts` im Manifest, Aufruf als `?action=note`, `?action=timer-youtube`, `?action=shopping`). Ausgeführt wird erst, wenn die Cloud geladen ist,
+- **Kurzbefehle am Handy-Icon (Android):** Langes Drücken auf das App-Icon bietet "Schnelle Notiz", "YouTube-Timer starten", "Einkaufsliste" und "Training"
+  (`shortcuts` im Manifest, Aufruf als `?action=note`, `?action=timer-youtube`, `?action=shopping`, `?action=training`). Ausgeführt wird erst, wenn die Cloud geladen ist,
   damit der Timer-Start nicht vom noch leeren Stand überschrieben wird. Unter iOS zeigt das Betriebssystem solche Menüs bei Web-Apps nicht an.
 - **Neue Version verfügbar:** Das Dashboard vergleicht beim Start, beim Zurückkehren zum Tab und alle 10 Minuten die Versionsnummer in `index.html`
   mit der geladenen. Ist der Server neuer, erscheint oben ein gelber Hinweis im Stil der anderen Banner mit "NEU LADEN".
@@ -572,7 +572,9 @@ Level (siehe Level-System): **jedes Level schaltet ein Thema frei**, immer erst 
 - **Plätze:** Das Layout wird gemessen (Text, Knöpfe, Bilder, Eingaben zählen als belegt), alles andere ist frei. Auf den freien Stellen entstehen so viele Plätze wie möglich
   (am Desktop gut 300): stehend auf den Oberkanten der Karten, in ihren unteren Ecken, in Lücken zwischen Karten und am Seitenrand, dazu bis zu vier Plätze in der Kopfzeile.
   Kein Platz verdeckt Text oder Bedienelemente; die Gäste liegen in einer eigenen Ebene (`#guestLayer`, z-index 4, unter Menüs und Hinweisen) und ändern kein Layout.
-  Karten in scrollbaren Behältern (Karussells auf dem Handy) bekommen keine Plätze.
+  Karten in scrollbaren Behältern (Karussells auf dem Handy) bekommen keine Plätze. Zugeklappte Ausklappfelder zählen nicht als belegt (nur ihre Titelzeile), scrollende Behälter
+  (z.B. die Einkaufsliste) ganz, ihre Oberkante ist selbst ein Platz. Innerhalb der Karten stehen Gäste außerdem auf Textzeilen, Knöpfen, Balken und Kacheln, wo darüber Platz frei ist
+  (am Desktop gut 500 Plätze). Die Automatik verteilt die Gäste gleichmäßig über die Bereiche. Der Hinweis beim Darüberfahren erscheint nur mit der Maus und verschwindet immer wieder.
 - **Automatik:** Neue Gäste ziehen mit dem Levelaufstieg von selbst ein, ein Hinweis nennt das neue Thema. Insgesamt stehen nur so viele, dass das Dashboard ruhig bleibt
   (Seitenhöhe / 200 px, am Desktop ca. 36); ältere, nicht von dir gesetzte Gäste weichen (höchstens 16 pro Aufstieg). Die Automatik setzt nur Gäste, die voll sichtbar sind.
 - **Tauschen, setzen, leer lassen:** Klick auf einen Gast öffnet die Auswahl aller freigeschalteten Gäste (Suche, Welt, "nicht im Bild", "neu"); "Leer lassen" lässt den Platz leer.
@@ -792,6 +794,12 @@ bei jedem Laden gelesen und vereinigt, die Kopie wird erst nach erfolgreichem Pu
   ersten Änderung fragt es einmal pro Sitzung nach dem Token; lehnst du ab, steht
   "Nicht gespeichert — GitHub-Token fehlt". Beim Schließen mit ungespeicherten
   Änderungen warnt der Browser.
+- **Zurückkehren in den Tab und Tageswechsel:** Kommst du in einen schon länger offenen Tab oder die App zurück (und alle 5 Minuten, solange er sichtbar ist), wird der Cloud-Stand
+  aufgefrischt (nur mit Token, höchstens alle 2 Minuten, nicht während du tippst oder ein Fenster offen ist), damit Änderungen vom anderen Gerät ankommen. Hat inzwischen ein neuer Tag
+  begonnen, lädt die Seite von selbst neu (sonst stehen Datum, Tages-To-Do und Habits auf dem alten Tag); ist gerade etwas offen oder nicht gespeichert, erscheint stattdessen der Hinweis
+  "Ein neuer Tag hat begonnen".
+- **Hinweise statt Dialogfenstern:** Meldungen (Sync gestartet, Fehler) erscheinen als kurze Hinweise unten (Klick schließt sie); Studium-Termin und Wochenziel eines Habits werden in einem
+  kleinen Fenster eingegeben. Nur die einmalige Eingabe von Token, Repo und Kalender-Zugang nutzt noch das Eingabefenster des Browsers.
 - **Einmalige Übernahme alter Daten:** liegen auf einem Gerät noch alte lokale Daten aus
   früheren Versionen, werden sie beim Laden mit der Cloud abgeglichen (neuerer
   Zeitstempel gewinnt, ein leerer Stand überschreibt nie einen gefüllten), hochgeladen
