@@ -7,7 +7,8 @@
        Standes + "noch nicht hochgeladen"-Marke) und dashboard-training-draft (das gerade laufende Workout).
    Verknuepfung: neuer Rekord = 10 XP, Steigerung gegenueber dem letzten Mal = 5 XP (nur als Extra, hoechstens 8 pro Einheit); am Ende
    einer Einheit wird das Habit "Gym" abgehakt (script.js: setHabitDone).
-   script.js uebergibt: main (Container), syncEl (Statusanzeige), readCloudJson, getGithubConfig, escapeHtml, todayKey, xp, habitDone, status. */
+   script.js uebergibt: main (Container), syncEl (Statusanzeige), readCloudJson, getGithubConfig, escapeHtml, todayKey, xp, habitDone, status,
+   serial (Warteschlange fuer Schreibzugriffe auf GitHub, eine nach der anderen), wrote (meldet einen Schreibzugriff). */
 
 (function () {
   "use strict";
@@ -883,6 +884,12 @@
         return false;
       }
     }
+    /* 403 heisst bei GitHub nicht immer "Token ungueltig": auch die Schreibbremse (zu viele oder gleichzeitige Schreibzugriffe) antwortet so */
+    async function rateLimited(res) {
+      if (res.status === 429) return true;
+      if (res.headers.get("retry-after") || res.headers.get("x-ratelimit-remaining") === "0") return true;
+      try { return /rate limit|abuse|secondary/i.test(String((await res.clone().json()).message || "")); } catch (e) { return false; }
+    }
     function schedulePush(ms) {
       clearTimeout(pushTimer);
       pushTimer = setTimeout(pushNow, ms == null ? 700 : ms);
@@ -904,19 +911,26 @@
       let ok = false, fail = "";
       const seq = chgSeq;
       try {
-        for (let attempt = 0; attempt < 3 && !ok; attempt++) {
-          const api = "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + FILE;
-          const payload = Object.assign({ updatedAt: Date.now() }, JSON.parse(JSON.stringify(D)));
-          const res = await fetch(api, {
-            method: "PUT",
-            headers: { Authorization: "Bearer " + cfg.token, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
-            body: JSON.stringify({ message: "Training Update", content: b64(JSON.stringify(payload)), ...(sha ? { sha } : {}) })
-          });
-          if (res.ok) { const j = await res.json(); sha = (j.content && j.content.sha) || sha; ok = true; }
-          else if (res.status === 409 || res.status === 422) { if (!(await loadCloud())) { fail = "offline"; break; } }
-          else if (res.status === 401 || res.status === 403) { lsDel("dashboard-gh-token"); fail = "Token ungültig oder ohne Contents-Recht"; break; }
-          else { fail = "Status " + res.status; break; }
-        }
+        /* Schreibzugriffe auf das Repo laufen nacheinander (deps.serial, siehe script.js): gleichzeitige PUTs geraten bei GitHub in Konflikt */
+        await (deps.serial || ((f) => f()))(async () => {
+          for (let attempt = 0; attempt < 3 && !ok; attempt++) {
+            const api = "https://api.github.com/repos/" + cfg.owner + "/" + cfg.repo + "/contents/" + FILE;
+            const payload = Object.assign({ updatedAt: Date.now() }, JSON.parse(JSON.stringify(D)));
+            const res = await fetch(api, {
+              method: "PUT",
+              headers: { Authorization: "Bearer " + cfg.token, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+              body: JSON.stringify({ message: "Training Update", content: b64(JSON.stringify(payload)), ...(sha ? { sha } : {}) })
+            });
+            if (deps.wrote) deps.wrote();   /* meldet den Schreibzugriff, damit der naechste Push den Mindestabstand einhaelt */
+            if (res.ok) { const j = await res.json(); sha = (j.content && j.content.sha) || sha; ok = true; }
+            else if (res.status === 409 || res.status === 422) { if (!(await loadCloud())) { fail = "offline"; break; } }
+            else if (res.status === 401 || res.status === 403) {
+              if (await rateLimited(res)) { fail = "GitHub-Schreibbremse, bitte kurz warten"; break; }
+              lsDel("dashboard-gh-token"); fail = "Token ungültig oder ohne Contents-Recht"; break;
+            }
+            else { fail = "Status " + res.status; break; }
+          }
+        });
       } catch (e) { fail = "offline"; }
       pushing = false;
       if (ok) {

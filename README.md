@@ -846,6 +846,14 @@ bei jedem Laden gelesen und vereinigt, die Kopie wird erst nach erfolgreichem Pu
 - Jede Änderung wird nach ca. 0,7 Sekunden automatisch in genau die betroffene Datei
   gepusht (Status oben rechts neben dem Sync-Button). Bei einem Konflikt (z.B. paralleler
   Workflow-Commit) wird bis zu zweimal automatisch neu versucht.
+- **Schreibzugriffe nacheinander.** Alle Speicherungen aufs Repo (Gewohnheiten, Aufgaben/Ideen, Training und der Workflow-Start des Sync-Knopfs) laufen durch eine gemeinsame
+  Warteschlange mit mindestens einer Sekunde Abstand (`serialWrite` in `script.js`). GitHub quittiert gleichzeitige Schreibzugriffe mit einem Konflikt oder seiner Schreibbremse; der
+  Sync-Knopf hat früher alles auf einmal geschickt und zeigte dann "Auto-Sync fehlgeschlagen". Er wiederholt Konflikte jetzt selbst und schreibt im Fehlerfall den Grund
+  ins Statusfeld.
+- **Schreibbremse ist kein ungültiger Token.** Antwortet GitHub mit 403 und "rate limit"/"retry-after", bleibt der Token gespeichert und es heißt "GitHub-Schreibbremse … bitte kurz
+  warten". Nur ein echtes 401/403 ohne diese Zeichen löscht den Token.
+- **Keine leeren Commits.** Ist der Inhalt von `habits-data.json` / `sync-data.json` schon identisch mit dem Stand in der Cloud, wird nicht geschrieben (kein "Habit-Tracker Update"
+  ohne Änderung, keine überflüssige Pages-Veröffentlichung). Klickst du Sync ohne neue Änderungen, startet nur der Workflow.
 - **Kein Offline-Bearbeiten.** Ohne Token ist das Dashboard praktisch nur lesbar: bei der
   ersten Änderung fragt es einmal pro Sitzung nach dem Token; lehnst du ab, steht
   "Nicht gespeichert — GitHub-Token fehlt". Beim Schließen mit ungespeicherten

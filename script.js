@@ -440,7 +440,38 @@
   // gesetzt und im Status-Badge angezeigt, damit man nicht in die Konsole schauen muss.
   const lastPushError = { habits: null, syncdata: null };
   let tokenPromptDeclined = false;
-  const AUTO_SYNC_PUSHERS = { habits: () => pushHabitsToCloud(), syncdata: () => pushSyncDataToCloud() };
+
+  // GitHub verlangt, Schreibzugriffe (PUT/POST) nacheinander und mit etwa einer Sekunde Abstand zu schicken: gleichzeitige PUTs (auch auf verschiedene
+  // Dateien) geraten in Konflikt (409) oder loesen die Schreibbremse aus. Alle Pushes laufen deshalb durch diese eine Warteschlange; wer wirklich
+  // schreibt, meldet das mit markWrite(), der naechste wartet dann bis zum Mindestabstand. Der Sync-Knopf schickte Gewohnheiten, Aufgaben und Training
+  // bisher gleichzeitig - daher kam es dort oft zu "Auto-Sync fehlgeschlagen".
+  const WRITE_GAP_MS = 1000;
+  let writeChain = Promise.resolve();
+  let lastWriteAt = 0;
+  const markWrite = () => { lastWriteAt = Date.now(); };
+  const serialWrite = (fn) => {
+    const run = writeChain.then(async () => {
+      const wait = lastWriteAt + WRITE_GAP_MS - Date.now();
+      if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+      return fn();
+    });
+    writeChain = run.then(() => {}, () => {});
+    return run;
+  };
+  // 403 heisst bei GitHub nicht immer "Token ungueltig": auch die Schreibbremse (zu viele oder gleichzeitige Schreibzugriffe) und das Abfrage-Limit
+  // antworten so. Dann den Token behalten und warten lassen, statt ihn zu loeschen.
+  async function isGithubRateLimit(res) {
+    if (res.status === 429) return true;
+    if (res.status !== 403) return false;
+    if (res.headers.get("retry-after") || res.headers.get("x-ratelimit-remaining") === "0") return true;
+    try {
+      return /rate limit|abuse|secondary/i.test(String((await res.clone().json()).message || ""));
+    } catch (e) {
+      return false;
+    }
+  }
+  const RATE_LIMIT_MSG = "GitHub-Schreibbremse: zu viele Zugriffe auf einmal, bitte kurz warten";
+  const AUTO_SYNC_PUSHERS = { habits: () => serialWrite(() => pushHabitsToCloud()), syncdata: () => serialWrite(() => pushSyncDataToCloud()) };
 
   async function runAutoSync(kind, attempt) {
     if (autoSyncInFlight[kind]) {
@@ -700,27 +731,55 @@
     syncButton.classList.add("spinning");
     syncLabel.textContent = "Synchronisiere…";
 
-    // Habit-Tracker- und Video-Ideen/Studium/To-Do/Aufgaben-Stand laufen am selben Klick
-    // mit hoch (Contents API, kein Workflow nötig — sofort fertig, nicht Teil des
-    // "läuft 15-30s"-Hinweises unten).
+    // Habit-Tracker-, Video-Ideen/Studium/To-Do/Aufgaben- und Training-Stand laufen am selben Klick mit hoch (Contents API, kein Workflow nötig
+    // — sofort fertig, nicht Teil des "läuft 15-30s"-Hinweises unten). NACHEINANDER statt gleichzeitig: parallele Schreibzugriffe geraten bei
+    // GitHub in Konflikt; ein Konflikt wird bis zu zweimal wiederholt. Erst danach startet der Workflow, damit beide sich nicht ins Gehege kommen.
     setAutoSyncStatus("saving");
-    Promise.all([pushHabitsToCloud(config), pushSyncDataToCloud(config), trainingBoard ? trainingBoard.sync() : true])
-      .then(([habitsOk, syncDataOk, trainingOk]) => setAutoSyncStatus(habitsOk && syncDataOk && trainingOk ? "saved" : "error"))
-      .catch((err) => setAutoSyncStatus("error", err.message));
+    const pushRetry = async (kind, push) => {
+      let ok = false;
+      for (let attempt = 0; attempt < 3 && !ok; attempt++) {
+        if (attempt) await new Promise((r) => setTimeout(r, 700));
+        ok = await serialWrite(push);
+        if (!ok && !lastPushError[kind]?.conflict) break;
+      }
+      if (ok) unsavedKinds.delete(kind);
+      return ok;
+    };
+    // Wurde der Token als ungueltig entfernt, gar nicht erst weiterprobieren
+    const tokenGone = () => !localStorage.getItem("dashboard-gh-token");
+    try {
+      const habitsOk = await pushRetry("habits", () => pushHabitsToCloud(config));
+      const syncDataOk = tokenGone() ? false : await pushRetry("syncdata", () => pushSyncDataToCloud(config));
+      const trainingOk = tokenGone() ? false : trainingBoard ? await trainingBoard.sync() : true;
+      if (habitsOk && syncDataOk && trainingOk) {
+        setAutoSyncStatus("saved");
+      } else {
+        const why = (!habitsOk && lastPushError.habits?.message) || (!syncDataOk && lastPushError.syncdata?.message) || (!trainingOk ? "Training nicht gesichert (Genaueres im Bereich Training)" : "");
+        setAutoSyncStatus("error", why);
+        if (!tokenGone()) toast(`Speichern unvollständig: ${why || "unbekannter Fehler"}`, "warn", 9000);
+      }
+    } catch (err) {
+      setAutoSyncStatus("error", err.message);
+    }
 
     try {
-      const res = await fetch(
-        `https://api.github.com/repos/${config.owner}/${config.repo}/actions/workflows/${config.workflowFile}/dispatches`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${config.token}`,
-            Accept: "application/vnd.github+json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ ref: "main" })
-        }
-      );
+      if (tokenGone()) throw new Error("Token ungültig/abgelaufen (entfernt) — bitte beim nächsten Klick neu eingeben.");
+      const res = await serialWrite(async () => {
+        const r = await fetch(
+          `https://api.github.com/repos/${config.owner}/${config.repo}/actions/workflows/${config.workflowFile}/dispatches`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${config.token}`,
+              Accept: "application/vnd.github+json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ ref: "main" })
+          }
+        );
+        markWrite();
+        return r;
+      });
 
       if (res.status === 204) {
         // Spinner morpht sofort in einen Haken, statt noch 4s weiterzudrehen waehrend der
@@ -735,6 +794,7 @@
         }, 4000);
         toast("Sync gestartet. Das dauert etwa 15 bis 30 Sekunden, danach die Seite neu laden.", "ok", 9000);
       } else if (res.status === 401 || res.status === 403) {
+        if (await isGithubRateLimit(res)) throw new Error(RATE_LIMIT_MSG);
         localStorage.removeItem("dashboard-gh-token");
         throw new Error("Token ungültig/abgelaufen (entfernt) — bitte beim nächsten Klick neu eingeben.");
       } else if (res.status === 404) {
@@ -2214,7 +2274,9 @@
         xp: xpBoard,
         habitDone: setHabitDone,
         cloudReady: () => document.body.dataset.cloud === "ready",
-        status: setAutoSyncStatus
+        status: setAutoSyncStatus,
+        serial: serialWrite,
+        wrote: markWrite
       })
     : null;
 
@@ -2408,8 +2470,11 @@
     lastPushError.habits = null;
     const apiUrl = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${HABIT_REMOTE_FILE}`;
     const headers = { Authorization: `Bearer ${config.token}`, Accept: "application/vnd.github+json" };
-    const rejectToken = (msg) => {
-      localStorage.removeItem("dashboard-gh-token");
+    const rejectToken = async (res) => {
+      // 403 ist auch die Antwort auf die Schreibbremse - dann den Token behalten und nur warten lassen
+      const limited = await isGithubRateLimit(res);
+      const msg = limited ? RATE_LIMIT_MSG : "Token ungültig oder ohne 'Contents'-Berechtigung (entfernt, beim nächsten Mal neu eingeben)";
+      if (!limited) localStorage.removeItem("dashboard-gh-token");
       lastPushError.habits = { message: msg };
       setHabitSyncStatus("error", msg);
       return false;
@@ -2427,17 +2492,21 @@
       // Sonst kann ein Push blind einen neueren Cloud-Stand mit einem aelteren lokalen
       // ueberschreiben — beobachtet bei mehreren Sync-Klicks kurz hintereinander.
       const getRes = await fetch(apiUrl, { headers, cache: "no-store" });
-      if (getRes.status === 401 || getRes.status === 403) {
-        return rejectToken("Token ungültig oder ohne 'Contents'-Berechtigung (entfernt, beim nächsten Mal neu eingeben)");
-      }
+      if (getRes.status === 401 || getRes.status === 403) return rejectToken(getRes);
       if (!getRes.ok && getRes.status !== 404) {
         lastPushError.habits = { message: `Status ${getRes.status} beim Lesen` };
         setHabitSyncStatus("error", lastPushError.habits.message);
         return false;
       }
+      let remoteText = null;
       if (getRes.ok) {
         const meta = await getRes.json();
         habitCloudSha = meta.sha;
+        try {
+          remoteText = decodeGithubBase64(meta.content);
+        } catch (e) {
+          remoteText = null;
+        }
         try {
           const remote = JSON.parse(decodeGithubBase64(meta.content));
           const remoteUpdatedAt = typeof remote.updatedAt === "number" ? remote.updatedAt : 0;
@@ -2455,18 +2524,25 @@
       // -1 ist nur ein interner Marker fuer "noch nie lokal gespeichert" (siehe loadHabitState())
       // und wuerde extern nur verwirren - beim Export auf 0 normalisieren.
       const exportState = { ...(lastRemoteHabitJson || {}), ...habitState, updatedAt: Math.max(0, habitState.updatedAt) };
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(exportState, null, 2))));
+      const exportText = JSON.stringify(exportState, null, 2);
+      // Steht dort schon genau dieser Inhalt, gibt es nichts zu speichern (sonst entstuende ein leerer Commit samt neuer Pages-Veroeffentlichung)
+      if (remoteText !== null && remoteText === exportText) {
+        setHabitSyncStatus("synced");
+        return true;
+      }
+      const content = btoa(unescape(encodeURIComponent(exportText)));
       const putRes = await fetch(apiUrl, {
         method: "PUT",
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ message: "Habit-Tracker Update", content, ...(habitCloudSha ? { sha: habitCloudSha } : {}) })
       });
+      markWrite();
       if (putRes.ok) {
         habitCloudSha = (await putRes.json()).content?.sha || habitCloudSha;
         setHabitSyncStatus("synced");
         return true;
       } else if (putRes.status === 401 || putRes.status === 403) {
-        return rejectToken("Token ungültig oder ohne 'Contents'-Berechtigung (entfernt, beim nächsten Mal neu eingeben)");
+        return rejectToken(putRes);
       } else if (putRes.status === 409) {
         habitCloudSha = null; // jemand anders hat parallel geschrieben — sha neu holen beim nächsten Versuch
         lastPushError.habits = { message: "Konflikt, bitte erneut versuchen", conflict: true };
@@ -2893,17 +2969,23 @@
       return false;
     };
     try {
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+      const payloadText = JSON.stringify(payload, null, 2);
+      // Ist der gelesene Cloud-Stand schon identisch, nichts schreiben (kein leerer Commit, kein Konfliktrisiko)
+      if (lastRemoteSyncJson && JSON.stringify(lastRemoteSyncJson, null, 2) === payloadText) return true;
+      const content = btoa(unescape(encodeURIComponent(payloadText)));
       const putRes = await fetch(apiUrl, {
         method: "PUT",
         headers: { ...headers, "Content-Type": "application/json" },
         body: JSON.stringify({ message: "Sync-Daten Update", content, ...(syncDataCloudSha ? { sha: syncDataCloudSha } : {}) })
       });
+      markWrite();
       if (putRes.ok) {
         syncDataCloudSha = (await putRes.json()).content?.sha || syncDataCloudSha;
         return true;
       }
       if (putRes.status === 401 || putRes.status === 403) {
+        // 403 ist auch die Antwort auf die Schreibbremse - dann den Token behalten und nur warten lassen
+        if (await isGithubRateLimit(putRes)) return fail(RATE_LIMIT_MSG);
         localStorage.removeItem("dashboard-gh-token");
         return fail("Token ungültig oder ohne 'Contents'-Berechtigung (entfernt, beim nächsten Mal neu eingeben)");
       }
