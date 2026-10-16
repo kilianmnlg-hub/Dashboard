@@ -475,6 +475,12 @@
         "cat": "bricklink",
         "start": 1792002063518,
         "end": 1792006793316
+      },
+      {
+        "id": "02caf3b3-e015-4afb-8168-0fe4b45ad2e2",
+        "cat": "youtube",
+        "start": 1792058400000,
+        "end": 1792065600000
       }
     ],
     "removed": [
@@ -493,7 +499,7 @@
       "youtube": 20,
       "bricklink": 7
     },
-    "updatedAt": 1792006793316
+    "updatedAt": 1792152186086
   },
   "inbox": {
     "items": [
