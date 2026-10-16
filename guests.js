@@ -70,7 +70,7 @@
   var rankOf = function (L) { var r = RANKS[0][1]; RANKS.forEach(function (x) { if (L >= x[0]) r = x[1]; }); return r; };
   var SEC = { kalender: "kalender", todo: "todo", aufgaben: "aufgaben", "remote-tasks": "remote", habits: "habits", ziele: "ziele", business: "business", zeit: "zeit", einkauf: "einkauf", training: "training", notizen: "notizen" };
   var WHERE = { brain: "Brain-Karte", kalender: "Kalender", todo: "To-Do", aufgaben: "Aufgaben", remote: "Remote Tasks", habits: "Habits", ziele: "Ziele", business: "Business", zeit: "Zeittracker", einkauf: "Einkauf", training: "Training", notizen: "Notizen", bar: "Kopfzeile", foot: "Seitenende" };
-  var HOST_SEL = ".card, .panel, .tt-card, .shop-card, .tr-main .tr-card, .brain-card, .scn-strip, footer.footer";
+  var HOST_SEL = ".card, .panel, .tt-card, .shop-card, .catalog, .tr-main .tr-card, .brain-card, .scn-strip, footer.footer";
   var SKIP_SEL = "#guestLayer, .g-tip, .g-toast, .g-bar, .gp, .gp-back, .overlay, .cloud-load, .px-fx, script, style, noscript, template";
   var INK_TAGS = { IMG: 1, CANVAS: 1, SVG: 1, VIDEO: 1, INPUT: 1, SELECT: 1, TEXTAREA: 1, BUTTON: 1, PROGRESS: 1, METER: 1, IFRAME: 1, HR: 1 };
   /* Groessenklassen in Bildpunkten: 1 = Standardfigur (bis 20 x 28), 2 = mittel (bis 38 x 38), 3 = gross (bis 66 x 43) */
@@ -135,18 +135,24 @@
       layer = document.createElement("div"); layer.id = "guestLayer"; layer.setAttribute("aria-hidden", "true");
       document.body.appendChild(layer);
       tip = document.createElement("div"); tip.className = "g-tip"; tip.hidden = true; document.body.appendChild(tip);
-      document.addEventListener("mouseover", function (e) { var g = e.target.closest && e.target.closest(".g, .gs"); if (g && !pickerOpen()) showTip(g); });
-      document.addEventListener("mouseout", function (e) { var g = e.target.closest && e.target.closest(".g, .gs"); if (g) tip.hidden = true; });
+      /* Hinweisfenster beim Darueberfahren: nur mit der Maus (auf dem Handy oeffnet der Tipp gleich die Auswahl) und es verschwindet in jedem Fall wieder,
+         auch wenn der Gast unter dem Zeiger verschwindet, das Fenster den Fokus verliert oder die Maus die Seite verlaesst */
+      document.addEventListener("pointerover", function (e) { if (e.pointerType && e.pointerType !== "mouse") return; var g = e.target.closest && e.target.closest(".g, .gs"); if (g && !pickerOpen()) showTip(g); });
+      document.addEventListener("pointerout", function (e) { var g = e.target.closest && e.target.closest(".g, .gs"); if (g && !(e.relatedTarget && g.contains(e.relatedTarget))) hideTip(); });
+      document.documentElement.addEventListener("mouseleave", hideTip);
+      window.addEventListener("blur", hideTip);
+      document.addEventListener("visibilitychange", hideTip);
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") hideTip(); });
       document.addEventListener("click", function (e) {
         var t = e.target, fig = t.closest && t.closest(".g, .gs");
         if (fig) {
           var sid = fig.classList.contains("gs") ? fig.dataset.sid : (byKey[fig.dataset.k] || {}).spot;
-          if (sid) { tip.hidden = true; hop(fig); openPicker(sid, fig); }
+          if (sid) { hideTip(); hop(fig); openPicker(sid, fig); }
           return;
         }
         if (pickerOpen() && !(t.closest && (t.closest(".gp") || t.closest(".g-toast")))) closePicker();
       });
-      window.addEventListener("scroll", function () { tip.hidden = true; if (pickerOpen()) followPicker(); }, { passive: true });
+      window.addEventListener("scroll", function () { hideTip(); if (pickerOpen()) followPicker(); }, { passive: true });
       return layer;
     }
     function makeEl(g, s, kk) {
@@ -156,9 +162,12 @@
       if (g.s.an && io) io.observe(el);
       return el;
     }
-    function dropEl(g) { if (!g.el) return; if (io) io.unobserve(g.el); g.el.remove(); g.el = null; g.cv = null; g.spot = ""; g.kk = 0; }
+    function dropEl(g) { if (!g.el) return; if (g.el === tipFor) hideTip(); if (io) io.unobserve(g.el); g.el.remove(); g.el = null; g.cv = null; g.spot = ""; g.kk = 0; }
+    var tipFor = null;
+    function hideTip() { tipFor = null; if (tip) tip.hidden = true; }
     function showTip(el) {
       var html;
+      tipFor = el;
       if (el.classList.contains("gs")) html = '<b>Freier Platz</b><span>Hier kann ein Easter Egg stehen.</span><span class="h">KLICK: GAST SETZEN</span>';
       else { var g = byKey[el.dataset.k]; if (!g) return; html = '<b>#' + g.n + ' ' + esc(g.s.name) + '</b><span>' + esc(D.groups[g.grp] || "") + ' · ab Level ' + g.lv + '</span><span class="h">KLICK: TAUSCHEN ODER LEER LASSEN</span>'; }
       tip.innerHTML = html; tip.hidden = false;
@@ -224,23 +233,36 @@
       function fillRect(r, pad) { if (r.width < 0.5 || r.height < 0.5) return; fillAbs(r.left + ox - pad, r.top + oy - pad, r.right + ox + pad, r.bottom + oy + pad); }
       /* belegt: Text (Zeile fuer Zeile), Bilder, Knoepfe, Eingaben, kleine Elemente mit Hintergrund oder Rahmen; auch alles, was nur beim Daruberfahren erscheint (durchsichtig zaehlt mit) */
       var range = document.createRange();
+      var scrollers = [];   /* Behaelter, die ihren Inhalt scrollen (z.B. die Einkaufsliste): der Inhalt wandert, deshalb steht darin nie ein Gast; ihre Oberkante ist aber ein Platz */
       function walk(el) {
         var cs = getComputedStyle(el);
         if (cs.display === "none" || cs.position === "fixed") return;
         if (cs.visibility !== "hidden") {
-          var r = el.getBoundingClientRect();
-          if (INK_TAGS[el.tagName.toUpperCase()]) { fillRect(r, 2); return; }
+          var r = el.getBoundingClientRect(), tag = el.tagName.toUpperCase();
+          if (!INK_TAGS[tag] && r.width >= 40 && r.height >= 30) {
+            var oyv = cs.overflowY, oxv = cs.overflowX;
+            if (((oyv === "auto" || oyv === "scroll") && el.scrollHeight > el.clientHeight + 4) || ((oxv === "auto" || oxv === "scroll") && el.scrollWidth > el.clientWidth + 4)) { fillRect(r, 2); scrollers.push({ el: el, r: r }); return; }
+          }
+          /* eine grosse Kachel, die selbst ein Knopf ist (z.B. im Training), belegt nur ihren Inhalt: in ihrem freien Raum koennen Gaeste stehen */
+          if (INK_TAGS[tag] && !(tag === "BUTTON" && r.width >= 110 && r.height >= 80 && el.matches(HOST_SEL))) { fillRect(r, 2); return; }
           if (r.width <= 460 && r.height <= 140 && r.width * r.height <= 36000 && !el.matches(HOST_SEL) && hasDeco(cs)) fillRect(r, 1);
           for (var c = el.firstChild; c; c = c.nextSibling) {
             if (c.nodeType === 3 && /\S/.test(c.nodeValue)) { range.selectNodeContents(c); var rs = range.getClientRects(); for (var i = 0; i < rs.length; i++) fillRect(rs[i], PAD - 1); }
           }
         }
-        for (var ch = el.firstElementChild; ch; ch = ch.nextElementSibling) { if (!ch.matches(SKIP_SEL)) walk(ch); }
+        var closedDetails = el.tagName === "DETAILS" && !el.open;   /* zugeklappter Inhalt ist nicht da (der Browser liefert fuer ihn trotzdem Masse an falscher Stelle): nur die Titelzeile zaehlt */
+        for (var ch = el.firstElementChild; ch; ch = ch.nextElementSibling) { if (closedDetails && ch.tagName !== "SUMMARY") continue; if (!ch.matches(SKIP_SEL)) walk(ch); }
       }
       Array.prototype.forEach.call(body.children, function (c) { if (!c.matches(SKIP_SEL)) walk(c); });
       if (tb) fillRect(tb.getBoundingClientRect(), 0);
       var w1 = gw + 1, I = new Int32Array(w1 * (gh + 1));
       for (var y = 0; y < gh; y++) { var rs2 = 0; for (var x = 0; x < gw; x++) { rs2 += mark[y * gw + x]; I[(y + 1) * w1 + x + 1] = I[y * w1 + x + 1] + rs2; } }
+      /* Anzahl belegter Rasterfelder im Rechteck (Dokumentkoordinaten) */
+      function inkIn(l, t, r, b) {
+        var x0 = Math.max(0, Math.floor(l / CELL)), x1 = Math.min(gw, Math.ceil(r / CELL)), y0 = Math.max(0, Math.floor(t / CELL)), y1 = Math.min(gh, Math.ceil(b / CELL));
+        if (x1 <= x0 || y1 <= y0) return 0;
+        return I[y1 * w1 + x1] - I[y0 * w1 + x1] - I[y1 * w1 + x0] + I[y0 * w1 + x0];
+      }
       function isFree(l, t, r, b) {
         if (l < 0 || t < 0 || r > W || b > H) return false;
         var x0 = Math.floor(l / CELL), x1 = Math.min(gw, Math.ceil(r / CELL)), y0 = Math.floor(t / CELL), y1 = Math.min(gh, Math.ceil(b / CELL));
@@ -261,6 +283,12 @@
       }
       var seed = st.seed, cands = [], fw1 = CLS[1].w * cssS, step = Math.max(14, Math.round(22 * cssS / 2));
       function add(c, bias) { c.cls = probe(c); if (!c.cls) return; c.pr = has(c.id) ? -1 : bias + rnd(seed + ":" + c.id); cands.push(c); }
+      /* Oberkante: stehend (oder halb hinter der Kante hervorlugend) in kleinen Schritten von links nach rechts */
+      function topRow(L, T, R, host, sec) {
+        var x0 = L + INSET, x1 = R - INSET - fw1, i = 0, x;
+        for (x = x0; x <= x1 + 0.5; x += step, i++) { var id = host + "t" + i; add({ id: id, host: host, sec: sec, kind: "doc", type: "top", ax: x, foot: T, ft: 2, peek: rnd(seed + ":" + id + ":p") < 0.25 }, 0); }
+        if (x1 - (x - step) > 6) { var idr = host + "tR"; add({ id: idr, host: host, sec: sec, kind: "doc", type: "top", ax: x1, foot: T, ft: 2, peek: rnd(seed + ":" + idr + ":p") < 0.25 }, 0); }
+      }
       var hosts = Array.prototype.slice.call(document.querySelectorAll(HOST_SEL)).filter(function (h) { return visibleBox(h) && !inScroller(h); });
       var rows = [];
       hosts.forEach(function (h) {
@@ -270,16 +298,32 @@
         var strip = h.classList.contains("scn-strip"), foot = h.tagName === "FOOTER", brain = h.classList.contains("brain-card");
         if (!strip && !brain && !foot) rows.push({ L: L, T: T, R: R, B: B, host: host, sec: sec });
         if (R - L < fw1 + 2 * INSET) return;
-        /* Oberkante: stehend (oder halb hinter der Kante hervorlugend) in kleinen Schritten von links nach rechts */
-        var x0 = L + INSET, x1 = R - INSET - fw1, i = 0, x;
-        for (x = x0; x <= x1 + 0.5; x += step, i++) { var id = host + "t" + i; add({ id: id, host: host, sec: sec, kind: "doc", type: "top", ax: x, foot: T, ft: 2, peek: rnd(seed + ":" + id + ":p") < 0.25 }, 0); }
-        if (x1 - (x - step) > 6) { var idr = host + "tR"; add({ id: idr, host: host, sec: sec, kind: "doc", type: "top", ax: x1, foot: T, ft: 2, peek: rnd(seed + ":" + idr + ":p") < 0.25 }, 0); }
+        topRow(L, T, R, host, sec);
+        var x0, x1, i = 0, x;
         /* innen unten: auf dem Boden der Karte */
         if (!strip && !foot && !brain && B - T >= 96) {
           var y0 = B - bb - 1, ix0 = L + bw + INSET, ix1 = R - bw - INSET - fw1;
           for (x = ix0, i = 0; x <= ix1 + 0.5; x += step, i++) add({ id: host + "b" + i, host: host, sec: sec, kind: "doc", type: "in", ax: x, foot: y0, ft: 0, peek: false }, 0);
           if (ix1 - (x - step) > 6) add({ id: host + "bR", host: host, sec: sec, kind: "doc", type: "in", ax: ix1, foot: y0, ft: 0, peek: false }, 0);
+          /* Absaetze: stehend auf allem, was in der Karte darunter liegt (Textzeilen, Knoepfe, Balken, Kacheln), wo darueber genug Platz frei ist.
+             So gibt es auch in Karten mit viel Inhalt (Einkauf, Training, Umsatz-Trend) Plaetze. Pro Spalte hoechstens 4 Absaetze, untereinander mindestens eine Gasthoehe Abstand. */
+          var h1 = CLS[1].h * cssS, c0 = Math.ceil((T + h1 + 4) / CELL), c1 = Math.floor((B - bb - 6) / CELL), skip = Math.ceil(h1 / CELL), lstep = Math.round(step * 1.5), col = 0;
+          for (x = ix0; x <= ix1 + 0.5; x += lstep, col++) {
+            var nl = 0;
+            for (var cyy = c0; cyy <= c1 && nl < 4; cyy++) {
+              var yy = cyy * CELL;
+              if (!isFree(x - PAD, yy - h1 - PAD, x + fw1 + PAD, yy)) continue;
+              if (inkIn(x, yy, x + fw1, yy + CELL) < Math.ceil(fw1 / CELL * 0.6)) continue;   /* darunter muss etwas liegen, worauf er steht (mindestens 60 % der Breite) */
+              add({ id: host + "l" + col + "_" + nl, host: host, sec: sec, kind: "doc", type: "in", ax: x, foot: yy, ft: 0, peek: false }, 0.05);
+              nl++; cyy += skip;
+            }
+          }
         }
+      });
+      /* Scroll-Behaelter (Einkaufsliste, Diagramme zum Wischen): die Oberkante ist ein Platz, wenn der Behaelter selbst in keinem scrollenden Behaelter steckt */
+      scrollers.forEach(function (sc2) {
+        var r = sc2.r; if (r.width < fw1 + 2 * INSET || inScroller(sc2.el)) return;
+        topRow(r.left + ox, r.top + oy, r.right + ox, "s" + h32(hostPath(sc2.el)).toString(36), secOf(sc2.el));
       });
       /* Luecken zwischen zwei nebeneinanderstehenden Karten: halb hinter einer der beiden Karten */
       rows.forEach(function (A) {
@@ -344,7 +388,7 @@
         }
       }
       var candIds = {}; cands.forEach(function (c) { candIds[c.id] = 1; });
-      return { slots: slots, all: cands.length, cand: candIds, W: W, H: H };
+      return { slots: slots, all: cands.length, cand: candIds, W: W, H: H, ink: { mark: mark, gw: gw, gh: gh } };
     }
 
     /* ---------- Besetzung: wer steht wo ---------- */
@@ -373,13 +417,15 @@
       var autoOcc = 0, secCount = {}, centers = [];
       spotsAct.forEach(function (s) { if (occ(s)) { centers.push(s); if (!st.pins[s.id]) { autoOcc++; secCount[s.sec] = (secCount[s.sec] || 0) + 1; } } });
       var far = function (s, d) { for (var i = 0; i < centers.length; i++) { var dx = s.cx - centers[i].cx, dy = s.cy - centers[i].cy; if (dx * dx + dy * dy < d * d) return false; } return true; };
+      /* Verteilung: Bereiche mit wenigen Gaesten werden bevorzugt, so stehen auch im Training, Einkauf oder Umsatz-Trend welche */
+      var secBonus = function (s) { return Math.max(0, capSec - (secCount[s.sec] || 0)) * 7; };
       /* 3) vorgemerkte Gaeste (beim Neu-Mischen) zuerst */
       (o.prefer || []).forEach(function (key) {
         var g = byKey[key]; if (!g || !unlocked(g) || shown[key]) return;
         var best = null, bs = -1e9;
         spotsAct.forEach(function (s) {
           if (has(s.id) || !fitK(g, s)) return;
-          var sc2 = (g.z === s.sec ? 20 : 0) + rnd(st.seed + ":pf:" + g.k + s.id) * 30 + (s.type === "gap" ? -25 : 0) + (far(s, minD) ? 15 : 0);
+          var sc2 = (g.z === s.sec ? 20 : 0) + rnd(st.seed + ":pf:" + g.k + s.id) * 30 + (s.type === "gap" ? -25 : 0) + (far(s, minD) ? 15 : 0) + secBonus(s);
           if (sc2 > bs) { bs = sc2; best = s; }
         });
         var pin = !!(o.pinned && o.pinned[key]);
@@ -396,7 +442,7 @@
               if (taken[s.id] || fitK(g, s) !== k || clipped(g, s)) return;
               var isFree = !has(s.id), cur = isFree ? "" : st.slots[s.id];
               if (wantFree ? !isFree : (isFree || cur === "" || st.pins[s.id])) return;
-              var sc2 = (g.z === s.sec ? 25 : 0) + rnd(st.seed + ":fr:" + g.k + s.id) * 20 - (s.cls - g.cls) * 40 + (s.kind === "bar" ? (g.z === "party" ? 60 : -30) : 0) + (wantFree && far(s, minD) ? 30 : 0) + (wantFree && (secCount[s.sec] || 0) >= capSec ? -25 : 0);
+              var sc2 = (g.z === s.sec ? 25 : 0) + rnd(st.seed + ":fr:" + g.k + s.id) * 20 - (s.cls - g.cls) * 40 + (s.kind === "bar" ? (g.z === "party" ? 60 : -30) : 0) + (wantFree && far(s, minD) ? 30 : 0) + (wantFree && (secCount[s.sec] || 0) >= capSec ? -25 : 0) + (wantFree ? secBonus(s) : 0);
               if (sc2 > bs) { bs = sc2; best = s; }
             });
             return best;
@@ -412,17 +458,28 @@
           var pool = gs.filter(function (g) { return unlocked(g) && !shown[g.k]; });
           var empties = spotsAct.filter(function (s) { return !has(s.id) && !taken[s.id]; });
           empties.sort(function (a, b) { return (b.kind === "bar") - (a.kind === "bar") || b.cls - a.cls || rnd(st.seed + a.id) - rnd(st.seed + b.id); });
+          var bySec = {}; empties.forEach(function (s) { (bySec[s.sec] = bySec[s.sec] || []).push(s); });
           for (var pass = 0; pass < 2 && autoOcc < autoN && pool.length; pass++) {
             var dd = pass === 0 ? minD : minD / 2;
-            for (var ei = 0; ei < empties.length && autoOcc < autoN && pool.length; ei++) {
-              var s = empties[ei]; if (taken[s.id] || !far(s, dd) || (pass === 0 && (secCount[s.sec] || 0) >= capSec)) continue;
-              var bg = null, bs2 = -1e9;
-              pool.forEach(function (g) {
-                if (fitK(g, s) !== k || clipped(g, s)) return;
-                var sc2 = (g.z === s.sec ? 38 : 0) + (g.lv === level ? 50 : g.lv > level - 3 ? 14 : 0) + rnd(st.seed + ":" + g.k + ":" + s.id) * 45 - (s.cls - g.cls) * 40 + (s.kind === "bar" ? (g.z === "party" ? 90 : -25) : (g.z === "party" ? -20 : 0));
-                if (sc2 > bs2) { bs2 = sc2; bg = g; }
-              });
-              if (bg) { take(bg, s, false); pool.splice(pool.indexOf(bg), 1); centers.push(s); autoOcc++; secCount[s.sec] = (secCount[s.sec] || 0) + 1; }
+            /* immer zuerst der Bereich mit den wenigsten Gaesten, dann der naechste: so verteilen sich die Gaeste gleichmaessig ueber die Seite */
+            for (var guard = 0; guard < 400 && autoOcc < autoN && pool.length; guard++) {
+              var order = Object.keys(bySec).filter(function (sk) { return bySec[sk].length && (pass === 1 || (secCount[sk] || 0) < capSec); })
+                .sort(function (a, b) { return (secCount[a] || 0) - (secCount[b] || 0) || rnd(st.seed + ":so:" + a) - rnd(st.seed + ":so:" + b); });
+              var placed = false;
+              for (var oi = 0; oi < order.length && !placed; oi++) {
+                var list = bySec[order[oi]];
+                for (var ei = 0; ei < list.length && !placed; ei++) {
+                  var s = list[ei]; if (taken[s.id] || !far(s, dd)) continue;
+                  var bg = null, bs2 = -1e9;
+                  pool.forEach(function (g) {
+                    if (fitK(g, s) !== k || clipped(g, s)) return;
+                    var sc2 = (g.z === s.sec ? 38 : 0) + (g.lv === level ? 50 : g.lv > level - 3 ? 14 : 0) + rnd(st.seed + ":" + g.k + ":" + s.id) * 45 - (s.cls - g.cls) * 40 + (s.kind === "bar" ? (g.z === "party" ? 90 : -25) : (g.z === "party" ? -20 : 0));
+                    if (sc2 > bs2) { bs2 = sc2; bg = g; }
+                  });
+                  if (bg) { take(bg, s, false); pool.splice(pool.indexOf(bg), 1); centers.push(s); autoOcc++; secCount[s.sec] = (secCount[s.sec] || 0) + 1; list.splice(ei, 1); placed = true; }
+                }
+              }
+              if (!placed) break;
             }
           }
         }
@@ -517,10 +574,18 @@
         html += '<i style="left:' + b.l + 'px;top:' + b.t + 'px;width:' + (b.r - b.l) + 'px;height:' + (b.b - b.t) + 'px" class="c' + s.cls + (st.slots[s.id] ? " on" : "") + (s.peek ? " pk" : "") + (s.type === "gap" ? " gp" : "") + '"></i>';
       });
       dbgEl.innerHTML = html;
+      if (dbgOn === "ink" && lastScan && lastScan.ink) {   /* Diagnose: alle belegten Rasterfelder als halbdurchsichtige Flaeche (ein Canvas, ein Pixel je Feld) */
+        var ik = lastScan.ink, cv = document.createElement("canvas"); cv.width = ik.gw; cv.height = ik.gh;
+        cv.style.cssText = "position:absolute;left:0;top:0;width:" + ik.gw * CELL + "px;height:" + ik.gh * CELL + "px;image-rendering:pixelated;opacity:.45;pointer-events:none";
+        var cx2 = cv.getContext("2d"), im = cx2.createImageData(ik.gw, ik.gh);
+        for (var q = 0; q < ik.mark.length; q++) if (ik.mark[q]) { im.data[q * 4] = 0; im.data[q * 4 + 1] = 210; im.data[q * 4 + 2] = 255; im.data[q * 4 + 3] = 255; }
+        cx2.putImageData(im, 0, 0); dbgEl.appendChild(cv);
+      }
     }
 
     /* ---------- Bewegung: nur was im sichtbaren Bereich steht ---------- */
     function tick() {
+      if (tipFor && (!tipFor.isConnected || !enabled)) hideTip();   /* der Gast unter dem Zeiger ist weg (neu gemessen, ausgeblendet): kein Hinweis ohne Gast */
       if (document.hidden || reduce || !enabled) return;
       var t = performance.now();
       for (var i = 0; i < gs.length; i++) {
@@ -835,7 +900,7 @@
       sc.scrollTo({ top: Math.max(0, y), behavior: "auto" });
     }
     function openTree() {
-      ensureTree(); closePicker(); if (tip) tip.hidden = true; if (editMode) setEdit(false); buildTree();
+      ensureTree(); closePicker(); hideTip(); if (editMode) setEdit(false); buildTree();
       tr.open = true; tr.el.classList.add("open"); document.body.classList.add("g-lock");
       scrollTreeTo(Math.max(1, level)); var x = $("gtClose"); if (x) x.focus({ preventScroll: true });
     }
@@ -903,6 +968,7 @@
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
       window.addEventListener("load", relayout);
       document.addEventListener("scenery-ready", relayout);
+      setTimeout(relayout, 1800);   /* nach den Einflug-Animationen der Listen noch einmal messen, damit kein Platz auf einer noch wandernden Zeile steht */
       setInterval(tick, 80);
       try { document.dispatchEvent(new CustomEvent("guests-ready")); } catch (e) { /* egal */ }
     }
@@ -914,9 +980,11 @@
       setEnabled: function (on) { enabled = !!on; lsSet(STORE_OFF, enabled ? "0" : "1"); render(); if (tr.open) buildTree(); },
       mark: function (on) { markNow = !!on; sync(); },
       shuffle: shuffle, edit: function (on) { setEdit(on !== false); }, reset: reset, clear: clearAll, auto: setAuto,
-      debug: function (on) { dbgOn = on !== false; if (!dbgOn && dbgEl) { dbgEl.remove(); dbgEl = null; } else if (dbgOn && layer) drawDebug(); },
+      debug: function (on) { dbgOn = on === "ink" ? "ink" : on !== false; if (!dbgOn && dbgEl) { dbgEl.remove(); dbgEl = null; } else if (dbgOn && layer) drawDebug(); },
       info: function () { return { level: level, unlocked: count(), total: gs.length, atLevel: gs.filter(function (g) { return g.lv === level; }).length, shown: shownCount(), spots: spotsAct.length, candidates: lastScan ? lastScan.all : 0, auto: st.auto !== false }; },
-      list: function () { return D.list; }, relayout: relayout
+      list: function () { return D.list; }, relayout: relayout,
+      inkAt: function (l, t, r, b) { var ik = lastScan && lastScan.ink; if (!ik) return -1; var n = 0; for (var gy = Math.max(0, Math.floor(t / CELL)); gy < Math.min(ik.gh, Math.ceil(b / CELL)); gy++) for (var gx = Math.max(0, Math.floor(l / CELL)); gx < Math.min(ik.gw, Math.ceil(r / CELL)); gx++) n += ik.mark[gy * ik.gw + gx]; return n; },
+      slots: function () { return spotsAct.map(function (s) { return { id: s.id, sec: s.sec, type: s.type, cls: s.cls, kind: s.kind, x: Math.round(s.box ? s.box.l : s.ax), y: Math.round(s.box ? s.box.t : s.foot), on: !!(st.slots[s.id]) }; }); }
     };
     window.Guests = api;
     return api;

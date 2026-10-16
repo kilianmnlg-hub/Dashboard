@@ -137,6 +137,8 @@
 }
 
 * { box-sizing: border-box; }
+/* Das Attribut hidden muss immer gewinnen: sonst blendet ein Element mit eigener display-Regel (z.B. grid oder flex) nicht aus, auch wenn hidden gesetzt ist */
+[hidden] { display: none !important; }
 
 html, body {
   margin: 0;
