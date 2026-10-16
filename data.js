@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-10-16",
-    "lastSyncedAt": "2026-10-16T10:29:26.277Z",
+    "lastSyncedAt": "2026-10-16T12:02:15.493Z",
     "owner": "Kilian"
   },
   "github": {
@@ -835,7 +835,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-10-16",
-        "value": 2800
+        "value": 2801
       }
     ]
   },
@@ -871,7 +871,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2800,
+      "current": 2801,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -905,7 +905,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-16T10:29:22.256Z",
+    "checkedAt": "2026-10-16T12:02:10.274Z",
     "openOrdersCount": 291,
     "pendingShipments": [
       {
@@ -919,7 +919,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-16T10:29:25.121Z",
+    "checkedAt": "2026-10-16T12:02:14.063Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -3260,7 +3260,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkMessages": {
-    "checkedAt": "2026-10-16T10:29:25.059Z",
+    "checkedAt": "2026-10-16T12:02:13.986Z",
     "unanswered": 7,
     "checkedOrders": 150,
     "ordersWithMessages": 42,
