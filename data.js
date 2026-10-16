@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-10-16",
-    "lastSyncedAt": "2026-10-16T08:01:13.466Z",
+    "lastSyncedAt": "2026-10-16T09:17:44.858Z",
     "owner": "Kilian"
   },
   "github": {
@@ -835,7 +835,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-10-16",
-        "value": 2801
+        "value": 2800
       }
     ]
   },
@@ -871,7 +871,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2801,
+      "current": 2800,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -905,7 +905,7 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-16T08:01:10.511Z",
+    "checkedAt": "2026-10-16T09:17:27.874Z",
     "openOrdersCount": 291,
     "pendingShipments": [
       {
@@ -919,7 +919,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-16T08:01:12.545Z",
+    "checkedAt": "2026-10-16T09:17:42.273Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -3196,7 +3196,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkMessages": {
-    "checkedAt": "2026-10-16T08:01:12.492Z",
+    "checkedAt": "2026-10-16T09:17:42.183Z",
     "unanswered": 7,
     "checkedOrders": 150,
     "ordersWithMessages": 42,
@@ -3209,7 +3209,44 @@ const DASHBOARD_DATA = {
       "subject",
       "to"
     ],
-    "lastError": null
+    "lastError": null,
+    "items": [
+      {
+        "order": "32771829",
+        "id": "80093614",
+        "at": "2026-10-15T18:06:18.410Z"
+      },
+      {
+        "order": "32737343",
+        "id": "79886684",
+        "at": "2026-10-05T09:35:14.980Z"
+      },
+      {
+        "order": "32657607",
+        "id": "79730277",
+        "at": "2026-09-26T12:40:43.750Z"
+      },
+      {
+        "order": "32415059",
+        "id": "79636333",
+        "at": "2026-09-21T12:11:44.407Z"
+      },
+      {
+        "order": "32406842",
+        "id": "79198677",
+        "at": "2026-08-28T15:50:33.250Z"
+      },
+      {
+        "order": "32058654",
+        "id": "78356235",
+        "at": "2026-07-14T12:34:35.453Z"
+      },
+      {
+        "order": "31936879",
+        "id": "77998192",
+        "at": "2026-06-24T10:00:09.023Z"
+      }
+    ]
   }
 };
 
