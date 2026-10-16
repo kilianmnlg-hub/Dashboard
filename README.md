@@ -257,6 +257,14 @@ statt mit zu wenig Daten zu raten. "Bricks On The Floor – Umsatz/Monat" hat
 keinen Trendpfeil, weil dieser Wert manuell gepflegt wird und kein
 automatischer Verlauf dafür existiert.
 
+### Verlaufskurve in den Kanal-Karten
+
+In den Karten "Bricks On The Floor" und "The Brainwalkers" (Business-KPIs) zeichnet sich unter der Abonnenten-Zeile eine Kurve der Abonnenten, Linie mit Fläche und
+einem Endpunkt (Farbe je Kanal). Sie nutzt dieselben Tageswerte aus `metricsHistory` (`bricksOnTheFloorAbos`, `brainwalkersAbos`, bis zu 60 Tage), also keine
+neue Datenquelle. Darüber steht der Zuwachs im Zeitraum, darunter Datum und Wert am Anfang und am Ende. Der Wert eines einzelnen Tages erscheint beim
+Darüberfahren oder Antippen und mit den Pfeiltasten (← → Home Ende) auf der fokussierten Kurve. Ohne mindestens zwei Tageswerte erscheint keine Kurve.
+Die Bricklink-Karte und der Umsatz-Trend bleiben unverändert (Code: `buildSparkline()` und `bindSparkline()` in `script.js`, Block "Verlaufskurve" in `styles.css`).
+
 ## Studium-Countdown
 
 Kleine Karte in der Ziele-Sektion für die nächste Prüfung/Abgabe (z.B. IU

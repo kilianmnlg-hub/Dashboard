@@ -1565,6 +1565,102 @@
     }, 400);
   }
 
+  // ---------- Verlaufskurve in den Kanal-Karten ----------
+  // Tageswerte der Abonnenten aus metricsHistory (von scripts/sync-all.mjs befuellt) als Linie mit Flaeche und Endpunkt unter der Abonnenten-Zeile.
+  // Der Wert eines Tages erscheint beim Darueberfahren oder Antippen und per Pfeiltasten. Nur fuer die zwei Kanaele; ohne zwei Tageswerte erscheint nichts.
+  const SPARK_HISTORY_KEY = { bricksOnTheFloor: "bricksOnTheFloorAbos", brainwalkers: "brainwalkersAbos" };
+  const SPARK = { W: 380, H: 84, X0: 4, X1: 376, Y0: 8, Y1: 72 };
+  const fmtNum = (n) => Math.round(n).toLocaleString("de-DE");
+  const fmtDayMonth = (iso) => new Date(`${iso}T00:00:00`).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+
+  function buildSparkline(series, what) {
+    const pts = (Array.isArray(series) ? series : [])
+      .filter((p) => p && typeof p.value === "number" && isFinite(p.value) && /^\d{4}-\d{2}-\d{2}$/.test(String(p.date)))
+      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+      .slice(-60);
+    if (pts.length < 2) return null;
+    const { W, X0, X1, Y0, Y1 } = SPARK;
+    const vals = pts.map((p) => p.value);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    const pad = (hi - lo) * 0.12 || 1;
+    lo -= pad; hi += pad;
+    const xy = pts.map((p, i) => [X0 + (i * (X1 - X0)) / (pts.length - 1), Y1 - ((p.value - lo) / (hi - lo)) * (Y1 - Y0)]);
+    const r1 = (n) => Math.round(n * 10) / 10;
+    const line = xy.map(([x, y]) => `${r1(x)},${r1(y)}`).join(" ");
+    const first = pts[0], last = pts[pts.length - 1], diff = last.value - first.value;
+    const delta = diff > 0 ? `+${fmtNum(diff)}` : diff < 0 ? `−${fmtNum(-diff)}` : "±0";
+    const [ex, ey] = xy[xy.length - 1];
+    const label = `Verlauf der ${what}, ${fmtDayMonth(first.date)} bis ${fmtDayMonth(last.date)}: von ${fmtNum(first.value)} auf ${fmtNum(last.value)}. Mit den Pfeiltasten durch die Tage gehen.`;
+    const html = `
+        <div class="kc">
+          <div class="kc-h"><span class="kc-l">Verlauf · ${pts.length} Tage</span><span class="kc-d ${diff > 0 ? "up" : diff < 0 ? "down" : "flat"}">${delta}</span></div>
+          <div class="kc-plot" tabindex="0" role="group" aria-label="${escapeHtml(label)}">
+            <svg viewBox="0 0 ${W} ${SPARK.H}" aria-hidden="true" focusable="false">
+              <path class="kc-grid" d="M${X0} ${Y0}H${X1}M${X0} ${(Y0 + Y1) / 2}H${X1}M${X0} ${Y1}H${X1}"/>
+              <polygon class="kc-area" points="${X0},${Y1} ${line} ${X1},${Y1}"/>
+              <path class="kc-guide" d=""/>
+              <polyline class="kc-line" points="${line}"/>
+              <rect class="kc-dot" width="8" height="8" x="-20" y="-20"/>
+              <rect class="kc-end" width="10" height="10" x="${r1(ex - 5)}" y="${r1(ey - 5)}"/>
+            </svg>
+            <span class="kc-tip" hidden></span>
+          </div>
+          <div class="kc-f"><span>${fmtDayMonth(first.date)} · ${fmtNum(first.value)}</span><span>${fmtDayMonth(last.date)} · ${fmtNum(last.value)}</span></div>
+          <span class="kc-live" role="status" aria-live="polite"></span>
+        </div>`;
+    return { html, model: { pts, xy } };
+  }
+
+  function bindSparkline(plot, model) {
+    if (!plot || !model) return;
+    const { W, X0, X1, Y0, Y1 } = SPARK;
+    const svg = plot.querySelector("svg"), tip = plot.querySelector(".kc-tip"), guide = plot.querySelector(".kc-guide"), dot = plot.querySelector(".kc-dot");
+    const live = plot.parentElement.querySelector(".kc-live");
+    const n = model.pts.length;
+    let cur = -1, hideT = 0;
+    const show = (i, announce) => {
+      clearTimeout(hideT);
+      cur = Math.max(0, Math.min(n - 1, i));
+      const [x, y] = model.xy[cur], p = model.pts[cur];
+      guide.setAttribute("d", `M${x} ${Y0}V${Y1}`);
+      dot.setAttribute("x", x - 4);
+      dot.setAttribute("y", y - 4);
+      plot.classList.add("kc-on");
+      tip.hidden = false;
+      tip.textContent = `${fmtDayMonth(p.date)} · ${fmtNum(p.value)}`;
+      const pct = (x / W) * 100;
+      tip.style.left = `${pct}%`;
+      tip.dataset.pos = pct < 22 ? "l" : pct > 78 ? "r" : "m";
+      if (announce && live) live.textContent = tip.textContent;
+    };
+    const hide = () => {
+      cur = -1;
+      plot.classList.remove("kc-on");
+      tip.hidden = true;
+      dot.setAttribute("x", -20);
+    };
+    const idxAt = (clientX) => {
+      const r = svg.getBoundingClientRect();
+      if (!r.width) return 0;
+      return Math.round(((((clientX - r.left) / r.width) * W - X0) / (X1 - X0)) * (n - 1));
+    };
+    plot.addEventListener("pointermove", (e) => show(idxAt(e.clientX)));
+    plot.addEventListener("pointerdown", (e) => show(idxAt(e.clientX)));
+    plot.addEventListener("pointerleave", (e) => {
+      if (e.pointerType === "mouse") hide();
+      else hideT = setTimeout(hide, 2200);   // Touch: der Wert bleibt nach dem Antippen noch kurz stehen
+    });
+    plot.addEventListener("blur", hide);
+    plot.addEventListener("keydown", (e) => {
+      const k = e.key;
+      if (k === "ArrowLeft" || k === "ArrowDown") { e.preventDefault(); show(cur < 0 ? n - 1 : cur - 1, true); }
+      else if (k === "ArrowRight" || k === "ArrowUp") { e.preventDefault(); show(cur < 0 ? n - 1 : cur + 1, true); }
+      else if (k === "Home") { e.preventDefault(); show(0, true); }
+      else if (k === "End") { e.preventDefault(); show(n - 1, true); }
+      else if (k === "Escape") hide();
+    });
+  }
+
   Object.entries(data.business).forEach(([key, biz]) => {
     const card = document.createElement("div");
     card.className = "card business-card";
@@ -1581,15 +1677,17 @@
       };
     }
 
-    const stats = biz.stats
-      .map(
-        (s) => `
+    const statRows = biz.stats.map(
+      (s) => `
         <div class="stat-row">
           <span class="stat-label">${s.label}</span>
           <span class="stat-value"><span class="stat-value-num" data-final="${escapeHtml(s.value)}"></span>${s.hint ? `<span class="stat-hint">${s.hint}</span>` : ""}</span>
         </div>`
-      )
-      .join("");
+    );
+    // Verlaufskurve der Abonnenten direkt unter der Abonnenten-Zeile (nur Bricks On The Floor und The Brainwalkers)
+    const spark = SPARK_HISTORY_KEY[key] ? buildSparkline(data.metricsHistory?.[SPARK_HISTORY_KEY[key]], "Abonnenten") : null;
+    if (spark) statRows.splice(Math.max(0, biz.stats.findIndex((s) => s.label === "Abonnenten")) + 1, 0, spark.html);
+    const stats = statRows.join("");
 
     const isYoutubeChannel = key === "bricksOnTheFloor" || key === "brainwalkers";
 
@@ -1618,6 +1716,11 @@
     `;
     businessGrid.appendChild(card);
     card.querySelectorAll(".stat-value-num").forEach((el) => animateStatValue(el));
+    if (spark) {
+      const plot = card.querySelector(".kc-plot");
+      bindSparkline(plot, spark.model);
+      growBarsIn(plot);
+    }
 
     if (isYoutubeChannel) {
       const nextEl = card.querySelector(`#idea-next-${key}`);
