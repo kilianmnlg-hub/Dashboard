@@ -423,6 +423,22 @@ Wisch-Helfer in `shopping.js`) und speichert nichts. Es gilt weiterhin: alle Nut
     Einkaufsliste lässt sich das durch nochmaliges Wischen zurücknehmen). Diagramme scrollen seitlich.
   - Größere Tippflächen, Eingaben ohne Zoom-Sprung (16px), Rücksicht auf Notch und Home-Leiste.
 
+### Einheitliche Bausteine (Variablen in `styles.css`)
+
+Schriftgrößen, Ecken, Ränder, Schatten und feste Farben kommen aus Variablen ganz oben in `styles.css` (Block "Bausteine: gemeinsame Werte").
+Neue Regeln nehmen immer diese Variablen und nie einen eigenen Pixelwert:
+
+- **Schriftstufen** `--fs-8 / 10 / 12 / 14 / 16 / 18 / 20 / 24 / 30`. Pixelschrift (Press Start 2P) nur 8 / 10 / 12 / 16 / 24 und nie kleiner
+  als 8 px, Lesetext nie kleiner als 12 px, Eingaben 16 px. Fließende Überschriften dürfen `clamp()` benutzen.
+- **Ecken und Rand:** `--r` (3 px, eckig), `--r-round` (Kreise), Rand immer 2 px (`--bw`).
+- **Schatten** in drei Stufen: `--sh-s` (2 px, Chips), `--sh-m` (3 px, Knöpfe, Menüs, Hinweise), `--sh-l` (5 px, am Handy 4 px, Karten und Fenster),
+  zusammen mit der Farbe, z.B. `box-shadow: var(--sh-m) var(--pxs)`. Gedrückt = `none` plus `transform: translate(3px, 3px)`.
+- **Farben:** alles aus der Farbtabelle (`--surface`, `--accent`, `--ok`, `--warn`, `--bad`, `--gold`, Pixel-Symbole `--spr-*` usw.). Für Text gibt es
+  die kontraststarken `--ok / --warn / --bad` (hell und dunkel), `--status-*` sind für Flächen.
+- **Bedienbarkeit:** `button, input, select, textarea` erben die Schrift der Seite; Fokus-Rahmen überall `var(--focus)` (Gold, 3 px); auf Touch-Geräten sind
+  Knöpfe mindestens `--tap` (44 px) hoch.
+- Das Skript `normalize_css.py` (Ordner `ui-bausteine` im Arbeitsordner) stellt alte Einzelwerte automatisch auf diese Stufen um.
+
 ## Reality-Check bei den Zielen und Achtung-Banner
 
 **Reality-Check:** Jede Zielkarte zeigt unter dem Ring das nötige Tempo bis zur Frist (z.B. "244/Tag"), dein aktuelles Tempo, die
