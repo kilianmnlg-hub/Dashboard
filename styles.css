@@ -931,10 +931,13 @@ svg.links line.lit { stroke-width: 1.6; }
 .habit-header-row { border-bottom: 2px solid var(--border); padding-bottom: 4px; }
 
 .habit-label {
-  width: 160px; flex-shrink: 0; font-size: 13px;
+  width: 200px; flex-shrink: 0; font-size: 13px; min-width: 0;
   display: flex; align-items: center; gap: 6px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  white-space: nowrap;
 }
+/* Nur der Name kuerzt sich mit "...", Serie und Wochenzaehler (z.B. "4/7") bleiben immer ganz sichtbar */
+.habit-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.habit-label .streak-badge, .habit-label .habit-count { flex: none; }
 .habit-count {
   font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; font-size: 11px;
   color: var(--text-faint); font-weight: 500; flex-shrink: 0;
@@ -1761,6 +1764,14 @@ body[data-cloud="failed"] .cl-txt { color: var(--status-warning); }
   .todo-item .todo-remove::after, .todo-move-wrap .todo-move::after, .habit-remove::after, .habit-count::after, .idea-promote::after, .ship-alert-dismiss::after, .ib-del::after, .tt-del::after, .fold-btn::after { content: ""; position: absolute; inset: -9px; }
   .habit-view-toggle button { min-height: 40px; }
 }
+/* Pixel-Quadrate statt Emoji: Zustand der Cloud-Speicherung, des Kalenders und des Upload-Rhythmus (trBlink steht im Training-Block weiter unten) */
+#autoSyncStatus::before, #habitSyncStatus::before, #calendarSyncStatus::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; background: var(--text-faint); vertical-align: 0; }
+[data-s="saved"]::before, [data-s="synced"]::before, [data-s="ok"]::before { background: var(--status-good) !important; }
+[data-s="saving"]::before, [data-s="loading"]::before { background: var(--gold) !important; animation: trBlink .8s steps(1) infinite; }
+[data-s="error"]::before, [data-s="no-token"]::before, [data-s="cloud-failed"]::before, [data-s="local-only"]::before { background: var(--status-critical) !important; }
+.rdot { display: inline-block; width: 9px; height: 9px; background: currentColor; margin-right: 6px; vertical-align: 0; }
+.rhythm-badge .spr { vertical-align: -3px; }
+.studium-card .card-title .spr { vertical-align: -4px; margin-right: 2px; }
 @media (prefers-reduced-motion: reduce) { .dash-toast { animation: none; } }
 
 /* ---------- Rang neben dem Level (nur auf breiten Bildschirmen, sonst im Tooltip und beim Level-up) ---------- */

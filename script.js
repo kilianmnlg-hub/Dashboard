@@ -408,17 +408,18 @@
     if (!autoSyncStatusEl) return;
     const time = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
     const map = {
-      saving: "☁️ Speichere…",
-      saved: `☁️ Automatisch gesichert · ${time}`,
-      error: `⚠️ Auto-Sync fehlgeschlagen${detail ? " — " + detail : ""}`,
-      "no-token": "⚠️ Nicht gespeichert — GitHub-Token fehlt (Änderungen gehen beim Schließen verloren)",
-      "cloud-failed": "⚠️ Cloud nicht erreichbar — Änderungen gesperrt, neuer Versuch läuft"
+      saving: "Speichere…",
+      saved: `Automatisch gesichert · ${time}`,
+      error: `Auto-Sync fehlgeschlagen${detail ? " — " + detail : ""}`,
+      "no-token": "Nicht gespeichert — GitHub-Token fehlt (Änderungen gehen beim Schließen verloren)",
+      "cloud-failed": "Cloud nicht erreichbar — Änderungen gesperrt, neuer Versuch läuft"
     };
     autoSyncStatusEl.hidden = false;
+    autoSyncStatusEl.dataset.s = state; // das Pixel-Quadrat vor dem Text (Farbe je Zustand) kommt aus dem CSS
     // Auf schmaleren Bildschirmen blendet das CSS den Wortlaut aus (nur Wolke und Uhrzeit); lange Meldungen werden gekuerzt, der
     // volle Text steht im Tooltip.
     const text = map[state] || "";
-    if (state === "saved") autoSyncStatusEl.innerHTML = `☁️ <span class="as-w">Automatisch gesichert · </span>${time}`;
+    if (state === "saved") autoSyncStatusEl.innerHTML = `<span class="as-w">Automatisch gesichert · </span>${time}`;
     else autoSyncStatusEl.textContent = text;
     autoSyncStatusEl.title = text;
   }
@@ -557,6 +558,8 @@
         ? `1 Bricklink-Bestellung wartet auf Versand — #${pending[0].orderId} (${pending[0].buyer}, bestellt am ${fmtDate(pending[0].orderedDate.slice(0, 10))})`
         : `${pending.length} Bricklink-Bestellungen warten auf Versand — älteste: #${pending[0].orderId} (${pending[0].buyer}, bestellt am ${fmtDate(pending[0].orderedDate.slice(0, 10))})`;
     document.getElementById("shipAlertText").textContent = text;
+    const shipIcon = shipAlert.querySelector(".ship-alert-icon");
+    if (shipIcon && PX) shipIcon.innerHTML = pxSpr("brick", 22);
     shipAlert.hidden = false;
   }
 
@@ -1374,13 +1377,13 @@
       const dueLabel =
         remaining > 0 ? `noch ${fmtDE.format(remaining)} Tage` : remaining === 0 ? "heute" : "vorbei";
       card.innerHTML = `
-        <p class="card-title">🎓 ${escapeHtml(deadline.label || "Prüfung/Abgabe")}</p>
+        <p class="card-title">${pxSpr("book", 18)} ${escapeHtml(deadline.label || "Prüfung/Abgabe")}</p>
         <p class="card-subtitle">${fmtDate(deadline.date)} · ${dueLabel}</p>
         <button type="button" class="link-button-inline" id="studiumEditBtn">Ändern</button>
       `;
     } else {
       card.innerHTML = `
-        <p class="card-title">🎓 Studium</p>
+        <p class="card-title">${pxSpr("book", 18)} Studium</p>
         <p class="card-subtitle">Noch keine nächste Prüfung/Abgabe eingetragen</p>
         <button type="button" class="link-button-inline" id="studiumEditBtn">Termin eintragen</button>
       `;
@@ -1426,9 +1429,9 @@
   };
 
   const RHYTHM_META = {
-    green: { dot: "🟢", label: "im Rhythmus" },
-    yellow: { dot: "🟡", label: "wird knapp" },
-    red: { dot: "🔴", label: "überfällig" }
+    green: { dot: '<i class="rdot"></i>', label: "im Rhythmus" },
+    yellow: { dot: '<i class="rdot"></i>', label: "wird knapp" },
+    red: { dot: '<i class="rdot"></i>', label: "überfällig" }
   };
 
   function daysSince(iso) {
@@ -1447,7 +1450,7 @@
     if (!biz.uploadRhythmDays) return "";
     const days = daysSince(biz.lastUploadAt);
     if (days === null) {
-      return `<p class="rhythm-badge neutral">⏳ Longform-Rhythmus: noch nicht synchronisiert</p>`;
+      return `<p class="rhythm-badge neutral">${pxSpr("hourglass", 14)} Longform-Rhythmus: noch nicht synchronisiert</p>`;
     }
     const status = rhythmStatus(days, biz.uploadRhythmDays);
     const meta = RHYTHM_META[status];
@@ -2206,11 +2209,12 @@
     if (!habitSyncStatusEl) return;
     const time = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
     const map = {
-      idle: "☁️ Änderungen werden automatisch in der Cloud gespeichert",
-      synced: `☁️ In der Cloud gespeichert · ${time}`,
-      "local-only": "⚠️ Nicht gespeichert — GitHub-Token fehlt",
-      error: `⚠️ Cloud-Sync fehlgeschlagen${detail ? " — " + detail : ""}`
+      idle: "Änderungen werden automatisch in der Cloud gespeichert",
+      synced: `In der Cloud gespeichert · ${time}`,
+      "local-only": "Nicht gespeichert — GitHub-Token fehlt",
+      error: `Cloud-Sync fehlgeschlagen${detail ? " — " + detail : ""}`
     };
+    habitSyncStatusEl.dataset.s = map[state] ? state : "idle";
     habitSyncStatusEl.textContent = map[state] || map.idle;
   }
 
@@ -2531,7 +2535,7 @@
         const target = h.targetPerWeek;
         const weekDone = doneCount >= target;
         return `<div class="habit-row">
-          <div class="habit-label">${escapeHtml(h.label)}${streakBadgeHtml(h.id)}<button type="button" class="habit-count${weekDone ? " done" : ""}" data-target="${h.id}" title="Wochenziel aendern">${weekDone ? "✓ " : ""}${doneCount}/${target}</button></div>
+          <div class="habit-label"><span class="habit-name" title="${escapeHtml(h.label)}">${escapeHtml(h.label)}</span>${streakBadgeHtml(h.id)}<button type="button" class="habit-count${weekDone ? " done" : ""}" data-target="${h.id}" title="Wochenziel aendern">${weekDone ? "✓ " : ""}${doneCount}/${target}</button></div>
           <div class="habit-days">${cells}</div>
           <button type="button" class="habit-remove" data-remove="${h.id}" aria-label="Entfernen">×</button>
         </div>`;
@@ -3013,10 +3017,11 @@
     if (!calendarSyncStatusEl) return;
     const time = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
     const map = {
-      loading: "⏳ Lade Termine…",
-      ok: `☁️ Aktualisiert · ${time}`,
-      error: `⚠️ Fehler${detail ? " — " + detail : ""}`
+      loading: "Lade Termine…",
+      ok: `Aktualisiert · ${time}`,
+      error: `Fehler${detail ? " — " + detail : ""}`
     };
+    calendarSyncStatusEl.dataset.s = state;
     calendarSyncStatusEl.textContent = map[state] || "";
   }
 

@@ -953,12 +953,18 @@
 
     /* ---------- Start ---------- */
     var relayoutT = 0;
-    function relayout() { clearTimeout(relayoutT); relayoutT = setTimeout(function () { var kb = k; scale(); if (k !== kb) redrawAll(); render(); if (pickerOpen()) followPicker(); }, 130); }
+    function relayout() { clearTimeout(relayoutT); relayoutT = setTimeout(function () { var kb = k, db = dpr; scale(); if (k !== kb || dpr !== db) redrawAll(); render(); if (pickerOpen()) followPicker(); }, 130); }   /* auch bei geaenderter Pixeldichte (Zoom, Monitorwechsel) neu zeichnen: sonst passen Bildgroesse und Platzmasse nicht mehr zusammen */
+    function watchDpr() {   /* Monitorwechsel aendert die Pixeldichte, ohne dass die Fenstergroesse sich aendert */
+      if (!window.matchMedia) return;
+      var mq = window.matchMedia("(resolution: " + (window.devicePixelRatio || 1) + "dppx)");
+      var on = function () { if (mq.removeEventListener) mq.removeEventListener("change", on); relayout(); watchDpr(); };
+      if (mq.addEventListener) mq.addEventListener("change", on);
+    }
     function build() {
       if (built) return;
       scale(); ensureLayer(); setupObserver(); bindLevelBox(); built = true;
       render();
-      window.addEventListener("resize", relayout);
+      window.addEventListener("resize", relayout); watchDpr();
       if (window.ResizeObserver) {
         ro = new ResizeObserver(relayout);
         var main = document.querySelector("main"); if (main) ro.observe(main);
