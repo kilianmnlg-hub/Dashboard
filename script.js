@@ -599,9 +599,91 @@
     shipAlert.hidden = true;
   });
 
+  // ---------- Bricklink: ungelesene Nachrichten ----------
+  // Die Bricklink-API verraet nicht, was du dort schon geoeffnet hast. "Ungelesen" heisst deshalb: Kaeufer-Nachricht ohne Antwort des Shops
+  // (data.bricklinkMessages.items, vom Sync geholt), die du von hier aus geoeffnet oder mit "Alle gelesen" abgehakt hast. msgseen.js merkt sich das in
+  // der Cloud (Feld msgSeen in sync-data.json). Der Hinweis oben und die Zeile in der Bricklink-Karte zeigen dieselbe Zahl.
+  const msgSeenBoard = window.createMsgSeen ? window.createMsgSeen({ dataStore, scheduleAutoSync, items: data.bricklinkMessages?.items }) : null;
+  let remoteMsgSeenRaw = null;
+  const BL_ORDER_URL = "https://www.bricklink.com/orderDetail.asp?ID=";
+  // Zahl und Wort fuer Hinweis und Karte; bis zum ersten Sync mit Einzelnachrichten gilt noch die bisherige Zahl "unbeantwortet"
+  function messageInfo() {
+    const unread = msgSeenBoard ? msgSeenBoard.count() : null;
+    if (unread !== null) return { n: unread, word: "ungelesen" };
+    const old = data.bricklinkMessages?.unanswered;
+    return Number.isFinite(old) ? { n: old, word: "unbeantwortet" } : null;
+  }
+
+  // Hinweis ganz oben: Zahl, ein Link je Bestellung (oeffnet sie in Bricklink und hakt ihre Nachrichten ab) und "Alle gelesen"
+  function renderMessageAlert() {
+    const host = document.getElementById("topAlerts");
+    if (!host) return;
+    host.querySelector('[data-alert^="bricklink-messages"]')?.remove();
+    const info = messageInfo();
+    if (!info || !(info.n > 0)) return;
+    const id = `bricklink-messages-${info.word}-${info.n}`;
+    try { if (sessionStorage.getItem(`dashboard-alert-dismissed-${id}`)) return; } catch (e) { /* egal */ }
+    const unread = info.word === "ungelesen";
+    const orders = [];
+    if (unread) {
+      msgSeenBoard.list().forEach((m) => {
+        let o = orders.find((x) => x.order === m.order);
+        if (!o) orders.push((o = { order: m.order, n: 0 }));
+        o.n += 1;
+      });
+    }
+    const MAX_CHIPS = 8;
+    const chips = orders
+      .slice(0, MAX_CHIPS)
+      .map((o) => `<a class="ta-chip" href="${BL_ORDER_URL}${encodeURIComponent(o.order)}" target="_blank" rel="noopener" data-order="${escapeHtml(o.order)}" title="Bestellung ${escapeHtml(o.order)} in Bricklink öffnen">#${escapeHtml(o.order)}${o.n > 1 ? ` · ${o.n}` : ""}</a>`)
+      .join("") + (orders.length > MAX_CHIPS ? `<span class="ta-more">+ ${orders.length - MAX_CHIPS} weitere</span>` : "");
+    host.insertAdjacentHTML(
+      "beforeend",
+      `<div class="ship-alert top-alert info${unread ? " ta-msgs" : ""}" data-alert="${escapeHtml(id)}"><div class="ship-alert-inner">${pxSpr("bell", 22)}<span class="ship-alert-text"><b>Bricklink: ${info.n} ${info.n === 1 ? "Nachricht" : "Nachrichten"} ${info.word}</b><span class="ta-sub">${unread ? "Käufer ohne Antwort. Bestellung öffnen oder abhaken:" : "Heute noch beantworten?"}</span>${chips ? `<span class="ta-chips">${chips}</span>` : ""}</span>${unread ? '<button type="button" class="ta-action" data-act="msgs-read">ALLE GELESEN</button>' : ""}<button type="button" class="ship-alert-dismiss" aria-label="Ausblenden">×</button></div></div>`
+    );
+  }
+
+  // Zeile "Nachrichten ungelesen" in der Bricklink-Karte (die Karte wird einmal gebaut, die Zahl aendert sich mit dem Abhaken und dem Laden der Cloud)
+  function updateMessageRow() {
+    const row = document.querySelector('.stat-row[data-row="msgs"]');
+    const info = messageInfo();
+    if (!row || !info) return;
+    row.querySelector(".stat-label").textContent = `Nachrichten ${info.word}`;
+    const num = row.querySelector(".stat-value-num");
+    num.dataset.final = String(info.n);
+    num.textContent = String(info.n);
+  }
+
+  function refreshMessageViews() {
+    renderMessageAlert();
+    updateMessageRow();
+  }
+  if (msgSeenBoard) msgSeenBoard.onChange(refreshMessageViews);
+  // Erst nach dem Laden der Cloud zeigen, sonst blitzt kurz alles als ungelesen auf, was laengst abgehakt ist
+  if (document.body.dataset.cloud === "ready") refreshMessageViews();
+  else document.addEventListener("cloud-ready", refreshMessageViews, { once: true });
+
+  (function wireMessageAlert() {
+    const host = document.getElementById("topAlerts");
+    if (!host || !msgSeenBoard) return;
+    // Der Link oeffnet die Bestellung in Bricklink (neuer Tab, auch per Mittelklick); abgehakt und neu gezeichnet wird erst einen Moment danach,
+    // damit der Link nicht mitten im Klick aus der Seite verschwindet
+    const opened = (e) => {
+      const chip = e.target.closest(".ta-chip");
+      if (chip) setTimeout(() => msgSeenBoard.markOrder(chip.dataset.order), 150);
+    };
+    host.addEventListener("click", opened);
+    host.addEventListener("auxclick", opened);
+    host.addEventListener("click", (e) => {
+      if (!e.target.closest('[data-act="msgs-read"]')) return;
+      const n = msgSeenBoard.markAll();
+      if (n) toast(`${n} ${n === 1 ? "Nachricht" : "Nachrichten"} als gelesen abgehakt.`, "ok");
+    });
+  })();
+
   // ---------- Achtung-Banner ganz oben ----------
   // Weitere Hinweise im Stil des Versand-Alarms: ueberfaellige Uploads (Rhythmus aus data.business, Shorts zaehlen
-  // nicht) und offene Bricklink-Nachrichten. Pro Sitzung wegklickbar (sessionStorage, wie beim Versand-Alarm).
+  // nicht). Die Bricklink-Nachrichten kommen darueber (renderMessageAlert). Pro Sitzung wegklickbar (sessionStorage, wie beim Versand-Alarm).
   (function renderTopAlerts() {
     const host = document.getElementById("topAlerts");
     if (!host) return;
@@ -620,19 +702,6 @@
         sub: `Dein Rhythmus: alle ${biz.uploadRhythmDays} Tage · letzter Upload ${fmtDate(biz.lastUploadAt.slice(0, 10))}`
       });
     });
-    const stat = (label) => parseInt(String((data.business?.bricklink?.stats || []).find((s) => s.label === label)?.value ?? "").replace(/\./g, ""), 10) || 0;
-    // Live aus der Bricklink-API (data.bricklinkMessages, nur Nachrichten zu Bestellungen); fehlt das, gilt die von Hand gepflegte Kennzahl
-    const liveMessages = Number.isFinite(data.bricklinkMessages?.unanswered) ? data.bricklinkMessages.unanswered : null;
-    const unanswered = liveMessages !== null ? liveMessages : stat("Nachrichten unbeantwortet");
-    if (unanswered > 0) {
-      items.push({
-        id: `bricklink-messages-${unanswered}`,
-        level: "info",
-        icon: "bell",
-        title: `Bricklink: ${unanswered} ${unanswered === 1 ? "Nachricht" : "Nachrichten"} unbeantwortet`,
-        sub: "Heute noch beantworten?"
-      });
-    }
     const visible = items.filter((it) => {
       try { return !sessionStorage.getItem(`dashboard-alert-dismissed-${it.id}`); } catch (e) { return true; }
     });
@@ -666,11 +735,11 @@
         if (!latest || latest === mine || shownFor === latest) return;
         try { if (sessionStorage.getItem(`dashboard-alert-dismissed-update-${latest}`)) return; } catch (e) { /* egal */ }
         shownFor = latest;
-        host.insertAdjacentHTML("afterbegin", `<div class="ship-alert top-alert yellow" data-alert="update-${escapeHtml(latest)}"><div class="ship-alert-inner">${pxSpr("bell", 22)}<span class="ship-alert-text"><b>Neue Version verfügbar</b><span class="ta-sub">Lade neu, damit alles wieder zusammenpasst.</span></span><button type="button" class="ta-action">NEU LADEN</button><button type="button" class="ship-alert-dismiss" aria-label="Ausblenden">×</button></div></div>`);
+        host.insertAdjacentHTML("afterbegin", `<div class="ship-alert top-alert yellow" data-alert="update-${escapeHtml(latest)}"><div class="ship-alert-inner">${pxSpr("bell", 22)}<span class="ship-alert-text"><b>Neue Version verfügbar</b><span class="ta-sub">Lade neu, damit alles wieder zusammenpasst.</span></span><button type="button" class="ta-action" data-act="reload">NEU LADEN</button><button type="button" class="ship-alert-dismiss" aria-label="Ausblenden">×</button></div></div>`);
       } catch (e) { /* offline: spaeter nochmal */ }
     }
     host.addEventListener("click", async (e) => {
-      if (!e.target.closest(".ta-action")) return;
+      if (!e.target.closest('.ta-action[data-act="reload"]')) return;
       try { const reg = await navigator.serviceWorker?.getRegistration(); if (reg) await reg.update(); } catch (err) { /* egal */ }
       location.reload();
     });
@@ -1739,11 +1808,16 @@
       };
     }
 
-    // Unbeantwortete Nachrichten live aus der Bricklink-API: ersetzt die von Hand gepflegte Zeile oder fuegt sie nach "Sendung ausstehend" ein
-    if (key === "bricklink" && Number.isFinite(data.bricklinkMessages?.unanswered)) {
-      const label = "Nachrichten unbeantwortet";
-      const row = { label, value: String(data.bricklinkMessages.unanswered), hint: "via API, nur zu Bestellungen" };
-      const rest = biz.stats.filter((s) => s.label !== label);
+    // Nachrichten aus der Bricklink-API (siehe messageInfo): ersetzt eine aeltere Zeile oder fuegt sie nach "Sendung ausstehend" ein
+    const msgInfo = key === "bricklink" ? messageInfo() : null;
+    if (msgInfo) {
+      const row = {
+        label: `Nachrichten ${msgInfo.word}`,
+        value: String(msgInfo.n),
+        hint: msgInfo.word === "ungelesen" ? "ohne Antwort, noch nicht geöffnet" : "via API, nur zu Bestellungen",
+        rowKey: "msgs"
+      };
+      const rest = biz.stats.filter((s) => !/^Nachrichten (unbeantwortet|ungelesen)$/.test(s.label));
       const after = rest.findIndex((s) => s.label === "Sendung ausstehend");
       rest.splice(after >= 0 ? after + 1 : rest.length, 0, row);
       biz = { ...biz, stats: rest };
@@ -1751,7 +1825,7 @@
 
     const statRows = biz.stats.map(
       (s) => `
-        <div class="stat-row">
+        <div class="stat-row"${s.rowKey ? ` data-row="${s.rowKey}"` : ""}>
           <span class="stat-label">${s.label}</span>
           <span class="stat-value"><span class="stat-value-num" data-final="${escapeHtml(s.value)}"></span>${s.hint ? `<span class="stat-hint">${s.hint}</span>` : ""}</span>
         </div>`
@@ -2953,8 +3027,10 @@
       timetracker: timeTrackerBoard ? timeTrackerBoard.payload() : remoteTimeTrackerRaw,
       inbox: inboxBoard ? inboxBoard.payload() : remoteInboxRaw,
       fold: foldBoard ? foldBoard.payload() : remoteFoldRaw,
-      xp: xpBoard ? xpBoard.payload() : remoteXpRaw
+      xp: xpBoard ? xpBoard.payload() : remoteXpRaw,
+      msgSeen: msgSeenBoard ? msgSeenBoard.payload() : remoteMsgSeenRaw
     };
+    if (payload.msgSeen == null) delete payload.msgSeen;
     if (payload.xp == null) delete payload.xp;
     if (payload.inbox == null) delete payload.inbox;
     if (payload.fold == null) delete payload.fold;
@@ -3103,6 +3179,8 @@
         if (foldBoard) foldBoard.applyRemote(remote.fold);
         remoteXpRaw = remote.xp ?? null;
         if (xpBoard) xpBoard.applyRemote(remote.xp);
+        remoteMsgSeenRaw = remote.msgSeen ?? null;
+        if (msgSeenBoard) msgSeenBoard.applyRemote(remote.msgSeen);
         applyRemoteTodos(remote.todos);
       }
       cloudLoaded.syncdata = true;

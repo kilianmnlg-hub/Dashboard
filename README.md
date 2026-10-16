@@ -24,6 +24,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `scenery.js` — Pixel-Dschungel: das animierte Pixelbild hinter der Brain-Karte (und als Streifen über einigen Bereichen) mit den Easter Eggs (siehe Abschnitt "Pixel-Dschungel")
 - `guests.js`, `guests-data.js` — Pixel-Gäste: 255 Film-, Serien- und Spielfiguren als Easter Eggs im Dashboard mit Skilltree (siehe Abschnitt "Pixel-Gäste"); `guests-data.js` ist erzeugt (Sprites und Level-Themen)
 - `palette.js` — Schnellsuche und Befehle (siehe Abschnitt "Schnellsuche")
+- `msgseen.js` — merkt sich, welche Bricklink-Nachrichten du geöffnet hast (siehe Abschnitt "Ungelesene Nachrichten")
 - `training.js` — Training: Trainingsplan, Workout-Modus und Verlauf mit Statistiken, mit selbst gezeichneten Pixel-Symbolen (siehe Abschnitt "Training")
 - `training-data.json` — Cloud-Datei des Trainings (Pläne, Einheiten, eigene Übungen); entsteht beim ersten Speichern und wird direkt aus dem Browser aktualisiert
 - `habits-data.json` — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
@@ -53,7 +54,7 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 | TikTok-Follower (@bricksonthefloor) | TikTok-Profilseite (Scrape) | ✅ automatisch, siehe Hinweis unten |
 | Wochenvergleich-Trendpfeile (Abos, Bricklink-Umsatz) | abgeleitet aus obigen Quellen | ✅ automatisch, siehe Hinweis unten |
 | Views/Wiedergabezeit/Umsatz (28 Tage) | — | ❌ manuell (siehe unten, warum) |
-| Unbeantwortete Bricklink-Nachrichten (nur Nachrichten zu Bestellungen) | Bricklink API | ✅ automatisch, siehe Abschnitt "Unbeantwortete Nachrichten" |
+| Ungelesene Bricklink-Nachrichten (nur Nachrichten zu Bestellungen) | Bricklink API + dein Abhaken im Dashboard | ✅ automatisch, siehe Abschnitt "Ungelesene Nachrichten" |
 | Bricklink Store-Besuche, Feedback gesamt, Drive-Thru-Mails, Ohne Feedback | — | ❌ manuell (siehe unten, warum) |
 | Ziel-Fortschritt (Umsatz) | — | ❌ manuell |
 | Nächste Video-Idee | — | eigene Notiz, ✅ Cloud-Sync über Sync-Button (siehe unten) |
@@ -184,15 +185,29 @@ mindestens einen Eintrag enthält, und verschwindet von selbst, sobald eine
 Bestellung nicht mehr in den "noch zu verschicken"-Status fällt. Mit dem ×
 lässt er sich für die aktuelle Browser-Sitzung ausblenden.
 
-## Unbeantwortete Nachrichten (Bricklink)
+## Ungelesene Nachrichten (Bricklink)
 
-Die Bricklink-API kennt **keinen allgemeinen Posteingang**, nur die Nachrichten zu einzelnen Bestellungen (`GET /orders/{id}/messages`). `scripts/fetchers/bricklink.mjs`
-prüft deshalb bei jedem Sync die noch nicht abgeschlossenen Bestellungen und alle der letzten 120 Tage (neueste zuerst, höchstens 150 Abfragen) und zählt die
-Bestellungen, bei denen die **letzte Nachricht vom Käufer** stammt. Das Ergebnis steht in `data.bricklinkMessages` (`unanswered`, `checkedOrders`, `ordersWithMessages`,
-`failed`, `fields` = Feldnamen der Nachrichten, `checkedAt`, `lastError`); es werden nie Inhalte oder Namen gespeichert, weil das Repo öffentlich ist.
+Die Bricklink-API kennt **keinen allgemeinen Posteingang**, nur die Nachrichten zu einzelnen Bestellungen (`GET /orders/{id}/messages`), und sie verrät **nicht, was du in
+Bricklink schon gelesen oder geöffnet hast**: die Nachrichten haben nur `body`, `dateSent`, `from`, `messageID`, `subject` und `to`, die Bestellungen gar kein Lese-Feld
+(`GET /notifications` liefert nur ungelesene Push-Meldungen an Programme, keinen Lesestatus deines Postfachs). Deshalb teilen sich zwei Stellen die Arbeit:
 
-- Angezeigt wird die Zahl im Hinweis ganz oben und als Zeile "Nachrichten unbeantwortet" in der Bricklink-Karte (Stand des letzten Syncs, wie bei "Sendung ausstehend").
+1. **Der Sync** (`scripts/fetchers/bricklink.mjs`) prüft bei jedem Lauf die noch nicht abgeschlossenen Bestellungen und alle der letzten 120 Tage (neueste zuerst, höchstens 150
+   Abfragen) und listet die **offenen Käufer-Nachrichten** einzeln auf: alle Nachrichten des Käufers nach der letzten Nachricht des Shops. Das Ergebnis steht in
+   `data.bricklinkMessages` (`items` = je Nachricht Bestellnummer, Nachrichten-ID und Zeitpunkt, höchstens 10 je Bestellung und 120 insgesamt; `unanswered` = Zahl der Bestellungen
+   mit offener Nachricht, dazu `checkedOrders`, `ordersWithMessages`, `failed`, `fields`, `checkedAt`, `lastError`). Es werden nie Inhalte oder Namen gespeichert, weil das Repo öffentlich ist.
+2. **Das Dashboard** (`msgseen.js`) merkt sich, welche dieser Nachrichten du **geöffnet** oder abgehakt hast. **Ungelesen** heißt: offene Käufer-Nachricht, die du noch nicht
+   geöffnet hast. Antwortest du in Bricklink, verschwindet die Nachricht beim nächsten Sync von selbst, weil dann die letzte Nachricht vom Shop kommt.
+
+- **Hinweis ganz oben:** "Bricklink: N Nachrichten ungelesen" mit einer Marke je Bestellung (`#Bestellnummer · Anzahl`). Ein Klick auf die Marke öffnet die Bestellung in Bricklink
+  (neuer Tab) und hakt ihre Nachrichten ab, "ALLE GELESEN" hakt alles auf einmal ab (für Nachrichten, die du direkt in Bricklink geöffnet hast). Das Kreuz blendet den Hinweis nur für
+  die Sitzung aus.
+- **Karte Bricklink:** Zeile "Nachrichten ungelesen" mit derselben Zahl (Stand des letzten Syncs minus deine Häkchen).
+- **Wo das Abhaken liegt:** in der Cloud (Feld `msgSeen` in `sync-data.json`: Liste der Nachrichten-IDs, höchstens 300), damit Handy und PC dasselbe wissen. Es wird nur vereinigt, nie
+  zurückgenommen; solange nichts abgehakt ist, fehlt das Feld.
+- **Bis zum ersten Sync mit Einzelnachrichten** (nach dem Update) kennt `data.js` die Liste noch nicht: dann steht weiter die bisherige Zahl als "unbeantwortet", ohne Marken. Einmal
+  Sync drücken (oder den täglichen Lauf abwarten), danach erscheint "ungelesen".
 - **Nicht erfasst:** Nachrichten, die nicht zu einer Bestellung gehören (z.B. Fragen vor dem Kauf), und Nachrichten zu Bestellungen, die älter als 120 Tage und abgeschlossen sind.
+- Der Link nutzt `https://www.bricklink.com/orderDetail.asp?ID=<Bestellnummer>`; ändert Bricklink diese Adresse, steht sie als `BL_ORDER_URL` in `script.js`.
 - Schlägt die Abfrage fehl (z.B. fehlende Berechtigung), bleibt der letzte gute Stand stehen und `lastError` nennt den Grund; der Rest des Syncs läuft normal weiter.
 - Einstellbar über Umgebungsvariablen im Workflow: `BRICKLINK_MESSAGES=off` (abschalten), `BRICKLINK_MESSAGE_DAYS`, `BRICKLINK_MESSAGE_MAX_ORDERS`.
 
@@ -469,8 +484,7 @@ Das Tempo kommt bei Abos und Followern aus `metricsHistory` (letzte 28 Tage, min
 aus dem Upload-Rhythmus des Kanals. Ohne Messwerte (z.B. Umsatz, Bricklink-Teile) steht nur die Zeile "nötig".
 
 **Achtung-Banner:** Ganz oben, wie der Versand-Alarm, erscheinen weitere wegklickbare Hinweise: überfälliger Longform-Upload je Kanal
-(rot ab 1,5-fachem Rhythmus, sonst gelb; Shorts zählen nicht) und unbeantwortete Bricklink-Nachrichten (live aus `data.bricklinkMessages`, siehe "Unbeantwortete Nachrichten"; fehlt das, gilt die von Hand gepflegte Kennzahl
-"Nachrichten unbeantwortet" in `data.business.bricklink.stats`; bei 0 oder ohne beides erscheint kein Hinweis).
+(rot ab 1,5-fachem Rhythmus, sonst gelb; Shorts zählen nicht) und ungelesene Bricklink-Nachrichten (live aus `data.bricklinkMessages` abzüglich deines Abhakens, siehe "Ungelesene Nachrichten"; bei 0 erscheint kein Hinweis).
 "Wegklicken" gilt nur für die aktuelle Sitzung.
 
 ## Kennzahlen, Bereichsfarben und Pixel-Effekte

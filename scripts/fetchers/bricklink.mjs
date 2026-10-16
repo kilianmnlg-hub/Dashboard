@@ -11,9 +11,13 @@
 // Versandstatus und Beträge, sowie die Gesamtstückzahl im Store-Inventar.
 //
 // Nachrichten: Die API kennt nur die Nachrichten zu einzelnen Bestellungen
-// (GET /orders/{id}/messages), keinen allgemeinen Posteingang. "Unbeantwortet" heißt hier:
-// die letzte Nachricht zu einer Bestellung stammt vom Käufer. Das Ergebnis steht in
-// data.bricklinkMessages (nur Zahlen und Feldnamen, nie Inhalte, das Repo ist öffentlich).
+// (GET /orders/{id}/messages), keinen allgemeinen Posteingang. Ob du eine Nachricht in Bricklink
+// schon gelesen hast, verrät sie nicht (die Nachrichten haben nur body, dateSent, from, messageID,
+// subject und to, die Bestellungen gar kein Lese-Feld). Deshalb liefert dieser Abruf die OFFENEN
+// Käufer-Nachrichten einzeln: alle Nachrichten des Käufers nach der letzten Nachricht des Shops
+// (data.bricklinkMessages.items: Bestellnummer, Nachrichten-ID, Zeitpunkt). Welche davon schon
+// geöffnet wurden, merkt sich das Dashboard selbst (msgseen.js). In data.js stehen nur Zahlen,
+// IDs und Zeitpunkte, nie Inhalte oder Namen, das Repo ist öffentlich.
 
 import { buildAuthHeader } from "../lib/oauth1.mjs";
 
@@ -27,6 +31,9 @@ const REVENUE_MONTHS = Number(process.env.BRICKLINK_REVENUE_MONTHS || 6);
 const MESSAGES_ENABLED = String(process.env.BRICKLINK_MESSAGES || "on").toLowerCase() !== "off";
 const MESSAGE_DAYS = Number(process.env.BRICKLINK_MESSAGE_DAYS || 120);
 const MAX_MESSAGE_ORDERS = Number(process.env.BRICKLINK_MESSAGE_MAX_ORDERS || 150);
+// Pro Bestellung höchstens so viele offene Käufer-Nachrichten einzeln aufführen, insgesamt höchstens MAX_OPEN_ITEMS (hält data.js klein)
+const MAX_OPEN_PER_ORDER = 10;
+const MAX_OPEN_ITEMS = 120;
 const CLOSED_STATUSES = ["COMPLETED", "CANCELLED", "NPB", "NPX", "NRS", "NSS"];
 
 // Status-Codes, die für dich "bezahlt, aber noch nicht verschickt" bedeuten.
@@ -95,8 +102,10 @@ const lower = (v) => String(v ?? "").trim().toLowerCase();
 // Feldnamen der Nachrichten sind in der Doku nicht beschrieben: dateSent/from sind die bekannten, die anderen Schreibweisen nur Absicherung.
 const messageTime = (m) => Date.parse(m?.dateSent ?? m?.date_sent ?? m?.date ?? "") || 0;
 const messageFrom = (m) => lower(m?.from ?? m?.from_user ?? m?.sender);
+const messageId = (m) => String(m?.messageID ?? m?.message_id ?? m?.id ?? "").trim();
 
-// Zählt Bestellungen, bei denen die letzte Nachricht vom Käufer kommt (also noch keine Antwort des Shops folgte).
+// Sammelt die offenen Käufer-Nachrichten: pro Bestellung alle Nachrichten des Käufers nach der letzten Nachricht des Shops (also noch ohne Antwort).
+// "unanswered" zählt die Bestellungen, "items" die einzelnen Nachrichten (neueste zuerst).
 // Prüft nacheinander in kleinen Gruppen; nach mehreren Fehlern in Folge wird abgebrochen (z.B. fehlende Berechtigung).
 async function fetchUnansweredMessages(orders, creds) {
   const cutoff = Date.now() - MESSAGE_DAYS * 86400000;
@@ -113,6 +122,7 @@ async function fetchUnansweredMessages(orders, creds) {
   let failed = 0;
   let lastError = "";
   let fields = [];
+  const items = [];
   const BATCH = 4;
   for (let i = 0; i < candidates.length && failed < 5; i += BATCH) {
     const results = await Promise.all(
@@ -130,13 +140,22 @@ async function fetchUnansweredMessages(orders, creds) {
       if (!r || !Array.isArray(r.msgs) || !r.msgs.length) return;
       withMessages += 1;
       if (!fields.length && r.msgs[0] && typeof r.msgs[0] === "object") fields = Object.keys(r.msgs[0]).sort();
-      const last = [...r.msgs].sort((a, b) => messageTime(a) - messageTime(b))[r.msgs.length - 1];
-      const from = messageFrom(last);
-      if (from && from === lower(r.o.buyer_name)) unanswered += 1;
+      const buyer = lower(r.o.buyer_name);
+      const sorted = [...r.msgs].sort((a, b) => messageTime(a) - messageTime(b));
+      // Rückwärts, solange der Käufer geschrieben hat: das sind die Nachrichten seit der letzten Antwort des Shops
+      let start = sorted.length;
+      while (start > 0 && buyer && messageFrom(sorted[start - 1]) === buyer) start -= 1;
+      if (start === sorted.length) return;
+      unanswered += 1;
+      sorted.slice(Math.max(start, sorted.length - MAX_OPEN_PER_ORDER)).forEach((m) => {
+        const t = messageTime(m);
+        items.push({ order: String(r.o.order_id), id: messageId(m) || `${r.o.order_id}-${t}`, at: t ? new Date(t).toISOString() : null });
+      });
     });
   }
   if (failed >= 5 && !withMessages) throw new Error(lastError || "Nachrichten-Abfrage fehlgeschlagen");
-  return { unanswered, checkedOrders: candidates.length, ordersWithMessages: withMessages, failed, fields };
+  items.sort((a, b) => ((b.at || "") > (a.at || "") ? 1 : (b.at || "") < (a.at || "") ? -1 : 0));
+  return { unanswered, items: items.slice(0, MAX_OPEN_ITEMS), checkedOrders: candidates.length, ordersWithMessages: withMessages, failed, fields };
 }
 
 export async function fetchBricklink(currentData) {
@@ -180,12 +199,12 @@ export async function fetchBricklink(currentData) {
     }
   };
 
-  // Unbeantwortete Nachrichten (zu Bestellungen). Eigener try/catch: ein Fehler hier darf Versand-Alarm und Umsatzcharts nicht mitreißen.
+  // Offene Käufer-Nachrichten (zu Bestellungen). Eigener try/catch: ein Fehler hier darf Versand-Alarm und Umsatzcharts nicht mitreißen.
   // Bei einem Fehler bleibt der letzte gute Stand in data.bricklinkMessages stehen, nur lastError wird gesetzt (deepMerge in sync-all.mjs).
   if (MESSAGES_ENABLED) {
     try {
       const res = await fetchUnansweredMessages(unfiledOrders, creds);
-      console.log(`[bricklink] Nachrichten: ${res.unanswered} unbeantwortet (${res.ordersWithMessages} von ${res.checkedOrders} geprüften Bestellungen haben Nachrichten, ${res.failed} Abfragen fehlgeschlagen).`);
+      console.log(`[bricklink] Nachrichten: ${res.items.length} Käufer-Nachrichten ohne Antwort in ${res.unanswered} Bestellungen (${res.ordersWithMessages} von ${res.checkedOrders} geprüften Bestellungen haben Nachrichten, ${res.failed} Abfragen fehlgeschlagen).`);
       patch.bricklinkMessages = { checkedAt: new Date().toISOString(), ...res, lastError: null };
     } catch (err) {
       console.error("[bricklink] Nachrichten übersprungen:", err.message);

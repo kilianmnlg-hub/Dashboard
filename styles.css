@@ -1706,6 +1706,20 @@ svg.links line.lit { stroke: var(--accent); stroke-width: 2; }
 /* ---------- Update-Hinweis (Aktionsknopf im Banner) ---------- */
 .top-alert .ta-action { flex: none; font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--accent-ink); background: var(--accent); border: 2px solid var(--text); border-radius: var(--r); padding: 8px 10px; min-height: 34px; box-shadow: var(--sh-m) var(--pxs); cursor: pointer; transition: transform .08s steps(2), box-shadow .08s steps(2); }
 .top-alert .ta-action:active { transform: translate(3px, 3px); box-shadow: none; }
+/* Bricklink-Nachrichten im Hinweis oben: eine Marke je Bestellung, ein Klick oeffnet sie in Bricklink und hakt ihre Nachrichten ab */
+.top-alert .ta-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.top-alert .ta-chip { font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--text); text-decoration: none; background: var(--surface); border: 2px solid var(--text); border-radius: var(--r); padding: 4px 8px; box-shadow: var(--sh-s) var(--pxs); transition: transform .08s steps(2), box-shadow .08s steps(2); }
+.top-alert .ta-chip:hover { background: var(--accent); color: var(--accent-ink); }
+.top-alert .ta-chip:active { transform: translate(2px, 2px); box-shadow: none; }
+.top-alert .ta-chip:focus-visible { outline: var(--focus); outline-offset: 2px; }
+.top-alert .ta-more { align-self: center; font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--text-muted); }
+/* Handy: Symbol, Text und Kreuz in der ersten Zeile, "Alle gelesen" in einer eigenen Zeile darunter, damit der Text nicht schmal wird */
+@media (max-width: 720px) {
+  .top-alert.ta-msgs .ship-alert-inner { flex-wrap: wrap; align-items: flex-start; }
+  .top-alert.ta-msgs .ship-alert-text { flex: 1 1 0; min-width: 0; }
+  .top-alert.ta-msgs .ship-alert-dismiss { order: 2; }
+  .top-alert.ta-msgs .ta-action { order: 3; flex: 1 0 100%; }
+}
 
 /* ---------- Laufender Timer in der Kopfleiste ---------- */
 .top-timers { display: flex; gap: 8px; flex-shrink: 0; }
@@ -1789,7 +1803,8 @@ body[data-cloud="failed"] .cl-txt { color: var(--status-warning); }
   .todo-item .todo-remove::after, .todo-move-wrap .todo-move::after, .habit-remove::after, .habit-count::after, .idea-promote::after, .ship-alert-dismiss::after, .ib-del::after, .tt-del::after, .fold-btn::after { content: ""; position: absolute; inset: -9px; }
   /* Knoepfe, Reiter und Schalter sind auf Touch-Geraeten mindestens so hoch wie die Tippflaeche (--tap) */
   .habit-view-toggle button, .sync-button, .theme-toggle, .btn, .area-pop .ap-btn, .ib-btn, .tt-btn, .tt-btn.tt-sm, .tt-tab, .tt-tbtn,
-  .shop .pbtn, .shop .pbtn.small, .shop .tab, .top-alert .ta-action { min-height: var(--tap); }
+  .shop .pbtn, .shop .pbtn.small, .shop .tab, .top-alert .ta-action, .top-alert .ta-chip { min-height: var(--tap); }
+  .top-alert .ta-chip { display: inline-flex; align-items: center; }
 }
 /* Pixel-Quadrate statt Emoji: Zustand der Cloud-Speicherung, des Kalenders und des Upload-Rhythmus (trBlink steht im Training-Block weiter unten) */
 #autoSyncStatus::before, #habitSyncStatus::before, #calendarSyncStatus::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; background: var(--text-faint); vertical-align: 0; }
