@@ -239,9 +239,18 @@
           "Sahne",
           "Zwiebeln"
         ]
+      },
+      {
+        "name": "Geiler Quark",
+        "items": [
+          "Magerquark",
+          "Beeren",
+          "Proteinpulver",
+          "Kuchen"
+        ]
       }
     ],
-    "updatedAt": 1792227454615
+    "updatedAt": 1792227529490
   },
   "timetracker": {
     "entries": [
