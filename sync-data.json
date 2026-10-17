@@ -79,16 +79,16 @@
         {
           "id": "ef3c4e4a-5fa0-4cc7-afad-fbeeabe46c6f",
           "text": "Garten machen",
-          "done": false
+          "done": true
         },
         {
           "id": "3f559c0d-4fa0-42db-80bd-38fbbb5342eb",
           "text": "gym",
-          "done": false
+          "done": true
         }
       ]
     },
-    "updatedAt": 1792243247405
+    "updatedAt": 1792243250317
   },
   "tasks": {
     "items": [
@@ -599,7 +599,9 @@
         "shop:e877c568-53f9-477a-aed4-90eb1190932b": 2,
         "shop:c7dcccff-e24d-4498-96ca-7a1c78ea14df": 2,
         "habit:gym@2026-10-17": 6,
-        "todo:e660cd63-b989-4521-aafe-6929e98bc49c": 10
+        "todo:e660cd63-b989-4521-aafe-6929e98bc49c": 10,
+        "todo:ef3c4e4a-5fa0-4cc7-afad-fbeeabe46c6f": 10,
+        "todo:3f559c0d-4fa0-42db-80bd-38fbbb5342eb": 10
       }
     },
     "archive": {
@@ -607,7 +609,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792243247354
+    "updatedAt": 1792243250270
   },
   "msgSeen": {
     "ids": [
