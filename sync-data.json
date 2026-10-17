@@ -136,22 +136,10 @@
         "aisle": "obst"
       },
       {
-        "id": "6604477d-a5aa-4df4-bfaf-2ec234747b54",
-        "name": "Tiefkühl-Obst",
-        "qty": "",
-        "aisle": "tk"
-      },
-      {
         "id": "6189fb69-e121-45d5-9cb3-f183dc23e485",
         "name": "Tiefkühlgemüse",
         "qty": "",
         "aisle": "tk"
-      },
-      {
-        "id": "6757f721-a33f-4eb3-a35a-db112afc7187",
-        "name": "Light Käse",
-        "qty": "",
-        "aisle": "kuehl"
       },
       {
         "id": "6ec4fcb2-b1bf-4f16-a4b9-c634c605c9aa",
@@ -199,7 +187,8 @@
         1791569131164
       ],
       "Tiefkühl-Obst": [
-        1791569395844
+        1791569395844,
+        1792227433076
       ],
       "Tiefkühlgemüse": [
         1791569396302
@@ -219,7 +208,8 @@
         1792227426026
       ],
       "Light Käse": [
-        1791569403836
+        1791569403836,
+        1792227430917
       ],
       "Mais": [
         1791569406368
@@ -273,7 +263,7 @@
         ]
       }
     ],
-    "updatedAt": 1792227428417
+    "updatedAt": 1792227433076
   },
   "timetracker": {
     "entries": [
@@ -608,7 +598,8 @@
         "shop:eccee066-d171-4a9a-a538-6aca5daea385": 2,
         "shop:2f40d68d-cbfe-47d6-9b49-d3be0b3ce7bf": 2,
         "shop:3b3c47eb-ad3f-4efe-b8f7-f51e449fd98d": 2,
-        "shop:6757f721-a33f-4eb3-a35a-db112afc7187": 2
+        "shop:6757f721-a33f-4eb3-a35a-db112afc7187": 2,
+        "shop:6604477d-a5aa-4df4-bfaf-2ec234747b54": 2
       }
     },
     "archive": {
@@ -616,7 +607,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792227430264
+    "updatedAt": 1792227432417
   },
   "msgSeen": {
     "ids": [
