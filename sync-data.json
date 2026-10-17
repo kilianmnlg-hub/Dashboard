@@ -111,14 +111,9 @@
         "id": "f8be3894-f59e-44a7-8c06-bfff3c066914",
         "text": "clips erstellen",
         "done": false
-      },
-      {
-        "id": "100d3e46-db84-4a40-bff6-5c74be9f0646",
-        "text": "september recap",
-        "done": false
       }
     ],
-    "updatedAt": 1792227303316
+    "updatedAt": 1792227304532
   },
   "shopping": {
     "items": [
@@ -621,7 +616,8 @@
       "2026-10-17": {
         "task:fae2172e-2e53-4f28-bcab-6f63404812ac": 12,
         "rtask:17048d1c-8b4f-4e5a-b292-01df34b43fc0": 12,
-        "rtask:2cfb43c8-7fe8-4650-8fb1-819c2f68c823": 12
+        "rtask:2cfb43c8-7fe8-4650-8fb1-819c2f68c823": 12,
+        "rtask:100d3e46-db84-4a40-bff6-5c74be9f0646": 12
       }
     },
     "archive": {
@@ -629,7 +625,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792227302873
+    "updatedAt": 1792227304063
   },
   "msgSeen": {
     "ids": [
