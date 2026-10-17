@@ -74,7 +74,7 @@
         {
           "id": "e660cd63-b989-4521-aafe-6929e98bc49c",
           "text": "Wäsche waschen",
-          "done": false
+          "done": true
         },
         {
           "id": "ef3c4e4a-5fa0-4cc7-afad-fbeeabe46c6f",
@@ -88,7 +88,7 @@
         }
       ]
     },
-    "updatedAt": 1792227668142
+    "updatedAt": 1792243247405
   },
   "tasks": {
     "items": [
@@ -598,7 +598,8 @@
         "shop:6ec4fcb2-b1bf-4f16-a4b9-c634c605c9aa": 2,
         "shop:e877c568-53f9-477a-aed4-90eb1190932b": 2,
         "shop:c7dcccff-e24d-4498-96ca-7a1c78ea14df": 2,
-        "habit:gym@2026-10-17": 6
+        "habit:gym@2026-10-17": 6,
+        "todo:e660cd63-b989-4521-aafe-6929e98bc49c": 10
       }
     },
     "archive": {
@@ -606,7 +607,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792240294139
+    "updatedAt": 1792243247354
   },
   "msgSeen": {
     "ids": [
