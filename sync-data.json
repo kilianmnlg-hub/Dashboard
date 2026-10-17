@@ -70,10 +70,15 @@
           "id": "e660cd63-b989-4521-aafe-6929e98bc49c",
           "text": "Wäsche waschen",
           "done": false
+        },
+        {
+          "id": "ef3c4e4a-5fa0-4cc7-afad-fbeeabe46c6f",
+          "text": "Garten machen",
+          "done": false
         }
       ]
     },
-    "updatedAt": 1792227276849
+    "updatedAt": 1792227282496
   },
   "tasks": {
     "items": [
