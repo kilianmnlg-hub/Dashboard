@@ -528,8 +528,10 @@
     "updatedAt": 1792083916916
   },
   "fold": {
-    "collapsed": [],
-    "updatedAt": 1792142336864,
+    "collapsed": [
+      "training"
+    ],
+    "updatedAt": 1792227359902,
     "lvl": 5
   },
   "xp": {
