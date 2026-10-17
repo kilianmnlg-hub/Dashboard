@@ -76,11 +76,6 @@
         "done": false
       },
       {
-        "id": "fae2172e-2e53-4f28-bcab-6f63404812ac",
-        "text": "18+ JW Skript",
-        "done": false
-      },
-      {
         "id": "af54d144-ffd4-4928-b391-8df1e314f1e0",
         "text": "18+ jw thumbnail",
         "done": false
@@ -91,7 +86,7 @@
         "done": false
       }
     ],
-    "updatedAt": 1792221797861
+    "updatedAt": 1792227261832
   },
   "remoteTasks": {
     "items": [
@@ -620,6 +615,9 @@
         "habit:9473d02d-64a6-4dab-8017-3e4a354c855b@2026-10-16": 6,
         "habit:koffein@2026-10-16": 6,
         "habitweek:koffein@2026-10-12": 15
+      },
+      "2026-10-17": {
+        "task:fae2172e-2e53-4f28-bcab-6f63404812ac": 12
       }
     },
     "archive": {
@@ -627,7 +625,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792165878027
+    "updatedAt": 1792227261324
   },
   "msgSeen": {
     "ids": [
