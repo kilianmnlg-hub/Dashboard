@@ -124,12 +124,6 @@
         "aisle": "misc"
       },
       {
-        "id": "eccee066-d171-4a9a-a538-6aca5daea385",
-        "name": "Magerquark",
-        "qty": "",
-        "aisle": "kuehl"
-      },
-      {
         "id": "e877c568-53f9-477a-aed4-90eb1190932b",
         "name": "Beeren",
         "qty": "",
@@ -142,12 +136,6 @@
         "aisle": "obst"
       },
       {
-        "id": "3b3c47eb-ad3f-4efe-b8f7-f51e449fd98d",
-        "name": "Harzer Käse",
-        "qty": "",
-        "aisle": "kuehl"
-      },
-      {
         "id": "6604477d-a5aa-4df4-bfaf-2ec234747b54",
         "name": "Tiefkühl-Obst",
         "qty": "",
@@ -158,12 +146,6 @@
         "name": "Tiefkühlgemüse",
         "qty": "",
         "aisle": "tk"
-      },
-      {
-        "id": "2f40d68d-cbfe-47d6-9b49-d3be0b3ce7bf",
-        "name": "Skyr",
-        "qty": "",
-        "aisle": "kuehl"
       },
       {
         "id": "6757f721-a33f-4eb3-a35a-db112afc7187",
@@ -189,7 +171,8 @@
         1791568556071
       ],
       "Harzer Käse": [
-        1791442473320
+        1791442473320,
+        1792227428417
       ],
       "Eier": [
         1791442474652
@@ -225,13 +208,15 @@
         1791569398102
       ],
       "Skyr": [
-        1791569400327
+        1791569400327,
+        1792227426976
       ],
       "Frischkäse": [
         1791569401582
       ],
       "Magerquark": [
-        1791569402743
+        1791569402743,
+        1792227426026
       ],
       "Light Käse": [
         1791569403836
@@ -288,7 +273,7 @@
         ]
       }
     ],
-    "updatedAt": 1792048430290
+    "updatedAt": 1792227428417
   },
   "timetracker": {
     "entries": [
@@ -619,7 +604,10 @@
         "task:fae2172e-2e53-4f28-bcab-6f63404812ac": 12,
         "rtask:17048d1c-8b4f-4e5a-b292-01df34b43fc0": 12,
         "rtask:2cfb43c8-7fe8-4650-8fb1-819c2f68c823": 12,
-        "rtask:100d3e46-db84-4a40-bff6-5c74be9f0646": 12
+        "rtask:100d3e46-db84-4a40-bff6-5c74be9f0646": 12,
+        "shop:eccee066-d171-4a9a-a538-6aca5daea385": 2,
+        "shop:2f40d68d-cbfe-47d6-9b49-d3be0b3ce7bf": 2,
+        "shop:3b3c47eb-ad3f-4efe-b8f7-f51e449fd98d": 2
       }
     },
     "archive": {
@@ -627,7 +615,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792227304063
+    "updatedAt": 1792227427775
   },
   "msgSeen": {
     "ids": [
