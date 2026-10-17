@@ -596,7 +596,8 @@
         "shop:24b3d7c1-8029-458d-8666-e2650fc287ef": 2,
         "shop:6ec4fcb2-b1bf-4f16-a4b9-c634c605c9aa": 2,
         "shop:e877c568-53f9-477a-aed4-90eb1190932b": 2,
-        "shop:c7dcccff-e24d-4498-96ca-7a1c78ea14df": 2
+        "shop:c7dcccff-e24d-4498-96ca-7a1c78ea14df": 2,
+        "habit:gym@2026-10-17": 6
       }
     },
     "archive": {
@@ -604,7 +605,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792227453940
+    "updatedAt": 1792240294139
   },
   "msgSeen": {
     "ids": [
