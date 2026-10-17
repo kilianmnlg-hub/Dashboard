@@ -62,6 +62,11 @@
           "id": "0033c4f4-7c85-4e4e-b6b5-e731a641c9bf",
           "text": "18+ jw thumbnail",
           "done": false
+        },
+        {
+          "id": "8d38ee91-edcf-40e5-a7a3-670592d2c3aa",
+          "text": "18+ jw Audio aufnehmen",
+          "done": false
         }
       ],
       "studium": [],
@@ -78,7 +83,7 @@
         }
       ]
     },
-    "updatedAt": 1792227282496
+    "updatedAt": 1792227293744
   },
   "tasks": {
     "items": [
