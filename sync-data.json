@@ -80,10 +80,15 @@
           "id": "ef3c4e4a-5fa0-4cc7-afad-fbeeabe46c6f",
           "text": "Garten machen",
           "done": false
+        },
+        {
+          "id": "3f559c0d-4fa0-42db-80bd-38fbbb5342eb",
+          "text": "gym",
+          "done": false
         }
       ]
     },
-    "updatedAt": 1792227293744
+    "updatedAt": 1792227668142
   },
   "tasks": {
     "items": [
