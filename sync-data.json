@@ -607,7 +607,8 @@
         "rtask:100d3e46-db84-4a40-bff6-5c74be9f0646": 12,
         "shop:eccee066-d171-4a9a-a538-6aca5daea385": 2,
         "shop:2f40d68d-cbfe-47d6-9b49-d3be0b3ce7bf": 2,
-        "shop:3b3c47eb-ad3f-4efe-b8f7-f51e449fd98d": 2
+        "shop:3b3c47eb-ad3f-4efe-b8f7-f51e449fd98d": 2,
+        "shop:6757f721-a33f-4eb3-a35a-db112afc7187": 2
       }
     },
     "archive": {
@@ -615,7 +616,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792227427775
+    "updatedAt": 1792227430264
   },
   "msgSeen": {
     "ids": [
