@@ -70,9 +70,15 @@
         }
       ],
       "studium": [],
-      "privat": []
+      "privat": [
+        {
+          "id": "ea6e5cb6-6c2f-407e-b24d-c46f8b5dec75",
+          "text": "Wäsche aufhängen",
+          "done": false
+        }
+      ]
     },
-    "updatedAt": 1792310897748
+    "updatedAt": 1792310906068
   },
   "tasks": {
     "items": [
