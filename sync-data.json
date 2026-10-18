@@ -615,7 +615,9 @@
         "todo:3f559c0d-4fa0-42db-80bd-38fbbb5342eb": 10
       },
       "2026-10-18": {
-        "task:3cb42585-e320-4e23-968d-c3f97ec1a5b2": 12
+        "task:3cb42585-e320-4e23-968d-c3f97ec1a5b2": 12,
+        "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-18": 6,
+        "habitweek:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-12": 15
       }
     },
     "archive": {
@@ -623,7 +625,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792310873543
+    "updatedAt": 1792310951817
   },
   "msgSeen": {
     "ids": [
