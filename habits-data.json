@@ -329,8 +329,9 @@
       "koffein": true
     },
     "2026-10-17": {
-      "gym": true
+      "gym": true,
+      "5f32178a-636b-448a-9c3e-0fb1708cebc7": true
     }
   },
-  "updatedAt": 1792240294121
+  "updatedAt": 1792310933899
 }
