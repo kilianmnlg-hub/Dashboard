@@ -67,6 +67,11 @@
           "id": "885c1b4a-c942-42ae-91ef-7b4c82128327",
           "text": "18+jw Aufnahmen machen",
           "done": false
+        },
+        {
+          "id": "3d200ac1-12db-4550-9940-382d8627c2c9",
+          "text": "18+ jw thumbnail",
+          "done": false
         }
       ],
       "studium": [],
@@ -78,7 +83,7 @@
         }
       ]
     },
-    "updatedAt": 1792310906068
+    "updatedAt": 1792310921070
   },
   "tasks": {
     "items": [
@@ -91,14 +96,9 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
-      },
-      {
-        "id": "24d4e498-1ad8-48ba-9224-9fdf7da41e2d",
-        "text": "18+ jw thumbnail",
-        "done": false
       }
     ],
-    "updatedAt": 1792310874023
+    "updatedAt": 1792310921070
   },
   "remoteTasks": {
     "items": [
