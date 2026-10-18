@@ -57,11 +57,17 @@
   "todos": {
     "date": "2026-10-18",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "a9892414-c3d1-40f0-a60e-7cc26b3a6f36",
+          "text": "18+ JW Audio cutten",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1792310887348
   },
   "tasks": {
     "items": [
