@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-10-18",
-    "lastSyncedAt": "2026-10-18T10:13:02.880Z",
+    "lastSyncedAt": "2026-10-18T11:54:11.502Z",
     "owner": "Kilian"
   },
   "github": {
@@ -905,12 +905,12 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-18T10:13:01.221Z",
+    "checkedAt": "2026-10-18T11:54:10.052Z",
     "openOrdersCount": 291,
     "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-18T10:13:02.365Z",
+    "checkedAt": "2026-10-18T11:54:10.868Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -1145,10 +1145,10 @@ const DASHBOARD_DATA = {
     "source": "Notion – Zeittracker",
     "range": {
       "from": "2026-07-25",
-      "to": "2026-10-17"
+      "to": "2026-10-18"
     },
     "totalsByCategory": {
-      "YouTube": 14748.66,
+      "YouTube": 14841.81,
       "Bricklink": 4064.18
     },
     "daily": [
@@ -1495,6 +1495,11 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-17",
         "YouTube": 91.17,
+        "Bricklink": 0
+      },
+      {
+        "date": "2026-10-18",
+        "YouTube": 93.15,
         "Bricklink": 0
       }
     ],
@@ -3304,11 +3309,18 @@ const DASHBOARD_DATA = {
         "start": 1792245240000,
         "end": 1792250400000,
         "min": 85.56
+      },
+      {
+        "id": "3fd430d3-4cf3-81f1-a174-db5f17e6a82c",
+        "cat": "youtube",
+        "start": 1792310940000,
+        "end": 1792316520000,
+        "min": 93.15
       }
     ]
   },
   "bricklinkMessages": {
-    "checkedAt": "2026-10-18T10:13:02.334Z",
+    "checkedAt": "2026-10-18T11:54:10.854Z",
     "unanswered": 7,
     "checkedOrders": 150,
     "ordersWithMessages": 41,
