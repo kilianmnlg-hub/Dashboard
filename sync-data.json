@@ -649,7 +649,9 @@
         "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-18": 6
       },
       "2026-10-19": {
-        "task:640f5c4e-8b65-4e8c-aa1a-254bc8ce1d10": 12
+        "task:640f5c4e-8b65-4e8c-aa1a-254bc8ce1d10": 12,
+        "habit:b07e389a-dfc6-4ab9-830c-5daf53425daf@2026-10-19": 6,
+        "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-19": 6
       }
     },
     "archive": {
@@ -657,7 +659,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792397460103
+    "updatedAt": 1792397487176
   },
   "msgSeen": {
     "ids": [
