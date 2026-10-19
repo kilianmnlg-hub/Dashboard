@@ -55,35 +55,13 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-10-18",
+    "date": "2026-10-19",
     "items": {
-      "business": [
-        {
-          "id": "a9892414-c3d1-40f0-a60e-7cc26b3a6f36",
-          "text": "18+ JW Audio cutten",
-          "done": true
-        },
-        {
-          "id": "885c1b4a-c942-42ae-91ef-7b4c82128327",
-          "text": "18+jw Aufnahmen machen",
-          "done": false
-        },
-        {
-          "id": "3d200ac1-12db-4550-9940-382d8627c2c9",
-          "text": "18+ jw thumbnail",
-          "done": false
-        }
-      ],
+      "business": [],
       "studium": [],
-      "privat": [
-        {
-          "id": "ea6e5cb6-6c2f-407e-b24d-c46f8b5dec75",
-          "text": "Wäsche aufhängen",
-          "done": true
-        }
-      ]
+      "privat": []
     },
-    "updatedAt": 1792327035326
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -96,9 +74,19 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
+      },
+      {
+        "id": "640f5c4e-8b65-4e8c-aa1a-254bc8ce1d10",
+        "text": "18+jw Aufnahmen machen",
+        "done": false
+      },
+      {
+        "id": "07e4e8c3-2c0e-4e16-b711-50481279b012",
+        "text": "18+ jw thumbnail",
+        "done": false
       }
     ],
-    "updatedAt": 1792310921070
+    "updatedAt": 1792390047572
   },
   "remoteTasks": {
     "items": [
