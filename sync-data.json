@@ -107,17 +107,12 @@
         "done": false
       },
       {
-        "id": "01813d8b-a8ee-4680-a3b8-d84b11b7bf1a",
-        "text": "Lego JW KI Bilder",
-        "done": false
-      },
-      {
         "id": "5608e33d-339d-4c3f-af24-65ca25658f90",
         "text": "Brainwalkers Video Idee",
         "done": false
       }
     ],
-    "updatedAt": 1792397478545
+    "updatedAt": 1792438443426
   },
   "shopping": {
     "items": [],
@@ -677,7 +672,8 @@
         "habit:b07e389a-dfc6-4ab9-830c-5daf53425daf@2026-10-19": 6,
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-19": 6,
         "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-19": 6,
-        "todo:8d76f181-1403-4263-bf63-40b8485f94ce": 10
+        "todo:8d76f181-1403-4263-bf63-40b8485f94ce": 10,
+        "rtask:01813d8b-a8ee-4680-a3b8-d84b11b7bf1a": 12
       }
     },
     "archive": {
@@ -685,7 +681,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792438436259
+    "updatedAt": 1792438442937
   },
   "msgSeen": {
     "ids": [
