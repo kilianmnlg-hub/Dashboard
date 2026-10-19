@@ -10,7 +10,7 @@
 const DASHBOARD_DATA = {
   "meta": {
     "lastUpdated": "2026-10-19",
-    "lastSyncedAt": "2026-10-19T11:50:00.135Z",
+    "lastSyncedAt": "2026-10-19T14:14:05.710Z",
     "owner": "Kilian"
   },
   "github": {
@@ -351,7 +351,7 @@ const DASHBOARD_DATA = {
       },
       {
         "date": "2026-10-19",
-        "value": 29600
+        "value": 29500
       }
     ],
     "brainwalkersAbos": [
@@ -844,7 +844,7 @@ const DASHBOARD_DATA = {
       "id": "bricks-abos",
       "label": "Bricks On The Floor – Abonnenten",
       "project": "bricksOnTheFloor",
-      "current": 29600,
+      "current": 29500,
       "target": 50000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -905,12 +905,12 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-19T11:49:57.837Z",
+    "checkedAt": "2026-10-19T14:14:02.458Z",
     "openOrdersCount": 291,
     "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-19T11:49:59.466Z",
+    "checkedAt": "2026-10-19T14:14:04.826Z",
     "currency": "EUR",
     "weekly": [
       {
@@ -1031,7 +1031,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "29.600",
+          "value": "29.500",
           "hint": "+397 letzte 28 Tage"
         },
         {
@@ -1094,7 +1094,7 @@ const DASHBOARD_DATA = {
         },
         {
           "label": "Videos",
-          "value": "87"
+          "value": "88"
         },
         {
           "label": "Rhythmus",
@@ -3336,7 +3336,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkMessages": {
-    "checkedAt": "2026-10-19T11:49:59.433Z",
+    "checkedAt": "2026-10-19T14:14:04.777Z",
     "unanswered": 7,
     "checkedOrders": 150,
     "ordersWithMessages": 40,
