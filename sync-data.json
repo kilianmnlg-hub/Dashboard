@@ -57,11 +57,17 @@
   "todos": {
     "date": "2026-10-19",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "8d76f181-1403-4263-bf63-40b8485f94ce",
+          "text": "18+ JW Sets Review cutten min 5min",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1792397426588
   },
   "tasks": {
     "items": [
