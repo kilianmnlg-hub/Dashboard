@@ -2519,7 +2519,9 @@
       refresh: loadCloud,
       sync: syncNow,
       running: () => !!W,
-      open: () => { if (W) ACT.wopen(); }
+      open: () => { if (W) ACT.wopen(); },
+      /* Gesamtdauer aller beendeten Einheiten in Stunden (fuer das Raum-Minigame); eine einzelne Einheit zaehlt hoechstens 3 Stunden */
+      totalHours: () => D.sessions.reduce((sum, x) => sum + (x.a > 0 && x.b > x.a ? Math.min(x.b - x.a, 3 * 3600000) : 0), 0) / 3600000
     };
 
   };

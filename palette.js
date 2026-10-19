@@ -8,7 +8,7 @@
   const SECTIONS = [
     ["kalender", "Kalender", "calendar"], ["todo", "Tages-To-Do", "scroll"], ["aufgaben", "Aufgaben", "sword"], ["remote-tasks", "Remote Tasks", "globe"],
     ["habits", "Habit-Tracker", "flame"], ["ziele", "Ziele", "trophy"], ["business", "Business-KPIs", "chest"], ["zeit", "Zeittracker", "hourglass"],
-    ["einkauf", "Einkaufsliste", "cart"], ["training", "Training", "dumbbell"], ["notizen", "Notizen", "book"]
+    ["einkauf", "Einkaufsliste", "cart"], ["training", "Training", "dumbbell"], ["raum", "Mein Raum", "home"], ["notizen", "Notizen", "book"]
   ];
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   /* klein schreiben und Akzente weg, Zeichen fuer Zeichen (gleiche Laenge wie der Text, damit Treffer genau markiert werden koennen) */

@@ -20,7 +20,7 @@ import sys
 
 FILES = ["sync-data.json", "habits-data.json"]
 # Bereiche, die mit updatedAt 0 nur "noch nie gespeichert" bedeuten (todos bewusst nicht: dort setzt der Tageswechsel 0)
-STAMPED = {"shopping", "timetracker", "inbox", "remoteTasks", "tasks", "fold", "habits", "xp"}
+STAMPED = {"shopping", "timetracker", "inbox", "remoteTasks", "tasks", "fold", "habits", "xp", "room"}
 
 
 def git(*args, check=True):

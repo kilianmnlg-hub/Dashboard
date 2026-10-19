@@ -359,6 +359,8 @@
       startIfIdle(cat) { if (CATS.includes(cat) && !state.active[cat]) toggle(cat); },
       // Fuer die Kennzahl in der Titelzeile: Stunden dieser Woche und Wochen-Soll
       weekSummary() { const c = weekSums(0); return { ist: (c.youtube + c.bricklink) / HOUR, soll: state.targets.youtube + state.targets.bricklink }; },
+      // Gesamte erfasste Zeit (Notion-Verlauf und Dashboard-Eintraege) in Stunden, ohne laufende Timer (fuer das Raum-Minigame)
+      totalHours() { return all().reduce((sum, e) => sum + (e.dur || 0), 0) / 3600000; },
       // Cloud-Stand uebernehmen. Eintraege und Loeschmarken werden immer vereinigt (kein Eintrag geht bei gleichzeitigen
       // Aenderungen auf zwei Geraeten verloren); nur die laufenden Timer entscheidet der neuere Zeitstempel.
       applyRemote(remote) {

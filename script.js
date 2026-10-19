@@ -694,6 +694,22 @@
     else document.addEventListener("cloud-ready", () => afterUploadBoard.start(), { once: true });
   }
 
+  // ---------- Mein Raum (Minigame) ----------
+  // Die Stunden aus Zeittracker (Arbeit) und Training sind das Geld, damit wird ein isometrischer Pixelraum eingerichtet. Zustand in der Cloud (Feld room in
+  // sync-data.json), Code in room.js (Spiel), room-items.js (Katalog) und room-iso.js (Zeichnen). Gezeigt wird er erst, wenn die Cloud geladen ist.
+  const roomBoard = window.createRoom
+    ? window.createRoom({
+        dataStore, scheduleAutoSync, escapeHtml, toast,
+        expand: (id) => { if (foldBoard) foldBoard.expand(id); },
+        getHours: () => ({ work: timeTrackerBoard ? timeTrackerBoard.totalHours() : 0, training: trainingBoard ? trainingBoard.totalHours() : 0 })
+      })
+    : null;
+  let remoteRoomRaw = null;
+  if (roomBoard) {
+    if (document.body.dataset.cloud === "ready") roomBoard.start();
+    else document.addEventListener("cloud-ready", () => roomBoard.start(), { once: true });
+  }
+
   // ---------- Achtung-Banner ganz oben ----------
   // Weitere Hinweise im Stil des Versand-Alarms: ueberfaellige Uploads (Rhythmus aus data.business, Shorts zaehlen
   // nicht). Die Bricklink-Nachrichten kommen darueber (renderMessageAlert). Pro Sitzung wegklickbar (sessionStorage, wie beim Versand-Alarm).
@@ -3045,8 +3061,10 @@
       fold: foldBoard ? foldBoard.payload() : remoteFoldRaw,
       xp: xpBoard ? xpBoard.payload() : remoteXpRaw,
       msgSeen: msgSeenBoard ? msgSeenBoard.payload() : remoteMsgSeenRaw,
-      afterUpload: afterUploadBoard ? afterUploadBoard.payload() : remoteAfterUploadRaw
+      afterUpload: afterUploadBoard ? afterUploadBoard.payload() : remoteAfterUploadRaw,
+      room: roomBoard ? roomBoard.payload() : remoteRoomRaw
     };
+    if (payload.room == null) delete payload.room;
     if (payload.afterUpload == null) delete payload.afterUpload;
     if (payload.msgSeen == null) delete payload.msgSeen;
     if (payload.xp == null) delete payload.xp;
@@ -3201,6 +3219,8 @@
         if (msgSeenBoard) msgSeenBoard.applyRemote(remote.msgSeen);
         remoteAfterUploadRaw = remote.afterUpload ?? null;
         if (afterUploadBoard) afterUploadBoard.applyRemote(remote.afterUpload);
+        remoteRoomRaw = remote.room ?? null;
+        if (roomBoard) roomBoard.applyRemote(remote.room);
         applyRemoteTodos(remote.todos);
       }
       cloudLoaded.syncdata = true;
@@ -3669,7 +3689,7 @@
   // Rein visuell und nur im Arbeitsspeicher: nichts davon wird gespeichert oder synchronisiert.
   (function pixelLook() {
     if (!PX) return;
-    const SECTION_SPRITES = { kalender: "calendar", todo: "scroll", aufgaben: "sword", "remote-tasks": "globe", habits: "flame", training: "dumbbell", ziele: "trophy", business: "chest", zeit: "hourglass", einkauf: "cart", notizen: "book", afterupload: "film" };
+    const SECTION_SPRITES = { kalender: "calendar", todo: "scroll", aufgaben: "sword", "remote-tasks": "globe", habits: "flame", training: "dumbbell", ziele: "trophy", business: "chest", zeit: "hourglass", einkauf: "cart", notizen: "book", afterupload: "film", raum: "home" };
     Object.entries(SECTION_SPRITES).forEach(([id, name]) => {
       const marker = document.querySelector(`#${id} .section-head .section-marker`);
       if (marker) marker.outerHTML = `<span class="sec-sprite">${PX.spr(name, 28)}</span>`;
@@ -3719,6 +3739,7 @@
       },
       training: () => (trainingBoard ? trainingBoard.metric() : ""),
       afterupload: () => (afterUploadBoard ? afterUploadBoard.metric() : ""),
+      raum: () => (roomBoard ? roomBoard.metric() : ""),
       ziele: () => (goalsAvg === null ? "" : `Ø ${Math.round(goalsAvg)} %`),
       business: () => { const m = bizStat("Drive-Thru-Mail offen"); return m ? `${m} MAILS OFFEN` : ""; },
       zeit: () => { const w = timeTrackerBoard && timeTrackerBoard.weekSummary(); return w ? `WOCHE ${fmtH1(w.ist)} / ${fmtH1(w.soll)} H` : ""; },
