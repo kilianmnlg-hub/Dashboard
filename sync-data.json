@@ -110,9 +110,14 @@
         "id": "01813d8b-a8ee-4680-a3b8-d84b11b7bf1a",
         "text": "Lego JW KI Bilder",
         "done": false
+      },
+      {
+        "id": "5608e33d-339d-4c3f-af24-65ca25658f90",
+        "text": "Brainwalkers Video Idee",
+        "done": false
       }
     ],
-    "updatedAt": 1792243266222
+    "updatedAt": 1792397478545
   },
   "shopping": {
     "items": [],
