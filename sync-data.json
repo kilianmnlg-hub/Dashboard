@@ -90,19 +90,9 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
-      },
-      {
-        "id": "640f5c4e-8b65-4e8c-aa1a-254bc8ce1d10",
-        "text": "18+jw Aufnahmen machen",
-        "done": false
-      },
-      {
-        "id": "07e4e8c3-2c0e-4e16-b711-50481279b012",
-        "text": "18+ jw thumbnail",
-        "done": false
       }
     ],
-    "updatedAt": 1792390047572
+    "updatedAt": 1792397464619
   },
   "remoteTasks": {
     "items": [
@@ -652,6 +642,9 @@
         "todo:a9892414-c3d1-40f0-a60e-7cc26b3a6f36": 10,
         "todo:ea6e5cb6-6c2f-407e-b24d-c46f8b5dec75": 10,
         "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-18": 6
+      },
+      "2026-10-19": {
+        "task:640f5c4e-8b65-4e8c-aa1a-254bc8ce1d10": 12
       }
     },
     "archive": {
@@ -659,7 +652,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792349260694
+    "updatedAt": 1792397460103
   },
   "msgSeen": {
     "ids": [
