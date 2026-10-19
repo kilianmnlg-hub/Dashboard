@@ -67,12 +67,17 @@
           "id": "d68b04cd-6231-4da7-8289-dd227d1e720d",
           "text": "jw sets Thumbnail aufnehmen",
           "done": false
+        },
+        {
+          "id": "c844b423-2959-4521-8aa1-bdc17fbf731e",
+          "text": "jw erste thumbnail erstellen",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1792397443632
+    "updatedAt": 1792397452521
   },
   "tasks": {
     "items": [
