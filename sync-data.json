@@ -109,7 +109,14 @@
     "updatedAt": 1792438443426
   },
   "shopping": {
-    "items": [],
+    "items": [
+      {
+        "id": "4a7f2cd8-74e4-4200-b936-f1dceca54f47",
+        "name": "Bananen",
+        "qty": "",
+        "aisle": "obst"
+      }
+    ],
     "history": {
       "Kartoffeln": [
         1791375377977,
@@ -244,7 +251,7 @@
         ]
       }
     ],
-    "updatedAt": 1792479468402
+    "updatedAt": 1792479474108
   },
   "timetracker": {
     "entries": [
