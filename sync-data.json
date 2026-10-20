@@ -84,12 +84,12 @@
         {
           "id": "16b97f71-5dc4-43df-bb52-41a09d84ad92",
           "text": "Gym",
-          "done": false
+          "done": true
         },
         {
           "id": "55b20f31-eca1-49a7-bb0f-951cf89ae33c",
           "text": "Abwasch",
-          "done": false
+          "done": true
         },
         {
           "id": "93a0b603-dfbd-4f02-ad9a-ffb15d46fe43",
@@ -98,7 +98,7 @@
         }
       ]
     },
-    "updatedAt": 1792520672463
+    "updatedAt": 1792520679610
   },
   "tasks": {
     "items": [
@@ -739,7 +739,9 @@
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-20": 6,
         "todo:0b7526ea-62d3-4430-8140-4429e0481df4": 10,
         "todo:e387ada8-cc96-408f-bbbe-20e199902b1d": 10,
-        "todo:82717b6a-acc4-48df-b004-f60ef36f4f27": 10
+        "todo:82717b6a-acc4-48df-b004-f60ef36f4f27": 10,
+        "todo:16b97f71-5dc4-43df-bb52-41a09d84ad92": 10,
+        "todo:55b20f31-eca1-49a7-bb0f-951cf89ae33c": 10
       }
     },
     "archive": {
@@ -747,7 +749,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792520672397
+    "updatedAt": 1792520679560
   },
   "msgSeen": {
     "ids": [
