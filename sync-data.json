@@ -109,7 +109,14 @@
     "updatedAt": 1792438443426
   },
   "shopping": {
-    "items": [],
+    "items": [
+      {
+        "id": "d21f1b87-8ea5-4b88-ac43-84646cdc9f3c",
+        "name": "Kartoffeln",
+        "qty": "",
+        "aisle": "obst"
+      }
+    ],
     "history": {
       "Kartoffeln": [
         1791375377977,
@@ -243,7 +250,7 @@
         ]
       }
     ],
-    "updatedAt": 1792227529490
+    "updatedAt": 1792479464951
   },
   "timetracker": {
     "entries": [
