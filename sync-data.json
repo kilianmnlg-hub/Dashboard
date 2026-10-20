@@ -55,29 +55,13 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-10-19",
+    "date": "2026-10-20",
     "items": {
-      "business": [
-        {
-          "id": "8d76f181-1403-4263-bf63-40b8485f94ce",
-          "text": "18+ JW Sets Review cutten min 5min",
-          "done": true
-        },
-        {
-          "id": "d68b04cd-6231-4da7-8289-dd227d1e720d",
-          "text": "jw sets Thumbnail aufnehmen",
-          "done": false
-        },
-        {
-          "id": "c844b423-2959-4521-8aa1-bdc17fbf731e",
-          "text": "jw erste thumbnail erstellen",
-          "done": false
-        }
-      ],
+      "business": [],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1792438436358
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -90,9 +74,19 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
+      },
+      {
+        "id": "d9d6cea0-d31f-48d9-8f73-f63da07e1e47",
+        "text": "jw sets Thumbnail aufnehmen",
+        "done": false
+      },
+      {
+        "id": "52881b3a-5ffc-47dc-a57a-89f4e19ab046",
+        "text": "jw erste thumbnail erstellen",
+        "done": false
       }
     ],
-    "updatedAt": 1792397464619
+    "updatedAt": 1792479427258
   },
   "remoteTasks": {
     "items": [
