@@ -62,12 +62,17 @@
           "id": "0b7526ea-62d3-4430-8140-4429e0481df4",
           "text": "jw sets Thumbnail aufnehmen",
           "done": false
+        },
+        {
+          "id": "e387ada8-cc96-408f-bbbe-20e199902b1d",
+          "text": "jw erste thumbnail erstellen",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1792479561506
+    "updatedAt": 1792479564072
   },
   "tasks": {
     "items": [
@@ -80,14 +85,9 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
-      },
-      {
-        "id": "52881b3a-5ffc-47dc-a57a-89f4e19ab046",
-        "text": "jw erste thumbnail erstellen",
-        "done": false
       }
     ],
-    "updatedAt": 1792479561506
+    "updatedAt": 1792479564072
   },
   "remoteTasks": {
     "items": [
