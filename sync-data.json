@@ -85,10 +85,15 @@
           "id": "16b97f71-5dc4-43df-bb52-41a09d84ad92",
           "text": "Gym",
           "done": false
+        },
+        {
+          "id": "55b20f31-eca1-49a7-bb0f-951cf89ae33c",
+          "text": "Abwasch",
+          "done": false
         }
       ]
     },
-    "updatedAt": 1792479590792
+    "updatedAt": 1792479595120
   },
   "tasks": {
     "items": [
@@ -695,7 +700,8 @@
         "rtask:01813d8b-a8ee-4680-a3b8-d84b11b7bf1a": 12
       },
       "2026-10-20": {
-        "shop:d21f1b87-8ea5-4b88-ac43-84646cdc9f3c": 2
+        "shop:d21f1b87-8ea5-4b88-ac43-84646cdc9f3c": 2,
+        "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-20": 6
       }
     },
     "archive": {
@@ -703,7 +709,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792479467698
+    "updatedAt": 1792479601342
   },
   "msgSeen": {
     "ids": [
