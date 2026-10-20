@@ -66,12 +66,12 @@
         {
           "id": "e387ada8-cc96-408f-bbbe-20e199902b1d",
           "text": "jw erste thumbnail erstellen",
-          "done": false
+          "done": true
         },
         {
           "id": "82717b6a-acc4-48df-b004-f60ef36f4f27",
           "text": "jw video cutten",
-          "done": false
+          "done": true
         },
         {
           "id": "55d4eee0-a810-4d4b-944b-69b4dd4ccf36",
@@ -98,7 +98,7 @@
         }
       ]
     },
-    "updatedAt": 1792520667985
+    "updatedAt": 1792520672463
   },
   "tasks": {
     "items": [
@@ -737,7 +737,9 @@
       "2026-10-20": {
         "shop:d21f1b87-8ea5-4b88-ac43-84646cdc9f3c": 2,
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-20": 6,
-        "todo:0b7526ea-62d3-4430-8140-4429e0481df4": 10
+        "todo:0b7526ea-62d3-4430-8140-4429e0481df4": 10,
+        "todo:e387ada8-cc96-408f-bbbe-20e199902b1d": 10,
+        "todo:82717b6a-acc4-48df-b004-f60ef36f4f27": 10
       }
     },
     "archive": {
@@ -745,7 +747,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792520667935
+    "updatedAt": 1792520672397
   },
   "msgSeen": {
     "ids": [
