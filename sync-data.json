@@ -94,11 +94,11 @@
         {
           "id": "93a0b603-dfbd-4f02-ad9a-ffb15d46fe43",
           "text": "kochen",
-          "done": false
+          "done": true
         }
       ]
     },
-    "updatedAt": 1792520679610
+    "updatedAt": 1792520680167
   },
   "tasks": {
     "items": [
@@ -741,7 +741,8 @@
         "todo:e387ada8-cc96-408f-bbbe-20e199902b1d": 10,
         "todo:82717b6a-acc4-48df-b004-f60ef36f4f27": 10,
         "todo:16b97f71-5dc4-43df-bb52-41a09d84ad92": 10,
-        "todo:55b20f31-eca1-49a7-bb0f-951cf89ae33c": 10
+        "todo:55b20f31-eca1-49a7-bb0f-951cf89ae33c": 10,
+        "todo:93a0b603-dfbd-4f02-ad9a-ffb15d46fe43": 10
       }
     },
     "archive": {
@@ -749,7 +750,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792520679560
+    "updatedAt": 1792520680126
   },
   "msgSeen": {
     "ids": [
