@@ -744,7 +744,8 @@
         "todo:55b20f31-eca1-49a7-bb0f-951cf89ae33c": 10,
         "todo:93a0b603-dfbd-4f02-ad9a-ffb15d46fe43": 10,
         "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-20": 6,
-        "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-20": 6
+        "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-20": 6,
+        "habit:07b53929-622d-4cdf-baf0-47645c841575@2026-10-20": 6
       }
     },
     "archive": {
@@ -752,7 +753,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792520704907
+    "updatedAt": 1792520711218
   },
   "msgSeen": {
     "ids": [
