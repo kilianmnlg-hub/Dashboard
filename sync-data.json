@@ -72,12 +72,17 @@
           "id": "82717b6a-acc4-48df-b004-f60ef36f4f27",
           "text": "jw video cutten",
           "done": false
+        },
+        {
+          "id": "55d4eee0-a810-4d4b-944b-69b4dd4ccf36",
+          "text": "jw video hochladen",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1792479574207
+    "updatedAt": 1792479579648
   },
   "tasks": {
     "items": [
