@@ -90,10 +90,15 @@
           "id": "55b20f31-eca1-49a7-bb0f-951cf89ae33c",
           "text": "Abwasch",
           "done": false
+        },
+        {
+          "id": "93a0b603-dfbd-4f02-ad9a-ffb15d46fe43",
+          "text": "kochen",
+          "done": false
         }
       ]
     },
-    "updatedAt": 1792479595120
+    "updatedAt": 1792483752512
   },
   "tasks": {
     "items": [
