@@ -67,12 +67,17 @@
           "id": "e387ada8-cc96-408f-bbbe-20e199902b1d",
           "text": "jw erste thumbnail erstellen",
           "done": false
+        },
+        {
+          "id": "82717b6a-acc4-48df-b004-f60ef36f4f27",
+          "text": "jw video cutten",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1792479564072
+    "updatedAt": 1792479574207
   },
   "tasks": {
     "items": [
