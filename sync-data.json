@@ -57,11 +57,17 @@
   "todos": {
     "date": "2026-10-20",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "0b7526ea-62d3-4430-8140-4429e0481df4",
+          "text": "jw sets Thumbnail aufnehmen",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1792479561506
   },
   "tasks": {
     "items": [
@@ -76,17 +82,12 @@
         "done": false
       },
       {
-        "id": "d9d6cea0-d31f-48d9-8f73-f63da07e1e47",
-        "text": "jw sets Thumbnail aufnehmen",
-        "done": false
-      },
-      {
         "id": "52881b3a-5ffc-47dc-a57a-89f4e19ab046",
         "text": "jw erste thumbnail erstellen",
         "done": false
       }
     ],
-    "updatedAt": 1792479427258
+    "updatedAt": 1792479561506
   },
   "remoteTasks": {
     "items": [
