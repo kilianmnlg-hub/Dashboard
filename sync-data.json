@@ -65,9 +65,15 @@
         }
       ],
       "studium": [],
-      "privat": []
+      "privat": [
+        {
+          "id": "b39f20dd-86a8-49af-a88e-8bd47e67b7ab",
+          "text": "Bett beziehen",
+          "done": false
+        }
+      ]
     },
-    "updatedAt": 1792563951366
+    "updatedAt": 1792563959317
   },
   "tasks": {
     "items": [
