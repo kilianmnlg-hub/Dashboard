@@ -1082,7 +1082,7 @@
             "top": "tee",
             "topC": "white",
             "bottom": "jeans",
-            "botC": "navy",
+            "botC": "sand",
             "shoe": "sneak",
             "shoeC": "white",
             "acc": "none",
@@ -1203,6 +1203,6 @@
       }
     },
     "spent": 19,
-    "updatedAt": 1792564386248
+    "updatedAt": 1792564397533
   }
 }
