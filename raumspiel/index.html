@@ -434,8 +434,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     line(x0, y0, z0, x1, y1, z1, r, c) {
       const n = Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), Math.abs(z1 - z0)) * 2) + 1;
       for (let i = 0; i <= n; i++) {
-        const t = i / n;
-        this.sph(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, z0 + (z1 - z0) * t, r, c);
+        const t = i / n, x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t, z = z0 + (z1 - z0) * t;
+        if (r < 0.8) this.put(Math.floor(x), Math.floor(y), Math.floor(z), c);   // duenne Linie: ein Voxel breit
+        else this.sph(x, y, z, r, c);
       }
       return this;
     }
@@ -1205,6 +1206,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     { id: 'lavender', name: 'Lavendel', price: 5, trim: 'cream', paint: plain('lavender', 4), body: c.lavender(2), cap: c.lavender(4) }
   ];
   RS.WALL_BY_ID = {}; RS.WALLS.forEach((w) => (RS.WALL_BY_ID[w.id] = w));
+  // Helfer fuer weitere Stile (src/styles-more.js)
+  RS.shellKit = { lv, jitter, planks, laminate, herringbone, tiles, flatNoise, carpet, plain, stripes, bricks, paneled, diamonds, tilesWall, twoTone, concreteWall, panelWall, stdTrim, LEDGE };
 
   /* ---------- Huelle bauen ----------
    * plan: RS.Plan, cutouts: [{ axis: 'N'|'W', p (Ebene), u0, u1 (entlang), z0, z1 }]
@@ -1282,6 +1285,77 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     return { plan, parts, T, S, TR, bbox: bb };
   };
 })(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* src/styles-more.js */
+/* Raumspiel – weitere Boeden und Wandstile (nach shell.js laden, vor levels.js) */
+(function (g) {
+  'use strict';
+  const RS = g.RS, c = RS.c, hash = RS.hash, S = RS.shellKit;
+  if (!S) return;
+  const { lv } = S;
+  const FL = (id, name, price, top, body, edge) => { const o = { id, name, price, top, body, edge }; RS.FLOORS.push(o); RS.FLOOR_BY_ID[id] = o; };
+  const WL = (id, name, price, trim, paint, body, cap) => { const o = { id, name, price, trim, paint, body, cap }; RS.WALLS.push(o); RS.WALL_BY_ID[id] = o; };
+
+  /* ---------- Boeden ---------- */
+  const cobble = (x, y) => { const cx = x >> 3, cy = (y + ((x >> 3) & 1) * 4) >> 3, h = hash(cx, cy, 5), lx = x & 7, ly = (y + ((x >> 3) & 1) * 4) & 7; if (lx === 0 || ly === 0) return c.stone(1); const d = Math.hypot(lx - 3.5, ly - 3.5); return c.stone(lv(3 + (h < 0.3 ? -1 : h > 0.7 ? 1 : 0) + (d < 1.6 ? 1 : 0), d > 4.2 ? -1 : 0)); };
+  const subway = (r, grout) => (x, y) => { const row = y >> 3, off = (row & 1) * 8, lx = (x + off) % 16, ly = y & 7; if (ly === 0 || lx === 0) return c[grout](2); return c[r](lv(4 + (ly === 1 || lx === 1 ? 1 : 0), 0)); };
+  FL('herring_dark', 'Fischgrät dunkel', 14, S.herringbone('walnut'), c.ink(3), c.walnut(1));
+  FL('herring_light', 'Fischgrät hell', 13, S.herringbone('birch'), c.oak(1), c.oak(2));
+  FL('wide_oak', 'Breite Eichendielen', 10, S.planks('oak', { bw: 11, bl: 72 }), c.walnut(1), c.walnut(2));
+  FL('wood_white', 'Dielen weiß gekälkt', 8, S.planks('white', { bw: 7, bl: 50 }), c.stone(1), c.stone(2));
+  FL('wood_grey', 'Dielen grau', 8, S.planks('stone', { bw: 7, bl: 48 }), c.slate(2), c.slate(3));
+  FL('wood_red', 'Mahagoni', 11, S.planks('cherry', { bw: 6, bl: 44 }), c.ink(3), c.cherry(1));
+  FL('tile_white', 'Weiße Fliesen', 8, S.tiles('white', 'white', 12, 'stone'), c.stone(1), c.stone(2));
+  FL('tile_bw', 'Schwarz-Weiß-Fliesen', 10, S.tiles('white', 'graphite', 8, 'stone'), c.stone(1), c.stone(2));
+  FL('checker_pink', 'Rosa Schachbrett', 9, S.tiles('cream', 'rose', 16), c.rose(1), c.rose(2));
+  FL('tile_subway', 'Metrofliesen', 9, subway('white', 'stone'), c.stone(1), c.stone(2));
+  FL('brick_floor', 'Ziegelboden', 12, S.herringbone('brick'), c.brick(1), c.brick(2));
+  FL('slabs', 'Steinplatten', 10, S.tiles('stone', 'stone', 24, 'slate'), c.stone(1), c.stone(2));
+  FL('marble', 'Marmor', 16, S.tiles('white', 'stone', 28, 'stone'), c.stone(1), c.stone(2));
+  FL('cobble', 'Kopfsteinpflaster', 9, cobble, c.stone(1), c.stone(2));
+  FL('sand', 'Sand', 4, S.flatNoise('sand', 3, 1), c.sand(1), c.sand(2));
+  FL('gravel', 'Kies', 4, S.flatNoise('stone', 3, 2), c.stone(1), c.stone(2));
+  FL('carpet_red', 'Teppichboden Rot', 6, S.carpet('cherry'), c.cherry(2), c.cherry(3));
+  FL('carpet_green', 'Teppichboden Grün', 6, S.carpet('forest'), c.forest(2), c.forest(3));
+  FL('carpet_pink', 'Teppichboden Rosa', 6, S.carpet('rose'), c.rose(2), c.rose(3));
+  FL('carpet_beige', 'Teppichboden Beige', 5, S.carpet('sand'), c.sand(2), c.sand(3));
+
+  /* ---------- Waende ---------- */
+  const floral = (bg, f1, f2) => (u, z) => {
+    const cx = u % 16, cz = z % 16, d1 = Math.hypot(cx - 4, cz - 4), d2 = Math.hypot(cx - 12, cz - 11);
+    if (d1 < 1.2) return c.yellow(5); if (d1 < 3 && (Math.abs(cx - 4) < 1 || Math.abs(cz - 4) < 1 || d1 < 2.2)) return c[f1](4);
+    if (d2 < 1) return c.yellow(5); if (d2 < 2.6 && ((cx + cz) & 1 || d2 < 1.8)) return c[f2](4);
+    if ((cx === 8 && cz === 7) || (cx === 9 && cz === 8) || (cx === 1 && cz === 10) || (cx === 2 && cz === 11) || (cx === 14 && cz === 3)) return c.green(3);
+    return c[bg](4);
+  };
+  const dots = (bg, dot) => (u, z) => ((u % 8 === 3 || u % 8 === 4) && (z % 8 === 3 || z % 8 === 4) ? c[dot](5) : c[bg](3));
+  const stars = (u, z) => (hash(u, z, 9) > 0.965 ? c.white(7) : hash(u >> 1, z >> 1, 4) > 0.985 ? c.yellow(6) : c.navy(1 + (z > 52 ? 1 : 0)));
+  const shiplap = (u, z) => ((z % 7 === 0) ? c.stone(3) : (z % 7 === 1 ? c.white(5) : c.white(4)));
+  WL('floral', 'Blumentapete', 8, 'cream', floral('cream', 'pink', 'rose'), c.cream(2), c.cream(4));
+  WL('floral_blue', 'Blumentapete Blau', 8, 'cream', floral('sky', 'white', 'cream'), c.sky(2), c.sky(4));
+  WL('brick_white', 'Weißer Backstein', 8, 'white', S.bricks('white', 'stone'), c.white(2), c.white(4));
+  WL('stone_wall', 'Natursteinmauer', 9, 'iron', S.bricks('stone', 'slate'), c.stone(2), c.stone(4));
+  WL('wain_green', 'Zweifarbig Grün', 7, 'cream', S.twoTone('forest', 'cream', 'cream', 30), c.cream(2), c.cream(4));
+  WL('wain_blue', 'Zweifarbig Blau', 7, 'cream', S.twoTone('navy', 'cream', 'cream', 30), c.cream(2), c.cream(4));
+  WL('wain_pink', 'Zweifarbig Rosa', 7, 'cream', S.twoTone('rose', 'cream', 'cream', 30), c.cream(2), c.cream(4));
+  WL('wain_teal', 'Zweifarbig Petrol', 7, 'cream', S.twoTone('teal', 'cream', 'cream', 30), c.cream(2), c.cream(4));
+  WL('stripes_blue', 'Streifen Blau', 6, 'white', S.stripes('sky', 'cream', 6), c.sky(2), c.sky(4));
+  WL('stripes_pink', 'Streifen Rosa', 6, 'white', S.stripes('pink', 'cream', 6), c.pink(2), c.pink(4));
+  WL('stripes_yellow', 'Streifen Gelb', 6, 'white', S.stripes('yellow', 'cream', 6), c.yellow(2), c.yellow(4));
+  WL('dots_navy', 'Punkte auf Nachtblau', 7, 'slate', dots('navy', 'cream'), c.navy(2), c.navy(4));
+  WL('dots_mint', 'Punkte auf Mint', 7, 'cream', dots('mint', 'white'), c.mint(2), c.mint(4));
+  WL('stars', 'Sternenhimmel', 8, 'iron', stars, c.navy(2), c.navy(4));
+  WL('wood_dark', 'Dunkle Holzpaneele', 9, 'iron', S.paneled('walnut', 8), c.walnut(2), c.walnut(4));
+  WL('shiplap', 'Weiße Holzbretter', 6, 'white', shiplap, c.white(2), c.white(4));
+  [['sand', 'Putz Sand', 4, 'sand', 4, 'cream'], ['mustard', 'Senfgelb', 5, 'amber', 3, 'cream'], ['sky', 'Himmelblau', 5, 'sky', 4, 'white'], ['mint', 'Mintgrün', 5, 'mint', 4, 'cream'], ['grey', 'Grau', 4, 'stone', 3, 'white'],
+    ['black', 'Schwarz', 6, 'graphite', 3, 'iron'], ['peach', 'Pfirsich', 5, 'peach', 4, 'cream'], ['terra', 'Terrakotta', 6, 'terracotta', 3, 'cream'], ['bordeaux', 'Bordeaux', 6, 'cherry', 3, 'gold'], ['olive', 'Olivgrün', 6, 'moss', 3, 'cream']]
+    .forEach(([id, name, price, ramp, l, trim]) => WL('p_' + id, name, price, trim, S.plain(ramp, l), c[ramp](2), c[ramp](4)));
+  WL('tile_blue', 'Blaue Fliesen', 8, 'steel', S.tilesWall('sky', 'white'), c.sky(2), c.sky(4));
+  WL('tile_green', 'Grüne Fliesen', 8, 'steel', S.tilesWall('mint', 'white'), c.mint(2), c.mint(4));
+  WL('tile_black', 'Schwarze Fliesen', 8, 'steel', S.tilesWall('graphite', 'iron'), c.graphite(2), c.graphite(4));
+})(window);
 
 </script>
 <script>
@@ -2796,6 +2870,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     v.box(2, 0, 2, w - 2, 2, h - 2, (x, y, z) => { const u = x - 2, vv = ih - 1 - (z - 2); if (u < m || vv < m || u >= iw - m || vv >= ih - m) return c.paper(4); return fn(u - m, vv - m, iw - 2 * m, ih - 2 * m) || c.paper(4); });
     return v;
   }
+  K.framed = framed;
   const stencilDraw = (rows, pal) => (u, v) => { const r = rows[v]; return r && r[u] && pal[r[u]] ? pal[r[u]] : null; };
 
   /* ---------- Poster aus Kilians Zimmer ---------- */
@@ -3372,6 +3447,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     v.box(w - 6, 6, (h >> 1) - 2, w - 4, 8, (h >> 1) + 2, c.s0(2));
     return v;
   }
+  K.windowModel = windowModel;
   const winVars = [L('Weiß', 'white'), L('Braun', 'walnut'), L('Schwarz', 'graphite'), L('Eiche', 'oak')];
   def({
     id: 'window_basement', name: 'Kellerfenster', cat: 'wand', place: 'wall', price: 6, mine: 1, inset: 8, desc: 'Kleines Fenster mit weißem Rahmen, Blick in den Garten.',
@@ -3444,6 +3520,1486 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       v.box(0, 0, 0, 26, 16, 1, (x, y) => ((x < 2 || y < 2 || x >= 24 || y >= 14) ? c.s1(3) : hash(x >> 1, y >> 1, 4) < 0.2 ? c.s0(2) : c.s0(3)));
       return v;
     }
+  });
+})(window);
+
+</script>
+<script>
+/* src/items/more-seating.js */
+/* Raumspiel – mehr Sitzmoebel, Betten und Schlafzimmer-Moebel (Referenzbilder 19.10./21.10.: Sofas, Doppelbett, Himmelbett, Hochbett, Kommoden ...) */
+(function (g) {
+  const RS = g.RS, c = RS.c, K = RS.kit, V = RS.V, hash = RS.hash;
+  const def = RS.defItem;
+  const L = (n, ...m) => ({ n, m });
+  const sofaV = [L('Senf', 'amber', 'cream'), L('Rot', 'red', 'cream'), L('Blau', 'blue', 'cream'), L('Grün', 'green', 'cream'), L('Grau', 'greyfab', 'cream'), L('Rosa', 'rose', 'cream')];
+  const woodV = (...extra) => [L('Eiche', 'oak'), L('Weiß', 'white'), L('Nussholz', 'walnut'), L('Schwarz', 'graphite')].concat(extra);
+
+  /* ---------- Sofas ---------- */
+  function sofaModel(W, o) {
+    o = o || {};
+    const D = o.d || 30, H = 28, A = o.arm == null ? 7 : o.arm, leg = 3, v = V(W, o.D2 || D, H);
+    const F = o.F || K.fab(0, 3, 0.05), G2 = o.G || K.fab(0, 3, 0.035);
+    K.legs(v, [[2, 2], [W - 4, 2], [2, D - 4], [W - 4, D - 4]], 2, leg, o.lg || c.graphite(3));
+    v.rbox(0, 0, leg, W, D, 10, 1, G2);
+    v.rbox(0, 0, 10, W, 9, H, 1, F);
+    v.rbox(0, 0, 10, A, D, 22, 1, F); v.rbox(W - A, 0, 10, W, D, 22, 1, F);
+    const n = Math.max(1, Math.round((W - 2 * A) / 18)), cw = (W - 2 * A) / n;
+    for (let i = 0; i < n; i++) {
+      const x0 = Math.round(A + i * cw), x1 = Math.round(A + (i + 1) * cw);
+      v.rbox(x0, 9, 10, x1, D, 16, 1, G2); v.rbox(x0 + 1, 9, 16, x1 - 1, 15, 26, 1, G2);
+      if (i) { v.box(x0 - 1, 9, 10, x0 + 1, D, 16, c.s0(1)); v.box(x0 - 1, 9, 16, x0 + 1, 15, 26, c.s0(1)); }
+    }
+    v.box(A, 8, 16, W - A, 9, 17, c.s0(2));
+    return v;
+  }
+  const pillow = (v, x, y, z, w) => v.rbox(x, y, z, x + (w || 8), y + 5, z + 8, 2, (xx, yy, zz) => (((xx + zz) >> 1) % 2 ? c.s1(4) : c.s1(3)));
+  def({
+    id: 'sofa_modern', name: 'Sofa 2-Sitzer', cat: 'sitzen', price: 12, desc: 'Gemütliches Sofa mit zwei Kissen.', variants: sofaV,
+    build() { const v = sofaModel(56); pillow(v, 9, 13, 16); pillow(v, 40, 13, 16); return v; }
+  });
+  def({
+    id: 'sofa_3', name: 'Sofa 3-Sitzer', cat: 'sitzen', price: 18, desc: 'Viel Platz für den Filmabend.', variants: sofaV,
+    build() { const v = sofaModel(78); pillow(v, 9, 13, 16); pillow(v, 61, 13, 16); pillow(v, 35, 13, 16, 7); return v; }
+  });
+  def({
+    id: 'sofa_l', name: 'Ecksofa', cat: 'sitzen', price: 28, desc: 'Mit Liegefläche (Récamière) zum Ausstrecken.', variants: sofaV,
+    build() {
+      const v = sofaModel(74, { D2: 30 }), F = K.fab(0, 3, 0.05), G2 = K.fab(0, 3, 0.035);
+      const v2 = V(74, 60, 28); v2.blit(v, 0, 0, 0);
+      v2.rbox(48, 30, 3, 74, 60, 10, 1, G2); v2.rbox(48, 30, 10, 74, 59, 16, 1, G2); v2.rbox(67, 30, 10, 74, 60, 22, 1, F);
+      K.legs(v2, [[50, 56], [68, 56]], 2, 3, c.graphite(3)); v2.box(48, 30, 15, 66, 31, 16, c.s0(2));
+      pillow(v2, 10, 13, 16); pillow(v2, 52, 33, 16, 10);
+      return v2;
+    }
+  });
+  const plaid = (x, y, z) => { const a = x % 8 < 2, b = (z + y) % 8 < 2; return a && b ? c.s0(2) : a || b ? c.s0(4) : c.s0(3); };
+  def({
+    id: 'sofa_plaid', name: 'Karo-Sofa Landhaus', cat: 'sitzen', price: 15, desc: 'Holzgestell und Karostoff wie im Landhaus.',
+    variants: [L('Beige-Karo', 'sand', 'oak'), L('Grün-Karo', 'moss', 'walnut'), L('Rot-Karo', 'terracotta', 'oak'), L('Blau-Karo', 'slate', 'walnut')],
+    build() {
+      const v = V(52, 28, 30), W = K.grain('s1', 3, 4);
+      K.legs(v, [[2, 2], [46, 2], [2, 24], [46, 24]], 4, 5, W);
+      v.box(0, 0, 5, 52, 28, 9, W);
+      v.rbox(4, 4, 9, 48, 28, 15, 1, plaid); v.rbox(4, 0, 15, 48, 9, 28, 1, plaid);
+      v.rbox(0, 0, 9, 6, 28, 22, 1, plaid); v.rbox(46, 0, 9, 52, 28, 22, 1, plaid);
+      v.box(0, 0, 22, 6, 28, 24, W); v.box(46, 0, 22, 52, 28, 24, W);
+      v.box(25, 9, 15, 27, 28, 16, c.s0(1));
+      return v;
+    }
+  });
+  def({
+    id: 'chesterfield', name: 'Chesterfield-Sofa', cat: 'sitzen', price: 26, desc: 'Leder mit Knopfheftung und gerollten Armlehnen.',
+    variants: [L('Cognac', 'leather'), L('Bordeaux', 'cherry'), L('Tannengrün', 'forest'), L('Schwarz', 'graphite')],
+    build() {
+      const v = V(70, 30, 30), F = K.fab(0, 3, 0.04);
+      K.legs(v, [[2, 2], [64, 2], [2, 24], [64, 24]], 4, 4, c.walnut(2));
+      v.rbox(0, 0, 4, 70, 30, 12, 2, F); v.rbox(0, 0, 12, 70, 8, 28, 2, F);
+      v.rbox(0, 0, 12, 8, 30, 26, 3, F); v.rbox(62, 0, 12, 70, 30, 26, 3, F);
+      v.rbox(8, 8, 12, 35, 30, 18, 2, K.fab(0, 4, 0.04)); v.rbox(35, 8, 12, 62, 30, 18, 2, K.fab(0, 4, 0.04));
+      for (let z = 15; z < 27; z += 4) for (let x = 12; x < 60; x += 6) v.put(x + ((z >> 2) & 1) * 3, 8, z, c.s0(1));
+      v.box(35, 8, 12, 36, 30, 18, c.s0(1));
+      return v;
+    }
+  });
+  def({
+    id: 'armchair_wing', name: 'Ohrensessel', cat: 'sitzen', price: 12, desc: 'Hohe Rückenlehne mit Flügeln.',
+    variants: [L('Petrol', 'teal', 'walnut'), L('Senf', 'amber', 'walnut'), L('Rosé', 'rose', 'walnut'), L('Grau', 'greyfab', 'oak')],
+    build() {
+      const v = V(30, 30, 44), F = K.fab(0, 3, 0.04);
+      K.legs(v, [[2, 2], [26, 2], [2, 26], [26, 26]], 3, 5, c.s1(3));
+      v.rbox(0, 0, 5, 30, 30, 13, 1, F); v.rbox(2, 0, 13, 28, 8, 44, 3, F);
+      v.rbox(0, 2, 13, 7, 22, 34, 3, F); v.rbox(23, 2, 13, 30, 22, 34, 3, F);
+      v.rbox(7, 8, 13, 23, 30, 19, 2, K.fab(0, 4, 0.04)); v.box(7, 8, 19, 23, 9, 20, c.s0(2));
+      return v;
+    }
+  });
+
+  /* ---------- Stuehle und Hocker ---------- */
+  def({
+    id: 'chair_dining', name: 'Esszimmerstuhl Holz', cat: 'sitzen', price: 3, desc: 'Stuhl mit Sprossenlehne.', variants: woodV(),
+    build() {
+      const v = V(14, 14, 34), W = K.grain('s0', 3, 5);
+      K.legs(v, [[0, 0], [12, 0], [0, 12], [12, 12]], 2, 16, W);
+      v.box(0, 0, 16, 14, 14, 18, W); v.box(1, 1, 17, 13, 13, 18, c.s0(4));
+      v.box(0, 0, 18, 2, 2, 34, W); v.box(12, 0, 18, 14, 2, 34, W);
+      [22, 26, 30].forEach((z) => v.box(2, 0, z, 12, 2, z + 2, c.s0(3)));
+      return v;
+    }
+  });
+  def({
+    id: 'chair_gaming', name: 'Gaming-Stuhl', cat: 'sitzen', price: 9, desc: 'Rennsport-Optik mit Kopfkissen.',
+    variants: [L('Rot', 'red', 'graphite'), L('Blau', 'blue', 'graphite'), L('Grün', 'green', 'graphite'), L('Pink', 'pink', 'graphite')],
+    build() {
+      const v = V(24, 24, 54);
+      for (let i = 0; i < 5; i++) { const a = i * Math.PI * 0.4 + 0.3; v.line(12, 12, 4, 12 + Math.cos(a) * 10, 12 + Math.sin(a) * 10, 2, 0.9, c.s1(3)); v.sph(12 + Math.cos(a) * 10, 12 + Math.sin(a) * 10, 1.2, 1.4, c.iron(2)); }
+      v.cyl(12, 12, 1.3, 3, 18, c.steel(3));
+      v.rbox(3, 3, 17, 21, 21, 23, 2, c.s1(3)); v.rbox(2, 3, 20, 6, 21, 27, 1, c.s0(3)); v.rbox(18, 3, 20, 22, 21, 27, 1, c.s0(3));
+      v.rbox(4, 17, 22, 20, 22, 48, 2, c.s1(3)); v.box(7, 21, 24, 17, 22, 46, c.s0(3)); v.box(11, 21, 24, 13, 22, 46, c.s0(4));
+      v.rbox(7, 16, 46, 17, 22, 54, 2, c.s0(3));
+      v.box(0, 5, 22, 3, 15, 24, c.s1(3)); v.box(21, 5, 22, 24, 15, 24, c.s1(3));
+      return v;
+    }
+  });
+  def({
+    id: 'stool_bar', name: 'Barhocker', cat: 'sitzen', price: 3.5, desc: 'Für Tresen und Kücheninsel.',
+    variants: [L('Schwarz', 'graphite', 'oak'), L('Weiß', 'white', 'oak'), L('Rot', 'red', 'steel'), L('Naturholz', 'oak', 'graphite')],
+    build() {
+      const v = V(14, 14, 36);
+      K.legs(v, [[1, 1], [11, 1], [1, 11], [11, 11]], 2, 30, c.s0(3)); v.box(1, 1, 12, 13, 3, 13, c.s0(2)); v.box(1, 11, 12, 13, 13, 13, c.s0(2)); v.box(1, 1, 12, 3, 13, 13, c.s0(2)); v.box(11, 1, 12, 13, 13, 13, c.s0(2));
+      v.cyl(7, 7, 7, 30, 34, c.s1(3)); v.cyl(7, 7, 7.4, 33, 34, c.s1(4)); v.cyl(7, 7, 7, 30, 31, c.s1(2));
+      return v;
+    }
+  });
+  def({
+    id: 'pouf', name: 'Pouf', cat: 'sitzen', price: 2, desc: 'Sitzen, Füße hoch oder Beistelltisch.',
+    variants: [L('Cremeweiß', 'cream'), L('Senf', 'amber'), L('Petrol', 'teal'), L('Rosa', 'rose'), L('Grau', 'greyfab')],
+    build() { const v = V(20, 20, 15); v.cyl(10, 10, 9.4, 0, 14, K.fab(0, 3, 0.06)); v.cyl(10, 10, 9.8, 5, 8, c.s0(4)); v.cyl(10, 10, 8.4, 14, 15, c.s0(4)); for (let a = 0; a < 6; a++) v.put(10 + Math.cos(a) * 6, 10 + Math.sin(a) * 6, 14, c.s0(2)); return v; }
+  });
+  def({
+    id: 'hammock_chair', name: 'Hängesessel mit Gestell', cat: 'sitzen', price: 11, desc: 'Schaukelnd lesen.',
+    variants: [L('Creme', 'cream', 'graphite'), L('Rosa', 'rose', 'graphite'), L('Senf', 'amber', 'graphite'), L('Grau', 'greyfab', 'oak')],
+    build() {
+      const v = V(34, 34, 64);
+      v.cyl(17, 17, 12, 0, 2, c.s1(3)); v.line(17, 17, 2, 7, 9, 52, 1, c.s1(3)); v.line(17, 17, 2, 27, 9, 52, 1, c.s1(3));
+      v.line(7, 9, 52, 17, 14, 62, 1, c.s1(3)); v.line(27, 9, 52, 17, 14, 62, 1, c.s1(3));
+      v.line(17, 14, 62, 11, 18, 28, 0.4, c.stone(5)); v.line(17, 14, 62, 23, 18, 28, 0.4, c.stone(5));
+      v.ell(17, 18, 22, 9, 8, 7, K.fab(0, 3, 0.05)); v.ell(17, 18, 18, 8, 7, 3, c.s0(4)); v.ell(17, 24, 30, 8, 4, 8, c.s0(3));
+      v.ell(17, 18, 21, 5, 5, 1.4, c.s0(5));
+      return v;
+    }
+  });
+  def({
+    id: 'rocking_chair', name: 'Schaukelstuhl', cat: 'sitzen', price: 8, desc: 'Holz mit Kufen, schaukelt von allein beim Lesen.',
+    variants: [L('Eiche', 'oak', 'cream'), L('Nussholz', 'walnut', 'sand'), L('Weiß', 'white', 'cream')],
+    build() {
+      const v = V(24, 30, 42), W = K.grain('s0', 3, 6);
+      for (const x of [2, 20]) { v.line(x, 4, 2, x, 26, 3, 1, W); v.line(x, 4, 2, x, 1, 8, 1, W); v.line(x, 26, 3, x, 29, 9, 1, W); v.line(x, 8, 4, x, 10, 16, 1, W); v.line(x, 22, 4, x, 22, 18, 1, W); v.box(x - 1, 8, 16, x + 1, 24, 18, W); v.line(x, 8, 17, x, 5, 40, 1, W); }
+      v.box(2, 8, 17, 22, 24, 19, c.s1(3)); v.rbox(3, 6, 22, 21, 9, 38, 1, c.s1(3)); v.box(2, 7, 19, 22, 10, 21, W);
+      return v;
+    }
+  });
+  def({
+    id: 'bench_wood', name: 'Holzbank', cat: 'sitzen', price: 5, desc: 'Schlichte Bank für Flur und Garten.', variants: woodV(),
+    build() { const v = V(44, 14, 22), W = K.grain('s0', 3, 5); K.legs(v, [[2, 1], [38, 1], [2, 11], [38, 11]], 4, 14, W); v.box(0, 0, 14, 44, 14, 17, W); v.box(0, 0, 14, 44, 1, 17, c.s0(2)); v.box(0, 13, 14, 44, 14, 17, c.s0(4)); v.box(2, 2, 17, 42, 3, 22, W); return v; }
+  });
+  def({
+    id: 'bench_cushion', name: 'Sitzbank gepolstert', cat: 'sitzen', price: 5, desc: 'Passt ans Fußende vom Bett.',
+    variants: [L('Creme', 'cream', 'walnut'), L('Rosa', 'rose', 'white'), L('Grau', 'greyfab', 'oak'), L('Blau', 'slate', 'graphite')],
+    build() { const v = V(56, 16, 18); K.legs(v, [[2, 1], [52, 1], [2, 13], [52, 13]], 2, 8, c.s1(3)); v.box(0, 0, 8, 56, 16, 10, c.s1(3)); v.rbox(0, 0, 10, 56, 16, 17, 2, K.fab(0, 3, 0.05)); for (let x = 14; x < 56; x += 14) v.box(x, 0, 12, x + 1, 16, 17, c.s0(2)); return v; }
+  });
+
+  /* ---------- Betten ---------- */
+  function bedding(v, x0, y0, x1, y1, z, o) {
+    o = o || {};
+    v.rbox(x0, y0, z, x1, y1, z + 6, 2, c.white(4));                                   // Matratze
+    v.rbox(x0 + 1, y0 + (o.fold || 22), z + 2, x1 - 1, y1, z + 9, 2, (x, y, zz) => (hash(x >> 1, y >> 1, 4) < 0.08 ? c.s1(2) : c.s1(3)));   // Decke
+    v.box(x0 + 1, y0 + (o.fold || 22), z + 8, x1 - 1, y0 + (o.fold || 22) + 5, z + 10, c.s1(4));              // Umschlag
+    const pw = (x1 - x0 - 4) >> 1;
+    v.rbox(x0 + 1, y0 + 2, z + 4, x0 + 1 + pw, y0 + 15, z + 12, 3, c.s2(4)); v.rbox(x1 - 1 - pw, y0 + 2, z + 4, x1 - 1, y0 + 15, z + 12, 3, c.s2(5));
+  }
+  const bedV = [L('Eiche · Weiß', 'oak', 'white', 'cream'), L('Nuss · Grau', 'walnut', 'greyfab', 'white'), L('Weiß · Rosa', 'white', 'rose', 'cream'), L('Schwarz · Blau', 'graphite', 'blue', 'white'), L('Eiche · Salbei', 'oak', 'moss', 'cream'), L('Weiß · Senf', 'white', 'amber', 'cream')];
+  def({
+    id: 'bed_double', name: 'Doppelbett', cat: 'schlafen', price: 18, desc: 'Kopfteil, Matratze, Decke und Kissen.', variants: bedV,
+    build() {
+      const v = V(56, 72, 38), W = K.grain('s0', 3, 7);
+      K.legs(v, [[1, 1], [53, 1], [1, 69], [53, 69]], 2, 5, c.s0(2));
+      v.box(0, 0, 5, 56, 72, 12, W); v.box(0, 70, 5, 56, 72, 14, c.s0(4)); v.box(0, 0, 12, 56, 4, 38, W);
+      v.rbox(3, 4, 16, 53, 6, 34, 1, c.s1(2)); for (let x = 12; x < 52; x += 12) v.box(x, 4, 16, x + 1, 6, 34, c.s0(2));
+      bedding(v, 1, 4, 55, 71, 12, { fold: 24 });
+      return v;
+    }
+  });
+  def({
+    id: 'bed_single', name: 'Einzelbett', cat: 'schlafen', price: 11, desc: 'Schmal, aber gemütlich.', variants: bedV,
+    build() {
+      const v = V(36, 72, 34), W = K.grain('s0', 3, 8);
+      K.legs(v, [[1, 1], [33, 1], [1, 69], [33, 69]], 2, 4, c.s0(2));
+      v.box(0, 0, 4, 36, 72, 10, W); v.box(0, 0, 10, 36, 4, 34, W); v.box(0, 70, 4, 36, 72, 12, c.s0(4));
+      bedding(v, 1, 4, 35, 71, 10, { fold: 26 });
+      return v;
+    }
+  });
+  def({
+    id: 'bed_bunk', name: 'Etagenbett', cat: 'schlafen', price: 24, desc: 'Zwei Betten übereinander, mit Leiter.', variants: bedV,
+    build() {
+      const v = V(40, 74, 90), W = K.grain('s0', 3, 9);
+      [[1, 1], [37, 1], [1, 71], [37, 71]].forEach(([x, y]) => v.box(x, y, 0, x + 2, y + 2, 88, W));
+      [[4, 14], [50, 56]].forEach(([z0, z1], i) => { const z = i ? 52 : 6; v.box(0, 0, z, 40, 74, z + 3, W); bedding(v, 2, 3, 38, 72, z + 3, { fold: 28 }); v.box(0, 0, z + 3, 40, 2, z + 14, W); v.box(0, 72, z + 3, 40, 74, z + 9, c.s0(4)); });
+      v.box(0, 0, 52 + 3, 2, 74, 52 + 12, c.s0(2)); v.box(38, 0, 55, 40, 74, 64, c.s0(2));
+      for (let z = 12; z < 52; z += 6) v.box(34, 62, z, 38, 64, z + 2, W);
+      v.box(34, 60, 6, 36, 62, 54, W); v.box(38, 60, 6, 40, 62, 54, W);
+      return v;
+    }
+  });
+  def({
+    id: 'bed_loft', name: 'Hochbett mit Schreibtisch', cat: 'schlafen', price: 28, desc: 'Schlafen oben, Arbeiten unten.',
+    variants: [L('Eiche · Weiß', 'oak', 'white', 'cream', 'amber'), L('Weiß · Blau', 'white', 'slate', 'cream', 'oak'), L('Nuss · Grau', 'walnut', 'greyfab', 'white', 'oak')],
+    build() {
+      const v = V(48, 76, 92), W = K.grain('s0', 3, 10), T = K.grain('s3', 4, 4);
+      [[1, 1], [45, 1], [1, 73], [45, 73]].forEach(([x, y]) => v.box(x, y, 0, x + 3, y + 3, 90, W));
+      v.box(0, 0, 62, 48, 76, 65, W); bedding(v, 2, 3, 46, 74, 65, { fold: 30 }); v.box(0, 0, 65, 48, 2, 76, W); v.box(0, 74, 65, 48, 76, 72, c.s0(4)); v.box(0, 0, 65, 2, 76, 74, c.s0(2)); v.box(46, 0, 65, 48, 76, 74, c.s0(2));
+      for (let z = 8; z < 62; z += 7) v.box(40, 66, z, 46, 68, z + 2, W);
+      v.box(5, 6, 26, 41, 30, 29, T); v.box(5, 6, 0, 8, 9, 26, c.s0(3)); v.box(38, 6, 0, 41, 9, 26, c.s0(3)); v.box(5, 27, 0, 8, 30, 26, c.s0(3)); v.box(38, 27, 0, 41, 30, 26, c.s0(3));
+      v.box(18, 14, 29, 30, 18, 31, c.iron(3)); v.box(20, 15, 31, 28, 17, 33, c.iron(2)); v.box(12, 16, 31, 36, 17, 46, c.iron(3)); v.box(13, 16, 32, 35, 17, 45, RS.dyn(3, 0));
+      return v;
+    },
+    screens: [{ plane: 'y', x0: 13, z0: 32, w: 22, h: 13 }]
+  });
+  def({
+    id: 'bed_canopy', name: 'Himmelbett', cat: 'schlafen', price: 30, desc: 'Mit Pfosten und leichten Vorhängen.',
+    variants: [L('Weiß · Rosa', 'white', 'rose', 'cream', 'pink'), L('Schwarz · Grau', 'graphite', 'greyfab', 'white', 'stone'), L('Eiche · Creme', 'oak', 'cream', 'white', 'sand')],
+    build() {
+      const v = V(58, 76, 84), W = K.grain('s0', 3, 11);
+      [[1, 1], [54, 1], [1, 72], [54, 72]].forEach(([x, y]) => v.box(x, y, 0, x + 3, y + 3, 82, W));
+      v.box(0, 0, 8, 58, 76, 14, W); v.box(0, 0, 14, 58, 4, 44, W); v.box(0, 72, 8, 58, 76, 18, c.s0(4));
+      bedding(v, 2, 4, 56, 73, 14, { fold: 26 });
+      for (const y of [1, 72]) { v.box(0, y, 78, 58, y + 3, 82, W); }
+      v.box(0, 1, 78, 3, 74, 82, W); v.box(55, 1, 78, 58, 74, 82, W);
+      for (const x of [2, 55]) for (let y = 8; y < 70; y++) { const z = 76 - Math.round(7 * Math.sin(((y - 8) / 62) * Math.PI)); v.box(x, y, z - 22, x + 2, y + 1, z, (xx, yy, zz) => (hash(yy, zz >> 2, 5) < 0.1 ? c.s3(3) : c.s3(4))); }
+      return v;
+    }
+  });
+  def({
+    id: 'bed_platform', name: 'Plattformbett niedrig', cat: 'schlafen', price: 14, desc: 'Flacher Rahmen, gerade Linien.',
+    variants: [L('Schwarz · Weiß', 'graphite', 'white', 'white'), L('Eiche · Grau', 'oak', 'greyfab', 'cream'), L('Weiß · Blau', 'white', 'slate', 'white')],
+    build() {
+      const v = V(56, 74, 22);
+      v.box(0, 0, 0, 56, 74, 6, c.s0(3)); v.box(0, 0, 0, 56, 74, 1, c.s0(1)); v.box(0, 0, 6, 56, 74, 7, c.s0(4));
+      bedding(v, 2, 2, 54, 72, 7, { fold: 26 });
+      return v;
+    }
+  });
+
+  /* ---------- Schlafzimmer-Moebel ---------- */
+  function drawers(v, w, d, h, rows, leg, W) {
+    v.box(0, 0, leg, w, d, h, W); v.box(0, 0, h - 2, w, d, h, c.s0(4));
+    const hh = Math.floor((h - leg - 4) / rows);
+    for (let r = 0; r < rows; r++) K.drawer(v, 1, leg + 2 + r * hh, w - 1, leg + 2 + (r + 1) * hh - 1, d - 1, c.s0(3), c.steel(5));
+  }
+  def({
+    id: 'dresser_tall', name: 'Kommode hoch', cat: 'schlafen', price: 7, desc: 'Vier Schubladen und eine Ablage für die Lampe.', variants: woodV(),
+    build() { const v = V(28, 16, 46), W = K.grain('s0', 3, 12); K.legs(v, [[1, 1], [25, 1], [1, 13], [25, 13]], 2, 4, c.s0(2)); drawers(v, 28, 16, 46, 4, 4, W); return v; }
+  });
+  def({
+    id: 'dresser_wide', name: 'Kommode breit', cat: 'schlafen', price: 9, desc: 'Sechs Schubladen, viel Stauraum.', variants: woodV(),
+    build() { const v = V(60, 16, 32), W = K.grain('s0', 3, 13); K.legs(v, [[1, 1], [57, 1], [1, 13], [57, 13]], 2, 4, c.s0(2)); v.box(0, 0, 4, 60, 16, 32, W); v.box(0, 0, 30, 60, 16, 32, c.s0(4)); for (let r = 0; r < 2; r++) for (let q = 0; q < 3; q++) K.drawer(v, 1 + q * 20, 6 + r * 11, 20 + q * 20, 16 + r * 11 - 1, 15, c.s0(3), c.steel(5)); return v; }
+  });
+  def({
+    id: 'wardrobe_wood', name: 'Kleiderschrank Holz', cat: 'schlafen', price: 14, desc: 'Drei Türen, Platz für alles.', variants: woodV(),
+    build() {
+      const v = V(52, 22, 80), W = K.grain('s0', 3, 14);
+      v.box(0, 0, 0, 52, 22, 80, W); v.box(0, 0, 78, 52, 22, 80, c.s0(4)); v.box(0, 0, 0, 52, 22, 3, c.s0(2));
+      for (let i = 0; i < 3; i++) { const x0 = 1 + i * 17; v.box(x0, 21, 4, x0 + 16, 22, 76, c.s0(3)); v.box(x0, 21, 4, x0 + 1, 22, 76, c.s0(2)); v.box(x0, 21, 74, x0 + 16, 22, 75, c.s0(4)); v.box(x0, 21, 4, x0 + 16, 22, 5, c.s0(2)); v.box(x0 + (i === 2 ? 3 : 12), 21, 38, x0 + (i === 2 ? 4 : 13), 22, 46, c.steel(5)); }
+      return v;
+    }
+  });
+  def({
+    id: 'wardrobe_mirror', name: 'Schiebetürschrank Spiegel', cat: 'schlafen', price: 18, desc: 'Spiegeltüren lassen den Raum größer wirken.', variants: woodV(),
+    build() {
+      const v = V(60, 22, 84), W = K.grain('s0', 3, 15);
+      v.box(0, 0, 0, 60, 22, 84, W); v.box(0, 0, 82, 60, 22, 84, c.s0(4));
+      for (let i = 0; i < 2; i++) { const x0 = 2 + i * 28; v.box(x0, 21, 4, x0 + 28, 22, 80, (x, y, z) => (((x + z * 1.4) % 30 < 3) ? c.glass(7) : ((x + z * 1.4) % 30 < 6 ? c.glass(5) : c.glass(4)))); v.box(x0, 21, 4, x0 + 28, 22, 5, c.steel(3)); v.box(x0, 21, 79, x0 + 28, 22, 80, c.steel(3)); v.box(x0, 21, 4, x0 + 1, 22, 80, c.steel(3)); v.box(x0 + 27, 21, 4, x0 + 28, 22, 80, c.steel(3)); }
+      return v;
+    }
+  });
+  def({
+    id: 'vanity', name: 'Schminktisch', cat: 'schlafen', price: 10, desc: 'Mit Spiegel und Schublade.', variants: woodV(L('Rosa', 'rose')),
+    build() {
+      const v = V(40, 20, 52), W = K.grain('s0', 3, 16);
+      K.legs(v, [[1, 1], [35, 1], [1, 15], [35, 15]], 3, 24, W); v.box(0, 0, 24, 40, 18, 27, W); K.drawer(v, 14, 20, 28, 24, 18, c.s0(3), c.steel(5));
+      v.box(8, 3, 27, 32, 4, 50, c.steel(4)); v.box(9, 3, 28, 31, 4, 49, (x, y, z) => (((x + z) % 12 < 2) ? c.glass(7) : c.glass(4)));
+      v.box(3, 8, 27, 5, 10, 30, c.pink(4)); v.box(33, 10, 27, 36, 13, 29, c.rose(4)); v.box(24, 12, 27, 27, 16, 31, c.glass(5));
+      return v;
+    }
+  });
+  def({
+    id: 'clothes_rack', name: 'Kleiderstange', cat: 'schlafen', price: 4, desc: 'Freie Garderobe mit Jacken und Hemden.',
+    variants: [L('Schwarz', 'graphite'), L('Weiß', 'white'), L('Holz', 'oak')],
+    build() {
+      const v = V(44, 16, 66);
+      v.box(2, 5, 0, 5, 11, 2, c.s0(3)); v.box(39, 5, 0, 42, 11, 2, c.s0(3)); v.box(3, 7, 2, 4, 9, 62, c.s0(3)); v.box(40, 7, 2, 41, 9, 62, c.s0(3)); v.box(2, 7, 60, 42, 9, 62, c.s0(3));
+      v.box(3, 7, 10, 41, 9, 11, c.s0(3));
+      const cols = ['red', 'blue', 'cream', 'moss', 'amber', 'graphite', 'rose', 'sky'];
+      for (let i = 0; i < 8; i++) { const x = 6 + i * 4.4 | 0, col = cols[i], l = 22 + ((i * 5) % 12); v.box(x, 6, 60 - l, x + 3, 10, 60, c[col](3 + (i & 1))); v.box(x + 1, 6, 60, x + 2, 10, 62, c.steel(4)); v.box(x, 6, 59, x + 3, 10, 60, c[col](2)); }
+      v.box(8, 5, 2, 36, 12, 9, c.s0(1)); v.box(10, 5, 3, 22, 12, 8, c.sand(3)); v.box(24, 5, 3, 34, 12, 8, c.leather(3));
+      return v;
+    }
+  });
+  def({
+    id: 'shoe_rack', name: 'Schuhregal', cat: 'schlafen', price: 3, desc: 'Sneaker in Reih und Glied.', variants: woodV(),
+    build() {
+      const v = V(34, 14, 22), W = K.grain('s0', 3, 17);
+      v.box(0, 0, 0, 2, 14, 22, W); v.box(32, 0, 0, 34, 14, 22, W); [1, 10, 19].forEach((z) => v.box(0, 0, z, 34, 14, z + 2, W));
+      const cols = ['red', 'white', 'blue', 'graphite', 'amber', 'cream'];
+      [[3, 3], [3, 12]].forEach(([, z], r) => { for (let i = 0; i < 3; i++) { const col = cols[(i + r * 3) % cols.length]; v.rbox(3 + i * 10, 3, z + (r ? 0 : 0), 11 + i * 10, 13, z + 6, 1, c[col](3)); v.box(3 + i * 10, 3, z, 11 + i * 10, 13, z + 1, c.white(4)); } });
+      return v;
+    }
+  });
+  def({
+    id: 'blanket_chest', name: 'Truhe', cat: 'schlafen', price: 5, desc: 'Decken und Spielzeug verschwinden darin.', variants: woodV(),
+    build() { const v = V(32, 16, 17), W = K.grain('s0', 3, 18); v.box(0, 0, 0, 32, 16, 15, W); v.rbox(0, 0, 14, 32, 16, 17, 1, c.s0(4)); v.box(0, 0, 4, 32, 16, 5, c.s0(2)); v.box(0, 0, 11, 32, 16, 12, c.s0(2)); v.box(14, 15, 9, 18, 16, 13, c.steel(5)); v.box(1, 15, 2, 5, 16, 14, c.steel(3)); v.box(27, 15, 2, 31, 16, 14, c.steel(3)); return v; }
+  });
+})(window);
+
+</script>
+<script>
+/* src/items/more-tables.js */
+/* Raumspiel – mehr Tische, Regale, Schraenke, Schreibtische und Bueroteile */
+(function (g) {
+  const RS = g.RS, c = RS.c, K = RS.kit, V = RS.V, hash = RS.hash;
+  const def = RS.defItem;
+  const L = (n, ...m) => ({ n, m });
+  const woodV = (...extra) => [L('Eiche', 'oak'), L('Weiß', 'white'), L('Nussholz', 'walnut'), L('Schwarz', 'graphite')].concat(extra);
+
+  /* ---------- Tische ---------- */
+  def({
+    id: 'table_round', name: 'Esstisch rund', cat: 'tisch', price: 9, desc: 'Runde Platte auf einem Fuß.',
+    variants: [L('Eiche', 'oak', 'graphite'), L('Weiß', 'white', 'graphite'), L('Nussholz', 'walnut', 'oak'), L('Marmor', 'stone', 'gold')],
+    build() { const v = V(40, 40, 24); v.cyl(20, 20, 20, 21, 24, K.grain('s0', 3, 20)); v.cyl(20, 20, 20, 23, 24, c.s0(4)); v.cyl(20, 20, 5, 3, 21, c.s1(3)); v.cyl(20, 20, 11, 0, 3, c.s1(3)); v.cyl(20, 20, 11, 2, 3, c.s1(4)); return v; }
+  });
+  def({
+    id: 'table_dining_6', name: 'Esstisch lang', cat: 'tisch', price: 14, desc: 'Für sechs, mit Tischläufer und Vase.',
+    variants: [L('Eiche · Lila', 'oak', 'purple'), L('Weiß · Rot', 'white', 'red'), L('Nuss · Creme', 'walnut', 'cream'), L('Schwarz · Gold', 'graphite', 'gold')],
+    build() {
+      const v = V(88, 38, 36), W = K.grain('s0', 3, 21);
+      K.legs(v, [[2, 2], [82, 2], [2, 32], [82, 32]], 4, 22, W);
+      v.box(0, 0, 22, 88, 38, 25, W); v.box(0, 0, 24, 88, 38, 25, c.s0(4)); v.box(2, 2, 20, 86, 36, 22, c.s0(2));
+      v.box(6, 14, 25, 82, 24, 26, c.s1(3)); v.box(6, 14, 25, 82, 15, 26, c.s1(4)); v.box(6, 23, 25, 82, 24, 26, c.s1(2));
+      v.cyl(44, 19, 2.2, 26, 32, c.glass(5)); v.cyl(44, 19, 0.9, 32, 36, c.green(3)); v.sph(44, 19, 35, 1.8, c.pink(4)); v.sph(42, 20, 34, 1.4, c.amber(4)); v.sph(46, 18, 34, 1.4, c.cream(5));
+      v.cyl(20, 19, 4, 26, 27, c.white(5)); v.cyl(68, 19, 4, 26, 27, c.white(5));
+      return v;
+    }
+  });
+  def({
+    id: 'table_side_round', name: 'Beistelltisch rund', cat: 'tisch', price: 4, desc: 'Kleine Ablage neben dem Sofa.',
+    variants: [L('Eiche', 'oak', 'graphite'), L('Weiß', 'white', 'gold'), L('Nussholz', 'walnut', 'oak'), L('Schwarz', 'graphite', 'gold')],
+    build() { const v = V(20, 20, 22); v.cyl(10, 10, 10, 19, 22, K.grain('s0', 3, 22)); v.cyl(10, 10, 10, 21, 22, c.s0(4)); [[3, 4], [16, 4], [10, 17]].forEach(([x, y]) => v.line(x, y, 0.5, 10, 10, 19, 0.9, c.s1(3))); return v; }
+  });
+  def({
+    id: 'coffee_wood', name: 'Couchtisch Holz', cat: 'tisch', price: 6, desc: 'Mit Ablage und Läufer.',
+    variants: [L('Eiche · Streifen', 'oak', 'rose'), L('Nuss · Creme', 'walnut', 'cream'), L('Weiß · Blau', 'white', 'sky')],
+    build() { const v = V(46, 26, 17), W = K.grain('s0', 3, 23); K.legs(v, [[2, 2], [41, 2], [2, 21], [41, 21]], 3, 15, W); v.box(0, 0, 14, 46, 26, 17, W); v.box(0, 0, 16, 46, 26, 17, c.s0(4)); v.box(3, 3, 5, 43, 23, 7, W); v.box(14, 0, 16, 28, 26, 17, (x, y, z) => ((x >> 1) % 2 ? c.s1(3) : c.s1(4))); return v; }
+  });
+  def({
+    id: 'coffee_round', name: 'Couchtisch rund', cat: 'tisch', price: 6, desc: 'Moderner Tisch mit zwei Ebenen.',
+    variants: [L('Weiß · Gold', 'white', 'gold'), L('Schwarz · Messing', 'graphite', 'gold'), L('Eiche · Schwarz', 'oak', 'graphite')],
+    build() { const v = V(32, 32, 15); v.cyl(16, 16, 15, 12, 15, c.s0(3)); v.cyl(16, 16, 15, 14, 15, c.s0(4)); v.cyl(16, 16, 9, 4, 6, c.s0(3)); [[9, 9], [23, 9], [9, 23], [23, 23]].forEach(([x, y]) => v.line(x, y, 0.5, x, y, 13, 0.8, c.s1(3))); return v; }
+  });
+  def({
+    id: 'coffee_glass', name: 'Couchtisch Glas', cat: 'tisch', price: 7, desc: 'Metallrahmen, Glasplatte, Blick auf die Ablage.',
+    variants: [L('Schwarz', 'graphite'), L('Gold', 'gold'), L('Weiß', 'white')],
+    build() { const v = V(42, 24, 15); K.legs(v, [[0, 0], [40, 0], [0, 22], [40, 22]], 2, 14, c.s0(3)); v.box(0, 0, 13, 42, 24, 15, 0); v.box(0, 0, 14, 42, 2, 15, c.s0(3)); v.box(0, 22, 14, 42, 24, 15, c.s0(3)); v.box(0, 0, 14, 2, 24, 15, c.s0(3)); v.box(40, 0, 14, 42, 24, 15, c.s0(3)); v.box(2, 2, 14, 40, 22, 15, (x, y, z) => (((x + y) % 14 < 2) ? c.glass(7) : c.glass(4))); v.box(2, 2, 4, 40, 22, 5, c.s0(2)); return v; }
+  });
+  def({
+    id: 'console_narrow', name: 'Flurkonsole', cat: 'tisch', price: 6, desc: 'Schmal genug für jeden Flur.', variants: woodV(),
+    build() { const v = V(52, 14, 32), W = K.grain('s0', 3, 24); K.legs(v, [[1, 1], [49, 1], [1, 11], [49, 11]], 2, 28, W); v.box(0, 0, 26, 52, 14, 30, W); v.box(0, 0, 29, 52, 14, 30, c.s0(4)); K.drawer(v, 4, 20, 22, 26, 14, c.s0(3), c.steel(5)); K.drawer(v, 28, 20, 48, 26, 14, c.s0(3), c.steel(5)); v.box(2, 2, 6, 50, 12, 8, W); return v; }
+  });
+  def({
+    id: 'sideboard_wood', name: 'Sideboard Retro', cat: 'tisch', price: 11, desc: 'Schräge Beine, Schiebetüren.',
+    variants: [L('Teak', 'oak', 'gold'), L('Nuss', 'walnut', 'gold'), L('Weiß', 'white', 'oak')],
+    build() {
+      const v = V(68, 18, 30), W = K.grain('s0', 3, 25);
+      [[3, 3], [61, 3], [3, 13], [61, 13]].forEach(([x, y]) => v.line(x + 1, y + 1, 0.5, x + (x < 30 ? -0.5 : 1.5), y + 1, 9, 1.1, c.s0(2)));
+      v.box(0, 0, 8, 68, 18, 28, W); v.box(0, 0, 26, 68, 18, 28, c.s0(4));
+      for (let i = 0; i < 3; i++) { const x0 = 2 + i * 22; v.box(x0, 17, 10, x0 + 21, 18, 25, c.s0(3)); v.box(x0, 17, 10, x0 + 1, 18, 25, c.s0(2)); v.box(x0 + 18, 17, 16, x0 + 20, 18, 20, c.s1(4)); }
+      return v;
+    }
+  });
+  def({
+    id: 'tv_stand', name: 'TV-Schrank niedrig', cat: 'tisch', price: 8, desc: 'Offene Fächer für Konsole und Boxen.', variants: woodV(),
+    build() {
+      const v = V(64, 18, 20), W = K.grain('s0', 3, 26);
+      K.legs(v, [[1, 1], [59, 1], [1, 15], [59, 15]], 3, 4, c.s0(2)); v.box(0, 0, 4, 64, 18, 20, W);
+      [[2, 20], [22, 40], [42, 62]].forEach(([a, b], i) => { v.box(a, 1, 6, b, 18, 18, 0); v.box(a, 1, 6, b, 2, 18, c.s0(1)); if (i !== 1) { v.box(a + 2, 4, 6, b - 2, 16, 12, c.graphite(3)); v.box(a + 2, 15, 7, a + 8, 16, 8, c.green(4)); } else v.box(a + 1, 4, 6, b - 1, 14, 10, c.iron(3)); });
+      return v;
+    }
+  });
+  def({
+    id: 'cabinet_black_tall', name: 'Schrank hoch schwarz', cat: 'tisch', price: 10, desc: 'Zwei Türen, wirkt wie ein Monolith.',
+    variants: [L('Schwarz', 'graphite'), L('Anthrazit', 'iron'), L('Weiß', 'white'), L('Eiche', 'oak')],
+    build() { const v = V(30, 16, 58), W = K.grain('s0', 3, 27); v.box(0, 0, 0, 30, 16, 58, W); v.box(0, 0, 56, 30, 16, 58, c.s0(4)); for (let i = 0; i < 2; i++) { const x0 = 1 + i * 14; v.box(x0, 15, 3, x0 + 14, 16, 54, c.s0(3)); v.box(x0, 15, 3, x0 + 1, 16, 54, c.s0(2)); v.box(x0 + (i ? 2 : 10), 15, 26, x0 + (i ? 3 : 11), 16, 34, c.steel(4)); } return v; }
+  });
+  def({
+    id: 'hutch_green', name: 'Vitrine Landhaus', cat: 'tisch', price: 16, desc: 'Buffet mit Glastüren, Tellern und Rundbogen.',
+    variants: [L('Salbeigrün', 'mint', 'gold'), L('Weiß', 'white', 'gold'), L('Blaugrau', 'steel', 'gold'), L('Rosé', 'rose', 'gold')],
+    build() {
+      const v = V(40, 18, 76), W = K.grain('s0', 3, 28);
+      K.legs(v, [[2, 2], [34, 2], [2, 14], [34, 14]], 3, 4, c.s0(2));
+      v.box(0, 0, 4, 40, 18, 32, W); for (let i = 0; i < 2; i++) { const x0 = 2 + i * 18; v.box(x0, 17, 7, x0 + 17, 18, 29, c.s0(3)); v.box(x0, 17, 7, x0 + 17, 18, 8, c.s0(2)); v.box(x0 + (i ? 2 : 14), 17, 16, x0 + (i ? 3 : 15), 18, 22, c.s1(4)); }
+      v.box(0, 0, 32, 40, 18, 34, c.s0(4)); v.box(2, 0, 34, 38, 14, 70, W); v.box(3, 2, 35, 37, 14, 69, c.s0(1));
+      v.rbox(2, 0, 68, 38, 14, 76, 3, W);
+      for (const z of [44, 56]) v.box(3, 2, z, 37, 14, z + 1, c.s0(4));
+      for (let i = 0; i < 3; i++) { const x = 9 + i * 11; v.cylY(x, 50, 4.2, 12, 14, c.white(4)); v.cylY(x, 50, 3, 13, 14, c.sky(3)); v.cylY(x, 62, 4.2, 12, 14, c.white(4)); v.cylY(x, 62, 3, 13, 14, c.rose(3)); }
+      v.box(2, 17, 35, 38, 18, 36, c.s0(2)); v.box(2, 17, 68, 38, 18, 69, c.s0(2)); v.box(2, 17, 35, 3, 18, 69, c.s0(2)); v.box(37, 17, 35, 38, 18, 69, c.s0(2)); v.box(19, 17, 35, 21, 18, 69, c.s0(3));
+      v.box(3, 17, 36, 19, 18, 68, (x, y, z) => (((x + z) % 10 < 1) ? c.glass(6) : 0)); v.box(21, 17, 36, 37, 18, 68, (x, y, z) => (((x + z) % 10 < 1) ? c.glass(6) : 0));
+      return v;
+    }
+  });
+  def({
+    id: 'bookcase_wood', name: 'Bücherregal Holz hoch', cat: 'tisch', price: 12, desc: 'Dunkles Holz, voll mit Büchern und kleinen Schätzen.', variants: woodV(),
+    build() {
+      const v = V(32, 14, 72), W = K.grain('s0', 3, 29);
+      v.box(0, 0, 0, 32, 14, 72, W); for (let r = 0; r < 5; r++) { const z0 = 3 + r * 13; v.box(2, 1, z0, 30, 14, z0 + 11, 0); v.box(2, 1, z0, 30, 2, z0 + 11, c.s0(1)); v.box(2, 1, z0, 30, 14, z0 + 1, c.s0(2)); if (r === 2) { v.cyl(8, 8, 3, z0 + 1, z0 + 6, c.terracotta(3)); v.sph(8, 8, z0 + 8, 2.6, c.green(3)); K.books(v, 14, 29, 4, 12, z0 + 1, 77); } else K.books(v, 3, 29, 4, 12, z0 + 1, 40 + r * 7); }
+      v.box(0, 0, 70, 32, 14, 72, c.s0(4));
+      return v;
+    }
+  });
+  def({
+    id: 'bookcase_low', name: 'Bücherregal niedrig', cat: 'tisch', price: 6, desc: 'Passt unters Fenster.', variants: woodV(),
+    build() { const v = V(46, 12, 36), W = K.grain('s0', 3, 30); v.box(0, 0, 0, 46, 12, 36, W); for (let r = 0; r < 2; r++) { const z0 = 2 + r * 17; v.box(2, 1, z0, 44, 12, z0 + 15, 0); v.box(2, 1, z0, 44, 2, z0 + 15, c.s0(1)); v.box(2, 1, z0, 44, 12, z0 + 1, c.s0(2)); K.books(v, 3, 43, 3, 11, z0 + 1, 60 + r * 9); } v.box(0, 0, 34, 46, 12, 36, c.s0(4)); return v; }
+  });
+  def({
+    id: 'ladder_shelf', name: 'Leiterregal', cat: 'tisch', price: 8, desc: 'Lehnt an der Wand, Stufen für alles.', variants: woodV(),
+    build() {
+      const v = V(32, 20, 66), W = K.grain('s0', 3, 31);
+      for (const x of [1, 28]) { v.line(x + 1, 17, 1, x + 1, 3, 64, 1.2, W); v.line(x + 1, 14, 1, x + 1, 1, 60, 0.9, W); }
+      [[20, 17, 12], [16, 14, 11], [12, 11, 10], [8, 8, 9], [4, 4, 8]].forEach(([z, y, d]) => { v.box(0, y - 8, z - 1, 32, y - 8 + d + 2, z + 1, W); v.box(0, y - 8, z, 32, y - 8 + d + 2, z + 1, c.s0(4)); });
+      K.books(v, 3, 29, 14, 20, 22, 90); v.cyl(8, 14, 3, 37, 41, c.terracotta(3)); v.sph(8, 14, 43, 2.6, c.green(3)); v.box(16, 12, 37, 28, 17, 40, c.cream(4));
+      return v;
+    }
+  });
+  def({
+    id: 'rack_media', name: 'Medienregal Metall', cat: 'tisch', price: 7, desc: 'Schwarzes Gestell für Konsole, Receiver und Bücher.',
+    variants: [L('Schwarz', 'graphite', 'oak'), L('Weiß', 'white', 'oak')],
+    build() {
+      const v = V(26, 20, 54);
+      [[0, 0], [24, 0], [0, 18], [24, 18]].forEach(([x, y]) => v.box(x, y, 0, x + 2, y + 2, 54, c.s0(3)));
+      [2, 18, 34, 50].forEach((z) => v.box(0, 0, z, 26, 20, z + 2, K.grain('s1', 3, 32)));
+      v.box(3, 4, 4, 23, 16, 10, c.iron(3)); v.box(4, 15, 6, 8, 16, 7, c.green(4)); v.box(5, 4, 20, 21, 16, 25, c.stone(4)); v.box(6, 15, 22, 20, 16, 23, c.iron(2));
+      v.box(3, 5, 36, 23, 15, 44, c.steel(3)); v.box(4, 14, 38, 22, 15, 42, c.iron(2)); v.cyl(13, 10, 3, 44, 48, c.iron(3));
+      return v;
+    }
+  });
+  def({
+    id: 'bar_counter', name: 'Theke', cat: 'tisch', price: 16, desc: 'Tresen mit Fußstange und Regal dahinter.', variants: woodV(),
+    build() {
+      const v = V(76, 22, 40), W = K.grain('s0', 3, 33);
+      v.box(0, 0, 0, 76, 22, 36, W); v.box(0, 0, 36, 76, 22, 40, c.s0(4)); v.box(0, 18, 36, 76, 22, 40, c.s0(3));
+      for (let x = 2; x < 74; x += 12) { v.box(x, 21, 4, x + 10, 22, 32, c.s0(3)); v.box(x, 21, 4, x + 1, 22, 32, c.s0(2)); }
+      v.cylX(21, 8, 1.1, 0, 76, c.steel(4));
+      return v;
+    }
+  });
+  def({
+    id: 'bar_cart', name: 'Barwagen', cat: 'tisch', price: 6, desc: 'Auf Rollen, mit Flaschen und Gläsern.',
+    variants: [L('Gold', 'gold', 'oak'), L('Schwarz', 'graphite', 'oak'), L('Kupfer', 'orange', 'oak')],
+    build() {
+      const v = V(30, 18, 38);
+      K.legs(v, [[1, 1], [27, 1], [1, 15], [27, 15]], 2, 36, c.s0(3)); [4, 20].forEach((z) => { v.box(0, 0, z, 30, 18, z + 2, c.s0(3)); v.box(1, 1, z + 1, 29, 17, z + 2, K.grain('s1', 3, 34)); });
+      v.box(0, 0, 34, 30, 18, 36, c.s0(3)); v.box(1, 1, 35, 29, 17, 36, K.grain('s1', 3, 35));
+      [[5, 'green'], [10, 'amber'], [15, 'cherry']].forEach(([x, col]) => { v.cyl(x + 2, 9, 2.2, 36, 38, c[col](3)); });
+      v.cyl(24, 9, 2, 22, 28, c.glass(5)); v.cyl(19, 6, 1.8, 22, 27, c.glass(5));
+      [[6, 'green'], [12, 'amber'], [18, 'cherry']].forEach(([x, col]) => { v.cyl(x, 9, 2, 6, 14, c[col](3)); v.cyl(x, 9, 0.8, 14, 17, c[col](3)); });
+      return v;
+    }
+  });
+  def({
+    id: 'coat_stand', name: 'Garderobenständer', cat: 'tisch', price: 4, desc: 'Mit Jacke und Hut.', variants: woodV(),
+    build() {
+      const v = V(18, 18, 66);
+      v.cyl(9, 9, 7, 0, 2, c.s0(3)); v.cyl(9, 9, 1.4, 2, 62, K.grain('s0', 3, 36));
+      [[3, 9], [15, 9], [9, 3], [9, 15]].forEach(([x, y]) => { v.line(9, 9, 56, x, y, 60, 0.8, c.s0(3)); v.sph(x, y, 61, 1, c.s0(4)); });
+      v.box(6, 9, 28, 14, 14, 56, c.slate(3)); v.box(6, 9, 28, 14, 10, 56, c.slate(2)); v.cyl(9, 9, 5, 62, 64, c.leather(3)); v.cyl(9, 9, 3, 64, 66, c.leather(4));
+      return v;
+    }
+  });
+  def({
+    id: 'crate_wood', name: 'Holzkiste', cat: 'tisch', price: 1.5, place: 'surface', fine: 4, desc: 'Gestapelt als Regal, Hocker oder Deko.',
+    variants: [L('Naturholz', 'kraft'), L('Weiß', 'white'), L('Dunkel', 'walnut')],
+    build() { const v = V(18, 14, 12); v.box(0, 0, 0, 18, 14, 12, 0); [[0, 4], [4, 8], [8, 12]].forEach(([a, b]) => { v.box(0, 0, a, 18, 1, b - 1, K.grain('s0', 3, 37)); v.box(0, 13, a, 18, 14, b - 1, K.grain('s0', 3, 38)); v.box(0, 0, a, 1, 14, b - 1, c.s0(2)); v.box(17, 0, a, 18, 14, b - 1, c.s0(4)); }); v.box(0, 0, 0, 18, 14, 1, c.s0(2)); return v; }
+  });
+
+  /* ---------- Arbeit ---------- */
+  const deskV = [L('Eiche', 'oak', 'graphite'), L('Weiß', 'white', 'graphite'), L('Nuss', 'walnut', 'gold'), L('Schwarz', 'graphite', 'steel')];
+  def({
+    id: 'desk_wood', name: 'Schreibtisch Holz', cat: 'arbeit', price: 12, desc: 'Großer Tisch mit Schubladenblock.', variants: deskV,
+    build() {
+      const v = V(80, 38, 28), W = K.grain('s0', 3, 40);
+      v.box(0, 0, 24, 80, 38, 28, W); v.box(0, 0, 27, 80, 38, 28, c.s0(4)); v.box(0, 0, 24, 80, 1, 28, c.s0(2));
+      v.box(2, 3, 0, 5, 6, 24, W); v.box(2, 32, 0, 5, 35, 24, W); v.box(5, 31, 14, 52, 33, 24, c.s0(2));
+      v.box(54, 2, 0, 78, 36, 24, W); for (let i = 0; i < 3; i++) K.drawer(v, 55, 2 + i * 7, 77, 8 + i * 7, 36, c.s0(3), c.steel(5));
+      v.box(24, 36, 6, 52, 37, 10, c.s0(2));
+      return v;
+    }
+  });
+  def({
+    id: 'desk_standing', name: 'Stehschreibtisch', cat: 'arbeit', price: 13, desc: 'Höhenverstellbar, steht gerade.', variants: deskV,
+    build() { const v = V(64, 30, 38), W = K.grain('s0', 3, 41); v.box(0, 0, 34, 64, 30, 38, W); v.box(0, 0, 37, 64, 30, 38, c.s0(4)); [4, 56].forEach((x) => { v.box(x, 2, 0, x + 4, 28, 3, c.s1(3)); v.box(x + 1, 13, 3, x + 3, 17, 34, c.s1(3)); }); v.box(26, 24, 31, 38, 28, 34, c.iron(3)); v.box(29, 25, 32, 31, 27, 33, c.green(5)); return v; }
+  });
+  def({
+    id: 'desk_l', name: 'Eck-Schreibtisch', cat: 'arbeit', price: 18, desc: 'Viel Fläche für zwei Monitore.', variants: deskV,
+    build() { const v = V(92, 62, 28), W = K.grain('s0', 3, 42); v.box(0, 0, 24, 92, 30, 28, W); v.box(0, 30, 24, 30, 62, 28, W); v.box(0, 27, 24, 92, 30, 28, W); v.box(0, 0, 27, 92, 30, 28, c.s0(4)); v.box(0, 30, 27, 30, 62, 28, c.s0(4)); [[2, 2], [88, 2], [2, 58], [26, 58]].forEach(([x, y]) => v.box(x, y, 0, x + 3, y + 3, 24, W)); v.box(2, 29, 14, 28, 31, 24, c.s0(2)); v.box(36, 3, 14, 38, 28, 24, c.s0(2)); return v; }
+  });
+  def({
+    id: 'desk_music', name: 'Studiotisch', cat: 'arbeit', price: 14, desc: 'Gestell mit Tastaturablage für Musik und Schnitt.',
+    variants: [L('Schwarz · Holz', 'graphite', 'walnut'), L('Silber · Eiche', 'steel', 'oak')],
+    build() {
+      const v = V(70, 28, 40);
+      [[1, 2], [65, 2], [1, 24], [65, 24]].forEach(([x, y]) => v.box(x, y, 0, x + 3, y + 3, 34, c.s0(3)));
+      [26, 34].forEach((z) => v.box(0, 0, z, 70, 28, z + 2, K.grain('s1', 3, 43))); v.box(0, 0, 35, 70, 28, 36, c.s1(4));
+      v.box(2, 2, 14, 68, 3, 15, c.s0(2)); v.box(2, 25, 14, 68, 26, 15, c.s0(2));
+      v.box(10, 6, 28, 50, 20, 32, c.iron(3)); for (let x = 11; x < 49; x += 2) v.box(x, 8, 32, x + 1, 18, 33, (x >> 1) % 3 === 0 ? c.stone(2) : c.stone(6));
+      v.box(54, 6, 36, 66, 20, 38, c.iron(3)); for (let i = 0; i < 4; i++) v.box(55 + i * 3, 8, 38, 57 + i * 3, 10, 39, [c.red(4), c.amber(4), c.green(4), c.blue(4)][i]);
+      return v;
+    }
+  });
+  def({
+    id: 'file_cabinet', name: 'Aktenschrank', cat: 'arbeit', price: 6, desc: 'Drei Schubladen, abschließbar.',
+    variants: [L('Grau', 'steel'), L('Schwarz', 'graphite'), L('Weiß', 'white')],
+    build() { const v = V(22, 20, 36); v.box(0, 0, 0, 22, 20, 36, c.s0(3)); v.box(0, 0, 34, 22, 20, 36, c.s0(4)); for (let i = 0; i < 3; i++) { const z = 2 + i * 11; v.box(1, 19, z, 21, 20, z + 10, c.s0(4)); v.box(1, 19, z, 21, 20, z + 1, c.s0(2)); v.box(8, 19, z + 6, 14, 20, z + 8, c.iron(2)); v.box(9, 19, z + 3, 13, 20, z + 4, c.paper(4)); } return v; }
+  });
+  def({
+    id: 'laptop', name: 'Laptop', cat: 'arbeit', place: 'surface', fine: 2, price: 5, desc: 'Aufgeklappt, Klick schaltet den Bildschirm.',
+    screens: [{ plane: 'y', x0: 2, z0: 3, w: 16, h: 9 }], lights: [{ x: 11, y: 8, z: 10, r: 40, i: 1.0, col: [140, 190, 255], night: true }],
+    variants: [L('Silber', 'steel'), L('Schwarz', 'graphite'), L('Roségold', 'rose')],
+    build() { const v = V(22, 16, 14); v.rbox(0, 4, 0, 22, 16, 2, 1, c.s0(4)); v.box(2, 6, 2, 20, 14, 3, c.s0(3)); for (let x = 3; x < 19; x += 2) v.box(x, 7, 3, x + 1, 13, 4, c.iron(2)); v.box(0, 3, 2, 22, 4, 14, c.s0(3)); v.box(1, 3, 3, 21, 4, 13, c.iron(1)); v.box(2, 3, 4, 20, 4, 13, RS.dyn(3, 0)); return v; }
+  });
+  def({
+    id: 'monitor_dual', name: 'Zwei Monitore', cat: 'arbeit', place: 'surface', fine: 4, price: 10, desc: 'Code links, Videoschnitt rechts.',
+    screens: [{ plane: 'y', x0: 2, z0: 7, w: 21, h: 14 }, { plane: 'y', x0: 28, z0: 7, w: 21, h: 14 }],
+    lights: [{ x: 26, y: 8, z: 18, r: 60, i: 1.4, col: [130, 190, 255], night: true }],
+    variants: [L('Schwarz', 'graphite')],
+    build() { const v = V(54, 12, 28); [[0, 3], [26, 8]].forEach(([x0, sl]) => { v.box(x0 + 10, 3, 0, x0 + 16, 9, 2, c.iron(3)); v.box(x0 + 12, 5, 2, x0 + 14, 7, 6, c.iron(2)); v.box(x0, 3, 6, x0 + 25, 5, 28, c.iron(3)); v.box(x0 + 1, 5, 7, x0 + 24, 6, 27, c.iron(1)); v.box(x0 + 2, 5, 7, x0 + 23, 6, 21 + 0, RS.dyn(sl === 3 ? 3 : 8, sl === 3 ? 0 : 1)); }); return v; }
+  });
+  def({
+    id: 'keyboard_mouse', name: 'Tastatur & Maus', cat: 'arbeit', place: 'surface', fine: 2, price: 2, desc: 'Mechanisch, mit bunter Beleuchtung.',
+    variants: [L('Schwarz', 'graphite'), L('Weiß', 'white')],
+    build() { const v = V(30, 10, 4); v.box(0, 0, 0, 24, 9, 2, c.s0(3)); for (let x = 1; x < 23; x += 2) for (let y = 1; y < 8; y += 2) v.box(x, y, 2, x + 1, y + 1, 3, hash(x, y, 3) < 0.15 ? c.cyan(5) : c.s0(5)); v.rbox(26, 2, 0, 30, 8, 3, 1, c.s0(4)); return v; }
+  });
+  def({
+    id: 'printer', name: 'Drucker', cat: 'arbeit', place: 'surface', fine: 4, price: 4, desc: 'Druckt Papierstapel.',
+    variants: [L('Weiß', 'white'), L('Schwarz', 'graphite')],
+    build() { const v = V(24, 18, 12); v.rbox(0, 0, 0, 24, 18, 8, 1, c.s0(3)); v.box(2, 3, 8, 22, 15, 10, c.s0(4)); v.box(4, 4, 10, 20, 14, 11, c.paper(4)); v.box(3, 17, 3, 21, 18, 5, c.iron(2)); v.box(5, 17, 1, 19, 18, 2, c.paper(5)); v.put(21, 17, 6, c.green(5)); return v; }
+  });
+  def({
+    id: 'globe', name: 'Globus', cat: 'deko', place: 'surface', fine: 4, price: 3, desc: 'Die Welt in der Hand.',
+    variants: [L('Blau', 'blue', 'gold'), L('Antik', 'sand', 'walnut')],
+    build() { const v = V(14, 14, 20); v.cyl(7, 7, 4, 0, 2, c.s1(3)); v.cyl(7, 7, 0.8, 2, 6, c.s1(3)); v.sph(7, 7, 12, 6, (x, y, z) => (hash(x >> 1, y >> 1, z >> 1) < 0.35 ? c.green(3) : c.s0(3))); v.line(2, 4, 16, 12, 10, 5, 0.5, c.s1(4)); return v; }
+  });
+})(window);
+
+</script>
+<script>
+/* src/items/more-kitchen-bath.js */
+/* Raumspiel – Kueche (Herd, Schraenke, Geraete, Kleinteile) und Bad (WC, Wanne, Dusche, Waschbecken ...) */
+(function (g) {
+  const RS = g.RS, c = RS.c, K = RS.kit, V = RS.V, hash = RS.hash;
+  const def = RS.defItem;
+  const L = (n, ...m) => ({ n, m });
+  const kitV = [L('Weiß', 'white', 'oak'), L('Anthrazit', 'graphite', 'oak'), L('Salbei', 'moss', 'oak'), L('Lila', 'purple', 'cream'), L('Creme', 'cream', 'walnut'), L('Blau', 'slate', 'oak')];
+  const appV = [L('Weiß', 'white'), L('Edelstahl', 'steel'), L('Schwarz', 'graphite'), L('Creme', 'cream')];
+  const door = (v, x0, z0, x1, z1, y, hx, hz) => { v.box(x0, y, z0, x1, y + 1, z1, c.s0(4)); v.box(x0, y, z0, x1, y + 1, z0 + 1, c.s0(2)); v.box(x0, y, z0, x0 + 1, y + 1, z1, c.s0(2)); v.box(hx, y, hz, hx + 1, y + 1, hz + 5, c.steel(5)); };
+
+  /* ---------- Kueche ---------- */
+  def({
+    id: 'stove', name: 'Herd mit Backofen', cat: 'kueche', price: 10, desc: 'Vier Kochfelder, Ofenfenster und Drehknöpfe.', variants: appV,
+    build() {
+      const v = V(28, 24, 36);
+      v.box(0, 0, 0, 28, 24, 34, c.s0(3)); v.box(0, 0, 34, 28, 24, 36, c.iron(3));
+      v.box(2, 23, 4, 26, 24, 24, c.s0(4)); v.box(4, 23, 8, 24, 24, 20, c.iron(1)); v.box(5, 23, 9, 23, 24, 19, (x, y, z) => ((x + z) % 9 < 2 ? c.glass(3) : c.iron(2)));
+      v.box(5, 23, 21, 23, 24, 22, c.steel(5)); v.box(4, 23, 26, 24, 24, 33, c.s0(4));
+      [5, 10, 15, 20].forEach((x) => { v.cyl(x + 1, 23, 1.2, 28, 30, c.iron(1)); });
+      [[8, 8], [20, 8], [8, 16], [20, 16]].forEach(([x, y]) => { v.cyl(x, y, 3.4, 35, 36, c.iron(1)); });
+      return v;
+    }
+  });
+  def({
+    id: 'hood', name: 'Dunstabzugshaube', cat: 'kueche', place: 'wall', price: 7, desc: 'Mit Esse bis zur Decke.',
+    variants: [L('Edelstahl', 'steel'), L('Schwarz', 'graphite'), L('Weiß', 'white')],
+    build() { const v = V(30, 16, 70); for (let z = 0; z < 8; z++) { const i = z * 0.9; v.box(Math.round(i * 0.4), 0, z, 30 - Math.round(i * 0.4), 16 - Math.round(z * 0.4), z + 1, c.s0(3 + (z > 5 ? 1 : 0))); } v.box(9, 0, 8, 21, 8, 70, c.s0(4)); v.box(9, 0, 8, 10, 8, 70, c.s0(2)); v.box(20, 7, 8, 21, 8, 70, c.s0(5)); v.box(3, 14, 1, 27, 15, 2, c.iron(2)); v.put(25, 13, 3, c.green(5)); return v; }
+  });
+  def({
+    id: 'kitchen_base', name: 'Küchenunterschrank', cat: 'kueche', price: 4, desc: 'Arbeitsplatte, Tür und Griff.', variants: kitV,
+    build() { const v = V(32, 24, 36); v.box(0, 0, 0, 32, 24, 4, c.iron(3)); v.box(0, 0, 4, 32, 24, 32, c.s0(3)); v.box(0, 0, 32, 32, 24, 36, c.s1(3)); v.box(0, 0, 35, 32, 24, 36, c.s1(4)); door(v, 2, 6, 30, 30, 23, 26, 20); return v; }
+  });
+  def({
+    id: 'kitchen_drawers', name: 'Küchenschubladen', cat: 'kueche', price: 5, desc: 'Drei breite Auszüge.', variants: kitV,
+    build() { const v = V(32, 24, 36); v.box(0, 0, 0, 32, 24, 4, c.iron(3)); v.box(0, 0, 4, 32, 24, 32, c.s0(3)); v.box(0, 0, 32, 32, 24, 36, c.s1(3)); v.box(0, 0, 35, 32, 24, 36, c.s1(4)); for (let i = 0; i < 3; i++) { const z = 6 + i * 9; v.box(2, 23, z, 30, 24, z + 8, c.s0(4)); v.box(2, 23, z, 30, 24, z + 1, c.s0(2)); v.box(13, 23, z + 4, 19, 24, z + 5, c.steel(5)); } return v; }
+  });
+  def({
+    id: 'kitchen_upper', name: 'Hängeschrank', cat: 'kueche', place: 'wall', price: 4, desc: 'Für Geschirr und Vorräte.', variants: kitV,
+    build() { const v = V(34, 14, 30); v.box(0, 0, 0, 34, 14, 30, c.s0(3)); v.box(0, 0, 28, 34, 14, 30, c.s0(4)); v.box(0, 0, 0, 34, 14, 2, c.s0(2)); door(v, 2, 3, 17, 27, 13, 14, 6); door(v, 17, 3, 32, 27, 13, 19, 6); return v; }
+  });
+  def({
+    id: 'kitchen_upper_long', name: 'Hängeschrank lang', cat: 'kueche', place: 'wall', price: 6, desc: 'Vier Türen nebeneinander.', variants: kitV,
+    build() { const v = V(68, 14, 30); v.box(0, 0, 0, 68, 14, 30, c.s0(3)); v.box(0, 0, 28, 68, 14, 30, c.s0(4)); v.box(0, 0, 0, 68, 14, 2, c.s0(2)); for (let i = 0; i < 4; i++) door(v, 2 + i * 16, 3, 17 + i * 16, 27, 13, i % 2 ? 4 + i * 16 : 14 + i * 16, 6); return v; }
+  });
+  def({
+    id: 'kitchen_tall', name: 'Küchen-Hochschrank', cat: 'kueche', price: 8, desc: 'Vorratsschrank bis fast zur Decke.', variants: kitV,
+    build() { const v = V(32, 24, 78); v.box(0, 0, 0, 32, 24, 78, c.s0(3)); v.box(0, 0, 76, 32, 24, 78, c.s0(4)); door(v, 2, 3, 30, 36, 23, 26, 20); door(v, 2, 38, 30, 74, 23, 26, 52); return v; }
+  });
+  def({
+    id: 'kitchen_island', name: 'Kücheninsel', cat: 'kueche', price: 16, desc: 'Arbeitsfläche mit Theke zum Frühstücken.',
+    variants: [L('Weiß · Eiche', 'white', 'oak', 'graphite'), L('Anthrazit · Eiche', 'graphite', 'oak', 'graphite'), L('Salbei · Marmor', 'moss', 'stone', 'gold')],
+    build() {
+      const v = V(70, 38, 38);
+      v.box(0, 0, 0, 56, 26, 34, c.s0(3)); for (let i = 0; i < 3; i++) door(v, 2 + i * 18, 4, 18 + i * 18, 30, 25, 6 + i * 18, 18);
+      v.box(0, 0, 33, 70, 38, 36, c.s1(3)); v.box(0, 0, 35, 70, 38, 36, c.s1(4)); v.box(56, 4, 34, 70, 36, 35, c.s1(3));
+      v.box(58, 6, 0, 61, 9, 34, c.s2(3)); v.box(58, 30, 0, 61, 33, 34, c.s2(3));
+      return v;
+    }
+  });
+  def({
+    id: 'fridge_big', name: 'Kühlschrank groß', cat: 'kueche', price: 16, desc: 'Zwei Türen, Eisspender und Magnete.', variants: [L('Edelstahl', 'steel'), L('Weiß', 'white'), L('Schwarz', 'graphite'), L('Mint', 'mint')],
+    build() {
+      const v = V(38, 28, 70); v.box(0, 0, 0, 38, 28, 70, c.s0(3)); v.box(0, 0, 68, 38, 28, 70, c.s0(4));
+      v.box(1, 27, 2, 19, 28, 66, c.s0(4)); v.box(19, 27, 2, 37, 28, 66, c.s0(4)); v.box(19, 27, 2, 20, 28, 66, c.s0(1)); v.box(16, 27, 28, 18, 28, 52, c.iron(3)); v.box(21, 27, 28, 23, 28, 52, c.iron(3));
+      v.box(24, 27, 40, 34, 28, 52, c.iron(2)); v.box(26, 27, 42, 32, 28, 46, c.cyan(3)); v.box(4, 27, 56, 9, 28, 61, c.red(4)); v.box(10, 27, 52, 14, 28, 55, c.yellow(4)); v.box(5, 27, 44, 8, 28, 48, c.paper(4));
+      return v;
+    }
+  });
+  def({
+    id: 'dishwasher', name: 'Geschirrspüler', cat: 'kueche', price: 8, desc: 'Fertig, wenn es piept.', variants: appV,
+    build() { const v = V(28, 24, 36); v.box(0, 0, 0, 28, 24, 34, c.s0(3)); v.box(0, 0, 34, 28, 24, 36, c.iron(3)); v.box(2, 23, 3, 26, 24, 28, c.s0(4)); v.box(2, 23, 28, 26, 24, 33, c.iron(2)); for (let i = 0; i < 4; i++) v.box(5 + i * 4, 23, 30, 7 + i * 4, 24, 31, c.green(4)); v.box(4, 23, 22, 24, 24, 24, c.steel(5)); return v; }
+  });
+  def({
+    id: 'trash_bin', name: 'Mülleimer', cat: 'kueche', price: 1.5, desc: 'Mit Tretpedal.', variants: [L('Edelstahl', 'steel'), L('Weiß', 'white'), L('Schwarz', 'graphite')],
+    build() { const v = V(16, 16, 26); v.cyl(8, 8, 7, 0, 22, c.s0(3)); v.cyl(8, 8, 7.4, 22, 25, c.s0(4)); v.cyl(8, 8, 5.6, 25, 26, c.s0(2)); v.box(6, 14, 0, 10, 16, 2, c.iron(3)); return v; }
+  });
+  def({
+    id: 'kitchen_cart', name: 'Küchenwagen', cat: 'kueche', price: 6, desc: 'Rollt dahin, wo man ihn braucht.', variants: [L('Weiß', 'white', 'oak'), L('Schwarz', 'graphite', 'oak'), L('Mint', 'mint', 'oak')],
+    build() { const v = V(30, 18, 36); K.legs(v, [[1, 1], [27, 1], [1, 15], [27, 15]], 2, 34, c.s0(3)); v.box(0, 0, 32, 30, 18, 36, K.grain('s1', 3, 44)); [6, 18].forEach((z) => v.box(1, 1, z, 29, 17, z + 2, c.s0(3))); v.cyl(7, 9, 3, 8, 14, c.red(3)); v.cyl(16, 9, 3, 8, 12, c.amber(3)); v.sph(22, 9, 21, 3, c.orange(4)); v.sph(14, 9, 20, 2.4, c.green(4)); return v; }
+  });
+  def({
+    id: 'wine_rack', name: 'Weinregal', cat: 'kueche', price: 7, desc: 'Flaschen liegend gelagert.', variants: [L('Eiche', 'oak'), L('Schwarz', 'graphite'), L('Weiß', 'white')],
+    build() { const v = V(32, 14, 42), W = K.grain('s0', 3, 45); v.box(0, 0, 0, 2, 14, 42, W); v.box(30, 0, 0, 32, 14, 42, W); [0, 13, 26, 40].forEach((z) => v.box(0, 0, z, 32, 14, z + 2, W)); const cols = ['green', 'cherry', 'amber', 'forest']; for (let r = 0; r < 3; r++) for (let q = 0; q < 3; q++) { const z = 3 + r * 13, x = 3 + q * 9; v.cylY(x + 4, z + 4, 3.4, 1, 13, c[cols[(r + q) % 4]](2)); v.cylY(x + 4, z + 4, 1.5, 12, 14, c.cream(4)); } return v; }
+  });
+  def({
+    id: 'pan_rail', name: 'Küchenreling', cat: 'kueche', place: 'wall', price: 3, desc: 'Pfannen und Kellen griffbereit.', variants: [L('Schwarz', 'graphite'), L('Edelstahl', 'steel'), L('Kupfer', 'orange')],
+    build() { const v = V(46, 8, 24); v.box(1, 0, 20, 45, 2, 22, c.s0(3)); v.box(0, 0, 19, 3, 3, 23, c.s0(4)); v.box(43, 0, 19, 46, 3, 23, c.s0(4)); [[8, 7], [20, 6], [33, 8]].forEach(([x, r]) => { v.line(x, 1, 20, x, 3, 19, 0.5, c.steel(5)); v.cyl(x, 4, r, 8, 9, c.iron(2)); v.cyl(x, 4, r - 1, 8, 10, c.iron(1)); v.box(x - 1, 3, 9, x + 1, 5, 19, c.iron(3)); }); v.line(41, 1, 20, 41, 3, 6, 0.6, c.steel(5)); v.sph(41, 3, 5, 2, c.steel(4)); return v; }
+  });
+  def({
+    id: 'microwave', name: 'Mikrowelle', cat: 'kueche', place: 'surface', fine: 4, price: 3, desc: 'Piep, fertig.', variants: appV,
+    build() { const v = V(24, 16, 14); v.box(0, 0, 0, 24, 16, 14, c.s0(3)); v.box(1, 15, 1, 17, 16, 13, c.iron(1)); v.box(2, 15, 2, 16, 16, 12, c.glass(2)); v.box(19, 15, 3, 23, 16, 12, c.iron(2)); v.box(20, 15, 8, 22, 16, 10, c.green(5)); v.box(0, 0, 13, 24, 16, 14, c.s0(4)); return v; }
+  });
+  def({
+    id: 'coffee_machine', name: 'Kaffeemaschine', cat: 'kueche', place: 'surface', fine: 4, price: 3.5, desc: 'Der Tag beginnt hier.', variants: [L('Schwarz', 'graphite'), L('Edelstahl', 'steel'), L('Rot', 'red')],
+    build() { const v = V(16, 14, 20); v.box(0, 0, 0, 16, 12, 3, c.s0(3)); v.box(2, 2, 3, 14, 12, 20, c.s0(3)); v.box(2, 0, 16, 14, 8, 20, c.s0(4)); v.box(5, 2, 4, 11, 8, 12, c.glass(4)); v.box(5, 2, 4, 11, 8, 8, c.walnut(2)); v.put(12, 11, 17, c.green(5)); return v; }
+  });
+  def({
+    id: 'toaster', name: 'Toaster', cat: 'kueche', place: 'surface', fine: 2, price: 1.5, desc: 'Zwei Scheiben, goldbraun.', variants: [L('Weiß', 'white'), L('Edelstahl', 'steel'), L('Rot', 'red'), L('Mint', 'mint')],
+    build() { const v = V(16, 10, 10); v.rbox(0, 0, 0, 16, 10, 9, 2, c.s0(3)); v.box(3, 3, 8, 7, 7, 10, c.iron(1)); v.box(9, 3, 8, 13, 7, 10, c.iron(1)); v.box(3, 4, 9, 6, 6, 10, c.amber(3)); v.box(14, 2, 4, 16, 4, 6, c.iron(2)); return v; }
+  });
+  def({
+    id: 'kettle', name: 'Wasserkocher', cat: 'kueche', place: 'surface', fine: 2, price: 1.5, desc: 'Teezeit.', variants: [L('Edelstahl', 'steel'), L('Weiß', 'white'), L('Schwarz', 'graphite'), L('Pink', 'pink')],
+    build() { const v = V(14, 12, 16); v.cyl(6, 6, 5, 0, 2, c.iron(3)); v.cyl(6, 6, 4.6, 2, 13, c.s0(3)); v.cyl(6, 6, 3.6, 13, 15, c.s0(4)); v.box(11, 4, 4, 13, 8, 12, c.iron(3)); v.line(2, 6, 12, 0, 6, 14, 0.8, c.s0(4)); return v; }
+  });
+  def({
+    id: 'mixer', name: 'Küchenmaschine', cat: 'kueche', place: 'surface', fine: 4, price: 4, desc: 'Teig knetet sich fast von allein.', variants: [L('Rot', 'red'), L('Creme', 'cream'), L('Mint', 'mint'), L('Schwarz', 'graphite')],
+    build() { const v = V(18, 14, 20); v.rbox(0, 0, 0, 14, 14, 3, 1, c.s0(3)); v.rbox(0, 1, 3, 6, 13, 16, 2, c.s0(3)); v.rbox(0, 1, 13, 15, 13, 19, 2, c.s0(3)); v.cyl(10, 7, 4.6, 3, 9, c.steel(5)); v.cyl(10, 7, 3.8, 8, 9, c.paper(4)); v.cyl(11, 7, 0.8, 9, 14, c.steel(4)); return v; }
+  });
+  def({
+    id: 'fruit_bowl', name: 'Obstschale', cat: 'kueche', place: 'surface', fine: 2, price: 1.5, desc: 'Äpfel, Orangen und eine Banane.', variants: [L('Weiß', 'white'), L('Holz', 'oak'), L('Blau', 'blue')],
+    build() { const v = V(16, 16, 10); v.cyl(8, 8, 7, 0, 1, c.s0(3)); v.cyl(8, 8, 7.4, 1, 3, c.s0(4)); v.cyl(8, 8, 6, 2, 3, c.s0(2)); v.sph(5, 7, 5, 2.6, c.red(3)); v.sph(10, 6, 5, 2.6, c.orange(4)); v.sph(8, 10, 5.4, 2.6, c.lime(3)); v.sph(11, 10, 5, 2.2, c.red(4)); v.line(4, 11, 4, 12, 5, 6, 0.9, c.yellow(4)); return v; }
+  });
+  def({
+    id: 'pots_pans', name: 'Töpfe', cat: 'kueche', place: 'surface', fine: 2, price: 2.5, desc: 'Gestapelt und glänzend.', variants: [L('Edelstahl', 'steel'), L('Schwarz', 'graphite'), L('Rot', 'red')],
+    build() { const v = V(24, 14, 12); v.cyl(6, 7, 5.6, 0, 7, c.s0(3)); v.cyl(6, 7, 5, 6, 7, c.iron(1)); v.box(11, 6, 5, 14, 8, 6, c.s0(4)); v.cyl(17, 7, 5, 0, 5, c.s0(4)); v.cyl(17, 7, 4.4, 4, 5, c.iron(1)); v.box(21, 6, 3, 24, 8, 4, c.s0(3)); return v; }
+  });
+  def({
+    id: 'knife_block', name: 'Messerblock', cat: 'kueche', place: 'surface', fine: 2, price: 2, desc: 'Scharf, aber ordentlich.', variants: [L('Holz', 'walnut'), L('Schwarz', 'graphite')],
+    build() { const v = V(12, 10, 16); v.line(2, 5, 1, 9, 5, 12, 0, c.s0(3)); v.box(1, 2, 0, 11, 8, 11, c.s0(3)); v.box(1, 2, 10, 11, 8, 12, c.s0(4)); for (let i = 0; i < 4; i++) v.box(2 + i * 2, 4, 11, 3 + i * 2, 6, 14 + (i % 2), c.iron(2)); v.box(2, 7, 14, 4, 8, 15, c.steel(5)); return v; }
+  });
+  def({
+    id: 'spice_jars', name: 'Gewürzgläser', cat: 'kueche', place: 'surface', fine: 2, price: 2, desc: 'Sechs kleine Gläser.', variants: [L('Weiß', 'white'), L('Schwarz', 'graphite'), L('Gold', 'gold')],
+    build() { const v = V(24, 8, 8); for (let i = 0; i < 6; i++) { const x = 2 + i * 4; v.cyl(x, 4, 1.8, 0, 6, c.glass(4)); v.cyl(x, 4, 1.4, 0, 4, [c.red(3), c.amber(3), c.green(3), c.orange(3), c.leather(3), c.cream(4)][i]); v.cyl(x, 4, 1.9, 6, 8, c.s0(3)); } return v; }
+  });
+  def({
+    id: 'bread_bin', name: 'Brotkasten', cat: 'kueche', place: 'surface', fine: 4, price: 2, desc: 'Hält Brot frisch.', variants: [L('Creme', 'cream'), L('Holz', 'oak'), L('Schwarz', 'graphite')],
+    build() { const v = V(20, 12, 12); v.rbox(0, 0, 0, 20, 12, 9, 1, c.s0(3)); v.cylX(6, 9, 6, 0, 20, c.s0(4)); v.box(8, 11, 3, 12, 12, 5, c.steel(5)); return v; }
+  });
+  def({
+    id: 'dish_rack', name: 'Abtropfgestell', cat: 'kueche', place: 'surface', fine: 4, price: 1.5, desc: 'Teller stehen, Tassen hängen.', variants: [L('Edelstahl', 'steel'), L('Weiß', 'white')],
+    build() { const v = V(20, 12, 10); v.box(0, 0, 0, 20, 12, 1, c.s0(3)); for (let i = 0; i < 5; i++) { v.box(2 + i * 3, 1, 1, 3 + i * 3, 11, 9, c.s0(4)); v.cylY(3 + i * 3, 5, 3.6, 3, 4, c.white(4)); } v.cyl(17, 6, 2.4, 1, 6, c.sky(3)); return v; }
+  });
+  def({
+    id: 'plates_set', name: 'Geschirr', cat: 'kueche', place: 'surface', fine: 2, price: 2, desc: 'Teller und Tassen für vier.', variants: [L('Weiß', 'white', 'sky'), L('Creme', 'cream', 'rose'), L('Schwarz', 'graphite', 'amber')],
+    build() { const v = V(22, 22, 9); for (let i = 0; i < 4; i++) v.cyl(7 + (i % 2) * 8, 7 + (i >> 1) * 8, 3.6, 0, 1, c.s0(4)); v.cyl(7, 7, 3.6, 1, 2, c.s0(3)); v.cyl(15, 7, 2, 1, 4, c.s1(3)); v.cyl(7, 15, 2, 1, 4, c.s1(3)); v.cyl(15, 15, 3.6, 1, 2, c.s0(3)); v.cyl(15, 15, 3.4, 2, 3, c.s1(4)); return v; }
+  });
+
+  /* ---------- Bad ---------- */
+  const tileV = [L('Weiß', 'white'), L('Creme', 'cream'), L('Hellgrau', 'stone')];
+  def({
+    id: 'toilet', name: 'WC', cat: 'bad', price: 6, desc: 'Mit Spülkasten und Klappdeckel.', variants: tileV,
+    build() { const v = V(18, 28, 30); v.box(2, 0, 4, 16, 8, 26, c.s0(3)); v.box(1, 0, 24, 17, 9, 28, c.s0(4)); v.box(7, 8, 26, 11, 9, 28, c.steel(5)); v.ell(9, 16, 9, 7, 9, 5, c.s0(3)); v.cyl(9, 16, 5.6, 12, 14, c.s0(4)); v.cyl(9, 17, 4.2, 13, 14, c.water(3)); v.cyl(9, 6, 5, 4, 10, c.s0(2)); v.rbox(2, 8, 13, 16, 26, 15, 1, c.s0(5)); v.cyl(9, 18, 4.8, 14, 15, c.s0(2)); return v; }
+  });
+  def({
+    id: 'vanity_sink', name: 'Waschtisch', cat: 'bad', price: 9, desc: 'Becken, Armatur und Unterschrank.',
+    variants: [L('Weiß · Eiche', 'white', 'oak'), L('Anthrazit · Eiche', 'graphite', 'oak'), L('Holz · Weiß', 'oak', 'white')],
+    build() { const v = V(46, 24, 38); v.box(0, 0, 0, 46, 24, 30, c.s0(3)); door(v, 2, 4, 22, 28, 23, 18, 18); door(v, 24, 4, 44, 28, 23, 26, 18); v.box(0, 0, 30, 46, 24, 33, c.stone(5)); v.ell(23, 12, 33, 12, 9, 3.6, c.white(4)); v.ell(23, 12, 34, 10, 7, 2.6, c.water(3)); v.box(21, 3, 33, 25, 6, 38, c.steel(5)); v.box(21, 3, 36, 25, 8, 38, c.steel(5)); return v; }
+  });
+  def({
+    id: 'sink_pedestal', name: 'Standwaschbecken', cat: 'bad', price: 5, desc: 'Klassisch auf einer Säule.', variants: tileV,
+    build() { const v = V(24, 20, 36); v.cyl(12, 5, 4.4, 0, 22, c.s0(3)); v.ell(12, 10, 26, 11, 9, 5, c.s0(3)); v.ell(12, 10, 28, 9, 7, 3.4, c.water(3)); v.box(10, 1, 28, 14, 4, 36, c.steel(5)); v.box(10, 1, 33, 14, 7, 35, c.steel(5)); return v; }
+  });
+  def({
+    id: 'bathtub', name: 'Badewanne', cat: 'bad', price: 12, desc: 'Eingebaut, mit Wasser und Schaum.', variants: tileV,
+    build() { const v = V(36, 68, 24); v.box(0, 0, 0, 36, 68, 18, c.s0(3)); v.box(0, 0, 18, 36, 68, 22, c.s0(4)); v.box(3, 4, 12, 33, 64, 22, 0); v.box(3, 4, 12, 33, 64, 14, c.s0(2)); v.box(4, 5, 14, 32, 63, 18, c.water(3)); for (let i = 0; i < 26; i++) v.sph(6 + (i * 7) % 24, 8 + (i * 11) % 50, 18.5, 2.1, c.white(5)); v.box(15, 1, 22, 21, 4, 24, c.steel(5)); v.box(17, 1, 20, 19, 3, 24, c.steel(4)); return v; }
+  });
+  def({
+    id: 'bathtub_claw', name: 'Badewanne freistehend', cat: 'bad', price: 18, desc: 'Mit Löwenfüßen und goldener Armatur.', variants: [L('Weiß · Gold', 'white', 'gold'), L('Schwarz · Messing', 'graphite', 'gold')],
+    build() {
+      const v = V(34, 64, 36);
+      [[4, 6], [28, 6], [4, 58], [28, 58]].forEach(([x, y]) => { v.sph(x, y, 3, 2.6, c.s1(3)); v.box(x - 1, y - 1, 0, x + 2, y + 2, 4, c.s1(4)); });
+      v.rbox(0, 0, 4, 34, 64, 26, 6, c.s0(3)); v.rbox(2, 4, 12, 32, 60, 27, 5, 0); v.rbox(3, 5, 17, 31, 59, 22, 4, c.water(3));
+      v.rbox(0, 0, 24, 34, 64, 27, 3, c.s0(4)); v.box(14, 0, 14, 20, 4, 32, c.s1(4)); v.box(16, 2, 32, 18, 8, 34, c.s1(4));
+      return v;
+    }
+  });
+  def({
+    id: 'shower', name: 'Duschkabine', cat: 'bad', price: 11, desc: 'Glas, Regendusche und Handbrause.', variants: tileV,
+    build() {
+      const v = V(38, 38, 88); v.box(0, 0, 0, 38, 38, 3, c.s0(3)); v.cyl(19, 19, 2, 1, 3, c.iron(2));
+      [[0, 0], [36, 0], [0, 36], [36, 36]].forEach(([x, y]) => v.box(x, y, 0, x + 2, y + 2, 84, c.steel(4)));
+      [0, 36].forEach((x) => v.box(x, 0, 82, x + 2, 38, 84, c.steel(4))); v.box(0, 36, 82, 38, 38, 84, c.steel(4)); v.box(0, 0, 82, 38, 2, 84, c.steel(4));
+      for (let z = 3; z < 82; z++) { for (let y = 2; y < 36; y++) if ((y + z) % 15 < 2) v.put(36, y, z, c.glass(6)); for (let x = 2; x < 36; x++) if ((x + z) % 15 < 2) v.put(x, 36, z, c.glass(5)); }
+      v.box(34, 14, 40, 37, 17, 44, c.steel(5)); v.line(4, 4, 82, 4, 4, 70, 0.8, c.steel(5)); v.cyl(6, 6, 6, 80, 82, c.steel(4));
+      return v;
+    }
+  });
+  def({
+    id: 'washing_machine', name: 'Waschmaschine', cat: 'bad', price: 10, desc: 'Bullauge und Programmwahl.', variants: appV,
+    build() { const v = V(28, 26, 36); v.box(0, 0, 0, 28, 26, 34, c.s0(3)); v.box(0, 0, 34, 28, 26, 36, c.iron(3)); v.cylY(14, 15, 8, 24, 26, c.steel(4)); v.cylY(14, 15, 6.4, 25, 26, c.iron(1)); v.cylY(14, 15, 5, 25, 26, c.glass(3)); v.box(2, 25, 28, 11, 26, 32, c.s0(4)); v.box(14, 25, 29, 24, 26, 31, c.iron(2)); v.box(21, 25, 28, 24, 26, 29, c.green(5)); return v; }
+  });
+  def({
+    id: 'mirror_cabinet', name: 'Spiegelschrank', cat: 'bad', place: 'wall', price: 6, desc: 'Spiegel mit Fächern dahinter.', variants: [L('Weiß', 'white'), L('Holz', 'oak'), L('Schwarz', 'graphite')],
+    build() { const v = V(32, 8, 38); v.box(0, 0, 0, 32, 8, 38, c.s0(3)); v.box(2, 7, 2, 30, 8, 36, (x, y, z) => ((x + z * 1.5) % 22 < 3 ? c.glass(7) : (x + z * 1.5) % 22 < 6 ? c.glass(5) : c.glass(4))); v.box(0, 7, 36, 32, 8, 38, c.s0(4)); v.box(15, 7, 2, 17, 8, 36, c.s0(2)); return v; }
+  });
+  const mirrorFill = (x, z) => (((x + z * 1.5) % 24 < 3) ? c.glass(7) : (((x + z * 1.5) % 24 < 6) ? c.glass(5) : c.glass(4)));
+  def({
+    id: 'mirror_round', name: 'Rundspiegel', cat: 'wand', place: 'wall', price: 4, desc: 'Schlichter Rahmen, großer Glanz.', variants: [L('Gold', 'gold'), L('Schwarz', 'graphite'), L('Holz', 'oak'), L('Weiß', 'white')],
+    build() { const v = V(30, 3, 30); v.cylY(15, 15, 15, 0, 2, c.s0(4)); v.cylY(15, 15, 13, 1, 3, 0); v.cylY(15, 15, 13, 1, 2, (x, y, z) => mirrorFill(x, z)); v.cylY(15, 15, 15, 0, 1, c.s0(2)); return v; }
+  });
+  def({
+    id: 'mirror_arch', name: 'Bogenspiegel', cat: 'wand', place: 'wall', price: 5, desc: 'Hoher Spiegel mit Rundbogen.', variants: [L('Gold', 'gold'), L('Schwarz', 'graphite'), L('Holz', 'oak'), L('Weiß', 'white')],
+    build() { const v = V(24, 3, 46); const ok = (x, z, r) => { const dx = x + 0.5 - 12; if (Math.abs(dx) > r) return false; if (z < 12 + 12) return z >= 0 && z < 46 && Math.abs(dx) <= r && (z >= 22 || true) && (z < 34 || Math.hypot(dx, z + 0.5 - 34) <= r); return z >= 34 ? Math.hypot(dx, z + 0.5 - 34) <= r : true; }; for (let z = 0; z < 46; z++) for (let x = 0; x < 24; x++) { if (z < 34 ? Math.abs(x + 0.5 - 12) <= 12 : Math.hypot(x + 0.5 - 12, z + 0.5 - 34) <= 12) { const inner = z < 34 ? (Math.abs(x + 0.5 - 12) <= 10 && z >= 2) : Math.hypot(x + 0.5 - 12, z + 0.5 - 34) <= 10; v.put(x, 1, z, inner ? mirrorFill(x, z) : c.s0(3)); v.put(x, 0, z, c.s0(2)); } } return v; }
+  });
+  def({
+    id: 'mirror_wall', name: 'Wandspiegel lang', cat: 'wand', place: 'wall', price: 5, desc: 'Ganzkörperspiegel zum Anlehnen oder Aufhängen.', variants: [L('Schwarz', 'graphite'), L('Holz', 'oak'), L('Weiß', 'white'), L('Gold', 'gold')],
+    build() { const v = V(26, 3, 62); v.box(0, 0, 0, 26, 2, 62, c.s0(3)); v.box(2, 1, 2, 24, 3, 60, (x, y, z) => mirrorFill(x, z)); v.box(0, 0, 0, 26, 1, 62, c.s0(2)); return v; }
+  });
+  def({
+    id: 'towel_rail', name: 'Handtuchhalter', cat: 'bad', place: 'wall', price: 3, desc: 'Mit flauschigen Handtüchern.', variants: [L('Chrom', 'steel', 'sky'), L('Schwarz', 'graphite', 'cream'), L('Gold', 'gold', 'rose')],
+    build() { const v = V(34, 8, 28); v.box(1, 0, 20, 33, 2, 22, c.s0(3)); v.box(0, 0, 18, 3, 3, 24, c.s0(4)); v.box(31, 0, 18, 34, 3, 24, c.s0(4)); v.box(6, 0, 4, 18, 4, 21, c.s1(3)); v.box(6, 3, 4, 18, 4, 18, c.s1(4)); v.box(20, 0, 8, 30, 4, 21, c.white(4)); v.box(20, 3, 8, 30, 4, 20, c.white(5)); return v; }
+  });
+  def({
+    id: 'bath_mat', name: 'Badematte', cat: 'bad', flat: true, price: 1.5, desc: 'Flauschig unter den Füßen.', variants: [L('Weiß', 'white', 'sky'), L('Grau', 'greyfab', 'stone'), L('Rosa', 'rose', 'pink'), L('Mint', 'mint', 'teal')],
+    build() { const v = V(30, 18, 1); v.box(0, 0, 0, 30, 18, 1, (x, y) => ((x < 2 || y < 2 || x >= 28 || y >= 16) ? c.s1(3) : hash(x >> 1, y >> 1, 6) < 0.2 ? c.s0(4) : c.s0(3))); return v; }
+  });
+  def({
+    id: 'hamper', name: 'Wäschekorb', cat: 'bad', price: 2.5, desc: 'Gefüllt, wie immer.', variants: [L('Geflecht', 'kraft', 'cream'), L('Weiß', 'white', 'sky'), L('Grau', 'greyfab', 'rose')],
+    build() { const v = V(20, 16, 26); v.box(0, 0, 0, 20, 16, 22, (x, y, z) => (((x + z) & 1) ? c.s0(3) : c.s0(4))); v.box(0, 0, 22, 20, 16, 24, c.s0(2)); v.box(2, 2, 22, 18, 14, 24, 0); v.box(2, 2, 18, 18, 14, 19, c.s0(1)); K.lumps(v, 3, 3, 17, 13, 18, 4, 5, 3, (i) => [c.s1(3), c.blue(3), c.red(3), c.white(4), c.green(3)][i % 5]); return v; }
+  });
+  def({
+    id: 'shelf_bath', name: 'Badregal', cat: 'bad', price: 5, desc: 'Handtücher, Körbe und Pflanze.', variants: [L('Holz', 'oak'), L('Weiß', 'white'), L('Schwarz', 'graphite')],
+    build() { const v = V(24, 12, 56), W = K.grain('s0', 3, 46); v.box(0, 0, 0, 2, 12, 56, W); v.box(22, 0, 0, 24, 12, 56, W); [0, 14, 28, 42, 54].forEach((z) => v.box(0, 0, z, 24, 12, z + 2, W)); v.box(3, 2, 2, 21, 10, 12, c.white(4)); v.box(3, 2, 6, 21, 10, 7, c.sky(3)); v.box(3, 2, 16, 21, 10, 26, c.kraft(3)); v.box(5, 3, 30, 19, 9, 40, c.cream(4)); v.box(5, 3, 34, 19, 9, 35, c.rose(3)); v.cyl(12, 6, 3, 44, 50, c.terracotta(3)); v.sph(12, 6, 53, 3.4, c.green(3)); return v; }
+  });
+  def({
+    id: 'bath_scale', name: 'Waage', cat: 'bad', flat: true, price: 1, desc: 'Lieber nicht nachsehen.', variants: [L('Weiß', 'white'), L('Schwarz', 'graphite')],
+    build() { const v = V(14, 14, 2); v.rbox(0, 0, 0, 14, 14, 2, 1, c.s0(3)); v.box(3, 9, 1, 11, 12, 2, c.iron(1)); v.box(4, 10, 1, 8, 11, 2, c.green(5)); return v; }
+  });
+  def({
+    id: 'soap_set', name: 'Seifenspender & Becher', cat: 'bad', place: 'surface', fine: 2, price: 1.5, desc: 'Mit Zahnbürsten.', variants: [L('Weiß', 'white', 'sky'), L('Schwarz', 'graphite', 'amber'), L('Rosa', 'rose', 'cream')],
+    build() { const v = V(16, 8, 14); v.rbox(0, 1, 0, 6, 7, 11, 1, c.s0(3)); v.box(2, 3, 11, 4, 5, 13, c.s1(4)); v.box(2, 3, 12, 7, 5, 13, c.s1(4)); v.cyl(11, 4, 2.6, 0, 7, c.glass(5)); v.line(10, 4, 3, 9, 4, 12, 0.5, c.red(3)); v.line(12, 4, 3, 13, 4, 12, 0.5, c.blue(3)); return v; }
+  });
+  def({
+    id: 'rubber_duck', name: 'Quietscheente', cat: 'bad', place: 'surface', fine: 2, price: 1, desc: 'Gehört einfach dazu.', variants: [L('Gelb', 'yellow'), L('Rosa', 'pink'), L('Blau', 'sky')],
+    build() { const v = V(10, 10, 9); v.ell(5, 5, 3, 3.6, 4.2, 2.6, c.s0(4)); v.sph(5, 7.6, 6.2, 2.2, c.s0(4)); v.box(4, 9, 5, 6, 10, 6, c.orange(4)); v.put(4, 8, 7, c.ink(2)); v.put(6, 8, 7, c.ink(2)); v.box(0, 3, 3, 1, 6, 5, c.s0(3)); return v; }
+  });
+})(window);
+
+</script>
+<script>
+/* src/items/more-decor.js */
+/* Raumspiel – mehr Pflanzen, Lampen, Teppiche und Deko (Kamin, Kuscheltiere, Pokal ...) */
+(function (g) {
+  const RS = g.RS, c = RS.c, K = RS.kit, V = RS.V, hash = RS.hash;
+  const def = RS.defItem;
+  const L = (n, ...m) => ({ n, m });
+  const potV = [L('Weiß', 'white'), L('Terrakotta', 'terracotta'), L('Schwarz', 'graphite'), L('Beton', 'concrete')];
+  const leaf = (v, cx, cy, z, n, len, wd, droop, code, lift, a0) => { for (let i = 0; i < n; i++) { const a = (a0 || 0) + (i * Math.PI * 2) / n; K.leaf2(v, cx, cy, z, Math.cos(a), Math.sin(a), len, wd, droop, code, lift); } };
+  const green = (lo) => (t) => c[t < 0.25 ? 'forest' : 'green'](Math.min(5, (lo || 3) + (t > 0.7 ? 1 : 0)));
+  const clump = (v, cx, cy, cz, r, seed, dark) => v.sph(cx, cy, cz, r, (x, y, z) => c[hash(x, y, z + seed) < 0.3 ? 'forest' : (dark ? 'forest' : 'green')](hash(x >> 1, y >> 1, z + 5) < 0.4 ? 4 : 3));
+
+  /* ---------- Pflanzen ---------- */
+  def({
+    id: 'ficus_big', name: 'Geigenfeige groß', cat: 'pflanzen', price: 9, desc: 'Große Blätter, großer Auftritt (wie im Büro-Zimmer).', variants: potV,
+    build() { const v = V(40, 40, 86); K.pot(v, 20, 20, 9, 14, 0, c.s0(3), c.s0(4), c.walnut(1)); v.line(20, 20, 14, 19, 20, 46, 1.6, c.walnut(2)); v.line(19, 20, 40, 14, 18, 60, 1, c.walnut(2)); v.line(19, 20, 40, 26, 22, 58, 1, c.walnut(2)); [[20, 20, 62, 11], [12, 18, 56, 8], [28, 22, 54, 9], [18, 26, 48, 8], [25, 14, 46, 8], [14, 24, 68, 7], [26, 18, 70, 6]].forEach(([x, y, z, r], i) => clump(v, x, y, z, r, i * 7, false)); return v; }
+  });
+  def({
+    id: 'palm_kentia', name: 'Kentia-Palme', cat: 'pflanzen', price: 8, desc: 'Bogenförmige Wedel bis fast zur Decke.', variants: potV,
+    build() { const v = V(48, 48, 84); K.pot(v, 24, 24, 9, 14, 0, c.s0(3), c.s0(4), c.walnut(1)); for (let i = 0; i < 4; i++) v.line(24 + (i - 1.5) * 1.2, 24, 14, 24 + (i - 1.5) * 2.4, 24 + (i % 2), 50 + i * 3, 0.9, c.forest(2)); leaf(v, 24, 24, 56, 9, 17, 3, 0.8, green(3), 0.22, 0.2); leaf(v, 24, 24, 48, 6, 14, 2.6, 0.7, green(2), 0.1, 0.5); return v; }
+  });
+  def({
+    id: 'snake_plant', name: 'Bogenhanf', cat: 'pflanzen', price: 3.5, desc: 'Fast unkaputtbar.', variants: potV,
+    build() { const v = V(24, 24, 50); K.pot(v, 12, 12, 7, 10, 0, c.s0(3), c.s0(4), c.walnut(1)); [[0, 0, 40], [-3, 1, 34], [3, -1, 36], [-1, -3, 30], [2, 3, 32], [-4, -2, 26], [4, 2, 24]].forEach(([dx, dy, h], i) => { v.line(12 + dx * 0.6, 12 + dy * 0.6, 10, 12 + dx, 12 + dy, 10 + h, 1.4 - i * 0.05, c[i % 2 ? 'forest' : 'green'](i % 3 ? 3 : 2)); v.line(12 + dx, 12 + dy, 10 + h * 0.55, 12 + dx, 12 + dy, 10 + h, 0.7, c.lime(3)); }); return v; }
+  });
+  def({
+    id: 'fern_pot', name: 'Farn', cat: 'pflanzen', price: 3, desc: 'Üppig und leicht überwachsen.', variants: potV,
+    build() { const v = V(34, 34, 34); K.pot(v, 17, 17, 7, 9, 0, c.s0(3), c.s0(4), c.walnut(1)); leaf(v, 17, 17, 10, 12, 14, 2.4, 1.0, green(3), 0.16, 0); leaf(v, 17, 17, 12, 8, 11, 2, 0.5, green(4), 0.2, 0.3); leaf(v, 17, 17, 14, 5, 8, 1.8, 0.3, green(3), 0.2, 0.6); return v; }
+  });
+  def({
+    id: 'bonsai', name: 'Bonsai', cat: 'pflanzen', place: 'surface', fine: 4, price: 4, desc: 'Ruhe in der Schale.', variants: [L('Dunkel', 'graphite', 'moss'), L('Blau', 'blue', 'moss'), L('Terrakotta', 'terracotta', 'moss')],
+    build() { const v = V(22, 16, 22); v.box(2, 2, 0, 20, 14, 5, c.s0(3)); v.box(2, 2, 4, 20, 14, 5, c.s0(4)); v.box(3, 3, 4, 19, 13, 5, c.moss(2)); v.line(9, 8, 5, 10, 8, 9, 1.4, c.walnut(2)); v.line(10, 8, 9, 7, 7, 14, 1, c.walnut(2)); v.line(10, 8, 10, 15, 9, 14, 0.9, c.walnut(2)); clump(v, 7, 7, 17, 4.2, 3, true); clump(v, 15, 9, 15, 3.8, 5, false); clump(v, 11, 8, 12, 3, 9, false); return v; }
+  });
+  def({
+    id: 'succulents', name: 'Sukkulenten', cat: 'pflanzen', place: 'surface', fine: 4, price: 2, desc: 'Drei kleine Rosetten.', variants: [L('Terrakotta', 'terracotta'), L('Weiß', 'white'), L('Beton', 'concrete')],
+    build() { const v = V(26, 12, 10); v.box(0, 1, 0, 26, 11, 3, c.s0(3)); v.box(0, 1, 2, 26, 11, 3, c.s0(4)); [[6, 'green', 3.4], [13, 'mint', 3], [20, 'teal', 3.2]].forEach(([x, col, r]) => { v.sph(x, 6, 4, r * 0.8, c[col](3)); for (let i = 0; i < 8; i++) { const a = i * 0.785; K.leaf2(v, x, 6, 4, Math.cos(a), Math.sin(a), r + 1, 1.2, 0, c[col](3 + (i & 1)), 0.2); } }); return v; }
+  });
+  def({
+    id: 'orchid', name: 'Orchidee', cat: 'pflanzen', place: 'surface', fine: 4, price: 3.5, desc: 'Blüht wochenlang.', variants: [L('Weiß', 'white', 'pink'), L('Rosa', 'pink', 'magenta'), L('Lila', 'violet', 'purple')],
+    build() { const v = V(16, 16, 30); K.pot(v, 8, 8, 4, 6, 0, c.glass(4), c.glass(5), c.moss(2)); leaf(v, 8, 8, 5, 4, 7, 2.4, 0.9, green(3), 0.05, 0.3); v.line(8, 8, 6, 8, 9, 20, 0.5, c.forest(3)); v.line(8, 9, 20, 11, 10, 26, 0.5, c.forest(3)); [[8, 9, 20], [10, 10, 24], [11, 10, 27], [6, 8, 17]].forEach(([x, y, z]) => { v.sph(x, y, z, 2.2, c.s0(4)); v.sph(x, y + 1, z, 0.9, c.s1(4)); }); return v; }
+  });
+  def({
+    id: 'aloe', name: 'Aloe Vera', cat: 'pflanzen', place: 'surface', fine: 4, price: 2.5, desc: 'Für Sonnenbrand und Auge.', variants: [L('Terrakotta', 'terracotta'), L('Weiß', 'white'), L('Schwarz', 'graphite')],
+    build() { const v = V(18, 18, 20); K.pot(v, 9, 9, 6, 7, 0, c.s0(3), c.s0(4), c.walnut(1)); for (let i = 0; i < 9; i++) { const a = i * 0.7 + 0.2, l = 7 + (i % 3) * 2; v.line(9, 9, 7, 9 + Math.cos(a) * l * 0.7, 9 + Math.sin(a) * l * 0.7, 7 + l * 0.9, 1.3 - i * 0.05, c.green(3 + (i & 1))); v.put(9 + Math.cos(a) * l * 0.7, 9 + Math.sin(a) * l * 0.7, 7 + l * 0.9, c.mint(5)); } return v; }
+  });
+  def({
+    id: 'herbs_set', name: 'Kräutertöpfe', cat: 'pflanzen', place: 'surface', fine: 4, price: 2.5, desc: 'Basilikum, Minze und Rosmarin.', variants: [L('Weiß', 'white'), L('Terrakotta', 'terracotta'), L('Grau', 'greyfab')],
+    build() { const v = V(30, 10, 14); [[5, 'green'], [15, 'mint'], [25, 'forest']].forEach(([x, col], i) => { K.pot(v, x, 5, 4, 6, 0, c.s0(3), c.s0(4), c.walnut(1)); for (let k = 0; k < 7; k++) { const a = k * 0.9 + i; v.sph(x + Math.cos(a) * 2.4, 5 + Math.sin(a) * 2.4, 8 + (k % 3) * 1.5, 1.7, c[col](3 + (k & 1))); } }); return v; }
+  });
+  def({
+    id: 'tulips_pot', name: 'Tulpen im Topf', cat: 'pflanzen', place: 'surface', fine: 4, price: 2, desc: 'Frühling auf dem Tisch.', variants: [L('Rot', 'red'), L('Gelb', 'yellow'), L('Rosa', 'pink'), L('Lila', 'purple')],
+    build() { const v = V(16, 14, 26); K.pot(v, 8, 7, 5, 7, 0, c.white(4), c.white(5), c.walnut(1)); for (let i = 0; i < 5; i++) { const x = 4 + i * 2, h = 18 + (i % 3) * 3; v.line(8, 7, 7, x, 7 + (i % 2) * 2 - 1, h, 0.5, c.green(3)); v.ell(x, 7 + (i % 2) * 2 - 1, h + 2, 1.8, 1.8, 2.6, c.s0(3 + (i & 1))); } return v; }
+  });
+  def({
+    id: 'cactus_tall', name: 'Säulenkaktus', cat: 'pflanzen', price: 6, desc: 'Mit zwei Armen und einer Blüte.', variants: potV,
+    build() { const v = V(30, 30, 66); K.pot(v, 15, 15, 8, 12, 0, c.s0(3), c.s0(4), c.sand(2)); v.cyl(15, 15, 4.4, 12, 58, K.speck('green', 3, 0.12, 3)); v.sph(15, 15, 58, 4.4, c.green(4)); v.line(15, 15, 30, 24, 15, 32, 2.2, c.green(3)); v.line(24, 15, 32, 24, 15, 46, 2.2, c.green(3)); v.sph(24, 15, 47, 2.4, c.green(4)); v.line(15, 15, 24, 7, 15, 26, 2, c.green(3)); v.line(7, 15, 26, 7, 15, 38, 2, c.green(3)); v.sph(7, 15, 39, 2.2, c.green(4)); for (let i = 0; i < 26; i++) v.put(11 + (i * 5) % 9, 10, 14 + i * 1.6, c.yellow(6)); v.sph(15, 15, 62, 2, c.pink(4)); return v; }
+  });
+  def({
+    id: 'bamboo', name: 'Bambus', cat: 'pflanzen', price: 5, desc: 'Schnell und schlank.', variants: [L('Weiß', 'white'), L('Schwarz', 'graphite'), L('Terrakotta', 'terracotta')],
+    build() { const v = V(26, 26, 74); K.pot(v, 13, 13, 8, 12, 0, c.s0(3), c.s0(4), c.walnut(1)); [[-3, 0, 62], [0, 3, 70], [3, -2, 66], [-1, -4, 56], [4, 3, 52]].forEach(([dx, dy, h], i) => { v.line(13 + dx, 13 + dy, 12, 13 + dx * 1.2, 13 + dy * 1.2, 12 + h, 0.9, c.lime(2 + (i & 1))); for (let z = 20; z < 12 + h; z += 9) v.box(Math.round(13 + dx * 1.2) - 1, Math.round(13 + dy * 1.2) - 1, z, Math.round(13 + dx * 1.2) + 1, Math.round(13 + dy * 1.2) + 1, z + 1, c.forest(3)); leaf(v, 13 + dx * 1.2, 13 + dy * 1.2, 12 + h - 6, 3, 8, 2, 0.5, green(3), 0.15, i); }); return v; }
+  });
+  def({
+    id: 'lemon_tree', name: 'Zitronenbäumchen', cat: 'pflanzen', price: 10, desc: 'Mit echten (Pixel-)Zitronen.', variants: potV,
+    build() { const v = V(40, 40, 76); K.pot(v, 20, 20, 9, 13, 0, c.s0(3), c.s0(4), c.walnut(1)); v.line(20, 20, 12, 20, 20, 46, 1.4, c.walnut(2)); clump(v, 20, 20, 54, 12, 11, false); clump(v, 13, 22, 46, 7, 3, false); clump(v, 28, 18, 48, 7, 5, false); [[14, 12, 50], [26, 26, 52], [30, 20, 44], [12, 26, 44], [20, 12, 60]].forEach(([x, y, z]) => v.sph(x, y, z, 2.2, c.yellow(4))); return v; }
+  });
+  def({
+    id: 'christmas_tree', name: 'Weihnachtsbaum', cat: 'pflanzen', price: 8, desc: 'Mit Lichterkette, Kugeln und Stern.',
+    lights: [{ x: 20, y: 20, z: 40, r: 110, i: 2.4, col: [255, 214, 140], night: false }], variants: [L('Klassisch', 'forest')],
+    build() { const v = V(40, 40, 84); v.box(17, 17, 0, 23, 23, 8, c.walnut(2)); for (let k = 0; k < 4; k++) { const z0 = 6 + k * 15, r0 = 18 - k * 3.6; for (let z = 0; z < 18; z++) v.cyl(20, 20, Math.max(1.5, r0 * (1 - z / 22)), z0 + z, z0 + z + 1, (x, y, zz) => c.s0(hash(x, y, zz) < 0.2 ? 2 : (z > 11 ? 4 : 3))); } for (let i = 0; i < 38; i++) { const z = 10 + (i * 7) % 56, r = (18 - Math.floor((z - 6) / 15) * 3.6) * (1 - ((z - 6) % 15) / 22), a = i * 2.4; v.sph(20 + Math.cos(a) * r, 20 + Math.sin(a) * r, z, 1.1, i % 3 ? RS.e.yellow(6) : [c.red(4), c.blue(4), c.gold(5)][i % 3]); } v.sph(20, 20, 82, 2.4, RS.e.yellow(6)); v.box(18, 18, 76, 22, 22, 80, c.gold(5)); return v; }
+  });
+  def({
+    id: 'pampas', name: 'Pampasgras in Vase', cat: 'pflanzen', price: 5, desc: 'Weich, flauschig, ganz im Trend.', variants: [L('Natur', 'cream', 'concrete'), L('Rosa', 'peach', 'white'), L('Weiß', 'white', 'graphite')],
+    build() { const v = V(30, 30, 74); v.cyl(15, 15, 6, 0, 22, c.s1(3)); v.cyl(15, 15, 6.4, 20, 23, c.s1(4)); v.cyl(15, 15, 3, 23, 24, c.walnut(1)); for (let i = 0; i < 9; i++) { const a = i * 0.7, r = 3 + (i % 3) * 3, h = 44 + (i % 4) * 7; v.line(15, 15, 22, 15 + Math.cos(a) * r, 15 + Math.sin(a) * r, 22 + h * 0.5, 0.4, c.sand(3)); v.line(15 + Math.cos(a) * r, 15 + Math.sin(a) * r, 22 + h * 0.5, 15 + Math.cos(a) * r * 1.6, 15 + Math.sin(a) * r * 1.6, 24 + h, 0.4, c.sand(3)); v.ell(15 + Math.cos(a) * r * 1.6, 15 + Math.sin(a) * r * 1.6, 24 + h - 6, 2.2, 2.2, 7, (x, y, z) => (hash(x, y, z) < 0.25 ? c.s0(3) : c.s0(4))); } return v; }
+  });
+
+  /* ---------- Lampen und Licht ---------- */
+  def({
+    id: 'lamp_arc', name: 'Bogenlampe', cat: 'licht', price: 7, desc: 'Schwingt über das Sofa.', lights: [{ x: 34, y: 14, z: 58, r: 120, i: 3.6, col: [255, 200, 130], night: false }],
+    variants: [L('Schwarz', 'graphite', 'stone'), L('Messing', 'gold', 'cream'), L('Weiß', 'white', 'cream')],
+    build() { const v = V(44, 24, 70); v.box(2, 6, 0, 18, 18, 4, c.s0(3)); v.box(3, 7, 4, 17, 17, 5, c.s0(4)); v.line(10, 12, 4, 10, 12, 50, 0.9, c.s0(3)); for (let i = 0; i <= 20; i++) { const t = i / 20, x = 10 + 26 * Math.sin(t * Math.PI / 2), z = 50 + 12 * Math.cos(t * Math.PI / 2) - 12 + 12 * 0; v.sph(x, 12, 50 + 12 * (1 - Math.cos(t * Math.PI / 2)) * 0 + 14 * Math.sin(t * Math.PI / 2) * 0.35 + (1 - t) * 4, 0.9, c.s0(3)); } for (let z = 52; z < 64; z++) { const r = 4.2 + (z - 52) * 0.25; v.cyl(34, 12, r, z, z + 1, () => RS.e.s1(6)); } v.cyl(34, 12, 4.4, 51, 52, c.s0(3)); return v; }
+  });
+  def({
+    id: 'lamp_desk', name: 'Schreibtischlampe', cat: 'licht', place: 'surface', fine: 4, price: 2.5, desc: 'Gelenkarm, warmes Licht.', lights: [{ x: 10, y: 8, z: 18, r: 70, i: 3.0, col: [255, 210, 150], night: false }],
+    variants: [L('Schwarz', 'graphite'), L('Weiß', 'white'), L('Kupfer', 'orange')],
+    build() { const v = V(20, 16, 24); v.cyl(5, 8, 4, 0, 2, c.s0(3)); v.line(5, 8, 2, 5, 8, 12, 0.7, c.s0(3)); v.line(5, 8, 12, 12, 8, 19, 0.7, c.s0(3)); v.sph(5, 8, 12, 1, c.s0(4)); v.cyl(13, 8, 4, 17, 21, c.s0(3)); v.cyl(13, 8, 2.8, 16, 18, RS.e.yellow(6)); return v; }
+  });
+  def({
+    id: 'lamp_lava', name: 'Lavalampe', cat: 'licht', place: 'surface', fine: 4, price: 3, desc: 'Blubbert vor sich hin.', lights: [{ x: 5, y: 5, z: 12, r: 50, i: 1.8, col: [255, 120, 190], night: false }],
+    screens: [{ plane: 'y', x0: 0, z0: 6, w: 10, h: 14 }], variants: [L('Silber', 'steel')],
+    build() { const v = V(10, 10, 26); v.cyl(5, 5, 4, 0, 6, c.s0(4)); for (let z = 6; z < 20; z++) v.cyl(5, 5, 3.4 - (z - 6) * 0.08, z, z + 1, RS.dyn(7, 0)); v.cyl(5, 5, 2.2, 20, 24, c.s0(4)); v.sph(5, 5, 25, 1.2, c.s0(5)); return v; }
+  });
+  def({
+    id: 'candles', name: 'Kerzen', cat: 'licht', place: 'surface', fine: 2, price: 1.5, desc: 'Flackern leise im Dunkeln.', lights: [{ x: 8, y: 5, z: 10, r: 46, i: 1.5, col: [255, 190, 110], night: true, flick: true }],
+    screens: [{ plane: 'y', x0: 0, z0: 10, w: 16, h: 4 }], variants: [L('Creme', 'cream'), L('Rot', 'red'), L('Weiß', 'white')],
+    build() { const v = V(16, 10, 18); v.cyl(8, 5, 4.6, 0, 1, c.gold(3)); [[4, 5, 9], [8, 4, 12], [12, 6, 7]].forEach(([x, y, h]) => { v.cyl(x, y, 1.7, 1, h, c.s0(4)); v.cyl(x, y, 1.2, h - 1, h, c.s0(5)); v.box(x, y, h, x + 1, y + 1, h + 1, c.ink(2)); v.box(x - 1, y, h + 1, x + 1, y + 1, h + 4, RS.dyn(5, 0)); }); return v; }
+  });
+  def({
+    id: 'lantern', name: 'Laterne', cat: 'licht', price: 2.5, desc: 'Mit Kerze, zum Hinstellen oder Hängen.', lights: [{ x: 7, y: 7, z: 12, r: 70, i: 2.4, col: [255, 196, 120], night: false }],
+    variants: [L('Schwarz', 'graphite'), L('Messing', 'gold'), L('Weiß', 'white')],
+    build() { const v = V(14, 14, 28); v.box(1, 1, 0, 13, 13, 2, c.s0(3)); [[1, 1], [11, 1], [1, 11], [11, 11]].forEach(([x, y]) => v.box(x, y, 2, x + 2, y + 2, 18, c.s0(3))); v.box(1, 1, 18, 13, 13, 20, c.s0(3)); v.cyl(7, 7, 3, 20, 22, c.s0(3)); v.line(4, 7, 22, 7, 7, 27, 0.6, c.s0(3)); v.line(10, 7, 22, 7, 7, 27, 0.6, c.s0(3)); v.cyl(7, 7, 2, 2, 10, RS.e.yellow(5)); v.cyl(7, 7, 2.4, 2, 6, c.cream(4)); return v; }
+  });
+  def({
+    id: 'lamp_moon', name: 'Mondlampe', cat: 'licht', place: 'surface', fine: 4, price: 3, desc: 'Sanftes Nachtlicht.', lights: [{ x: 8, y: 6, z: 10, r: 60, i: 1.8, col: [255, 240, 190], night: false }],
+    variants: [L('Warm', 'yellow', 'oak'), L('Kühl', 'cyan', 'oak')],
+    build() { const v = V(18, 12, 18); v.cyl(9, 6, 4, 0, 2, c.s1(3)); v.sph(9, 6, 10, 7, (x, y, z) => (hash(x >> 1, y >> 1, z >> 1) < 0.14 ? RS.e.s0(4) : RS.e.s0(6))); return v; }
+  });
+  def({
+    id: 'fairy_curtain', name: 'Lichtervorhang', cat: 'licht', place: 'wall', price: 4, desc: 'Funkelt wie ein Sternenhimmel.', lights: [{ x: 22, y: 6, z: 30, r: 90, i: 2.0, col: [255, 214, 150], night: true }],
+    variants: [L('Warmweiß', 'amber')],
+    build() { const v = V(44, 3, 64); v.box(0, 0, 61, 44, 1, 62, c.graphite(3)); for (let i = 0; i < 9; i++) { const x = 2 + i * 5, l = 36 + (i * 17) % 24; v.box(x, 0, 62 - l, x + 1, 1, 62, c.stone(2)); for (let z = 62 - l; z < 61; z += 6) v.box(x - 1, 0, z + (i & 1) * 2, x + 1, 2, z + 2 + (i & 1) * 2, RS.e.yellow(6)); } return v; }
+  });
+  def({
+    id: 'led_rgb', name: 'RGB-Lichtleiste', cat: 'licht', place: 'wall', price: 4, desc: 'Wechselt langsam die Farbe.', lights: [{ x: 32, y: 4, z: 3, r: 80, i: 2.0, col: [200, 120, 255], night: true }],
+    screens: [{ plane: 'y', x0: 0, z0: 0, w: 66, h: 4 }], variants: [L('RGB', 'violet')],
+    build() { const v = V(66, 3, 4); v.box(0, 0, 0, 66, 1, 4, c.graphite(3)); v.box(1, 1, 1, 65, 2, 3, RS.dyn(4, 0)); return v; }
+  });
+  def({
+    id: 'sconce_wall', name: 'Wandleuchte Kerze', cat: 'licht', place: 'wall', price: 3, desc: 'Schwarz und schlicht wie im Landhaus.', lights: [{ x: 6, y: 7, z: 14, r: 70, i: 2.4, col: [255, 196, 120], night: false }],
+    variants: [L('Schwarz', 'graphite'), L('Messing', 'gold'), L('Weiß', 'white')],
+    build() { const v = V(12, 10, 22); v.box(4, 0, 4, 8, 2, 14, c.s0(3)); v.line(6, 1, 8, 6, 6, 8, 0.8, c.s0(3)); v.line(6, 6, 8, 2, 6, 12, 0.8, c.s0(3)); v.line(6, 6, 8, 10, 6, 12, 0.8, c.s0(3)); v.cyl(2, 6, 1.6, 10, 12, c.s0(3)); v.cyl(10, 6, 1.6, 10, 12, c.s0(3)); v.cyl(2, 6, 1, 12, 17, c.cream(4)); v.cyl(10, 6, 1, 12, 17, c.cream(4)); v.sph(2, 6, 18, 1, RS.e.yellow(6)); v.sph(10, 6, 18, 1, RS.e.yellow(6)); return v; }
+  });
+  def({
+    id: 'lamp_tripod', name: 'Dreibein-Stehlampe', cat: 'licht', price: 5, desc: 'Holzbeine, heller Schirm.', lights: [{ x: 14, y: 14, z: 56, r: 120, i: 4.0, col: [255, 200, 130], night: false }],
+    variants: [L('Creme', 'cream', 'oak'), L('Grau', 'greyfab', 'walnut'), L('Senf', 'amber', 'oak')],
+    build() { const v = V(28, 28, 70); [[4, 5], [24, 5], [14, 25]].forEach(([x, y]) => v.line(x, y, 1, 14, 14, 44, 0.9, K.grain('s1', 3, 50))); for (let z = 44; z < 66; z++) { const r = 6 + (z - 44) * 0.2; v.cyl(14, 14, r, z, z + 1, () => RS.e.s0(6)); } v.cyl(14, 14, 10.4, 65, 66, c.s0(4)); v.cyl(14, 14, 6, 43, 44, c.s0(3)); return v; }
+  });
+  [['neon_love', 'Neon LOVE', 'LOVE', 'pink', [255, 100, 160]], ['neon_game', 'Neon GAME', 'GAME', 'cyan', [90, 220, 255]], ['neon_cafe', 'Neon CAFE', 'CAFE', 'amber', [255, 190, 90]], ['neon_music', 'Neon MUSIC', 'MUSIC', 'violet', [190, 130, 255]]].forEach(([id, name, txt, ramp, col]) => {
+    def({ id, name, cat: 'licht', place: 'wall', price: 6, desc: 'Leuchtschrift mit Charakter.', lights: [{ x: 24, y: 6, z: 7, r: 70, i: 2.4, col, night: true }], variants: [L('Pink', 'pink'), L('Cyan', 'cyan'), L('Gelb', 'yellow'), L('Violett', 'violet')],
+      build() { const w = K.textWidth(txt, 2) + 8, v = V(w, 3, 14); K.text(v, txt, 4, 3, 1, RS.e.s0(5), 2, 'y'); v.box(0, 0, 0, w, 1, 14, 0); return v; } });
+  });
+  RS.ITEM.neon_love.variants = [L('Pink', 'pink'), L('Rot', 'red'), L('Weiß', 'white')]; RS.ITEM.neon_game.variants = [L('Cyan', 'cyan'), L('Grün', 'lime'), L('Pink', 'pink')];
+
+  /* ---------- Teppiche ---------- */
+  def({
+    id: 'rug_geo', name: 'Teppich Rauten', cat: 'deko', place: 'floor', flat: true, price: 6, desc: 'Pfirsich mit Rautenmuster wie im Schlafzimmer.',
+    variants: [L('Pfirsich', 'peach', 'terracotta', 'cream'), L('Petrol', 'teal', 'cream', 'sand'), L('Grau', 'stone', 'graphite', 'white'), L('Senf', 'amber', 'brick', 'cream')],
+    build() { const v = V(64, 38, 1); v.box(0, 0, 0, 64, 38, 1, (x, y) => { if (x < 3 || y < 3 || x >= 61 || y >= 35) return c.s2(3); const dx = Math.abs(((x - 3) % 18) - 9), dy = Math.abs(((y - 3) % 14) - 7) * 1.3; const d = dx + dy; return d < 4 ? c.s1(4) : d < 7 ? c.s1(3) : (d < 8 ? c.s2(3) : c.s0(3)); }); return v; }
+  });
+  def({
+    id: 'rug_round', name: 'Teppich rund', cat: 'deko', place: 'floor', flat: true, price: 5, desc: 'Weich und rund.',
+    variants: [L('Creme', 'cream', 'sand'), L('Rosa', 'rose', 'pink'), L('Grau', 'greyfab', 'stone'), L('Blau', 'slate', 'sky')],
+    build() { const v = V(44, 44, 1); v.cyl(22, 22, 22, 0, 1, (x, y) => (Math.hypot(x - 22, y - 22) > 19 ? c.s1(3) : hash(x >> 1, y >> 1, 8) < 0.15 ? c.s0(2) : c.s0(3))); return v; }
+  });
+  def({
+    id: 'rug_runner', name: 'Läufer', cat: 'deko', place: 'floor', flat: true, price: 4, desc: 'Lang und schmal für Flur und Küche.',
+    variants: [L('Rot', 'red', 'cream'), L('Blau', 'blue', 'cream'), L('Grau', 'greyfab', 'white'), L('Senf', 'amber', 'cream')],
+    build() { const v = V(26, 76, 1); v.box(0, 0, 0, 26, 76, 1, (x, y) => ((x < 2 || x >= 24 || y < 2 || y >= 74) ? c.s1(3) : ((y >> 3) % 2 && x > 4 && x < 22 ? c.s1(4) : c.s0(3)))); return v; }
+  });
+  def({
+    id: 'rug_rainbow', name: 'Teppich Regenbogen', cat: 'deko', place: 'floor', flat: true, price: 6, desc: 'Bunte Bögen für gute Laune.', variants: [L('Bunt', 'red')],
+    build() { const v = V(52, 30, 1), cols = ['red', 'orange', 'yellow', 'green', 'cyan', 'blue', 'violet']; v.box(0, 0, 0, 52, 30, 1, (x, y) => { const d = Math.hypot(x - 26, y - 3); if (y < 3 && d > 23) return 0; const i = Math.floor((24 - d) / 2.4); return d <= 24 && d > 7 && y >= 0 ? c[cols[Math.max(0, Math.min(6, i))]](4) : (d <= 7 ? c.cream(4) : 0); }); return v; }
+  });
+  def({
+    id: 'rug_cloud', name: 'Teppich Wolke', cat: 'deko', place: 'floor', flat: true, price: 5, desc: 'Wellige Form, weich wie eine Wolke.', variants: [L('Rosa', 'pink'), L('Creme', 'cream'), L('Mint', 'mint'), L('Lavendel', 'lavender')],
+    build() { const v = V(52, 40, 1); v.box(0, 0, 0, 52, 40, 1, (x, y) => { const a = Math.atan2(y - 20, x - 26), r = 17 + 3.2 * Math.sin(a * 5) + 1.5 * Math.sin(a * 3 + 1); return Math.hypot((x - 26) * 0.8, y - 20) < r ? (hash(x >> 1, y >> 1, 9) < 0.14 ? c.s0(2) : c.s0(3)) : 0; }); return v; }
+  });
+  def({
+    id: 'rug_persian', name: 'Orientteppich', cat: 'deko', place: 'floor', flat: true, price: 9, desc: 'Rot mit Medaillon und Bordüre.',
+    variants: [L('Rot', 'red', 'cream', 'navy'), L('Blau', 'blue', 'cream', 'cherry'), L('Grün', 'forest', 'sand', 'brick')],
+    build() { const v = V(60, 40, 1); v.box(0, 0, 0, 60, 40, 1, (x, y) => { if (x < 2 || y < 2 || x >= 58 || y >= 38) return c.s2(3); if (x < 5 || y < 5 || x >= 55 || y >= 35) return (x + y) % 4 < 2 ? c.s1(4) : c.s2(3); const d = Math.hypot((x - 30) / 1.3, y - 20); if (d < 4) return c.s1(5); if (d < 9) return c.s2(3); if (d < 10) return c.s1(4); return ((x >> 2) + (y >> 2)) % 2 ? c.s0(3) : c.s0(2); }); return v; }
+  });
+  def({
+    id: 'rug_shag', name: 'Hochflor-Teppich', cat: 'deko', place: 'floor', flat: true, price: 8, desc: 'Fluffig zum Barfußlaufen.', variants: [L('Creme', 'cream', 'white'), L('Grau', 'stone', 'white'), L('Rosa', 'rose', 'pink')],
+    build() { const v = V(52, 40, 2); v.box(0, 0, 0, 52, 40, 2, (x, y, z) => (hash(x, y, 5) < 0.3 ? c.s0(4) : hash(x, y, 6) < 0.5 ? c.s1(4) : c.s0(3))); return v; }
+  });
+
+  /* ---------- Deko ---------- */
+  def({
+    id: 'fireplace', name: 'Kamin', cat: 'deko', price: 20, desc: 'Backstein, Kaminsims und echtes Feuer. Wärmt das ganze Zimmer.',
+    lights: [{ x: 26, y: 12, z: 14, r: 130, i: 3.4, col: [255, 150, 70], night: false, flick: true }], screens: [{ plane: 'y', x0: 14, z0: 4, w: 24, h: 18 }],
+    variants: [L('Rot', 'brick', 'sand'), L('Weiß', 'white', 'stone'), L('Grau', 'stone', 'graphite')],
+    build() {
+      const v = V(56, 22, 66);
+      v.box(0, 0, 0, 56, 22, 60, (x, y, z) => ((z % 6 === 0 || (x + (z / 6 | 0) % 2 * 4) % 8 === 0) ? c.s1(3) : (hash(x >> 3, z >> 2, 7) < 0.3 ? c.s0(2) : c.s0(3))));
+      v.box(10, 4, 0, 46, 22, 26, 0); v.box(10, 4, 0, 46, 5, 26, c.iron(1)); v.box(10, 4, 0, 11, 22, 26, c.iron(2)); v.box(45, 4, 0, 46, 22, 26, c.iron(2));
+      v.box(13, 6, 0, 43, 20, 3, c.iron(1)); v.box(14, 21, 4, 42, 22, 22, RS.dyn(5, 0));
+      for (let i = 0; i < 5; i++) v.line(16 + i * 6, 12, 3, 20 + i * 5, 14, 4, 1.2, c.walnut(2));
+      v.box(0, 0, 58, 56, 22, 62, K.grain('s2', 3, 51)); v.box(0, 18, 58, 56, 22, 62, c.s2(4)); v.box(4, 2, 62, 52, 4, 66, c.s0(2));
+      return v;
+    }
+  });
+  def({
+    id: 'clock_mantel', name: 'Kaminuhr', cat: 'deko', place: 'surface', fine: 4, price: 4, desc: 'Tickt leise auf dem Sims.', variants: [L('Schwarz', 'graphite', 'gold'), L('Holz', 'walnut', 'gold'), L('Weiß', 'white', 'gold')],
+    build() { const v = V(22, 10, 22); v.box(2, 1, 0, 20, 9, 3, c.s0(3)); v.rbox(3, 1, 3, 19, 9, 17, 4, c.s0(3)); v.cylY(11, 11, 5.6, 8, 9, c.cream(5)); v.cylY(11, 11, 5.6, 8, 9, (x, y, z) => ((x - 11) ** 2 + (z - 11) ** 2 < 36 ? c.cream(5) : 0)); v.box(10, 9, 11, 11, 10, 16, c.ink(2)); v.box(11, 9, 10, 15, 10, 11, c.ink(2)); v.sph(11, 5, 19, 2, c.s1(4)); return v; }
+  });
+  def({
+    id: 'photo_frame', name: 'Tischrahmen', cat: 'deko', place: 'surface', fine: 2, price: 1, desc: 'Ein schöner Moment.', variants: [L('Holz', 'oak'), L('Schwarz', 'graphite'), L('Gold', 'gold'), L('Weiß', 'white')],
+    build() { const v = V(14, 6, 16); v.box(1, 2, 0, 13, 6, 14, c.s0(3)); v.box(2, 5, 2, 12, 6, 12, (x, y, z) => ((x + z) < 18 ? c.sky(4) : (z > 6 ? c.skin2(4) : c.green(3)))); v.sph(7, 5, 8, 2, c.skin1(4)); v.box(4, 0, 2, 6, 3, 12, c.s0(2)); return v; }
+  });
+  [['plush_bear', 'Teddybär', 'Weich und tröstlich.', 'leather', 'sand'], ['plush_bunny', 'Plüschhase', 'Mit langen Ohren.', 'white', 'rose']].forEach(([id, name, desc, a, b]) => {
+    def({ id, name, cat: 'deko', place: 'surface', fine: 2, price: 2.5, desc, variants: [L('Klassisch', a, b), L('Rosa', 'pink', 'white'), L('Blau', 'sky', 'white'), L('Grau', 'stone', 'white')],
+      build() { const v = V(18, 14, 20), bunny = id === 'plush_bunny', F = K.fab(0, 3, 0.05); v.ell(9, 7, 6, 5, 4.6, 6, F); v.ell(9, 10.4, 5.5, 3, 1.2, 3.6, c.s1(4)); v.sph(9, 8, 14, 4, F); v.ell(9, 11, 13, 2, 1.6, 1.6, c.s1(4)); v.put(8, 12, 14, c.ink(3)); v.put(9, 12, 14, c.ink(3)); v.put(6, 11, 15, c.ink(3)); v.put(11, 11, 15, c.ink(3)); v.sph(4, 8, 4, 2, F); v.sph(14, 8, 4, 2, F); v.sph(3, 8, 9, 1.8, F); v.sph(15, 8, 9, 1.8, F); if (bunny) { v.box(6, 7, 17, 8, 9, 19, F); v.box(10, 7, 17, 12, 9, 19, F); v.box(6, 7, 15, 8, 9, 17, c.s1(3)); v.box(10, 7, 15, 12, 9, 17, c.s1(3)); } else { v.sph(5, 8, 17, 1.6, F); v.sph(13, 8, 17, 1.6, F); } return v; } });
+  });
+  def({
+    id: 'snow_globe', name: 'Schneekugel', cat: 'deko', place: 'surface', fine: 2, price: 2, desc: 'Schütteln nicht nötig.', variants: [L('Blau', 'sky', 'walnut'), L('Rosa', 'pink', 'walnut')],
+    build() { const v = V(14, 14, 16); v.cyl(7, 7, 5, 0, 4, c.s1(3)); v.sph(7, 7, 10, 5.6, c.glass(5)); v.sph(7, 7, 10, 4.8, (x, y, z) => (hash(x, y, z) < 0.07 ? c.white(7) : c.s0(3))); v.cyl(7, 7, 4, 4, 5, c.white(5)); v.cyl(7, 7, 1.2, 5, 9, c.forest(3)); v.sph(7, 7, 9, 1.8, c.forest(3)); return v; }
+  });
+  def({
+    id: 'piggy_bank', name: 'Sparschwein', cat: 'deko', place: 'surface', fine: 2, price: 2, desc: 'Für die erarbeiteten Stunden.', variants: [L('Rosa', 'pink'), L('Gold', 'gold'), L('Blau', 'sky')],
+    build() { const v = V(18, 12, 14); v.ell(9, 6, 6, 7, 5, 5, c.s0(3)); v.ell(15.5, 6, 6, 1.4, 2.4, 2.4, c.s0(4)); v.put(16, 5, 7, c.ink(2)); v.put(16, 7, 7, c.ink(2)); v.box(12, 4, 10, 14, 6, 12, c.s0(3)); v.box(5, 3, 10, 8, 4, 11, c.ink(2)); K.legs(v, [[4, 3], [4, 7], [11, 3], [11, 7]], 2, 3, c.s0(2)); v.line(2, 6, 7, 1, 7, 9, 0.5, c.s0(3)); v.cyl(9, 6, 1.4, 11, 12, c.gold(5)); return v; }
+  });
+  def({
+    id: 'trophy', name: 'Pokal', cat: 'deko', place: 'surface', fine: 2, price: 3, desc: 'Für den ersten Platz.', variants: [L('Gold', 'gold'), L('Silber', 'steel'), L('Bronze', 'orange')],
+    build() { const v = V(14, 10, 22); v.box(3, 2, 0, 11, 8, 3, c.walnut(2)); v.box(5, 3, 3, 9, 7, 5, c.s0(3)); v.cyl(7, 5, 1.2, 5, 11, c.s0(3)); for (let z = 11; z < 20; z++) v.cyl(7, 5, 2.8 + (z - 11) * 0.3, z, z + 1, c.s0(z > 17 ? 5 : 4)); v.line(3, 5, 17, 1, 5, 14, 0.6, c.s0(4)); v.line(11, 5, 17, 13, 5, 14, 0.6, c.s0(4)); return v; }
+  });
+  def({
+    id: 'bust', name: 'Büste', cat: 'deko', place: 'surface', fine: 4, price: 5, desc: 'Antik und streng.', variants: [L('Marmor', 'white'), L('Bronze', 'leather'), L('Schwarz', 'graphite')],
+    build() { const v = V(16, 12, 26); v.box(3, 2, 0, 13, 10, 5, c.s0(3)); v.rbox(3, 3, 5, 13, 9, 14, 2, c.s0(4)); v.ell(8, 6, 17, 3.6, 4, 4.8, c.s0(5)); v.box(7, 9, 15, 9, 10, 17, c.s0(3)); v.box(5, 9, 18, 6, 10, 19, c.s0(2)); v.box(9, 9, 18, 10, 10, 19, c.s0(2)); v.ell(8, 6, 21, 4, 4.4, 1.8, c.s0(4)); return v; }
+  });
+  def({
+    id: 'basket_wicker', name: 'Weidenkorb', cat: 'deko', price: 3, desc: 'Mit Decke gefüllt.', variants: [L('Natur', 'kraft', 'cream'), L('Dunkel', 'leather', 'greyfab'), L('Weiß', 'white', 'rose')],
+    build() { const v = V(26, 22, 20); v.cyl(13, 11, 11, 0, 14, (x, y, z) => (((x + z) & 1) ? c.s0(3) : c.s0(4))); v.cyl(13, 11, 11.4, 13, 15, c.s0(2)); v.cyl(13, 11, 9.6, 14, 15, c.s1(3)); K.lumps(v, 5, 4, 21, 18, 13, 4, 6, 4, (i) => c.s1(3 + (i % 3))); return v; }
+  });
+  def({
+    id: 'ladder_blankets', name: 'Deckenleiter', cat: 'deko', price: 5, desc: 'Lehnt an der Wand, gefüllt mit Decken.', variants: [L('Holz', 'oak', 'greyfab'), L('Weiß', 'white', 'rose'), L('Schwarz', 'graphite', 'sand')],
+    build() { const v = V(34, 12, 66), W = K.grain('s0', 3, 52); for (const x of [2, 30]) v.line(x, 10, 1, x, 2, 64, 1.2, W); for (let i = 0; i < 6; i++) { const z = 10 + i * 9, y = 10 - (z / 66) * 8; v.box(1, Math.round(y) - 1, z, 33, Math.round(y) + 1, z + 2, W); } [[18, 'greyfab', 4], [30, 'cream', 4], [42, 'sage', 4], [54, 'terracotta', 4]].forEach(([z, , h], i) => { v.rbox(3, 3 + (i % 2), z, 31, 8 + (i % 2), z + 7, 2, i % 2 ? c.s1(3 + (i & 1)) : (x, y, zz) => (((x >> 2) + (zz >> 1)) & 1 ? c.s1(3) : c.s1(4))); }); return v; }
+  });
+  def({
+    id: 'pumpkin', name: 'Kürbis', cat: 'deko', place: 'surface', fine: 2, price: 1.5, desc: 'Für den Herbst.', variants: [L('Orange', 'orange'), L('Weiß', 'white'), L('Grün', 'lime')],
+    build() { const v = V(16, 14, 14); v.ell(8, 7, 5, 7, 6, 4.6, (x, y, z) => ((x + y) % 4 < 1 ? c.s0(2) : c.s0(3))); v.ell(8, 7, 5, 3, 3, 5, c.s0(3)); v.box(7, 6, 9, 9, 8, 13, c.forest(2)); v.line(9, 7, 12, 12, 8, 12, 0.5, c.green(3)); return v; }
+  });
+})(window);
+
+</script>
+<script>
+/* src/items/more-wall.js */
+/* Raumspiel – mehr Wandschmuck: Bilder und Poster, Pinnwand, Karten, Regale, Fenster, Uhren, Vorhaenge */
+(function (g) {
+  const RS = g.RS, c = RS.c, K = RS.kit, V = RS.V, hash = RS.hash;
+  const def = RS.defItem;
+  const L = (n, ...m) => ({ n, m });
+  const WALL = (o) => def(Object.assign({ cat: 'wand', place: 'wall' }, o));
+  const frameV = [L('Schwarz', 'graphite'), L('Weiß', 'white'), L('Eiche', 'oak'), L('Gold', 'gold')];
+  const framed = K.framed;
+  const ART = (id, name, w, h, price, desc, fn, mat) => WALL({ id, name, price, desc, variants: frameV, build() { return framed(w, h, fn, mat); } });
+
+  /* ---------- Bilder ---------- */
+  ART('art_landscape', 'Bild Landschaft', 30, 22, 3, 'Hügel, See und eine kleine Sonne.', (u, v, iw, ih) => {
+    if (Math.hypot(u - iw * 0.72, v - ih * 0.28) < 2.8) return c.yellow(5);
+    const h1 = ih * 0.52 + Math.sin(u * 0.35) * 2, h2 = ih * 0.66 + Math.sin(u * 0.5 + 2) * 1.6;
+    if (v > ih * 0.82) return c.sky(3 + ((u + v) % 7 < 1 ? 1 : 0));
+    if (v > h2) return c.forest(3); if (v > h1) return c.green(3);
+    return c.sky(4 + (v < ih * 0.2 ? 1 : 0) - (v > ih * 0.4 ? 1 : 0));
+  });
+  ART('art_moon', 'Bild Mond & Sterne', 22, 30, 3, 'Sichel und Sternenhimmel.', (u, v, iw, ih) => {
+    const d1 = Math.hypot(u - iw * 0.5, v - ih * 0.38);
+    if (d1 < 5.4 && Math.hypot(u - iw * 0.5 + 2.4, v - ih * 0.38 - 1) > 4.6) return c.cream(5);
+    return hash(u, v, 3) > 0.93 ? c.white(7) : c.navy(2 + (v > ih * 0.7 ? 1 : 0));
+  });
+  ART('art_city', 'Bild Skyline', 32, 22, 3, 'Die Stadt im Abendlicht.', (u, v, iw, ih) => {
+    const bh = 5 + Math.floor(hash(u >> 2, 3, 3) * 9), top = ih - bh;
+    if (v >= top && v < ih) return (u % 4 === 1 && (v - top) % 3 === 1 && hash(u >> 2, v, 5) > 0.35) ? c.yellow(5) : c.ink(3);
+    return c.peach(Math.max(2, 5 - Math.floor(v / 4))) && (v < ih * 0.4 ? c.violet(3) : v < ih * 0.65 ? c.pink(4) : c.peach(4));
+  });
+  ART('art_mountains', 'Bild Berge', 30, 22, 3, 'Schneegipfel in Blau.', (u, v, iw, ih) => {
+    const m1 = ih * 0.7 - Math.max(0, 9 - Math.abs(u - iw * 0.35) * 0.9), m2 = ih * 0.72 - Math.max(0, 7 - Math.abs(u - iw * 0.72) * 0.9);
+    if (Math.hypot(u - iw * 0.8, v - ih * 0.2) < 2.6) return c.yellow(5);
+    if (v >= Math.min(m1, m2)) return v < Math.min(m1, m2) + 2.5 ? c.white(5) : (u < iw * 0.5 ? c.slate(3) : c.blue(3));
+    return c.sky(4);
+  });
+  ART('art_cat', 'Bild Katzenporträt', 22, 26, 3, 'Orange Katze auf Petrol.', (u, v, iw, ih) => {
+    const cx = iw / 2;
+    if (Math.hypot((u - cx) / 5.4, (v - ih * 0.55) / 5.8) < 1) { if ((Math.abs(u - cx + 2.4) < 0.8 || Math.abs(u - cx - 2.4) < 0.8) && Math.abs(v - ih * 0.5) < 0.8) return c.green(5); return c.orange(4); }
+    if (v < ih * 0.32 && v > ih * 0.2 && Math.abs(Math.abs(u - cx) - 3.8) < 1.7) return c.orange(3);
+    return c.teal(3);
+  });
+  ART('art_botanic', 'Bild Botanik', 22, 30, 3, 'Blätter wie aus dem Herbarium.', (u, v, iw, ih) => {
+    const x = iw / 2 + Math.sin(v * 0.25) * 1.2;
+    if (Math.abs(u - x) < 0.6 && v > 4) return c.forest(3);
+    for (let i = 0; i < 6; i++) { const y = 6 + i * 3.4, side = i % 2 ? 1 : -1, d = Math.hypot((u - x - side * 3.4) / 3.6, (v - y - 1) / 1.3); if (d < 1) return c.green(3 + (i & 1)); }
+    return c.cream(5);
+  });
+  ART('art_abstract', 'Bild Abstrakt', 26, 26, 3, 'Kreise in Erdtönen.', (u, v, iw, ih) => {
+    if (Math.hypot(u - 7, v - 8) < 5) return c.terracotta(3); if (Math.hypot(u - 16, v - 10) < 6) return c.sand(4); if (Math.hypot(u - 12, v - 18) < 5.5) return c.moss(3); if (Math.hypot(u - 19, v - 19) < 3) return c.blue(3);
+    return c.cream(5);
+  });
+  ART('art_coffee', 'Bild Kaffee', 20, 24, 2.5, 'Für die Küche.', (u, v, iw, ih) => {
+    if (u >= 4 && u < 14 && v >= 7 && v < 15) return c.cream(5); if (u >= 14 && u < 17 && v >= 9 && v < 13) return c.cream(4);
+    if (u >= 4 && u < 14 && v === 7) return c.walnut(2); if (u >= 6 && u < 12 && v === 5 && (u & 1)) return c.stone(4);
+    return c.walnut(3);
+  });
+  ART('art_rainbow', 'Bild Regenbogen', 26, 18, 2.5, 'Bunte Bögen auf Weiß.', (u, v, iw, ih) => {
+    const d = Math.hypot(u - iw / 2, v - ih), cols = ['red', 'orange', 'yellow', 'green', 'sky', 'purple'], i = Math.floor((d - 3) / 1.6);
+    return d > 3 && i >= 0 && i < 6 ? c[cols[i]](4) : c.white(5);
+  });
+  ART('art_geometric', 'Bild Geometrie', 24, 30, 3, 'Formen im Mid-Century-Stil.', (u, v, iw, ih) => {
+    if (v > ih * 0.55 && Math.abs(u - iw / 2) < (v - ih * 0.55) * 0.9 && v < ih * 0.95) return c.teal(3);
+    if (Math.hypot(u - iw * 0.66, v - ih * 0.3) < 4.6) return c.amber(4);
+    if (u < iw * 0.34 && v > ih * 0.2 && v < ih * 0.5) return c.terracotta(3);
+    return c.cream(5);
+  });
+  ART('art_sunset', 'Bild Sonnenuntergang', 32, 20, 3, 'Meer, Streifen, Glut.', (u, v, iw, ih) => {
+    const hz = ih * 0.58, d = Math.hypot(u - iw / 2, v - hz);
+    if (v >= hz) return d < 9 && ((v - hz) % 3 < 2) ? c.orange(4) : c.blue(2 + ((v - hz) > 5 ? 0 : 1));
+    if (d < 5.6) return c.yellow(5);
+    return v < ih * 0.25 ? c.violet(3) : v < ih * 0.42 ? c.pink(3) : c.orange(4);
+  });
+  ART('art_wave', 'Bild Große Welle', 30, 22, 3, 'Japanische Brandung.', (u, v, iw, ih) => {
+    const crest = ih * 0.35 + Math.sin(u * 0.3) * 4 + (u > iw * 0.5 ? (u - iw * 0.5) * 0.5 : 0);
+    if (v > crest) return ((u + v * 2) % 9 < 2) ? c.sky(5) : c.navy(3 - (v > ih * 0.75 ? 1 : 0) + 1);
+    if (Math.hypot(u - iw * 0.8, v - ih * 0.14) < 2.2) return c.cream(5);
+    return c.cream(4);
+  });
+  ART('art_lineface', 'Bild Linienporträt', 22, 28, 3, 'Ein Strich, ein Gesicht.', (u, v, iw, ih) => {
+    const cx = iw / 2, a = Math.hypot((u - cx) / 5, (v - ih * 0.45) / 7);
+    if (Math.abs(a - 1) < 0.14) return c.ink(3); if (v > ih * 0.5 && v < ih * 0.58 && Math.abs(u - cx) < 2) return c.ink(3); if (Math.abs(u - cx + 2) < 0.7 && Math.abs(v - ih * 0.4) < 0.7) return c.ink(3);
+    if (Math.abs(u - cx - 2) < 0.7 && Math.abs(v - ih * 0.4) < 0.7) return c.ink(3); if (v > ih * 0.78 && Math.abs(Math.abs(u - cx) - (v - ih * 0.78) * 0.6 - 4) < 0.8) return c.ink(3);
+    return c.peach(5);
+  });
+  ART('art_planet', 'Bild Planet', 24, 24, 3, 'Ein Ringplanet im Dunkeln.', (u, v, iw, ih) => {
+    const d = Math.hypot(u - 12, v - 12);
+    if (d < 5.4) return c.orange(3 + (v < 10 ? 1 : 0)); if (Math.abs((v - 12) - (u - 12) * 0.3) < 0.9 && Math.abs(u - 12) < 10) return c.sand(5);
+    return hash(u, v, 9) > 0.94 ? c.white(7) : c.night(2);
+  });
+  WALL({ id: 'art_dream', name: 'Poster DREAM BIG', price: 2.5, desc: 'Schrift auf Pastell.', variants: frameV, build() { const v = framed(22, 28, (u, vv, iw, ih) => c.peach(vv < 6 ? 4 : 3)); K.text(v, 'DREAM', 2, 15, 2, c.cream(5), 1, 'y'); K.text(v, 'BIG', 6, 8, 2, c.cream(5), 1, 'y'); return v; } });
+  WALL({ id: 'art_controller', name: 'Poster PLAYER 1', price: 3, desc: 'Gamepad in Pixeln.', variants: frameV, build() { const v = framed(26, 20, (u, vv) => c.indigo(2)); v.box(6, 2, 7, 20, 3, 14, c.stone(5)); v.box(5, 2, 8, 6, 3, 13, c.stone(5)); v.box(20, 2, 8, 21, 3, 13, c.stone(5)); v.box(8, 2, 10, 11, 3, 11, c.ink(2)); v.box(9, 2, 9, 10, 3, 12, c.ink(2)); v.box(16, 2, 11, 17, 3, 12, c.red(4)); v.box(18, 2, 9, 19, 3, 10, c.green(4)); K.text(v, 'PLAYER', 3, 4, 2, c.yellow(5), 1, 'y'); return v; } });
+
+  /* ---------- Fan-Poster (weitere Serien und Spiele) ---------- */
+  const fan = (id, name, lv, bg, draw) => WALL({ id, name, cat: 'fan', lv, price: 4, mine: 0, variants: frameV, desc: 'Fan-Poster.', build() { const v = framed(20, 28, (u, vv) => bg(vv)); draw(v); return v; } });
+  fan('poster_batman', 'Poster Batman', 4, (z) => c.ink(2 + (z > 18 ? 0 : 1)), (v) => { v.cyl(10, 2.5, 7, 12, 13, c.yellow(5)); v.box(5, 2, 12, 15, 3, 14, c.yellow(5)); v.box(6, 2, 10, 14, 3, 15, c.ink(2)); v.box(4, 2, 12, 7, 3, 16, c.ink(2)); v.box(13, 2, 12, 16, 3, 16, c.ink(2)); K.text(v, 'BATMAN', -1, 5, 2, c.yellow(5), 1, 'y'); });
+  fan('poster_breaking', 'Poster Breaking Bad', 6, (z) => c.green(2 + (z > 14 ? 1 : 0)), (v) => { K.text(v, 'BR', 2, 16, 2, c.cream(5), 2, 'y'); K.text(v, 'BA', 2, 6, 2, c.cream(5), 2, 'y'); v.cylY(10, 14, 3, 2, 3, c.cream(5)); });
+  fan('poster_dragon', 'Poster Drachenzähmen', 8, (z) => c.slate(2 + (z < 10 ? 1 : 0)), (v) => { v.ell(10, 2, 15, 6, 1, 4, c.ink(3)); v.box(8, 2, 14, 9, 3, 15, c.green(5)); v.box(11, 2, 14, 12, 3, 15, c.green(5)); v.line(4, 2, 18, 1, 2, 22, 0.8, c.ink(3)); v.line(16, 2, 18, 19, 2, 22, 0.8, c.ink(3)); K.text(v, 'DRAGON', -1, 5, 2, c.cream(5), 1, 'y'); });
+  fan('poster_mario', 'Poster Mario', 3, (z) => c.sky(4), (v) => { v.box(0, 2, 0, 20, 3, 6, c.brick(3)); for (let x = 0; x < 20; x += 5) v.box(x, 2, 0, x + 1, 3, 6, c.brick(1)); v.cyl(10, 2.5, 4, 8, 9, c.red(3)); v.box(6, 2, 8, 14, 3, 13, c.red(3)); v.box(7, 2, 13, 13, 3, 16, c.skin1(4)); v.box(6, 2, 16, 14, 3, 18, c.red(3)); v.box(6, 2, 4, 14, 3, 8, c.blue(3)); K.text(v, 'MARIO', 0, 21, 2, c.cream(5), 1, 'y'); });
+  fan('poster_rick', 'Poster Rick & Morty', 10, (z) => c.mint(3), (v) => { v.cyl(10, 2.5, 6, 8, 9, c.green(4)); v.sph(10, 2, 15, 6, c.cyan(4)); v.box(6, 2, 12, 14, 3, 14, c.white(5)); v.box(8, 2, 17, 12, 3, 19, c.white(5)); K.text(v, 'RICK', 2, 3, 2, c.ink(3), 1, 'y'); });
+  fan('poster_simpsons', 'Poster Simpsons', 5, (z) => c.sky(4), (v) => { v.box(0, 2, 0, 20, 3, 10, c.lime(3)); v.sph(10, 2, 15, 6, c.yellow(5)); v.box(7, 2, 18, 13, 3, 22, c.yellow(5)); v.box(8, 2, 19, 9, 3, 20, c.ink(2)); v.box(11, 2, 19, 12, 3, 20, c.ink(2)); K.text(v, 'SIMPSONS', -2, 3, 2, c.yellow(5), 1, 'y'); });
+  fan('poster_lastofus', 'Poster The Last of Us', 12, (z) => c.moss(2), (v) => { for (let i = 0; i < 6; i++) v.line(3 + i * 3, 2, 8, 4 + i * 3, 2, 22 - (i % 3) * 3, 0.9, c.forest(3)); v.sph(10, 2, 18, 3, c.cream(4)); K.text(v, 'LAST', 1, 6, 2, c.cream(5), 1, 'y'); });
+  fan('poster_arcane', 'Poster Arcane', 14, (z) => c.indigo(2 + (z > 14 ? 1 : 0)), (v) => { v.box(5, 2, 9, 8, 3, 24, c.pink(4)); v.box(12, 2, 9, 15, 3, 24, c.cyan(4)); v.sph(10, 2, 17, 3, c.violet(4)); K.text(v, 'ARCANE', -1, 4, 2, c.cream(5), 1, 'y'); });
+  fan('poster_gravity', 'Poster Gravity Falls', 7, (z) => c.forest(3), (v) => { for (let i = 0; i < 5; i++) v.box(2 + i * 4, 2, 8, 4 + i * 4, 3, 20 - (i % 2) * 4, c.forest(1)); v.box(8, 2, 20, 12, 3, 24, c.amber(4)); K.text(v, 'FALLS', 0, 4, 2, c.amber(5), 1, 'y'); });
+  fan('poster_avatar', 'Poster Avatar', 11, (z) => c.sky(3 + (z > 14 ? 1 : 0)), (v) => { v.cyl(10, 2.5, 6, 6, 7, c.orange(4)); v.cyl(10, 2.5, 4, 7, 8, c.yellow(5)); v.box(9, 2, 8, 11, 3, 22, c.cyan(4)); v.box(6, 2, 12, 14, 3, 14, c.cyan(4)); K.text(v, 'AVATAR', -1, 3, 2, c.white(5), 1, 'y'); });
+  fan('poster_toystory', 'Poster Toy Story', 9, (z) => c.sky(5), (v) => { for (let i = 0; i < 4; i++) for (let k = 0; k < 5; k++) v.box(i * 5, 2, 4 + k * 5, i * 5 + 2, 3, 6 + k * 5, (i + k) % 2 ? c.white(5) : c.sky(4)); v.sph(10, 2, 15, 4, c.leather(3)); v.box(6, 2, 18, 14, 3, 20, c.cream(4)); K.text(v, 'TOY', 5, 3, 2, c.yellow(5), 1, 'y'); });
+
+  /* ---------- Pinnwand, Karten, Kalender ---------- */
+  const cork = (w, h, seed) => {
+    const v = V(w, 4, h), W = K.grain('walnut', 3, 61);
+    v.box(0, 0, 0, w, 3, h, (x, y, z) => ((x < 2 || x >= w - 2 || z < 2 || z >= h - 2) ? W(x, y, z) : (hash(x, z, 12) < 0.18 ? c.kraft(2) : hash(x, z, 13) > 0.85 ? c.kraft(4) : c.kraft(3))));
+    const cols = ['yellow', 'pink', 'sky', 'mint', 'amber', 'cream'];
+    for (let i = 0; i < Math.floor(w / 10) * Math.floor(h / 10); i++) {
+      const cx = 3 + (i % Math.floor(w / 10)) * 10 + Math.floor(hash(seed, i, 1) * 3), cz = 3 + Math.floor(i / Math.floor(w / 10)) * 10 + Math.floor(hash(seed, i, 2) * 3), sz = 6 + Math.floor(hash(seed, i, 3) * 3);
+      v.box(cx, 2, cz, cx + sz, 3, cz + sz, c[cols[Math.floor(hash(seed, i, 4) * cols.length)]](4));
+      for (let k = 0; k < 2; k++) v.box(cx + 1, 3, cz + 2 + k * 2, cx + sz - 1, 4, cz + 3 + k * 2, c.ink(3));
+      v.sph(cx + sz / 2, 3, cz + sz - 1, 1, c.red(4));
+    }
+    return v;
+  };
+  WALL({ id: 'corkboard_s', name: 'Pinnwand klein', price: 3, desc: 'Notizen, Zettel und bunte Nadeln.', variants: [L('Kork', 'kraft')], build() { return cork(40, 30, 3); } });
+  WALL({ id: 'corkboard_l', name: 'Pinnwand groß', price: 6, desc: 'Ideenboard mit allem Wichtigen.', variants: [L('Kork', 'kraft')], build() { return cork(72, 42, 7); } });
+  WALL({
+    id: 'calendar_wall', name: 'Wandkalender', price: 2, desc: 'Termine im Blick.', variants: [L('Weiß', 'white'), L('Creme', 'cream')],
+    build() { const v = V(24, 3, 32); v.box(0, 0, 0, 24, 2, 32, c.s0(4)); v.box(0, 1, 22, 24, 2, 32, c.skin3 ? c.sky(3) : c.sky(3)); v.box(0, 1, 30, 24, 2, 32, c.blue(3)); K.text(v, 'OKT', 6, 24, 2, c.white(5), 1, 'y'); for (let r = 0; r < 4; r++) for (let q = 0; q < 6; q++) v.box(2 + q * 3, 1, 3 + r * 4, 4 + q * 3, 2, 5 + r * 4, hash(q, r, 7) < 0.1 ? c.red(4) : c.s0(3)); v.box(10, 0, 30, 14, 1, 32, c.steel(4)); return v; }
+  });
+  WALL({
+    id: 'worldmap', name: 'Weltkarte', price: 6, desc: 'Mit Stecknadeln für die nächste Reise.', variants: [L('Blau', 'sky', 'sand'), L('Antik', 'sand', 'forest'), L('Dunkel', 'navy', 'sky')],
+    build() { const v = V(68, 3, 40); v.box(0, 0, 0, 68, 2, 40, c.walnut(3)); v.box(2, 1, 2, 66, 2, 38, (x, y, z) => { const u = (x - 2) / 64, w = (z - 2) / 36, n = Math.sin(u * 9 + 1) * 0.5 + Math.sin(w * 7 + u * 5) * 0.4 + Math.sin(u * 3 - w * 4) * 0.5; return n > 0.35 && w > 0.1 && w < 0.9 ? c.s1(3 + (hash(x, z, 3) < 0.2 ? 1 : 0)) : c.s0(3); }); [[14, 26], [34, 22], [50, 14], [26, 10]].forEach(([x, z]) => v.sph(x, 2, z, 1.2, c.red(4))); return v; }
+  });
+  WALL({
+    id: 'pennant', name: 'Wimpelkette', price: 2, desc: 'Fröhlich bunte Dreiecke.', variants: [L('Bunt', 'red'), L('Pastell', 'pink'), L('Schwarz-Weiß', 'graphite')],
+    build() { const v = V(60, 3, 18); const cols = (i) => (RS.RAMP_ID ? ['red', 'amber', 'sky', 'mint', 'pink', 'yellow'][i % 6] : 'red'); for (let x = 0; x < 60; x++) { const z = 16 - Math.round(5 * Math.sin((x / 59) * Math.PI)); v.box(x, 0, z, x + 1, 1, z + 1, c.stone(3)); } for (let i = 0; i < 8; i++) { const x = 2 + i * 7, z0 = 16 - Math.round(5 * Math.sin(((x + 3) / 59) * Math.PI)); for (let k = 0; k < 8; k++) v.box(x + Math.floor(k / 2), 0, z0 - 1 - k, x + 7 - Math.floor(k / 2), 1, z0 - k, i % 3 === 0 ? c.s0(3 + (k & 1)) : c[cols(i)](3 + (k & 1))); } return v; }
+  });
+  WALL({
+    id: 'dreamcatcher', name: 'Traumfänger', price: 3, desc: 'Fängt nur die guten Träume.', variants: [L('Natur', 'cream', 'sand'), L('Rosa', 'rose', 'pink'), L('Schwarz', 'graphite', 'stone')],
+    build() { const v = V(24, 3, 50); v.cylY(12, 38, 9, 0, 2, c.s0(4)); v.cylY(12, 38, 7.6, 0, 2, 0); for (let i = 0; i < 10; i++) { const a = i * 0.628; v.line(12 + Math.cos(a) * 7.6, 1, 38 + Math.sin(a) * 7.6, 12 + Math.cos(a + 2.5) * 7.6, 1, 38 + Math.sin(a + 2.5) * 7.6, 0.25, c.s0(5)); } [[6, 28, 12], [12, 22, 20], [18, 28, 12]].forEach(([x, z, l]) => { v.box(x, 1, z - l, x + 1, 2, z, c.s1(3)); v.sph(x, 1, z - l - 1, 1.2, c.s1(4)); }); v.sph(12, 1, 38, 1.4, c.s1(3)); return v; }
+  });
+  WALL({
+    id: 'macrame', name: 'Makramee', price: 3.5, desc: 'Geknüpft und gefranst.', variants: [L('Natur', 'cream'), L('Sand', 'sand'), L('Rosa', 'rose')],
+    build() { const v = V(30, 3, 54); v.box(1, 0, 48, 29, 2, 50, c.walnut(3)); for (let i = 0; i < 7; i++) { const x = 3 + i * 4; v.box(x, 0, 6, x + 2, 2, 48, c.s0(3 + (i & 1))); } for (let r = 0; r < 5; r++) for (let q = 0; q < 6; q++) { const x = 5 + q * 4, z = 36 - r * 6 - (q & 1) * 3; v.box(x - 1, 1, z, x + 3, 2, z + 2, c.s0(5)); } for (let i = 0; i < 12; i++) v.box(2 + i * 2, 0, 1 + (i % 3) * 2, 3 + i * 2, 1, 7, c.s0(4)); return v; }
+  });
+  WALL({
+    id: 'wall_plates', name: 'Wandteller', price: 3, desc: 'Fünf Teller im Muster.', variants: [L('Blau-Weiß', 'sky', 'white'), L('Terrakotta', 'terracotta', 'cream'), L('Grün', 'moss', 'cream')],
+    build() { const v = V(44, 3, 34); [[22, 17, 9], [8, 24, 6], [36, 24, 6], [8, 8, 6], [36, 8, 6]].forEach(([x, z, r]) => { v.cylY(x, z, r, 0, 2, c.s1(4)); v.cylY(x, z, r - 1.2, 1, 2, c.s0(3)); v.cylY(x, z, r * 0.4, 1, 2, c.s1(4)); for (let a = 0; a < 6; a++) v.put(x + Math.cos(a) * r * 0.65, 1, z + Math.sin(a) * r * 0.65, c.s1(4)); }); return v; }
+  });
+  WALL({
+    id: 'coat_hooks', name: 'Garderobenleiste', price: 3, desc: 'Fünf Haken mit Jacken.', variants: [L('Holz', 'oak'), L('Weiß', 'white'), L('Schwarz', 'graphite')],
+    build() { const v = V(46, 8, 26); v.box(0, 0, 18, 46, 2, 22, K.grain('s0', 3, 62)); for (let i = 0; i < 5; i++) { const x = 4 + i * 9; v.box(x, 2, 19, x + 2, 6, 21, c.steel(5)); v.box(x - 1, 5, 19, x + 3, 6, 21, c.steel(4)); if (i !== 3) v.box(x - 2, 3, 2 + (i % 2) * 3, x + 5, 6, 19, c[['blue', 'moss', 'graphite', 'red'][i % 4]](3)); } v.box(31, 3, 14, 37, 7, 19, c.leather(3)); return v; }
+  });
+  WALL({
+    id: 'clock_digital', name: 'LED-Uhr', price: 4, desc: 'Rote Ziffern wie aus den 90ern.', lights: [{ x: 14, y: 4, z: 5, r: 40, i: 1.0, col: [255, 70, 60], night: true }], variants: [L('Rot', 'red')],
+    build() { const v = V(30, 3, 12); v.box(0, 0, 0, 30, 2, 12, c.iron(2)); v.box(1, 1, 1, 29, 2, 11, c.ink(1)); K.text(v, '12 30', 3, 3, 1, RS.e.red(5), 1, 'y'); v.put(14, 1, 5, RS.e.red(5)); v.put(14, 1, 7, RS.e.red(5)); return v; }
+  });
+  WALL({
+    id: 'clock_cuckoo', name: 'Kuckucksuhr', price: 6, desc: 'Mit Tannenzapfen-Gewichten.', variants: [L('Holz', 'walnut', 'gold'), L('Hell', 'oak', 'gold')],
+    build() { const v = V(24, 10, 40), W = K.grain('s0', 3, 63); v.box(4, 0, 18, 20, 7, 32, W); for (let i = 0; i < 6; i++) v.box(3 - i * 0.5 | 0, 0, 32 + i * 1.4 | 0, 21 + i * 0.5 | 0, 8, 33 + i * 1.4 | 0, c.s0(2 + (i & 1))); v.cylY(12, 24, 5, 7, 9, c.cream(5)); v.box(12, 9, 24, 13, 10, 28, c.ink(2)); v.box(12, 9, 24, 16, 10, 25, c.ink(2)); v.box(8, 7, 10, 10, 9, 18, c.s1(3)); v.box(14, 7, 10, 16, 9, 16, c.s1(3)); v.sph(9, 8, 8, 2.4, c.leather(3)); v.sph(15, 8, 13, 2.4, c.leather(3)); v.line(12, 2, 28, 12, 2, 36, 0.4, c.s1(3)); return v; }
+  });
+  WALL({
+    id: 'curtain_white', name: 'Gardine', price: 3, desc: 'Weiße Café-Gardine mit Stange.', variants: [L('Weiß', 'white'), L('Creme', 'cream'), L('Rosé', 'rose'), L('Blau', 'sky')],
+    build() { const v = V(40, 6, 44); for (let x = 1; x < 39; x++) { const d = 1 + Math.round(1.4 * Math.sin(x * 0.9)); v.box(x, 0, 6 + (x % 5 === 0 ? 1 : 0), x + 1, 1 + d, 40, (xx, yy, zz) => (hash(xx, zz >> 3, 3) < 0.1 ? c.s0(4) : c.s0(5))); } v.cylX(1.5, 41, 1, 0, 40, c.graphite(3)); v.sph(1, 1.5, 41, 1.6, c.graphite(4)); v.sph(39, 1.5, 41, 1.6, c.graphite(4)); return v; }
+  });
+
+  /* ---------- Regale ---------- */
+  WALL({
+    id: 'shelf_float', name: 'Wandregal', price: 3, desc: 'Schwebend, mit Platz für Kleinteile.', variants: [L('Eiche', 'oak'), L('Weiß', 'white'), L('Schwarz', 'graphite'), L('Nussholz', 'walnut')],
+    build() { const v = V(44, 12, 4); v.box(0, 0, 0, 44, 12, 3, K.grain('s0', 3, 64)); v.box(0, 0, 2, 44, 12, 3, c.s0(4)); v.box(0, 11, 0, 44, 12, 3, c.s0(2)); v.box(4, 0, 3, 7, 4, 4, c.s0(2)); v.box(37, 0, 3, 40, 4, 4, c.s0(2)); return v; }
+  });
+  WALL({
+    id: 'shelf_float_2', name: 'Wandregal zweistöckig', price: 5, desc: 'Zwei Bretter übereinander.', variants: [L('Eiche', 'oak'), L('Weiß', 'white'), L('Schwarz', 'graphite')],
+    build() { const v = V(44, 12, 26), W = K.grain('s0', 3, 65); [0, 18].forEach((z) => { v.box(0, 0, z, 44, 12, z + 3, W); v.box(0, 0, z + 2, 44, 12, z + 3, c.s0(4)); v.box(0, 11, z, 44, 12, z + 3, c.s0(2)); }); v.box(3, 0, 3, 5, 3, 18, c.s0(3)); v.box(39, 0, 3, 41, 3, 18, c.s0(3)); return v; }
+  });
+  WALL({
+    id: 'wall_shelf_books', name: 'Wandregal mit Büchern', price: 5, desc: 'Bücher, Pflanze und Platz zum Wachsen.', variants: [L('Weiß', 'white'), L('Eiche', 'oak'), L('Schwarz', 'graphite')],
+    build() { const v = V(48, 12, 26); v.box(0, 0, 0, 48, 12, 3, K.grain('s0', 3, 66)); v.box(0, 11, 0, 48, 12, 3, c.s0(2)); K.books(v, 22, 46, 2, 11, 3, 33); v.cyl(9, 6, 4, 3, 9, c.terracotta(3)); v.sph(9, 6, 14, 5.2, (x, y, z) => c.green(hash(x, y, z) < 0.3 ? 2 : 3)); v.line(9, 6, 9, 5, 6, 18, 0.6, c.forest(3)); v.line(9, 6, 10, 14, 6, 20, 0.6, c.forest(3)); return v; }
+  });
+
+  /* ---------- Fenster ---------- */
+  const winV = [L('Weiß', 'white'), L('Braun', 'walnut'), L('Schwarz', 'graphite'), L('Eiche', 'oak')];
+  const WIN = (id, name, w, h, sashes, price, desc, extra) => def(Object.assign({ id, name, cat: 'wand', place: 'wall', price, inset: 8, desc, variants: winV, cutout: { a0: 0, a1: w, z0: 0, z1: h }, window: { x0: 2, x1: w - 2, z0: 2, z1: h - 2 }, screens: [{ plane: 'y', x0: 2, z0: 2, w: w - 4, h: h - 4, view: 0 }], build() { return K.windowModel(w, h, sashes); } }, extra || {}));
+  WIN('window_paned', 'Sprossenfenster', 36, 54, [3, 3], 10, 'Mit Sprossen wie im Landhaus.');
+  WIN('window_square', 'Fenster quadratisch', 30, 30, [2, 2], 7, 'Klein, aber hell.');
+  WIN('window_slit', 'Fenster schmal', 18, 62, [1, 3], 7, 'Schmal und hoch, wie im Dachzimmer.');
+  WIN('window_big', 'Panoramafenster', 100, 56, [4, 2], 18, 'Viel Himmel, viel Licht.');
+  WIN('window_french', 'Balkontür', 40, 88, [2, 3], 14, 'Reicht bis zum Boden.');
+})(window);
+
+</script>
+<script>
+/* src/items/more-hobby.js */
+/* Raumspiel – Medien und Spiele, Musik und Hobby, Sport, Haustier-Zubehoer und Garten */
+(function (g) {
+  const RS = g.RS, c = RS.c, K = RS.kit, V = RS.V, hash = RS.hash;
+  const def = RS.defItem;
+  const L = (n, ...m) => ({ n, m });
+  const blackV = [L('Schwarz', 'graphite'), L('Weiß', 'white'), L('Silber', 'steel')];
+  const woodV = [L('Eiche', 'oak'), L('Weiß', 'white'), L('Nussholz', 'walnut'), L('Schwarz', 'graphite')];
+
+  /* ---------- Medien und Spiele ---------- */
+  def({
+    id: 'tv_wall', name: 'Fernseher Wandmontage', cat: 'medien', place: 'wall', price: 10, desc: 'Flach an der Wand; Klick schaltet um.', screens: [{ plane: 'y', x0: 2, z0: 2, w: 52, h: 28, channels: true }],
+    lights: [{ x: 28, y: 10, z: 18, r: 90, i: 1.8, col: [120, 160, 255], night: true }], variants: [L('Schwarz', 'graphite')],
+    build() { const v = V(58, 4, 34); v.box(0, 0, 0, 58, 2, 34, c.graphite(3)); v.box(1, 2, 1, 57, 3, 33, c.iron(2)); v.box(2, 2, 2, 56, 3, 30, RS.dyn(2, 0)); v.box(26, 2, 31, 32, 3, 32, c.graphite(2)); v.box(53, 2, 31, 55, 3, 32, c.green(4)); return v; }
+  });
+  def({
+    id: 'tv_crt', name: 'Röhrenfernseher', cat: 'medien', place: 'surface', fine: 4, price: 6, desc: 'Brummt, flimmert, funktioniert.', screens: [{ plane: 'y', x0: 4, z0: 8, w: 22, h: 17, channels: true }],
+    lights: [{ x: 15, y: 16, z: 16, r: 70, i: 1.5, col: [140, 190, 255], night: true }], variants: [L('Grau', 'stone'), L('Holz', 'walnut'), L('Weiß', 'white')],
+    build() { const v = V(34, 30, 32); v.box(2, 2, 0, 32, 28, 3, c.graphite(3)); v.rbox(0, 2, 3, 34, 28, 30, 2, c.s0(3)); v.box(2, 28, 5, 28, 29, 27, c.iron(1)); v.box(3, 28, 6, 27, 29, 26, 0); v.box(4, 28, 8, 26, 29, 25, RS.dyn(2, 0)); v.box(29, 28, 20, 33, 29, 24, c.iron(2)); v.cyl(31, 28, 1.4, 12, 14, c.steel(4)); v.cyl(31, 28, 1.4, 16, 18, c.steel(4)); v.box(30, 28, 6, 33, 29, 10, c.s0(2)); v.line(10, 10, 30, 4, 4, 38 > 31 ? 31 : 31, 0.5, c.graphite(3)); return v; }
+  });
+  def({
+    id: 'console_ps', name: 'Spielkonsole', cat: 'medien', place: 'surface', fine: 2, price: 4, desc: 'Mit Controller und leuchtender Leiste.', lights: [{ x: 12, y: 8, z: 3, r: 30, i: 0.9, col: [90, 150, 255], night: true }],
+    variants: [L('Weiß', 'white'), L('Schwarz', 'graphite')],
+    build() { const v = V(28, 16, 8); v.rbox(0, 0, 0, 20, 16, 5, 1, c.s0(3)); v.box(2, 15, 1, 18, 16, 2, RS.e.blue(5)); v.box(3, 0, 5, 17, 8, 6, c.s0(4)); v.rbox(21, 4, 0, 28, 12, 3, 1, c.stone(5)); v.box(22, 6, 3, 24, 7, 4, c.ink(2)); v.box(26, 6, 3, 27, 7, 4, c.red(4)); return v; }
+  });
+  def({
+    id: 'console_retro', name: 'Retro-Konsole', cat: 'medien', place: 'surface', fine: 2, price: 4, desc: 'Steckmodul rein, Pusten, los.', variants: [L('Grau', 'stone'), L('Schwarz', 'graphite')],
+    build() { const v = V(26, 18, 8); v.box(0, 0, 0, 26, 18, 5, c.s0(3)); v.box(2, 2, 5, 24, 8, 6, c.s0(2)); v.box(8, 6, 6, 18, 9, 8, c.iron(2)); v.box(3, 14, 5, 8, 17, 6, c.red(3)); v.box(12, 14, 5, 22, 17, 6, c.ink(2)); v.box(4, 3, 4, 7, 4, 5, c.ink(2)); return v; }
+  });
+  def({
+    id: 'arcade', name: 'Arcade-Automat', cat: 'medien', price: 22, desc: 'Münzeinwurf inklusive.', lights: [{ x: 17, y: 20, z: 46, r: 90, i: 2.0, col: [255, 120, 200], night: true }],
+    screens: [{ plane: 'y', x0: 6, z0: 40, w: 22, h: 16 }], variants: [L('Blau', 'blue', 'pink'), L('Rot', 'red', 'amber'), L('Schwarz', 'graphite', 'cyan')],
+    build() {
+      const v = V(34, 32, 80); v.box(0, 0, 0, 34, 32, 30, c.s0(3)); v.box(2, 6, 30, 32, 32, 36, c.s0(4)); v.box(4, 0, 36, 30, 28, 70, c.s0(3)); v.box(0, 0, 66, 34, 30, 80, c.s0(2)); v.rbox(0, 6, 66, 34, 30, 74, 3, c.s0(3));
+      v.box(5, 28, 38, 29, 29, 58, c.iron(1)); v.box(6, 28, 40, 28, 29, 56, RS.dyn(8, 0)); v.box(5, 28, 58, 29, 30, 66, c.s1(3)); K.text(v, 'ARCADE', 3, 60, 28, RS.e.s1(5), 1, 'y');
+      v.cyl(10, 30, 1, 32, 36, c.steel(4)); v.sph(10, 30, 37, 2, c.red(4)); [[18, c.yellow(4)], [22, c.green(4)], [26, c.cyan(4)]].forEach(([x, col]) => v.cyl(x, 30, 1.6, 33, 35, col)); v.box(10, 28, 22, 24, 29, 24, c.amber(4)); v.box(15, 28, 12, 19, 29, 18, c.iron(2));
+      return v;
+    }
+  });
+  def({
+    id: 'pinball', name: 'Flipper', cat: 'medien', price: 20, desc: 'Kugel rein, Kugel raus, Highscore.', lights: [{ x: 15, y: 40, z: 40, r: 80, i: 1.6, col: [255, 160, 90], night: true }], variants: [L('Rot', 'red', 'yellow'), L('Blau', 'blue', 'amber')],
+    build() {
+      const v = V(32, 64, 56); K.legs(v, [[1, 4], [29, 4], [1, 58], [29, 58]], 2, 20, c.steel(3));
+      for (let y = 0; y < 60; y++) { const z = 22 + Math.round((y / 60) * 10); v.box(0, 4 + y, 20, 32, 5 + y, z, c.s0(3)); v.box(2, 4 + y, z - 1, 30, 5 + y, z, (x, yy) => (((x + y) % 7 < 1) ? c.cream(4) : c.s1(3))); }
+      v.box(0, 4, 20, 32, 64, 22, c.s0(2)); v.box(1, 4, 32, 3, 64, 38, c.steel(4)); v.box(29, 4, 32, 31, 64, 38, c.steel(4)); v.box(0, 4, 36, 32, 8, 56, c.s0(3));
+      v.box(2, 5, 38, 30, 6, 54, RS.dyn(8, 1)); [[8, 20, 'red'], [16, 30, 'amber'], [24, 18, 'cyan']].forEach(([x, y, col]) => v.cyl(x, y + 10, 2.4, 33, 34, RS.e[col](5)));
+      v.box(6, 56, 33, 14, 59, 34, c.red(4)); v.box(18, 56, 33, 26, 59, 34, c.red(4)); v.sph(16, 48, 34, 1.2, c.steel(6));
+      return v;
+    }
+  });
+  def({
+    id: 'foosball', name: 'Tischkicker', cat: 'medien', price: 15, desc: 'Für den 1:0 im Wohnzimmer.', variants: [L('Rot-Blau', 'red', 'blue'), L('Grün-Gelb', 'green', 'yellow')],
+    build() {
+      const v = V(70, 40, 38); K.legs(v, [[3, 3], [64, 3], [3, 34], [64, 34]], 3, 22, c.graphite(3)); v.box(0, 0, 22, 70, 40, 28, c.walnut(3)); v.box(2, 2, 27, 68, 38, 28, c.forest(3));
+      for (let x = 6; x < 66; x += 10) { v.box(x, 2, 27, x + 1, 38, 28, c.white(3)); }
+      for (let i = 0; i < 8; i++) { const x = 6 + i * 8; v.cylY(x, 33, 0.8, -4 + 0, 44, c.steel(4)); v.box(x - 1, 8, 28, x + 1, 11, 33, i % 2 ? c.s0(3) : c.s1(3)); v.box(x - 1, 18, 28, x + 1, 21, 33, i % 2 ? c.s0(3) : c.s1(3)); v.box(x - 1, 28, 28, x + 1, 31, 33, i % 2 ? c.s0(3) : c.s1(3)); v.box(x - 2, 0, 31, x + 2, 3, 35, c.ink(3)); v.box(x - 2, 37, 31, x + 2, 40, 35, c.ink(3)); }
+      return v;
+    }
+  });
+  def({
+    id: 'pool_table', name: 'Billardtisch', cat: 'medien', price: 26, desc: 'Grünes Tuch, bunte Kugeln, ein Queue.', variants: [L('Grün', 'green', 'walnut'), L('Blau', 'blue', 'walnut'), L('Rot', 'red', 'graphite')],
+    build() {
+      const v = V(100, 56, 32); K.legs(v, [[4, 4], [90, 4], [4, 46], [90, 46]], 6, 20, c.s1(2)); v.box(0, 0, 20, 100, 56, 28, K.grain('s1', 3, 70)); v.box(6, 6, 27, 94, 50, 28, c.s0(3)); v.box(0, 0, 27, 100, 6, 31, c.s1(3)); v.box(0, 50, 27, 100, 56, 31, c.s1(3)); v.box(0, 0, 27, 6, 56, 31, c.s1(3)); v.box(94, 0, 27, 100, 56, 31, c.s1(3));
+      [[8, 8], [50, 6], [92, 8], [8, 48], [50, 50], [92, 48]].forEach(([x, y]) => v.cyl(x, y, 3.2, 28, 31, c.ink(1)));
+      [[24, 'yellow'], [30, 'red'], [36, 'blue'], [42, 'orange'], [48, 'purple'], [30, 'green']].forEach(([x, col], i) => v.sph(66 + (i % 3) * 3, 22 + i * 3.4, 29.5, 1.7, c[col](4)));
+      v.sph(30, 28, 29.5, 1.7, c.white(6)); v.line(10, 18, 29.5, 24, 24, 29.5, 0.6, c.oak(4));
+      return v;
+    }
+  });
+  def({
+    id: 'ping_pong', name: 'Tischtennisplatte', cat: 'medien', price: 14, desc: 'Mit Netz und Schlägern.', variants: [L('Blau', 'blue'), L('Grün', 'green')],
+    build() { const v = V(96, 54, 32); [[4, 4], [88, 4], [4, 46], [88, 46]].forEach(([x, y]) => v.box(x, y, 0, x + 3, y + 3, 22, c.steel(3))); v.box(0, 0, 22, 96, 54, 25, c.s0(3)); v.box(0, 26, 22, 96, 28, 25, c.white(5)); v.box(47, 0, 25, 49, 54, 32, 0); for (let y = 0; y < 54; y += 2) v.box(47, y, 25, 48, y + 1, 31, (y % 4) ? c.stone(3) : c.ink(2)); v.box(47, 0, 25, 48, 1, 32, c.steel(4)); v.box(47, 53, 25, 48, 54, 32, c.steel(4)); v.box(48, 0, 30, 49, 54, 32, c.white(5)); v.cylY(20, 27, 4, 8, 9, c.red(3)); v.cylY(72, 27, 4, 44, 45, c.red(3)); v.sph(60, 20, 26, 1.2, c.orange(5)); return v; }
+  });
+  def({
+    id: 'dartboard', name: 'Dartscheibe', cat: 'medien', place: 'wall', price: 3, desc: 'Triple 20, bitte.', variants: [L('Klassisch', 'ink')],
+    build() { const v = V(24, 4, 24); v.cylY(12, 12, 12, 0, 1, c.ink(3)); for (let z = 0; z < 24; z++) for (let x = 0; x < 24; x++) { const d = Math.hypot(x + 0.5 - 12, z + 0.5 - 12); if (d > 11) continue; const a = Math.floor(((Math.atan2(z + 0.5 - 12, x + 0.5 - 12) + Math.PI) / (2 * Math.PI)) * 20); v.put(x, 1, z, d < 1.4 ? c.red(4) : d < 3 ? c.green(3) : d > 8 && d < 9.4 ? (a % 2 ? c.red(3) : c.green(3)) : d > 4.6 && d < 6 ? (a % 2 ? c.red(3) : c.green(3)) : (a % 2 ? c.cream(4) : c.ink(2))); } v.line(8, 2, 9, 8, 4, 9, 0.3, c.steel(5)); v.box(7, 2, 8, 10, 3, 11, c.red(4)); return v; }
+  });
+  def({
+    id: 'speaker_tower', name: 'Standlautsprecher', cat: 'medien', price: 7, desc: 'Basskraft für den Raum.', variants: [L('Schwarz', 'graphite'), L('Holz', 'walnut'), L('Weiß', 'white')],
+    build() { const v = V(16, 16, 64); v.box(0, 0, 0, 16, 16, 64, K.grain('s0', 3, 71)); v.box(0, 0, 62, 16, 16, 64, c.s0(4)); [[48, 3.6], [36, 4.2], [20, 5.6]].forEach(([z, r]) => { v.cylY(8, z, r + 1, 15, 16, c.iron(1)); v.cylY(8, z, r, 15, 16, c.iron(2)); v.cylY(8, z, r * 0.45, 15, 16, c.stone(3)); }); return v; }
+  });
+  def({
+    id: 'speaker_stand', name: 'Studiomonitor auf Ständer', cat: 'medien', price: 5, desc: 'Schmal, ehrlich, laut.', variants: [L('Schwarz', 'graphite'), L('Weiß', 'white')],
+    build() { const v = V(18, 18, 56); v.cyl(9, 9, 6, 0, 2, c.iron(3)); v.cyl(9, 9, 1.2, 2, 30, c.iron(3)); v.box(2, 2, 30, 16, 16, 31, c.iron(3)); v.box(3, 3, 31, 15, 15, 54, c.s0(3)); v.box(3, 3, 53, 15, 15, 54, c.s0(4)); v.cylY(9, 47, 3, 14, 15, c.iron(2)); v.cylY(9, 47, 1.4, 14, 15, c.stone(3)); v.cylY(9, 38, 4.4, 14, 15, c.iron(2)); v.cylY(9, 38, 2.4, 14, 15, c.stone(4)); return v; }
+  });
+  def({
+    id: 'boombox', name: 'Radiorekorder', cat: 'medien', place: 'surface', fine: 4, price: 3, desc: 'Kassette einlegen, Lautstärke hoch.', variants: [L('Silber', 'steel'), L('Schwarz', 'graphite'), L('Rot', 'red')],
+    build() { const v = V(32, 10, 18); v.rbox(0, 0, 0, 32, 10, 15, 2, c.s0(3)); v.cylY(7, 7, 4.6, 9, 10, c.iron(2)); v.cylY(7, 7, 2, 9, 10, c.stone(3)); v.cylY(25, 7, 4.6, 9, 10, c.iron(2)); v.cylY(25, 7, 2, 9, 10, c.stone(3)); v.box(11, 9, 6, 21, 10, 12, c.iron(1)); v.box(12, 9, 8, 15, 10, 10, c.stone(5)); v.box(17, 9, 8, 20, 10, 10, c.stone(5)); v.line(4, 5, 15, 12, 5, 18, 0.5, c.steel(5)); return v; }
+  });
+  def({
+    id: 'record_player', name: 'Plattenspieler', cat: 'medien', place: 'surface', fine: 4, price: 6, desc: 'Vinyl und Knistern.', variants: [L('Holz', 'walnut', 'steel'), L('Weiß', 'white', 'steel'), L('Schwarz', 'graphite', 'gold')],
+    build() { const v = V(30, 24, 12); v.rbox(0, 0, 0, 30, 24, 6, 1, c.s0(3)); v.cyl(12, 12, 9.4, 6, 7, c.ink(2)); v.cyl(12, 12, 8, 6, 7, (x, y) => ((Math.round(Math.hypot(x - 12, y - 12)) % 2) ? c.ink(1) : c.ink(2))); v.cyl(12, 12, 3, 7, 8, c.red(3)); v.cyl(12, 12, 0.6, 8, 9, c.steel(5)); v.line(26, 4, 7, 20, 8, 7, 0.5, c.s1(4)); v.line(26, 4, 7, 24, 3, 10, 0.5, c.s1(4)); v.box(20, 8, 7, 22, 10, 8, c.s1(4)); return v; }
+  });
+  def({
+    id: 'record_shelf', name: 'Plattenregal', cat: 'medien', price: 6, desc: 'Cover an Cover.', variants: woodV,
+    build() { const v = V(40, 16, 30), W = K.grain('s0', 3, 72); v.box(0, 0, 0, 40, 16, 30, W); v.box(2, 1, 2, 38, 16, 14, 0); v.box(2, 1, 16, 38, 16, 28, 0); const cols = ['red', 'blue', 'amber', 'green', 'pink', 'cream', 'teal', 'orange', 'purple', 'graphite']; [2, 16].forEach((z, r) => { for (let i = 0; i < 14; i++) { const x = 3 + i * 2.5 | 0; v.box(x, 4, z, x + 2, 15, z + 11 - (i % 3), c[cols[(i * 3 + r) % cols.length]](3 + (i & 1))); } }); return v; }
+  });
+  def({
+    id: 'headphones', name: 'Kopfhörer', cat: 'medien', place: 'surface', fine: 2, price: 2, desc: 'Auf dem Ständer.', variants: [L('Schwarz', 'graphite', 'wood'), L('Weiß', 'white', 'oak'), L('Rot', 'red', 'oak')],
+    build() { const v = V(14, 12, 18); v.cyl(7, 6, 4, 0, 2, c.s1(3)); v.box(6, 5, 2, 8, 7, 12, c.s1(3)); v.cylY(7, 14, 6, 4, 6, 0); for (let a = 0; a < 20; a++) { const t = Math.PI * a / 19; v.sph(7 + Math.cos(t) * 6, 6, 12 + Math.sin(t) * 5, 0.9, c.s0(3)); } v.cylX(6, 12, 2.6, 0, 3, c.s0(4)); v.cylX(6, 12, 2.6, 11, 14, c.s0(4)); return v; }
+  });
+  def({
+    id: 'chess_set', name: 'Schachspiel', cat: 'medien', place: 'surface', fine: 2, price: 3, desc: 'Weiß beginnt.', variants: [L('Holz', 'oak', 'walnut'), L('Marmor', 'white', 'graphite')],
+    build() { const v = V(26, 26, 10); v.box(0, 0, 0, 26, 26, 2, c.walnut(2)); v.box(1, 1, 2, 25, 25, 3, (x, y) => ((((x - 1) >> 2) + ((y - 1) >> 2)) % 2 ? c.s1(3) : c.s0(3))); for (let i = 0; i < 8; i++) { v.box(2 + i * 3, 4, 3, 4 + i * 3, 6, 5, c.s0(4)); v.box(2 + i * 3, 20, 3, 4 + i * 3, 22, 5, c.s1(2)); } [[4, 2, 0], [12, 2, 1], [20, 2, 0], [8, 22, 1], [16, 22, 0]].forEach(([x, y, d]) => { v.cyl(x + 1, y + 1, 1.4, 3, 8, d ? c.s1(2) : c.s0(5)); v.sph(x + 1, y + 1, 8.4, 1.2, d ? c.s1(2) : c.s0(5)); }); return v; }
+  });
+  def({
+    id: 'jukebox', name: 'Jukebox', cat: 'medien', price: 24, desc: 'Bunt, rund und laut.', lights: [{ x: 18, y: 14, z: 40, r: 100, i: 2.2, col: [255, 160, 100], night: true }], variants: [L('Rot', 'red', 'amber'), L('Blau', 'blue', 'cyan')],
+    build() { const v = V(36, 22, 70); v.box(0, 0, 0, 36, 22, 40, c.s0(3)); v.cylX(11, 40, 18, 0, 36, 0); for (let x = 0; x < 36; x++) { const hh = Math.sqrt(Math.max(0, 18 * 18 - (x - 18) ** 2)); v.box(x, 0, 40, x + 1, 22, 40 + Math.round(hh * 1.2), c.s0(3)); } v.box(3, 21, 6, 33, 22, 30, c.iron(2)); v.box(5, 21, 8, 31, 22, 22, RS.e.s1(5)); for (let i = 0; i < 6; i++) v.box(6 + i * 4, 21, 24, 9 + i * 4, 22, 28, c.s1(4)); for (let a = 0; a < 7; a++) v.box(4 + a * 4, 21, 40 + Math.round(Math.sqrt(Math.max(0, 18 * 18 - (4 + a * 4 - 18) ** 2)) * 0.8), 6 + a * 4, 22, 42 + Math.round(Math.sqrt(Math.max(0, 18 * 18 - (4 + a * 4 - 18) ** 2)) * 0.8), RS.e.s1(6)); return v; }
+  });
+  def({
+    id: 'camera_tripod', name: 'Kamera auf Stativ', cat: 'medien', price: 6, desc: 'Für Fotos und Videos vom Kanal.', variants: [L('Schwarz', 'graphite')],
+    build() { const v = V(24, 24, 64); [[3, 4], [21, 4], [12, 21]].forEach(([x, y]) => v.line(x, y, 0.5, 12, 12, 44, 0.7, c.iron(3))); v.box(8, 8, 44, 16, 16, 46, c.iron(2)); v.rbox(4, 6, 46, 20, 18, 58, 1, c.iron(3)); v.box(5, 17, 48, 19, 18, 56, c.ink(2)); v.cylY(12, 52, 4, 17, 21, c.iron(2)); v.cylY(12, 52, 2.6, 20, 21, c.blue(2)); v.box(6, 8, 58, 18, 14, 60, c.iron(2)); v.put(17, 17, 50, c.red(5)); return v; }
+  });
+
+  /* ---------- Musik und Hobby ---------- */
+  def({
+    id: 'piano_upright', name: 'Klavier', cat: 'musik', price: 28, desc: 'Mit Hocker. Die Figur spielt darauf.', variants: [L('Schwarz', 'graphite', 'cream'), L('Nuss', 'walnut', 'cream'), L('Weiß', 'white', 'cream')],
+    build() {
+      const v = V(66, 44, 58), W = K.grain('s0', 3, 73);
+      v.box(0, 0, 0, 66, 18, 50, W); v.box(0, 0, 48, 66, 20, 52, c.s0(4)); v.box(2, 18, 20, 64, 22, 38, W); v.box(4, 22, 36, 62, 24, 40, c.s0(4));
+      for (let i = 0; i < 26; i++) v.box(5 + i * 2, 22, 31, 6 + i * 2, 24, 36, c.s1(5)); [3, 4, 6, 7, 8, 10, 11, 13, 14, 15, 17, 18, 20, 21, 22].forEach((k) => v.box(5 + k * 2 + 1, 22, 33, 7 + k * 2, 24, 37, c.ink(2)));
+      v.box(14, 17, 40, 52, 18, 48, c.s0(2)); v.box(0, 0, 50, 66, 18, 52, c.s0(3)); K.legs(v, [[2, 20], [60, 20]], 4, 20, W); v.box(26, 19, 4, 40, 23, 10, c.steel(4));
+      v.box(18, 30, 0, 48, 42, 3, c.s0(3)); K.legs(v, [[19, 31], [43, 31], [19, 38], [43, 38]], 2, 0, c.s0(3)); v.rbox(20, 30, 14, 46, 42, 18, 1, c.red(3)); K.legs(v, [[21, 31], [42, 31], [21, 39], [42, 39]], 2, 14, c.s0(3));
+      return v;
+    }
+  });
+  def({
+    id: 'piano_digital', name: 'Digitalpiano', cat: 'musik', price: 14, desc: 'Leise für nachts, mit Ständer.', variants: [L('Schwarz', 'graphite', 'cream'), L('Weiß', 'white', 'cream')],
+    build() { const v = V(64, 26, 40); [[2, 3], [58, 3], [2, 20], [58, 20]].forEach(([x, y]) => v.box(x, y, 0, x + 4, y + 3, 28, c.s0(3))); v.box(2, 3, 12, 62, 6, 14, c.s0(2)); v.box(0, 0, 28, 64, 26, 34, c.s0(3)); v.box(0, 0, 34, 64, 8, 38, c.s0(3)); v.box(2, 8, 34, 62, 26, 35, c.s0(2)); for (let i = 0; i < 28; i++) v.box(3 + i * 2, 8, 34, 4 + i * 2, 24, 36, c.s1(5)); [3, 4, 6, 7, 8, 10, 11, 13, 14, 15, 17, 18, 20, 21, 22, 24, 25].forEach((k) => v.box(3 + k * 2 + 1, 8, 36, 5 + k * 2, 17, 38, c.ink(2))); v.box(40, 1, 38, 56, 3, 40, c.iron(2)); v.put(46, 1, 39, c.green(5)); return v; }
+  });
+  def({
+    id: 'keyboard_stand', name: 'Keyboard auf Ständer', cat: 'musik', price: 9, desc: 'X-Gestell, Kopfhörer-Buchse, Spielspaß.', variants: [L('Schwarz', 'graphite', 'cream')],
+    build() { const v = V(48, 20, 34); v.line(6, 4, 0, 22, 16, 22, 0.7, c.steel(3)); v.line(6, 16, 0, 22, 4, 22, 0.7, c.steel(3)); v.line(42, 4, 0, 26, 16, 22, 0.7, c.steel(3)); v.line(42, 16, 0, 26, 4, 22, 0.7, c.steel(3)); v.box(0, 3, 22, 48, 17, 26, c.s0(3)); v.box(0, 3, 26, 48, 9, 29, c.s0(3)); for (let i = 0; i < 22; i++) v.box(2 + i * 2, 9, 26, 3 + i * 2, 17, 27, c.s1(5)); [2, 3, 5, 6, 7, 9, 10, 12, 13, 14, 16, 17, 19, 20].forEach((k) => v.box(2 + k * 2 + 1, 9, 27, 4 + k * 2, 14, 28, c.ink(2))); v.box(32, 4, 29, 44, 8, 30, c.iron(1)); v.box(34, 5, 29, 38, 7, 30, c.cyan(4)); return v; }
+  });
+  def({
+    id: 'guitar_stand', name: 'Gitarre auf Ständer', cat: 'musik', price: 8, desc: 'Akustikgitarre, immer griffbereit.', variants: [L('Natur', 'amber', 'walnut'), L('Sunburst', 'orange', 'walnut'), L('Schwarz', 'graphite', 'oak')],
+    build() { const v = V(24, 18, 50); [[3, 4], [21, 4], [12, 15]].forEach(([x, y]) => v.line(x, y, 0.5, 12, 8, 18, 0.7, c.iron(3))); v.box(8, 5, 18, 16, 7, 20, c.iron(3)); v.ell(12, 8, 22, 6.6, 3, 6, c.s0(3)); v.ell(12, 8, 32, 5, 3, 5, c.s0(3)); v.cylY(12, 26.5, 2, 4, 11, c.ink(2)); v.box(11, 7, 33, 13, 10, 48, c.s1(2)); v.box(10, 7, 46, 14, 10, 50, c.s1(3)); v.box(11, 10, 36, 13, 11, 46, c.s0(4)); return v; }
+  });
+  def({
+    id: 'amp_guitar', name: 'Gitarrenverstärker', cat: 'musik', price: 7, desc: 'Auf elf drehen.', variants: [L('Schwarz', 'graphite', 'gold'), L('Creme', 'cream', 'leather')],
+    build() { const v = V(26, 16, 28); v.box(0, 0, 0, 26, 16, 28, c.s0(3)); v.box(0, 0, 26, 26, 16, 28, c.s0(4)); v.box(3, 15, 3, 23, 16, 17, (x, z) => 0); v.box(3, 15, 3, 23, 16, 18, (x, y, z) => ((x + z) % 3 === 0 ? c.stone(2) : c.iron(2))); v.box(2, 15, 20, 24, 16, 25, c.s1(3)); for (let i = 0; i < 5; i++) v.cylY(5 + i * 4, 22, 1, 15, 16, c.steel(5)); v.put(22, 15, 22, c.red(4)); return v; }
+  });
+  def({
+    id: 'drum_kit', name: 'Schlagzeug', cat: 'musik', price: 24, desc: 'Bassdrum, Toms, Snare und Becken.', variants: [L('Rot', 'red', 'steel'), L('Blau', 'blue', 'steel'), L('Schwarz', 'graphite', 'steel')],
+    build() {
+      const v = V(60, 46, 44); v.cylY(30, 12, 11, 24, 34, c.s0(3)); v.cylY(30, 12, 8, 33, 34, c.white(4)); v.cylY(30, 12, 9.6, 23, 24, c.s1(4));
+      [[16, 20, 10], [30, 22, 10], [46, 20, 10]].forEach(([x, y, z], i) => { v.cylY(x, 24 + (i === 1 ? 4 : 0), 6.4, y, y + 8, c.s0(3)); v.cylY(x, 24 + (i === 1 ? 4 : 0), 5.2, y + 7, y + 8, c.white(4)); });
+      v.cylY(8, 18, 8, 28, 36, c.s0(3)); v.cylY(8, 18, 6.6, 35, 36, c.white(4)); v.cyl(48, 12, 7, 12, 14, c.steel(5));
+      v.line(14, 30, 0.5, 14, 30, 40, 0.6, c.s1(4)); v.cyl(14, 30, 7, 38, 39, c.gold(4)); v.line(52, 14, 0.5, 52, 14, 38, 0.6, c.s1(4)); v.cyl(52, 14, 7, 36, 37, c.gold(4)); v.cyl(30, 32, 6, 20, 24, c.s1(3)); v.box(36, 36, 8, 48, 40, 10, c.walnut(3)); v.box(24, 34, 0, 36, 42, 14, c.s0(2)); v.cyl(30, 38, 7, 12, 14, c.red(3));
+      return v;
+    }
+  });
+  def({
+    id: 'easel', name: 'Staffelei mit Gemälde', cat: 'musik', price: 8, desc: 'Ein Bild entsteht.', variants: [L('Holz', 'oak', 'cream'), L('Weiß', 'white', 'cream')],
+    build() { const v = V(36, 30, 66); [[4, 20], [32, 20], [18, 4]].forEach(([x, y]) => v.line(x, y, 0.5, x * 0.7 + 5, y > 10 ? 10 : 12, 60, 0.9, c.s0(3))); v.box(6, 18, 18, 30, 20, 20, c.s0(2)); v.box(8, 17, 20, 28, 18, 50, c.paper(5)); v.box(8, 17, 20, 28, 18, 50, (x, y, z) => { const u = x - 8, w = z - 20; if (Math.hypot(u - 14, w - 24) < 4) return c.yellow(5); if (w < 9) return c.forest(3); if (w < 16 && Math.abs(u - 10) < 10 - w * 0.4) return c.blue(3); return c.sky(4); }); v.box(8, 16, 38, 28, 17, 40, c.s0(3)); v.box(6, 16, 12, 12, 19, 14, c.s0(2)); v.box(24, 17, 14, 28, 20, 17, c.red(4)); v.box(20, 17, 14, 23, 20, 17, c.blue(4)); return v; }
+  });
+  def({
+    id: 'sewing_machine', name: 'Nähmaschine', cat: 'musik', place: 'surface', fine: 4, price: 6, desc: 'Mit Stoffrest unter der Nadel.', variants: [L('Weiß', 'white', 'red'), L('Mint', 'mint', 'cream'), L('Schwarz', 'graphite', 'gold')],
+    build() { const v = V(26, 12, 18); v.box(0, 0, 0, 26, 12, 3, c.s0(3)); v.rbox(0, 2, 3, 8, 10, 16, 2, c.s0(3)); v.rbox(0, 2, 12, 22, 10, 18, 2, c.s0(3)); v.box(16, 5, 6, 17, 6, 12, c.steel(5)); v.box(15, 4, 4, 19, 8, 6, c.steel(4)); v.cyl(4, 6, 2.4, 9, 10, c.s1(3)); v.box(10, 4, 3, 24, 9, 4, c.red(3)); return v; }
+  });
+  def({
+    id: 'telescope', name: 'Teleskop', cat: 'musik', price: 10, desc: 'Der Mond kommt näher.', variants: [L('Weiß', 'white', 'steel'), L('Schwarz', 'graphite', 'steel')],
+    build() { const v = V(30, 30, 56); [[4, 6], [26, 6], [15, 26]].forEach(([x, y]) => v.line(x, y, 0.5, 15, 15, 26, 0.8, c.s1(3))); v.cyl(15, 15, 2, 24, 28, c.s1(3)); v.line(10, 8, 28, 22, 22, 50, 3, c.s0(3)); v.line(10, 8, 28, 22, 22, 50, 3.2, (x, y, z) => ((x + y + z) % 12 < 1 ? c.s0(5) : c.s0(3))); v.sph(22, 22, 51, 3.4, c.s0(4)); v.cyl(9, 7, 3.6, 27, 29, c.s1(3)); v.line(18, 18, 43, 20, 14, 46, 0.6, c.iron(2)); return v; }
+  });
+  def({
+    id: 'workbench', name: 'Werkbank', cat: 'musik', price: 12, desc: 'Schraubstock, Werkzeug, Sägespäne.', variants: [L('Holz', 'oak', 'red'), L('Dunkel', 'walnut', 'blue')],
+    build() { const v = V(76, 30, 42), W = K.grain('s0', 3, 74); K.legs(v, [[2, 2], [70, 2], [2, 24], [70, 24]], 4, 32, W); v.box(0, 0, 32, 76, 30, 36, W); v.box(0, 0, 35, 76, 30, 36, c.s0(4)); v.box(4, 4, 8, 72, 26, 10, W); v.box(6, 2, 14, 30, 28, 30, c.s0(2)); v.box(8, 4, 16, 28, 26, 28, c.s0(3)); v.box(4, 22, 36, 14, 28, 40, c.iron(3)); v.box(2, 22, 38, 6, 28, 40, c.iron(2)); v.box(40, 8, 36, 56, 10, 37, c.steel(4)); v.box(44, 14, 36, 52, 17, 40, c.s1(3)); v.box(62, 10, 36, 70, 12, 37, c.steel(5)); v.box(48, 20, 36, 60, 22, 38, c.s1(3)); return v; }
+  });
+  def({
+    id: 'pegboard', name: 'Werkzeugwand', cat: 'musik', place: 'wall', price: 5, desc: 'Jedes Werkzeug hat seinen Platz.', variants: [L('Holz', 'kraft'), L('Weiß', 'white')],
+    build() { const v = V(48, 4, 36); v.box(0, 0, 0, 48, 2, 36, (x, y, z) => ((x % 4 === 2 && z % 4 === 2) ? c.ink(2) : c.s0(3))); [[6, 18, 'red'], [14, 22, 'blue'], [22, 20, 'amber'], [32, 24, 'steel'], [40, 18, 'green']].forEach(([x, h, col]) => { v.box(x, 2, 30 - h, x + 2, 3, 30, c.steel(4)); v.box(x - 1, 2, 30, x + 3, 3, 33, c[col](3)); }); v.box(8, 2, 6, 22, 3, 8, c.steel(5)); v.box(26, 2, 8, 40, 3, 10, c.leather(3)); return v; }
+  });
+
+  /* ---------- Sport ---------- */
+  def({
+    id: 'bike_trainer', name: 'Heimtrainer', cat: 'sport', price: 12, desc: 'Strampeln ohne Gegenwind.', variants: [L('Schwarz-Rot', 'graphite', 'red'), L('Weiß-Blau', 'white', 'blue')],
+    build() { const v = V(34, 16, 50); v.box(2, 2, 0, 32, 14, 2, c.s0(3)); v.line(6, 8, 2, 14, 8, 24, 1.4, c.s0(3)); v.line(14, 8, 24, 30, 8, 36, 1.4, c.s0(3)); v.line(30, 8, 36, 30, 8, 46, 1, c.s1(3)); v.box(26, 4, 44, 34, 12, 46, c.s0(3)); v.cyl(10, 8, 6, 8, 10, c.s1(2)); v.box(8, 4, 24, 20, 12, 27, c.s1(3)); v.box(10, 4, 22, 18, 12, 24, c.s0(4)); v.line(14, 8, 12, 22, 8, 8, 0.6, c.steel(4)); v.box(21, 5, 7, 24, 11, 10, c.steel(5)); return v; }
+  });
+  def({
+    id: 'rower', name: 'Rudergerät', cat: 'sport', price: 14, desc: 'Ziehen, strecken, wiederholen.', variants: [L('Schwarz', 'graphite', 'red'), L('Silber', 'steel', 'blue')],
+    build() { const v = V(20, 70, 26); v.box(8, 2, 6, 12, 68, 9, c.s0(3)); v.box(2, 2, 0, 18, 6, 6, c.s0(3)); v.box(2, 62, 0, 18, 66, 6, c.s0(3)); v.cyl(10, 62, 7, 8, 14, c.s1(3)); v.cyl(10, 62, 5, 13, 14, c.iron(2)); v.box(5, 22, 9, 15, 32, 12, c.s1(3)); v.box(4, 22, 12, 16, 32, 13, c.iron(3)); v.line(10, 58, 14, 10, 6, 14, 0.4, c.steel(5)); v.box(3, 4, 12, 17, 8, 14, c.iron(2)); return v; }
+  });
+  def({
+    id: 'pullup_bar', name: 'Klimmzugstange', cat: 'sport', place: 'wall', price: 3, desc: 'Fürs Rücken-Training.', variants: [L('Schwarz', 'graphite'), L('Edelstahl', 'steel')],
+    build() { const v = V(44, 14, 8); v.box(0, 0, 0, 6, 4, 8, c.s0(3)); v.box(38, 0, 0, 44, 4, 8, c.s0(3)); v.box(2, 3, 2, 4, 14, 4, c.s0(3)); v.box(40, 3, 2, 42, 14, 4, c.s0(3)); v.cylX(13, 3, 1.4, 2, 42, c.s0(4)); return v; }
+  });
+  def({
+    id: 'yoga_ball', name: 'Gymnastikball', cat: 'sport', price: 2, desc: 'Sitzen, rollen, balancieren.', variants: [L('Blau', 'blue'), L('Rot', 'red'), L('Grün', 'green'), L('Pink', 'pink')],
+    build() { const v = V(24, 24, 24); v.sph(12, 12, 12, 11.6, (x, y, z) => (((x + y + z) % 11 < 1) ? c.s0(4) : c.s0(3))); v.sph(12, 12, 23, 1.2, c.s0(2)); return v; }
+  });
+  def({
+    id: 'boxing_gloves', name: 'Boxhandschuhe', cat: 'sport', place: 'wall', price: 2, desc: 'An der Wand griffbereit.', variants: [L('Rot', 'red'), L('Blau', 'blue'), L('Schwarz', 'graphite')],
+    build() { const v = V(18, 5, 18); v.box(8, 0, 12, 10, 2, 17, c.leather(3)); [3, 11].forEach((x) => { v.rbox(x - 1, 1, 2, x + 5, 4, 12, 2, c.s0(3)); v.box(x, 1, 1, x + 4, 4, 3, c.white(4)); v.box(x + 3, 3, 4, x + 5, 4, 8, c.cream(4)); }); return v; }
+  });
+
+  /* ---------- Haustier-Zubehoer ---------- */
+  def({
+    id: 'aquarium', name: 'Aquarium', cat: 'tiere', price: 14, desc: 'Fische, Licht und Blubbern.', lights: [{ x: 28, y: 14, z: 30, r: 90, i: 1.6, col: [120, 200, 255], night: false }],
+    screens: [{ plane: 'y', x0: 4, z0: 12, w: 52, h: 24 }], variants: [L('Schwarz', 'graphite', 'oak'), L('Weiß', 'white', 'oak')],
+    build() { const v = V(60, 26, 46); v.box(0, 0, 0, 60, 26, 12, c.s1(3)); [[2, 2], [54, 2], [2, 20], [54, 20]].forEach(([x, y]) => v.box(x, y, 0, x + 4, y + 4, 12, c.s1(2))); v.box(0, 0, 12, 60, 26, 14, c.s0(3)); v.box(2, 2, 14, 58, 24, 40, 0); v.box(3, 3, 14, 57, 4, 38, c.water(2)); v.box(3, 24, 14, 57, 25, 38, RS.dyn(6, 0)); v.box(3, 3, 14, 57, 24, 17, c.sand(3)); v.box(2, 24, 14, 58, 26, 15, c.s0(3)); v.box(0, 0, 40, 60, 26, 42, c.s0(3)); v.box(1, 1, 42, 59, 25, 44, c.s0(2)); v.box(4, 10, 17, 10, 16, 26, c.stone(3)); v.line(46, 12, 17, 46, 12, 30, 0.7, c.green(3)); v.line(50, 14, 17, 52, 14, 28, 0.7, c.forest(3)); return v; }
+  });
+  def({
+    id: 'terrarium', name: 'Terrarium', cat: 'tiere', place: 'surface', fine: 4, price: 8, desc: 'Mit Echse, Stein und Pflanze.', lights: [{ x: 18, y: 10, z: 14, r: 50, i: 1.0, col: [255, 210, 130], night: false }], variants: [L('Schwarz', 'graphite'), L('Holz', 'walnut')],
+    build() { const v = V(40, 22, 24); v.box(0, 0, 0, 40, 22, 2, c.s0(3)); v.box(0, 0, 2, 40, 22, 4, c.sand(3)); v.box(0, 0, 22, 40, 22, 24, c.s0(3)); [[0, 0], [38, 0], [0, 20], [38, 20]].forEach(([x, y]) => v.box(x, y, 2, x + 2, y + 2, 22, c.s0(3))); for (let z = 4; z < 22; z += 4) { v.box(38, 2, z, 39, 20, z + 1, c.glass(5)); v.box(2, 20, z, 38, 21, z + 1, c.glass(6)); } v.ell(10, 10, 6, 5, 4, 3.4, c.stone(3)); v.box(24, 6, 4, 28, 10, 6, c.walnut(2)); v.line(14, 10, 8, 18, 8, 9, 0.7, c.lime(3)); v.sph(19, 8, 9, 1.4, c.lime(3)); v.put(20, 8, 10, c.ink(2)); v.line(12, 10, 8, 8, 12, 8, 0.4, c.lime(3)); v.line(32, 12, 4, 32, 12, 16, 0.6, c.forest(3)); for (let i = 0; i < 6; i++) K.leaf2(v, 32, 12, 12 + i, Math.cos(i * 1.2), Math.sin(i * 1.2), 6, 1.6, 0.4, c.green(3), 0.1); return v; }
+  });
+  def({
+    id: 'bird_cage', name: 'Vogelkäfig', cat: 'tiere', price: 8, desc: 'Auf dem Ständer, mit Sitzstange.', variants: [L('Weiß', 'white', 'yellow'), L('Messing', 'gold', 'sky'), L('Schwarz', 'graphite', 'amber')],
+    build() { const v = V(26, 26, 66); v.cyl(13, 13, 8, 0, 2, c.s0(3)); v.cyl(13, 13, 1.3, 2, 26, c.s0(3)); v.cyl(13, 13, 11, 26, 29, c.s0(3)); for (let a = 0; a < 20; a++) { const t = a * Math.PI / 10; v.line(13 + Math.cos(t) * 10, 13 + Math.sin(t) * 10, 29, 13 + Math.cos(t) * 8, 13 + Math.sin(t) * 8, 54, 0.3, c.s0(4)); v.line(13 + Math.cos(t) * 8, 13 + Math.sin(t) * 8, 54, 13, 13, 60, 0.3, c.s0(4)); } v.cyl(13, 13, 10.4, 52, 53, c.s0(3)); v.cyl(13, 13, 2, 59, 62, c.s0(3)); v.sph(13, 13, 63, 1.4, c.s0(4)); v.line(5, 13, 38, 21, 13, 38, 0.5, c.walnut(3)); v.ell(10, 13, 41, 2.6, 2.2, 2.6, c.s1(4)); v.sph(10, 14, 44, 1.6, c.s1(4)); v.box(9, 15, 44, 10, 16, 45, c.orange(4)); return v; }
+  });
+  def({
+    id: 'hamster_cage', name: 'Hamsterkäfig', cat: 'tiere', place: 'surface', fine: 4, price: 5, desc: 'Mit Laufrad und Häuschen.', variants: [L('Blau', 'blue', 'white'), L('Rosa', 'pink', 'white')],
+    build() { const v = V(34, 22, 26); v.box(0, 0, 0, 34, 22, 4, c.s0(3)); v.box(1, 1, 2, 33, 21, 4, c.sand(3)); for (let x = 2; x < 33; x += 3) { v.box(x, 21, 4, x + 1, 22, 20, c.s1(5)); v.box(x, 0, 4, x + 1, 1, 20, c.s1(5)); } for (let y = 2; y < 21; y += 3) { v.box(0, y, 4, 1, y + 1, 20, c.s1(5)); v.box(33, y, 4, 34, y + 1, 20, c.s1(5)); } v.box(0, 0, 20, 34, 22, 22, c.s0(3)); v.cylX(14, 11, 7, 20, 22, 0); v.cylX(14, 11, 6, 20, 21, c.stone(4)); v.cylX(14, 11, 4.6, 20, 21, 0); v.box(3, 6, 4, 11, 14, 10, c.s0(2)); return v; }
+  });
+  def({
+    id: 'cat_tree', name: 'Kratzbaum', cat: 'tiere', price: 14, desc: 'Plattformen, Höhle und Kratzstamm.', variants: [L('Grau', 'greyfab', 'sand'), L('Beige', 'sand', 'oak'), L('Rosa', 'rose', 'cream')],
+    build() { const v = V(40, 36, 86); v.box(0, 0, 0, 40, 36, 4, c.s0(3)); v.cyl(10, 10, 4, 4, 54, (x, y, z) => ((z % 3) ? c.s1(3) : c.s1(4))); v.box(2, 2, 24, 22, 22, 28, c.s0(3)); v.cyl(30, 24, 4, 4, 38, c.s1(3)); v.box(18, 12, 38, 40, 34, 42, c.s0(3)); v.box(20, 14, 18, 38, 32, 30, c.s0(4)); v.box(22, 14, 18, 36, 32, 20, c.s0(2)); v.cylY(29, 25, 5, 31, 33, 0); v.box(0, 0, 54, 24, 24, 58, c.s0(3)); v.cyl(10, 10, 3, 58, 82, (x, y, z) => ((z % 3) ? c.s1(3) : c.s1(4))); v.box(0, 0, 82, 22, 22, 86, c.s0(3)); v.cyl(20, 3, 1.4, 42, 56, c.red(3)); v.sph(20, 3, 55, 2, c.red(3)); return v; }
+  });
+  def({
+    id: 'pet_bed', name: 'Haustierbett', cat: 'tiere', price: 3, desc: 'Weich gepolstert.', variants: [L('Grau', 'greyfab', 'cream'), L('Rosa', 'rose', 'cream'), L('Blau', 'slate', 'cream'), L('Braun', 'leather', 'sand')],
+    build() { const v = V(32, 24, 10); v.rbox(0, 0, 0, 32, 24, 8, 3, c.s0(3)); v.rbox(4, 4, 3, 28, 20, 9, 3, 0); v.rbox(4, 4, 3, 28, 20, 6, 3, c.s1(4)); v.rbox(2, 2, 6, 30, 22, 9, 2, 0); v.cyl(16, 12, 10, 3, 5, c.s1(3)); return v; }
+  });
+  def({
+    id: 'food_bowls', name: 'Futternäpfe', cat: 'tiere', flat: true, price: 1, desc: 'Futter links, Wasser rechts.', variants: [L('Edelstahl', 'steel', 'blue'), L('Rot', 'red', 'white')],
+    build() { const v = V(26, 14, 3); v.box(0, 0, 0, 26, 14, 1, c.iron(3)); v.cyl(7, 7, 5, 0, 3, c.s0(4)); v.cyl(7, 7, 3.6, 2, 3, c.leather(3)); v.cyl(19, 7, 5, 0, 3, c.s0(4)); v.cyl(19, 7, 3.6, 2, 3, c.water(3)); v.cyl(7, 7, 5.4, 2, 3, c.s1(3)); return v; }
+  });
+
+  /* ---------- Garten ---------- */
+  def({
+    id: 'bench_garden', name: 'Gartenbank', cat: 'garten', price: 7, desc: 'Mit Lehne, für Sonntagnachmittage.', variants: [L('Holz', 'oak', 'graphite'), L('Weiß', 'white', 'graphite'), L('Grün', 'forest', 'graphite')],
+    build() { const v = V(54, 18, 32), W = K.grain('s0', 3, 75); [[2, 2], [48, 2], [2, 12], [48, 12]].forEach(([x, y]) => v.box(x, y, 0, x + 4, y + 4, 16, c.s1(3))); for (let i = 0; i < 4; i++) v.box(0, 3 + i * 4, 15, 54, 6 + i * 4, 17, W); [22, 27].forEach((z) => v.box(0, 2, z, 54, 4, z + 3, W)); v.box(2, 2, 17, 5, 5, 31, c.s1(3)); v.box(49, 2, 17, 52, 5, 31, c.s1(3)); return v; }
+  });
+  def({
+    id: 'table_garden', name: 'Gartentisch', cat: 'garten', price: 8, desc: 'Rund, mit Loch für den Sonnenschirm.', variants: [L('Weiß', 'white', 'graphite'), L('Holz', 'oak', 'graphite'), L('Grün', 'forest', 'graphite')],
+    build() { const v = V(44, 44, 28); v.cyl(22, 22, 20, 24, 27, K.grain('s0', 3, 76)); v.cyl(22, 22, 20, 26, 27, c.s0(4)); v.cyl(22, 22, 1.4, 27, 28, c.ink(2)); for (let a = 0; a < 4; a++) v.line(22 + Math.cos(a * 1.57 + 0.78) * 16, 22 + Math.sin(a * 1.57 + 0.78) * 16, 0.5, 22, 22, 24, 1.2, c.s1(3)); return v; }
+  });
+  def({
+    id: 'chair_garden', name: 'Gartenstuhl', cat: 'garten', price: 3, desc: 'Klappbar und wetterfest.', variants: [L('Weiß', 'white', 'graphite'), L('Holz', 'oak', 'graphite'), L('Grün', 'forest', 'graphite')],
+    build() { const v = V(16, 16, 32); K.legs(v, [[1, 1], [13, 1], [1, 13], [13, 13]], 2, 14, c.s1(3)); for (let i = 0; i < 3; i++) v.box(0, 1 + i * 5, 14, 16, 4 + i * 5, 16, c.s0(3)); for (let i = 0; i < 3; i++) v.box(0, 0, 18 + i * 5, 16, 2, 20 + i * 5, c.s0(3)); v.box(1, 0, 16, 3, 2, 32, c.s1(3)); v.box(13, 0, 16, 15, 2, 32, c.s1(3)); return v; }
+  });
+  def({
+    id: 'parasol', name: 'Sonnenschirm', cat: 'garten', price: 8, desc: 'Schatten für Tisch und Stühle.', variants: [L('Rot-Weiß', 'red', 'white'), L('Gelb', 'yellow', 'white'), L('Blau', 'blue', 'white'), L('Creme', 'cream', 'white')],
+    build() { const v = V(64, 64, 80); v.cyl(32, 32, 9, 0, 3, c.concrete(3)); v.cyl(32, 32, 1.4, 3, 70, c.steel(3)); for (let z = 0; z < 14; z++) { const r = 30 - z * 1.6; v.cyl(32, 32, r, 62 + z, 63 + z, (x, y) => ((Math.floor((Math.atan2(y - 32, x - 32) + Math.PI) / (Math.PI / 4)) % 2) ? c.s0(3) : c.s1(4))); } v.sph(32, 32, 77, 1.6, c.steel(4)); return v; }
+  });
+  def({
+    id: 'bbq_grill', name: 'Grill', cat: 'garten', price: 9, desc: 'Kugelgrill auf Rollen, mit Rost.', variants: [L('Schwarz', 'graphite'), L('Rot', 'red')],
+    build() { const v = V(36, 26, 40); [[2, 2], [30, 2], [2, 20], [30, 20]].forEach(([x, y]) => v.line(x + 2, y + 2, 1, 18, 13, 20, 0.8, c.steel(3))); v.sph(18, 13, 28, 12, (x, y, z) => (z < 28 ? c.s0(3) : c.s0(4))); v.cyl(18, 13, 12, 26, 29, c.s0(2)); v.box(7, 5, 29, 29, 21, 30, c.steel(3)); v.line(18, 4, 36, 18, 22, 36, 0.8, c.steel(4)); v.box(16, 3, 34, 20, 7, 38, c.steel(4)); v.box(2, 6, 18, 8, 20, 20, c.s0(2)); v.cyl(6, 13, 1.4, 20, 24, c.red(3)); return v; }
+  });
+  def({
+    id: 'fire_pit', name: 'Feuerschale', cat: 'garten', price: 8, desc: 'Knistert und wärmt.', lights: [{ x: 15, y: 15, z: 12, r: 110, i: 3.0, col: [255, 150, 70], night: false, flick: true }], screens: [{ plane: 'y', x0: 4, z0: 8, w: 22, h: 12 }], variants: [L('Schwarz', 'graphite'), L('Rost', 'brick')],
+    build() { const v = V(30, 30, 24); v.cyl(15, 15, 13, 8, 14, c.s0(3)); v.cyl(15, 15, 11, 12, 14, 0); v.cyl(15, 15, 11, 10, 11, c.iron(1)); K.legs(v, [[4, 4], [24, 4], [4, 24], [24, 24]], 2, 8, c.s0(2)); for (let i = 0; i < 5; i++) v.line(8 + i * 3, 12, 11, 22 - i * 2, 18, 12, 1.3, c.walnut(2)); v.cyl(15, 15, 8, 12, 13, c.iron(1)); for (let z = 13; z < 22; z++) v.cyl(15, 15, Math.max(1, 8 - (z - 13) * 0.9), z, z + 1, RS.dyn(5, 0)); return v; }
+  });
+  def({
+    id: 'tree_small', name: 'Laubbaum', cat: 'garten', price: 12, desc: 'Spendet Schatten und Vogelgesang.', variants: [L('Sommer', 'green'), L('Herbst', 'orange'), L('Blüte', 'pink')],
+    build() { const v = V(64, 64, 100); v.cyl(32, 32, 4, 0, 40, c.walnut(2)); v.cyl(32, 32, 5.6, 0, 6, c.walnut(3)); v.line(32, 32, 34, 20, 26, 54, 2.2, c.walnut(2)); v.line(32, 32, 38, 44, 36, 58, 2.2, c.walnut(2)); [[32, 32, 70, 20], [18, 26, 56, 13], [46, 36, 58, 14], [30, 20, 52, 11], [34, 46, 56, 11]].forEach(([x, y, z, r], i) => v.sph(x, y, z, r, (xx, yy, zz) => c.s0(hash(xx >> 1, yy >> 1, zz >> 1) < 0.25 ? 2 : (zz > z ? 4 : 3)))); return v; }
+  });
+  def({
+    id: 'bush', name: 'Busch', cat: 'garten', price: 4, desc: 'Rund geschnitten.', variants: [L('Grün', 'green'), L('Dunkel', 'forest'), L('Blüte', 'rose')],
+    build() { const v = V(34, 34, 26); v.sph(17, 17, 11, 14, (x, y, z) => c.s0(hash(x >> 1, y >> 1, z >> 1) < 0.3 ? 2 : (z > 14 ? 4 : 3))); for (let i = 0; i < 8; i++) v.sph(8 + (i * 5) % 18, 8 + (i * 7) % 18, 10 + (i % 3) * 4, 1.2, c.pink(4)); return v; }
+  });
+  def({
+    id: 'flower_bed', name: 'Blumenbeet', cat: 'garten', price: 4, desc: 'Bunt von Frühling bis Herbst.', variants: [L('Bunt', 'red'), L('Rosa', 'pink'), L('Gelb', 'yellow')],
+    build() { const v = V(56, 22, 16); v.box(0, 0, 0, 56, 22, 5, c.walnut(3)); v.box(1, 1, 4, 55, 21, 6, c.walnut(1)); for (let i = 0; i < 30; i++) { const x = 3 + (i * 11) % 50, y = 3 + (i * 7) % 16, h = 8 + (i % 4) * 2; v.line(x, y, 5, x, y, h, 0.4, c.green(3)); v.sph(x, y, h + 1, 1.8, [c.s0(4), c.yellow(4), c.pink(4), c.violet(4), c.cream(5)][i % 5]); } return v; }
+  });
+  def({
+    id: 'garden_gnome', name: 'Gartenzwerg', cat: 'garten', place: 'surface', fine: 2, price: 2, desc: 'Der Wächter des Beets.', variants: [L('Rot', 'red'), L('Blau', 'blue'), L('Grün', 'green')],
+    build() { const v = V(12, 12, 24); v.box(3, 3, 0, 9, 9, 9, c.blue(3)); v.sph(6, 6, 11, 3.4, c.skin1(4)); v.box(4, 8, 8, 8, 10, 11, c.white(5)); for (let z = 12; z < 22; z++) v.cyl(6, 6, Math.max(0.6, 4.2 - (z - 12) * 0.42), z, z + 1, c.s0(3 + (z > 18 ? 1 : 0))); v.put(5, 9, 12, c.ink(3)); v.put(7, 9, 12, c.ink(3)); v.box(5, 9, 10, 7, 10, 11, c.rose(3)); return v; }
+  });
+  def({
+    id: 'swing', name: 'Schaukel', cat: 'garten', price: 11, desc: 'Zwei Ketten, ein Brett, viel Spaß.', variants: [L('Holz', 'oak', 'red'), L('Bunt', 'blue', 'yellow')],
+    build() { const v = V(60, 36, 70); [[2, 4], [54, 4], [2, 28], [54, 28]].forEach(([x, y]) => v.line(x + 2, y + 2, 0.5, 30, 18, 66, 1.2, c.s0(3))); v.box(24, 14, 64, 36, 22, 68, c.s0(3)); v.line(24, 18, 64, 22, 18, 20, 0.3, c.steel(4)); v.line(36, 18, 64, 38, 18, 20, 0.3, c.steel(4)); v.box(20, 12, 18, 40, 24, 21, c.s1(3)); return v; }
+  });
+  def({
+    id: 'hammock', name: 'Hängematte', cat: 'garten', price: 8, desc: 'Zwischen zwei Pfosten.', variants: [L('Bunt gestreift', 'red', 'cream'), L('Blau-Weiß', 'blue', 'white'), L('Natur', 'sand', 'cream')],
+    build() { const v = V(76, 24, 44); v.box(2, 9, 0, 6, 15, 40, c.walnut(3)); v.box(70, 9, 0, 74, 15, 40, c.walnut(3)); for (let x = 6; x < 70; x++) { const t = (x - 6) / 64, z = 34 - Math.round(14 * Math.sin(t * Math.PI)); for (let y = 6; y < 18; y++) v.put(x, y, z, ((x >> 2) % 2) ? c.s0(4) : c.s1(4)); v.put(x, 5, z + 1, c.s0(3)); v.put(x, 18, z + 1, c.s0(3)); } return v; }
+  });
+  def({
+    id: 'fence_picket', name: 'Lattenzaun', cat: 'garten', price: 2, desc: 'Weißer Zaun, wie aus dem Bilderbuch.', variants: [L('Weiß', 'white'), L('Holz', 'oak'), L('Blau', 'sky')],
+    build() { const v = V(32, 4, 28); v.box(0, 0, 6, 32, 2, 9, c.s0(3)); v.box(0, 0, 18, 32, 2, 21, c.s0(3)); for (let x = 1; x < 32; x += 4) { v.box(x, 1, 0, x + 3, 3, 24, c.s0(4)); v.box(x + 1, 1, 24, x + 2, 3, 26, c.s0(4)); v.box(x, 1, 0, x + 1, 3, 24, c.s0(2)); } return v; }
   });
 })(window);
 
@@ -3675,6 +5231,53 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     gym_squat_rack: [{ id: 'lift', label: 'Kniebeugen', icon: 'dumbbell', pose: 'lift', at: [22, 38], z: 0, face: 2, exit: 0, sfx: 'dumbbell' }],
     gym_treadmill: [{ id: 'run', label: 'Laufen', icon: 'gym', pose: 'run', at: [11, 24], z: 9, face: 0, exit: 20, exitFace: 2 }]
   };
+})(window);
+
+</script>
+<script>
+/* src/avatar-acts-more.js */
+/* Raumspiel – Aktionen des Charakters (und Sitz-/Liegeplaetze der Haustiere) fuer die neuen Moebel
+ * Felder wie in avatar-acts.js: at = Koerpermittelpunkt im Modell, z = Hoehe der Auflage, face = Blickrichtung (0 = +y, 1 = +x, 2 = -y, 3 = -x),
+ * exit = Abstand des Ausgangs, exitFace = Richtung des Ausgangs, needs = 'tv' | 'pc'.
+ */
+(function (g) {
+  const RS = g.RS, A = RS.ACTS;
+  if (!A) return;
+  const sit = (at, z, x) => Object.assign({ id: 'sit', label: 'Sitzen', icon: 'sofa', pose: 'sit', at, z, face: 0, exit: 22 }, x || {});
+  const read = (at, z, x) => Object.assign({ id: 'read', label: 'Lesen', icon: 'book', pose: 'read', at, z, face: 0, exit: 22, hint: 'Ein gutes Buch …' }, x || {});
+  const tv = (at, z, x) => Object.assign({ id: 'tv', label: 'Fernsehen', icon: 'tv', pose: 'sit', at, z, face: 0, exit: 24, needs: 'tv', ch: 0 }, x || {});
+  const game = (at, z, x) => Object.assign({ id: 'game', label: 'Zocken', icon: 'tv', pose: 'play', at, z, face: 0, exit: 24, needs: 'tv', ch: 1, hint: 'Controller in der Hand …' }, x || {});
+  const sofa = (x, z, ex) => [sit([x, 19], z, { exit: ex || 24 }), read([x, 19], z, { exit: ex || 24 }), tv([x, 19], z, { exit: ex || 24 }), game([x, 19], z, { exit: ex || 24 })];
+  const chair = (at, z, ex) => [sit(at, z, ex)];
+  const lie = (at, z, ex) => Object.assign({ id: 'sleep', label: 'Schlafen', icon: 'bed', pose: 'lie', at, z, face: 0, exit: 46, exitFace: 0, sleep: true, hint: 'Gute Nacht.', dur: 75 }, ex || {});
+  const sread = (at) => ({ id: 'sread', label: 'Buch lesen', icon: 'book', pose: 'sread', at, z: 0, face: 2, exit: 0 });
+
+  Object.assign(A, {
+    sofa_modern: sofa(28, 16), sofa_3: sofa(39, 16), sofa_l: sofa(22, 16), sofa_plaid: sofa(26, 15), chesterfield: sofa(35, 18),
+    armchair_wing: [sit([15, 19], 19), read([15, 19], 19)],
+    chair_dining: chair([7, 7], 18),
+    chair_gaming: [
+      sit([12, 11], 23, { face: 2, exit: 22, exitFace: 0 }),
+      { id: 'work', label: 'Am PC arbeiten', icon: 'pc', pose: 'type', at: [12, 11], z: 23, face: 2, exit: 22, exitFace: 0, needs: 'pc', hint: 'Ab an die Arbeit.' },
+      { id: 'game', label: 'Am PC spielen', icon: 'pc', pose: 'type', at: [12, 11], z: 23, face: 2, exit: 22, exitFace: 0, needs: 'pc', hint: 'Noch eine Runde …' }
+    ],
+    stool_bar: chair([7, 7], 34, { exit: 20 }),
+    pouf: [sit([10, 10], 14), read([10, 10], 14)],
+    hammock_chair: [sit([17, 19], 22, { exit: 24 }), read([17, 19], 22, { exit: 24 })],
+    rocking_chair: [sit([12, 17], 19), read([12, 17], 19)],
+    bench_wood: chair([22, 8], 17), bench_cushion: chair([28, 8], 17),
+    bed_double: [lie([28, 36], 19)], bed_single: [lie([18, 36], 17)], bed_platform: [lie([28, 38], 14)], bed_canopy: [lie([29, 38], 21)],
+    bed_bunk: [lie([20, 36], 17, { label: 'Unten schlafen' }), lie([20, 36], 66, { label: 'Oben schlafen' })],
+    bed_loft: [lie([24, 38], 74)],
+    bookcase_wood: [sread([16, 22])], bookcase_low: [sread([23, 20])], ladder_shelf: [sread([16, 24])],
+    fridge_big: [{ id: 'snack', label: 'Snack holen', icon: 'pot', pose: 'eat', at: [19, 36], z: 0, face: 2, exit: 0 }],
+    stove: [{ id: 'cook', label: 'Kochen', icon: 'pot', pose: 'eat', at: [14, 32], z: 0, face: 2, exit: 0, hint: 'Riecht schon gut …', dur: 20 }],
+    piano_upright: [{ id: 'piano', label: 'Klavier spielen', icon: 'note', pose: 'type', at: [33, 36], z: 18, face: 2, exit: 22, exitFace: 0, sfx: 'step', hint: 'Ein kleines Stück …', dur: 30 }],
+    drum_kit: [{ id: 'drum', label: 'Trommeln', icon: 'note', pose: 'punch', at: [30, 48], z: 0, face: 2, exit: 0, dur: 20 }],
+    bathtub: [{ id: 'bath', label: 'Baden', icon: 'bath', pose: 'lie', at: [18, 34], z: 17, face: 0, exit: 26, exitFace: 1, hint: 'Ahh, herrlich …', dur: 40 }],
+    bench_garden: chair([27, 9], 17), chair_garden: chair([8, 8], 16), swing: [sit([30, 18], 21, { exit: 24 })],
+    hammock: [{ id: 'sleep', label: 'Dösen', icon: 'bed', pose: 'lie', at: [38, 12], z: 21, face: 1, exit: 20, exitFace: 0, sleep: true, hint: 'Zzz …', dur: 60 }]
+  });
 })(window);
 
 </script>
@@ -4259,29 +5862,69 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 <script>
 /* src/levels.js */
 /* Raumspiel – Freischaltung nach Level: Alles Neue wird mit hoeheren Leveln verfuegbar und dann mit Stunden gekauft.
- * Teile aus Kilians Zimmer (mine) sind von Anfang an frei. Der Rest wird nach Preis und Kategorie gestaffelt (Level 0..30).
- * Ein von Hand gesetztes d.lv hat Vorrang. Das Level selbst kommt aus RS.economy.level() (spaeter das Dashboard-Level).
- * Muss nach allen Katalog-Dateien und shell.js geladen werden.
+ * Teile aus Kilians Zimmer (mine) sind von Anfang an frei. Alle anderen Teile verteilen sich ueber die Level 0..19 (je Level etwa 13 neue Teile):
+ * innerhalb jeder Kategorie wandert es nach Preis nach oben (billig frueh, teuer spaet), Grundausstattung (Kuehlschrank, Herd, WC, Bett ...) wurde
+ * von Hand nach vorn gezogen (OVR). Die Tabelle ROWS ist fest eingetragen, damit neue Teile spaeter dazukommen koennen, ohne dass sich
+ * bestehende Freischaltungen verschieben; fuer neue Ids gibt es als Ersatz eine Punktzahl aus Preis und Kategorie (CUTS).
+ * Ein von Hand gesetztes d.lv (Haustiere, Fan-Poster) hat Vorrang. Das Level selbst kommt aus RS.economy.level() (im Dashboard: das Level aus
+ * dem Level-System; Level 7 ~ 650 XP, Level 12 ~ 1900 XP, Level 19 ~ 7700 XP).
+ * Muss nach allen Katalog-Dateien und shell.js/styles-more.js geladen werden.
  */
 (function (g) {
   'use strict';
   const RS = g.RS;
-  const TIERS = [[1.5, 0], [3, 1], [4.5, 2], [6, 3], [8, 5], [10, 7], [12, 9], [15, 11], [19, 14], [25, 17], [1e9, 21]];
-  const CATADD = { sport: 1, bad: 1, medien: 1, musik: 3, garten: 4 };
+  const ROWS = `
+0: pumpkin lamp_table water_dispenser keyboard_mouse pouf shoe_rack succulents dish_rack art_dream pennant crate_wood bath_mat headphones pegboard fence_picket
+1: photo_frame candles chair_dining aloe kettle toaster art_coffee coat_hooks coat_stand boombox food_bowls
+2: piggy_bank lamp_desk gym_mat mic_arm nightstand tulips_pot trash_bin art_rainbow calendar_wall table_side_round bath_scale dartboard sewing_machine garden_gnome
+3: snow_globe string_lights yoga_ball printer stool_bar clothes_rack fruit_bowl bread_bin art_mountains art_abstract bar_cart rubber_duck chess_set chair_garden
+4: plush_bunny laptop beanbag blanket_chest cactus spice_jars art_wave art_landscape coffee_wood soap_set console_retro amp_guitar pet_bed
+5: basket_wicker lamp_moon boxing_gloves bench_wood herbs_set knife_block dreamcatcher curtain_white console_narrow console_ps bush
+6: plush_bear lantern gym_kettlebells ring_light bench_cushion dresser_tall fern_pot pots_pans plates_set art_city art_sunset bookcase_low hamper speaker_stand guitar_stand flower_bed
+7: globe lamp_lava pullup_bar chair_office dresser_wide snake_plant pan_rail art_planet art_moon coffee_round towel_rail camera_tripod hamster_cage
+8: trophy sconce_wall file_cabinet armchair vanity orchid coffee_machine microwave art_botanic macrame rack_media shelf_bath tv_crt easel bench_garden
+9: rug_plain lamp_floor gym_bench rocking_chair kitchen_upper shelf_float corkboard_s
+10: clock_mantel rug_runner fairy_curtain gym_mirror parts_drawers chair_gaming bed_single bonsai mixer mirror_round wall_plates art_controller coffee_glass mirror_cabinet record_shelf keyboard_stand terrarium table_garden
+11: bust led_rgb lego_table hammock_chair wardrobe_wood bamboo kitchen_base kitchen_drawers art_cat art_geometric ladder_shelf sink_pedestal record_player telescope parasol
+12: ladder_blankets neon_cafe gym_dumbbells monitor_dual bed_platform pampas kitchen_cart art_lineface clock_digital tv_stand toilet speaker_tower bird_cage
+13: rug_round lamp_tripod gym_punchbag sofa_modern monstera kitchen_upper_long wine_rack mirror_arch shelf_float_2 table_round tv_wall workbench fire_pit
+14: rug_cloud desk_wood armchair_wing wardrobe_mirror cactus_tall hood wall_shelf_books mirror_wall cabinet_black_tall vanity_sink ping_pong hammock
+15: rug_rainbow neon_love gym_squat_rack desk_pc sofa_plaid bed_double christmas_tree kitchen_tall worldmap corkboard_l sideboard_wood washing_machine foosball piano_digital aquarium
+16: rug_geo neon_game gym_treadmill desk_standing sofa_3 bed_bunk dishwasher counter_sink clock_cuckoo window_square bookcase_wood shower pinball bbq_grill
+17: rug_shag neon_music bike_trainer palm_kentia stove window_slit window_tall table_dining_6 arcade drum_kit swing
+18: rug_persian neon_sign desk_music chesterfield bed_loft ficus_big fridge fridge_big window_wide window_paned hutch_green bathtub jukebox cat_tree
+19: fireplace lamp_arc rower desk_l sofa_l bed_canopy lemon_tree kitchen_island window_french window_big bar_counter bathtub_claw pool_table piano_upright tree_small
+`;
+  // Grundausstattung und Lieblingsstuecke: frueher freischalten als der Preis es nahelegt
+  const OVR = {
+    sofa_modern: 2, armchair: 4, chair_office: 1, chair_gaming: 6, stool_bar: 3, bed_single: 2, bed_double: 8, wardrobe_wood: 4, dresser_tall: 3, vanity: 7, table_round: 3, table_dining_6: 7,
+    desk_wood: 2, desk_pc: 3, coffee_wood: 2, tv_stand: 3, sideboard_wood: 6, bookcase_wood: 4, fridge: 2, stove: 3, counter_sink: 3, kitchen_base: 1, kitchen_upper: 2, kitchen_drawers: 2,
+    microwave: 2, coffee_machine: 3, dishwasher: 8, kitchen_tall: 7, hood: 6, fridge_big: 10, kitchen_island: 12, toilet: 1, sink_pedestal: 1, vanity_sink: 4, bathtub: 3, shower: 5,
+    washing_machine: 4, mirror_cabinet: 2, towel_rail: 1, bathtub_claw: 12, window_tall: 1, window_wide: 3, window_paned: 4, window_square: 1, window_slit: 3, window_big: 9, window_french: 8,
+    lamp_floor: 1, lamp_arc: 8, lamp_tripod: 5, monstera: 3, ficus_big: 6, palm_kentia: 8, tv_wall: 5, tv_crt: 3, rug_plain: 1, rug_round: 3, rug_geo: 8, neon_sign: 6, desk_standing: 8, desk_l: 12,
+    desk_music: 10, sofa_3: 7, sofa_plaid: 9, armchair_wing: 8, rug_runner: 4, mirror_round: 4, curtain_white: 2, shelf_float: 2, corkboard_s: 2, lego_table: 5, parts_drawers: 4, ring_light: 3, gym_bench: 3, gym_dumbbells: 3
+  };
+  const LV = {};
+  ROWS.trim().split('\n').forEach((r) => { const m = r.match(/^(\d+):\s*(.*)$/); if (m) m[2].split(' ').forEach((id) => { if (id) LV[id] = +m[1]; }); });
+  Object.assign(LV, OVR);
+
+  // Ersatz fuer Ids, die nicht in der Tabelle stehen (neue Teile): Punktzahl aus Preis, Kategorie und fester Streuung
+  const MUL = { musik: 1.25, garten: 1.2, sport: 1.1 };
+  const CUTS = [2.17, 2.81, 3.16, 3.32, 3.73, 3.91, 4.12, 4.65, 5.51, 6.04, 6.42, 7.17, 8.08, 9.1, 10.11, 11.15, 13.19, 15.19, 18.66];
   const FAN = { poster_starwars: 3, poster_marvel: 5, poster_potter: 7, poster_zelda: 9, poster_stranger: 11, poster_jurassic: 13, poster_witcher: 15 };
-  const jit = (id) => ([...id].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7) % 3) - 1;
+  const frac = (id) => ([...id].reduce((a, ch) => (a * 131 + ch.charCodeAt(0)) >>> 0, 7) % 1000) / 1000;
+  const score = (d) => d.price * (MUL[d.cat] || 1) + frac(d.id) * 1.2;
 
   RS.levelFor = function (d) {
     if (d.mine) return 0;
-    let lv = 0;
-    for (const t of TIERS) if (d.price <= t[0]) { lv = t[1]; break; }
-    if (lv > 0) lv = Math.max(1, lv + (CATADD[d.cat] || 0) + jit(d.id));
-    return Math.min(30, lv);
+    if (LV[d.id] != null) return LV[d.id];
+    const s = score(d);
+    return CUTS.filter((x) => s > x).length;
   };
   RS.ITEMS.forEach((d) => { if (FAN[d.id] != null) d.lv = FAN[d.id]; else if (d.lv == null) d.lv = RS.levelFor(d); });
 
   // Boeden und Waende
-  const stLv = (p) => (p <= 0 ? 0 : p <= 5 ? 1 : p <= 6 ? 2 : p <= 7 ? 3 : p <= 8 ? 5 : p <= 9 ? 6 : p <= 10 ? 8 : 10);
+  const stLv = (p) => (p <= 0 ? 0 : p <= 4 ? 1 : p <= 5 ? 2 : p <= 6 ? 4 : p <= 7 ? 6 : p <= 8 ? 8 : p <= 9 ? 10 : p <= 10 ? 12 : p <= 12 ? 14 : 16);
   RS.FLOORS.concat(RS.WALLS).forEach((s) => { if (s.lv == null) s.lv = stLv(s.price); });
 
   // Naechste Freischaltung ueber dem aktuellen Level: { lv, n } (n = Teile, Boeden, Waende)
