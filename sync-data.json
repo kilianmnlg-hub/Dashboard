@@ -1077,7 +1077,7 @@
         "av": {
           "look": {
             "skin": "skin2",
-            "hair": "short",
+            "hair": "curly",
             "hairC": "hairbrn",
             "top": "hoodie",
             "topC": "red",
@@ -1088,11 +1088,13 @@
             "acc": "none",
             "accC": "red"
           },
-          "owned": {},
-          "paid": 0,
-          "x": 292,
-          "y": 225,
-          "face": 2
+          "owned": {
+            "hair:curly": true
+          },
+          "paid": 4,
+          "x": 224,
+          "y": 160,
+          "face": 0
         },
         "styles": {
           "floor": {
@@ -1200,7 +1202,7 @@
         "zoom": 1
       }
     },
-    "spent": 15,
-    "updatedAt": 1792564366092
+    "spent": 19,
+    "updatedAt": 1792564373271
   }
 }
