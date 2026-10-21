@@ -751,7 +751,8 @@
         "upload:sIkJAy8NZdA:desc": 3,
         "upload:sIkJAy8NZdA:playlist": 3,
         "upload:sIkJAy8NZdA:endscreen": 3,
-        "upload:sIkJAy8NZdA:comment": 3
+        "upload:sIkJAy8NZdA:comment": 3,
+        "upload:sIkJAy8NZdA:post": 3
       }
     },
     "archive": {
@@ -759,7 +760,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792564028329
+    "updatedAt": 1792564138191
   },
   "msgSeen": {
     "ids": [
@@ -781,14 +782,15 @@
           "desc": 1792564018507,
           "playlist": 1792564021788,
           "endscreen": 1792564022483,
-          "comment": 1792564028329
+          "comment": 1792564028329,
+          "post": 1792564138191
         },
         "x": 0,
         "c": 0,
-        "u": 1792564028329
+        "u": 1792564138191
       }
     },
     "tAt": 0,
-    "updatedAt": 1792564028329
+    "updatedAt": 1792564138191
   }
 }
