@@ -1079,8 +1079,8 @@
             "skin": "skin2",
             "hair": "curly",
             "hairC": "hairbrn",
-            "top": "hoodie",
-            "topC": "red",
+            "top": "tee",
+            "topC": "white",
             "bottom": "jeans",
             "botC": "navy",
             "shoe": "sneak",
@@ -1092,9 +1092,9 @@
             "hair:curly": true
           },
           "paid": 4,
-          "x": 224,
-          "y": 160,
-          "face": 0
+          "x": 165,
+          "y": 178,
+          "face": 1
         },
         "styles": {
           "floor": {
@@ -1203,6 +1203,6 @@
       }
     },
     "spent": 19,
-    "updatedAt": 1792564373271
+    "updatedAt": 1792564386248
   }
 }
