@@ -57,11 +57,17 @@
   "todos": {
     "date": "2026-10-21",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "b3a9b47f-b8b5-437b-a394-813aeb9d0059",
+          "text": "JW KI Skript",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1792563951366
   },
   "tasks": {
     "items": [
