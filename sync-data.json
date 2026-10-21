@@ -1141,9 +1141,9 @@
             "hair:curly": true
           },
           "paid": 4,
-          "x": 342,
-          "y": 266,
-          "face": 1
+          "x": 233,
+          "y": 282,
+          "face": 3
         },
         "styles": {
           "floor": {
@@ -1357,13 +1357,13 @@
       },
       "settings": {
         "sound": true,
-        "music": false,
+        "music": true,
         "todMode": "fix",
         "hourSet": 8,
         "zoom": 1
       }
     },
     "spent": 72.4,
-    "updatedAt": 1792598366749
+    "updatedAt": 1792598390339
   }
 }
