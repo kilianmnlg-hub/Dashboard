@@ -742,7 +742,8 @@
         "habit:b07e389a-dfc6-4ab9-830c-5daf53425daf@2026-10-21": 6,
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-21": 6,
         "task:4e80e0f6-9af2-4807-8563-11332dae008d": 12,
-        "upload:sIkJAy8NZdA:title": 3
+        "upload:sIkJAy8NZdA:title": 3,
+        "upload:sIkJAy8NZdA:desc": 3
       }
     },
     "archive": {
@@ -750,7 +751,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792564008271
+    "updatedAt": 1792564018507
   },
   "msgSeen": {
     "ids": [
@@ -768,14 +769,15 @@
     "lists": {
       "sIkJAy8NZdA": {
         "d": {
-          "title": 1792564008271
+          "title": 1792564008271,
+          "desc": 1792564018507
         },
         "x": 0,
         "c": 0,
-        "u": 1792564008271
+        "u": 1792564018507
       }
     },
     "tAt": 0,
-    "updatedAt": 1792564008271
+    "updatedAt": 1792564018507
   }
 }
