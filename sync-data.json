@@ -109,11 +109,6 @@
         "done": false
       },
       {
-        "id": "0a79fb3d-2e39-4a50-9483-b641ea63d387",
-        "text": "JW KI Sets Skript",
-        "done": false
-      },
-      {
         "id": "a1c250b9-6838-4231-98bb-312daebd61a8",
         "text": "JW KI Sets Thumbnail",
         "done": false
@@ -124,7 +119,7 @@
         "done": false
       }
     ],
-    "updatedAt": 1792567782547
+    "updatedAt": 1792580869772
   },
   "shopping": {
     "items": [
@@ -769,7 +764,8 @@
         "upload:sIkJAy8NZdA:short": 3,
         "upload:sIkJAy8NZdA:all": 15,
         "habit:9473d02d-64a6-4dab-8017-3e4a354c855b@2026-10-21": 6,
-        "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-21": 6
+        "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-21": 6,
+        "rtask:0a79fb3d-2e39-4a50-9483-b641ea63d387": 12
       }
     },
     "archive": {
@@ -777,7 +773,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792580863200
+    "updatedAt": 1792580869261
   },
   "msgSeen": {
     "ids": [
