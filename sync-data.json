@@ -57,7 +57,7 @@
         {
           "id": "b3a9b47f-b8b5-437b-a394-813aeb9d0059",
           "text": "JW KI Skript",
-          "done": false
+          "done": true
         },
         {
           "id": "f6c315e5-2aa6-4e18-b8f1-760c62f5785c",
@@ -74,7 +74,7 @@
         }
       ]
     },
-    "updatedAt": 1792564043320
+    "updatedAt": 1792580871685
   },
   "tasks": {
     "items": [
@@ -765,7 +765,8 @@
         "upload:sIkJAy8NZdA:all": 15,
         "habit:9473d02d-64a6-4dab-8017-3e4a354c855b@2026-10-21": 6,
         "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-21": 6,
-        "rtask:0a79fb3d-2e39-4a50-9483-b641ea63d387": 12
+        "rtask:0a79fb3d-2e39-4a50-9483-b641ea63d387": 12,
+        "todo:b3a9b47f-b8b5-437b-a394-813aeb9d0059": 10
       }
     },
     "archive": {
@@ -773,7 +774,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792580869261
+    "updatedAt": 1792580871625
   },
   "msgSeen": {
     "ids": [
