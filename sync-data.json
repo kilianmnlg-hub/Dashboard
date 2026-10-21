@@ -1237,10 +1237,10 @@
         "music": false,
         "todMode": "auto",
         "hourSet": 20,
-        "zoom": 1
+        "zoom": 2
       }
     },
     "spent": 36,
-    "updatedAt": 1792565685772
+    "updatedAt": 1792565713344
   }
 }
