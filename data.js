@@ -1027,7 +1027,7 @@ const DASHBOARD_DATA = {
       "subtitle": "LEGO-YouTube-Kanal · Hauptprojekt",
       "accent": "bricks",
       "uploadRhythmDays": 7,
-      "lastUploadAt": "2026-10-14T13:55:35Z",
+      "lastUploadAt": "2026-10-21T13:55:19Z",
       "stats": [
         {
           "label": "Abonnenten",
@@ -1050,6 +1050,12 @@ const DASHBOARD_DATA = {
       "note": "Rhythmus: wöchentlich angestrebt, reißt öfter ab, fängt sich aber immer wieder.",
       "recentUploads": [
         {
+          "id": "OgiI51OTc3E",
+          "title": "Lohnen sich die neuen LEGO Jurassic World 18+ Sets? | Jeep Wrangler & Triceratops Fossil Review",
+          "at": "2026-10-21T13:55:19Z",
+          "detectedAt": "2026-10-21T18:44:04.617Z"
+        },
+        {
           "id": "sIkJAy8NZdA",
           "title": "LEGOLAND & LEGO House in Billund! 🏰 | LEGO Tour Vlog #2",
           "at": "2026-10-14T13:55:35Z",
@@ -1071,12 +1077,6 @@ const DASHBOARD_DATA = {
           "id": "Yg5R3AAzfJo",
           "title": "Lohnt sich ein LEGO Laden noch 2026? Bardobrick Tour!",
           "at": "2026-09-13T13:55:02Z",
-          "detectedAt": null
-        },
-        {
-          "id": "Vuna41Czn_A",
-          "title": "Diese neuen LEGO Dino Sets MÜSSEN kommen!🦖🏆",
-          "at": "2026-09-06T13:55:08Z",
           "detectedAt": null
         }
       ]
