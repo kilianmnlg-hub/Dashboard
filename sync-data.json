@@ -55,50 +55,13 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-10-20",
+    "date": "2026-10-21",
     "items": {
-      "business": [
-        {
-          "id": "0b7526ea-62d3-4430-8140-4429e0481df4",
-          "text": "jw sets Thumbnail aufnehmen",
-          "done": true
-        },
-        {
-          "id": "e387ada8-cc96-408f-bbbe-20e199902b1d",
-          "text": "jw erste thumbnail erstellen",
-          "done": true
-        },
-        {
-          "id": "82717b6a-acc4-48df-b004-f60ef36f4f27",
-          "text": "jw video cutten",
-          "done": true
-        },
-        {
-          "id": "55d4eee0-a810-4d4b-944b-69b4dd4ccf36",
-          "text": "jw video hochladen",
-          "done": false
-        }
-      ],
+      "business": [],
       "studium": [],
-      "privat": [
-        {
-          "id": "16b97f71-5dc4-43df-bb52-41a09d84ad92",
-          "text": "Gym",
-          "done": true
-        },
-        {
-          "id": "55b20f31-eca1-49a7-bb0f-951cf89ae33c",
-          "text": "Abwasch",
-          "done": true
-        },
-        {
-          "id": "93a0b603-dfbd-4f02-ad9a-ffb15d46fe43",
-          "text": "kochen",
-          "done": true
-        }
-      ]
+      "privat": []
     },
-    "updatedAt": 1792520680167
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -111,9 +74,29 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
+      },
+      {
+        "id": "4e80e0f6-9af2-4807-8563-11332dae008d",
+        "text": "jw video hochladen",
+        "done": false
+      },
+      {
+        "id": "ae0cd5c3-762a-43ff-9dee-edaf33a25604",
+        "text": "dinos we need skript",
+        "done": false
+      },
+      {
+        "id": "5de22935-812c-4de8-84f0-d7e8cd5253c5",
+        "text": "dino thumbnail",
+        "done": false
+      },
+      {
+        "id": "7551787b-1c93-4feb-943b-ad7524261a25",
+        "text": "2 Seiten Arbeit",
+        "done": false
       }
     ],
-    "updatedAt": 1792479564072
+    "updatedAt": 1792562792304
   },
   "remoteTasks": {
     "items": [
