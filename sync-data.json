@@ -86,17 +86,12 @@
         "done": false
       },
       {
-        "id": "5de22935-812c-4de8-84f0-d7e8cd5253c5",
-        "text": "dino thumbnail",
-        "done": false
-      },
-      {
         "id": "7551787b-1c93-4feb-943b-ad7524261a25",
         "text": "2 Seiten Arbeit",
         "done": false
       }
     ],
-    "updatedAt": 1792562792304
+    "updatedAt": 1792562854189
   },
   "remoteTasks": {
     "items": [
