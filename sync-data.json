@@ -1359,10 +1359,10 @@
         "music": false,
         "todMode": "fix",
         "hourSet": 8,
-        "zoom": 3
+        "zoom": 1
       }
     },
     "spent": 72.4,
-    "updatedAt": 1792581268928
+    "updatedAt": 1792581273204
   }
 }
