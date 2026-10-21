@@ -754,7 +754,8 @@
         "upload:sIkJAy8NZdA:comment": 3,
         "upload:sIkJAy8NZdA:post": 3,
         "upload:sIkJAy8NZdA:insta": 3,
-        "upload:sIkJAy8NZdA:reply": 3
+        "upload:sIkJAy8NZdA:reply": 3,
+        "upload:sIkJAy8NZdA:stats": 3
       }
     },
     "archive": {
@@ -762,7 +763,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792564173813
+    "updatedAt": 1792564177739
   },
   "msgSeen": {
     "ids": [
@@ -787,14 +788,15 @@
           "comment": 1792564028329,
           "post": 1792564138191,
           "insta": 1792564148751,
-          "reply": 1792564173813
+          "reply": 1792564173813,
+          "stats": 1792564177738
         },
         "x": 0,
         "c": 0,
-        "u": 1792564173813
+        "u": 1792564177738
       }
     },
     "tAt": 0,
-    "updatedAt": 1792564173813
+    "updatedAt": 1792564177738
   }
 }
