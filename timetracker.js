@@ -361,6 +361,8 @@
       weekSummary() { const c = weekSums(0); return { ist: (c.youtube + c.bricklink) / HOUR, soll: state.targets.youtube + state.targets.bricklink }; },
       // Gesamte erfasste Zeit (Notion-Verlauf und Dashboard-Eintraege) in Stunden, ohne laufende Timer (fuer das Raum-Minigame)
       totalHours() { return all().reduce((sum, e) => sum + (e.dur || 0), 0) / 3600000; },
+      // Wie totalHours, aber nur Eintraege, die ab `since` (ms) beginnen (fuer das Raum-Minigame: Stunden seit 1. Oktober)
+      hoursSince(since) { return all().reduce((sum, e) => sum + (e.start >= since ? e.dur || 0 : 0), 0) / 3600000; },
       // Cloud-Stand uebernehmen. Eintraege und Loeschmarken werden immer vereinigt (kein Eintrag geht bei gleichzeitigen
       // Aenderungen auf zwei Geraeten verloren); nur die laufenden Timer entscheidet der neuere Zeitstempel.
       applyRemote(remote) {

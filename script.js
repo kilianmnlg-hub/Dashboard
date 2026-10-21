@@ -695,13 +695,14 @@
   }
 
   // ---------- Mein Raum (Minigame) ----------
-  // Die Stunden aus Zeittracker (Arbeit) und Training sind das Geld, damit wird ein isometrischer Pixelraum eingerichtet. Zustand in der Cloud (Feld room in
-  // sync-data.json), Code in room.js (Spiel), room-items.js (Katalog) und room-iso.js (Zeichnen). Gezeigt wird er erst, wenn die Cloud geladen ist.
+  // Die Stunden aus Zeittracker (Arbeit) und Training sind das Geld, damit wird ein isometrischer Pixelraum eingerichtet. Das Spiel liegt im Ordner raumspiel/ und laeuft als
+  // Overlay; room.js ist nur die Anbindung (Kachel, Stunden seit 1. Oktober, Level, Spielstand in der Cloud im Feld room in sync-data.json). Gezeigt wird er erst, wenn die Cloud geladen ist.
   const roomBoard = window.createRoom
     ? window.createRoom({
         dataStore, scheduleAutoSync, escapeHtml, toast,
         expand: (id) => { if (foldBoard) foldBoard.expand(id); },
-        getHours: () => ({ work: timeTrackerBoard ? timeTrackerBoard.totalHours() : 0, training: trainingBoard ? trainingBoard.totalHours() : 0 })
+        getHours: (since) => ({ work: timeTrackerBoard ? timeTrackerBoard.hoursSince(since) : 0, training: trainingBoard ? trainingBoard.hoursSince(since) : 0 }),
+        getLevel: () => (typeof xpBoard !== "undefined" && xpBoard ? xpBoard.info() : null)
       })
     : null;
   let remoteRoomRaw = null;

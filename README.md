@@ -28,7 +28,8 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `palette.js` — Schnellsuche und Befehle (siehe Abschnitt "Schnellsuche")
 - `msgseen.js` — merkt sich, welche Bricklink-Nachrichten du geöffnet hast (siehe Abschnitt "Ungelesene Nachrichten")
 - `afterupload.js` — After-Upload-Checkliste: erscheint ganz oben, sobald ein neues Video erkannt wird (siehe Abschnitt "After-Upload-Checkliste")
-- `room.js`, `room-items.js`, `room-iso.js` — Minigame "Mein Raum": mit den Stunden aus Zeittracker und Training einen isometrischen Pixelraum einrichten (siehe Abschnitt "Mein Raum"); `room-iso.js` zeichnet die Teile Pixel für Pixel, `room-items.js` ist der Katalog
+- `room.js` — Anbindung des Minigames "Mein Raum" (Kachel, Stunden und Level, Spielstand in der Cloud, Spiel als Vollbild-Overlay; siehe Abschnitt "Mein Raum")
+- `raumspiel/index.html` — das Minigame selbst: ein eigenständiges isometrisches Pixelspiel in einer einzigen Datei (gebaut aus dem Spiele-Projekt, Quellcode liegt dort); `raumspiel/vorschau.png` ist das Kachelbild, bis dein eigener Raum gespeichert ist
 - `training.js` — Training: Trainingsplan, Workout-Modus und Verlauf mit Statistiken, mit selbst gezeichneten Pixel-Symbolen (siehe Abschnitt "Training")
 - `training-data.json` — Cloud-Datei des Trainings (Pläne, Einheiten, eigene Übungen); entsteht beim ersten Speichern und wird direkt aus dem Browser aktualisiert
 - `habits-data.json` — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
@@ -600,22 +601,14 @@ Befehle. Am Handy füllt es den ganzen Bildschirm (ab 350 px Breite gibt es die 
 
 ## Mein Raum (Minigame)
 
-Bereich "Mein Raum" (Menü "Raum"): Die Stunden, die du im **Zeittracker** (Arbeit, YouTube und Bricklink) und beim **Training** sammelst, sind das Geld. Damit kaufst du Möbel, Deko, Boden,
-Wandfarbe und mehr Platz und richtest einen eigenen isometrischen Pixelraum ein. Alle Teile sind selbst gezeichnet (kein fremdes Material).
+Bereich "Mein Raum" (Menü "Raum"): Ein eigenständiges isometrisches Pixelspiel, in dem du mit deinen gesammelten **Stunden** einen Raum (und später ganze Wohnungen) einrichtest. Alle Teile sind selbst gezeichnet (kein fremdes Material).
+Im Dashboard steht nur eine Kachel (Vorschaubild deines Raums, Stunden zum Ausgeben, Level, nächste Freischaltung); "Raum öffnen" startet das Spiel als Vollbild-Overlay, der Haus-Knopf im Spiel (oder die Zurück-Taste) bringt dich zurück.
 
-- **Guthaben:** verdiente Stunden minus alles, was du ausgegeben hast. Verdient zählt der ganze Verlauf: der Notion-Zeitverlauf und die im Dashboard erfassten Zeiten (ohne laufende Timer) plus die
-  Dauer aller beendeten Trainingseinheiten (eine einzelne Einheit zählt höchstens 3 Stunden). Oben stehen "zum Ausgeben" und "verbaut"; beim Daraufzeigen die Aufteilung nach Arbeit und Training.
-  Die Kennzahl steht auch in der Titelzeile des Fensters.
-- **Einrichten:** Der Knopf "Einrichten" schaltet das Bearbeiten ein (Raster sichtbar). Teile antippen und ziehen, sie rasten auf dem Raster ein; ein ungültiger Platz (Überlappung, außerhalb) wird rot
-  und das Teil springt zurück. Unter dem Raum erscheinen **Drehen**, **Ins Lager** und **Verkaufen**. Wandteile (Fenster, Bilder, Regale, Lichterkette ...) hängen an der rechten oder linken Wand und
-  lassen sich über die Ecke ziehen. Mit der Tastatur: Pfeiltasten verschieben, `R` dreht, `Entf` legt ins Lager, `[` und `]` wechseln die Auswahl.
-- **Verkaufen gibt den vollen Preis zurück**, du kannst also jederzeit umbauen; der Preis, den du bezahlt hast, bleibt am Teil, auch wenn der Katalog später angepasst wird.
-- **Katalog:** Reiter Wohnen, Schlafen, Arbeiten, Training, Küche, Deko, Wand, dazu "Raum" (Fläche vergrößern von 6×6 bis 10×10 Felder, Böden, Wandfarben) und "Lager" (gekauft, aber nicht aufgestellt).
-  Preise stehen in Stunden; was du dir noch nicht leisten kannst, zeigt "noch X h". Die Preise sind auf etwa 25 bis 30 gesammelte Stunden pro Woche abgestimmt (Faktor `K` in `room-items.js`).
-- **Speicherung:** In der Cloud (Feld `room` in `sync-data.json`): Größe, Boden, Wand, alle Teile mit Kaufpreis und Position, gekaufte Stile. Der neuere Stand gewinnt (ganzer Raum); solange nichts gekauft
-  wurde, fehlt das Feld.
-- **Technik:** `room-iso.js` rastert Quader und Zylinder in einem 2:1-Winkel Pixel für Pixel (ohne Kantenglättung), mit Licht von links oben, dunklem Umriss und gespiegelter Drehung. `room-items.js` beschreibt
-  jedes Teil als Liste solcher Körper (Maße in Einheiten, 8 je Feld). Mit `?roomdebug=1` in der Adresse bietet die Seite `window.__room` für Tests.
+- **Stunden = Geld, aber nur seit dem 1. Oktober 2026:** Es zählt die Zeit aus dem **Zeittracker** (Notion-Verlauf und im Dashboard erfasste Zeiten, ohne laufende Timer) und die Dauer beendeter **Trainingseinheiten** (eine Einheit höchstens 3 Stunden), jeweils ab dem 1. Oktober 2026. Guthaben = so verdient minus alles, was du im Raum ausgegeben hast. Verkaufen gibt den vollen Preis zurück.
+- **Level schalten frei:** Das Level kommt aus dem Level-System (XP, siehe unten). Mit jedem Level werden mehr Möbel, Böden, Wände, Haustiere und Kleidung freigeschaltet (im Spiel "ab Lv N"); die Teile selbst kaufst du dann mit Stunden.
+- **Im Spiel:** Möbel kaufen, ziehen, drehen, ins Lager legen; Räume anbauen; Boden und Wände teilweise ändern; eine Figur, die selbstständig durch die Räume läuft, liest, schläft, trainiert, und die du mit Stunden anziehst; Haustiere, die von allein herumlaufen. Die Bedienung steht im Spiel (Hinweise unten im Bild).
+- **Speicherung:** In der Cloud (Feld `room` in `sync-data.json`: der ganze Spielstand plus ausgegebene Stunden). Der neuere Stand gewinnt (ganzer Raum); solange noch nichts gespeichert wurde, fehlt das Feld. Gespeichert wird beim Ändern (gebündelt) und beim Verlassen des Spiels. Das Vorschaubild der Kachel liegt nur im Browser. Nur das Dashboard schreibt in die Cloud, das Spiel selbst kennt keinen Token.
+- **Technik:** `raumspiel/index.html` ist eine einzelne Datei (Voxel-Modelle als Pixel-Sprites, Licht und Tageszeit, Wegfindung). Sie läuft im iframe und spricht per `postMessage` (nur gleiche Herkunft) mit `room.js`: `hello`, `init` (Stunden, Level, Spielstand), `save`, `economy`, `flush`, `close`. Ohne Dashboard (direkt geöffnet) läuft das Spiel mit Demo-Stunden und Speicherstand im Browser.
 
 ## Level-System (XP)
 
