@@ -1090,9 +1090,9 @@
           },
           "owned": {},
           "paid": 0,
-          "x": 140,
-          "y": 268,
-          "face": 3
+          "x": 164,
+          "y": 196,
+          "face": 2
         },
         "styles": {
           "floor": {
@@ -1183,10 +1183,10 @@
         "music": false,
         "todMode": "auto",
         "hourSet": 20,
-        "zoom": 2
+        "zoom": 1
       }
     },
     "spent": 9,
-    "updatedAt": 1792564302339
+    "updatedAt": 1792564308307
   }
 }
