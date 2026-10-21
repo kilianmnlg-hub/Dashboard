@@ -54,9 +54,14 @@
     }
 
     /* ---------- Kachel ---------- */
-    function renderTile() {
+    let sig = "";
+    function renderTile(force) {
       if (!host || !ready || overlay) return;
       const e = economy(), bal = e.earned - state.spent;
+      // nur neu zeichnen, wenn sich etwas geaendert hat (Stunden/Training laden zum Teil erst nach dem Start nach)
+      const s2 = [e.earned, e.level, e.rank, state.spent, next ? next.lv + ":" + next.n : "", thumb.length].join("|");
+      if (!force && s2 === sig && host.firstChild) return;
+      sig = s2;
       const lv = e.level || e.rank ? `LEVEL ${e.level}${e.rank ? " · " + esc(e.rank).toUpperCase() : ""}` : "";
       const nx = next ? `Nächste Freischaltung bei Level ${next.lv}: ${next.n === 1 ? "1 neues Teil" : next.n + " neue Teile"}` : "";
       host.innerHTML =
@@ -135,21 +140,21 @@
       document.body.classList.remove("rm-open");
       if (hasPush) schedulePush(true);
       try { if (history.state && history.state.rm) history.back(); } catch (e) { /* egal */ }
-      renderTile();
+      renderTile(true);
     }
 
-    if (document.addEventListener) setInterval(() => { if (!overlay && !document.hidden) renderTile(); }, 60000);
+    setInterval(() => { if (!overlay && !document.hidden) renderTile(); }, 2000);
 
     return {
-      start() { ready = true; renderTile(); },
-      open() { ready = true; if (deps.expand) deps.expand("raum"); renderTile(); const s = document.getElementById("raum"); if (s) s.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }); },
+      start() { ready = true; renderTile(true); },
+      open() { ready = true; if (deps.expand) deps.expand("raum"); renderTile(true); const s = document.getElementById("raum"); if (s) s.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" }); },
       launch,
       metric() { return ready ? fmtH(economy().earned - state.spent) + " H ZUM AUSGEBEN" : ""; },
       // Neuerer Stand gewinnt (ganzer Raum); ist der eigene neuer, geht er mit dem naechsten Sync in die Cloud
       applyRemote(remote) {
         if (!remote) return;
         const r = sanitize(remote);
-        if (r.updatedAt > state.updatedAt) { state = r; persist(); renderTile(); }
+        if (r.updatedAt > state.updatedAt) { state = r; persist(); renderTile(true); }
         else if (state.updatedAt > r.updatedAt) scheduleAutoSync("syncdata");
       },
       payload() { return state.w ? { w: state.w, spent: state.spent, updatedAt: Math.max(0, state.updatedAt) } : null; }
