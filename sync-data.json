@@ -1293,10 +1293,10 @@
         "music": false,
         "todMode": "auto",
         "hourSet": 20,
-        "zoom": 0
+        "zoom": -1
       }
     },
     "spent": 63,
-    "updatedAt": 1792566388950
+    "updatedAt": 1792566391495
   }
 }
