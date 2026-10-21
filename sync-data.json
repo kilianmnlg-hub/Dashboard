@@ -62,6 +62,11 @@
           "id": "b3a9b47f-b8b5-437b-a394-813aeb9d0059",
           "text": "JW KI Skript",
           "done": false
+        },
+        {
+          "id": "f6c315e5-2aa6-4e18-b8f1-760c62f5785c",
+          "text": "clips",
+          "done": false
         }
       ],
       "studium": [],
@@ -73,7 +78,7 @@
         }
       ]
     },
-    "updatedAt": 1792563959317
+    "updatedAt": 1792564043320
   },
   "tasks": {
     "items": [
