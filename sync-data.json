@@ -756,7 +756,11 @@
         "upload:sIkJAy8NZdA:insta": 3,
         "upload:sIkJAy8NZdA:reply": 3,
         "upload:sIkJAy8NZdA:stats": 3,
-        "upload:sIkJAy8NZdA:idea": 3
+        "upload:sIkJAy8NZdA:idea": 3,
+        "upload:sIkJAy8NZdA:tiktok": 3,
+        "upload:sIkJAy8NZdA:facebook": 3,
+        "upload:sIkJAy8NZdA:short": 3,
+        "upload:sIkJAy8NZdA:all": 15
       }
     },
     "archive": {
@@ -764,7 +768,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792564178808
+    "updatedAt": 1792564185440
   },
   "msgSeen": {
     "ids": [
@@ -791,14 +795,17 @@
           "insta": 1792564148751,
           "reply": 1792564173813,
           "stats": 1792564177738,
-          "idea": 1792564178808
+          "idea": 1792564178808,
+          "tiktok": 1792564184221,
+          "facebook": 1792564184689,
+          "short": 1792564185387
         },
         "x": 0,
-        "c": 0,
-        "u": 1792564178808
+        "c": 1792564185440,
+        "u": 1792564185387
       }
     },
     "tAt": 0,
-    "updatedAt": 1792564178808
+    "updatedAt": 1792564185387
   }
 }
