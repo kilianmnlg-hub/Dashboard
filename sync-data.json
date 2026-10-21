@@ -1090,9 +1090,9 @@
           },
           "owned": {},
           "paid": 0,
-          "x": 252,
-          "y": 165,
-          "face": 2
+          "x": 132,
+          "y": 300,
+          "face": 0
         },
         "styles": {
           "floor": {
@@ -1102,8 +1102,8 @@
             "panel": 0
           }
         },
-        "next": 5,
-        "at": 0,
+        "next": 6,
+        "at": 1792564270036,
         "items": [
           {
             "u": 1,
@@ -1160,6 +1160,20 @@
               "on": true,
               "ch": 0
             }
+          },
+          {
+            "u": 5,
+            "t": "shelf_black",
+            "x": 200,
+            "y": 136,
+            "z": 0,
+            "r": 1,
+            "c": 0,
+            "p": 9,
+            "s": {
+              "on": true,
+              "ch": 0
+            }
           }
         ],
         "inv": []
@@ -1169,10 +1183,10 @@
         "music": false,
         "todMode": "auto",
         "hourSet": 20,
-        "zoom": 0
+        "zoom": 3
       }
     },
-    "spent": 0,
-    "updatedAt": 1792564240188
+    "spent": 9,
+    "updatedAt": 1792564270409
   }
 }
