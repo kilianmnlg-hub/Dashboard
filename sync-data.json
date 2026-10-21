@@ -1335,10 +1335,10 @@
         "music": false,
         "todMode": "auto",
         "hourSet": 20,
-        "zoom": -1
+        "zoom": 0
       }
     },
     "spent": 71.4,
-    "updatedAt": 1792566420450
+    "updatedAt": 1792566427940
   }
 }
