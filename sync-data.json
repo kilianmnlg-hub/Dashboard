@@ -119,9 +119,14 @@
         "id": "0a79fb3d-2e39-4a50-9483-b641ea63d387",
         "text": "JW KI Sets Skript",
         "done": false
+      },
+      {
+        "id": "a1c250b9-6838-4231-98bb-312daebd61a8",
+        "text": "JW KI Sets Thumbnail",
+        "done": false
       }
     ],
-    "updatedAt": 1792562831184
+    "updatedAt": 1792562838718
   },
   "shopping": {
     "items": [
