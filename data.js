@@ -9,8 +9,8 @@
 
 const DASHBOARD_DATA = {
   "meta": {
-    "lastUpdated": "2026-10-21",
-    "lastSyncedAt": "2026-10-21T12:37:37.132Z",
+    "lastUpdated": "2026-10-22",
+    "lastSyncedAt": "2026-10-22T06:00:54.829Z",
     "owner": "Kilian"
   },
   "github": {
@@ -113,10 +113,6 @@ const DASHBOARD_DATA = {
   ],
   "metricsHistory": {
     "bricksOnTheFloorAbos": [
-      {
-        "date": "2026-08-23",
-        "value": 28700
-      },
       {
         "date": "2026-08-24",
         "value": 28700
@@ -352,13 +348,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-21",
         "value": 29600
+      },
+      {
+        "date": "2026-10-22",
+        "value": 29600
       }
     ],
     "brainwalkersAbos": [
-      {
-        "date": "2026-08-23",
-        "value": 346
-      },
       {
         "date": "2026-08-24",
         "value": 354
@@ -594,13 +590,13 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-21",
         "value": 542
+      },
+      {
+        "date": "2026-10-22",
+        "value": 543
       }
     ],
     "tiktokFollower": [
-      {
-        "date": "2026-08-23",
-        "value": 2735
-      },
       {
         "date": "2026-08-24",
         "value": 2736
@@ -836,6 +832,10 @@ const DASHBOARD_DATA = {
       {
         "date": "2026-10-21",
         "value": 2804
+      },
+      {
+        "date": "2026-10-22",
+        "value": 2801
       }
     ]
   },
@@ -862,7 +862,7 @@ const DASHBOARD_DATA = {
       "id": "brainwalkers-abos",
       "label": "The Brainwalkers – Abonnenten",
       "project": "brainwalkers",
-      "current": 542,
+      "current": 543,
       "target": 1000,
       "unit": "Abos",
       "due": "2026-12-31"
@@ -871,7 +871,7 @@ const DASHBOARD_DATA = {
       "id": "tiktok-follower",
       "label": "Bricks On The Floor – TikTok-Follower",
       "project": "tiktok",
-      "current": 2804,
+      "current": 2801,
       "target": 10000,
       "unit": "Follower",
       "due": "2026-12-31"
@@ -889,7 +889,7 @@ const DASHBOARD_DATA = {
       "id": "bricks-longform-2026",
       "label": "Bricks On The Floor – Longform-Videos 2026",
       "project": "bricksOnTheFloor",
-      "current": 29,
+      "current": 30,
       "target": 52,
       "unit": "Videos",
       "due": "2026-12-31"
@@ -905,19 +905,14 @@ const DASHBOARD_DATA = {
     }
   ],
   "bricklinkOrders": {
-    "checkedAt": "2026-10-21T12:37:34.252Z",
+    "checkedAt": "2026-10-22T06:00:45.074Z",
     "openOrdersCount": 291,
     "pendingShipments": []
   },
   "bricklinkRevenue": {
-    "checkedAt": "2026-10-21T12:37:36.305Z",
+    "checkedAt": "2026-10-22T06:00:49.625Z",
     "currency": "EUR",
     "weekly": [
-      {
-        "weekStart": "2026-08-24",
-        "total": 87.57,
-        "orderCount": 1
-      },
       {
         "weekStart": "2026-08-31",
         "total": 73.03,
@@ -1090,7 +1085,7 @@ const DASHBOARD_DATA = {
       "stats": [
         {
           "label": "Abonnenten",
-          "value": "542"
+          "value": "543"
         },
         {
           "label": "Videos",
@@ -3428,7 +3423,7 @@ const DASHBOARD_DATA = {
     ]
   },
   "bricklinkMessages": {
-    "checkedAt": "2026-10-21T12:37:36.263Z",
+    "checkedAt": "2026-10-22T06:00:49.553Z",
     "unanswered": 7,
     "checkedOrders": 150,
     "ordersWithMessages": 39,
