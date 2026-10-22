@@ -6867,6 +6867,22 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     heal: { name: 'Heilfeuer', price: 2.5, cd: 25, dur: 5, heal: 0.4, fence: 0.25, radius: 40, up: { fell: 3, stein: 2 }, icon: 'heal', info: 'Ein Feuer heilt Held und Zaun über 5 Sekunden.' }
   };
 
+  // Haus und Zaun verbessern (Stufe 0 bis 10, +12 % Leben je Stufe), Material wie bei der Ausruestung (Kosten x 1,35^Stufe)
+  D.BUILD = {
+    fence: { name: 'Zaun', up: { fell: 4, knochen: 2 }, icon: 'fence', info: 'Der Holzzaun hält die Monster auf. Mehr Leben je Stufe.' },
+    house: { name: 'Haus', up: { stein: 4, knochen: 3 }, icon: 'house', info: 'Dein Haus: fällt es, ist die Runde verloren. Mehr Leben je Stufe.' }
+  };
+  D.buildHp = (id, lv) => Math.round((id === 'fence' ? D.FENCE.hp : D.HOUSE.hp) * (1 + 0.12 * (lv | 0)));
+
+  // Fallen vor dem Zaun (laden zwischen den Wellen nach): vier Plaetze, frei nach Held-Level; Wirkung +8 % je Stufe
+  D.TRAP_X = [150, 185, 220, 255]; D.TRAP_LV = [1, 3, 5, 7];
+  D.TRAP = {
+    pit: { name: 'Grube', price: 1, charges: 4, dmg: 34, up: { fell: 3, stein: 2 }, icon: 'pit', info: 'Gegner am Boden stürzen hinein und nehmen viel Schaden. 4 Ladungen je Welle.' },
+    spikes: { name: 'Spieße', price: 1.5, charges: 12, dmg: 15, up: { knochen: 3, fell: 2 }, icon: 'spikes', info: 'Spitze Pfähle verletzen alles, was darüber läuft. 12 Ladungen je Welle.' },
+    fire: { name: 'Feuerfalle', price: 2.5, charges: 3, dmg: 16, dur: 5, radius: 26, up: { stein: 3, knochen: 2 }, icon: 'firetrap', info: 'Ein Brandfleck verbrennt Gegner, die hineinlaufen. 3 Ladungen je Welle.' }
+  };
+  D.trapSlots = (lv) => D.TRAP_LV.filter((l) => lv >= l).length;
+
   D.STAGES = [
     {
       id: 'stone1', era: 'stone', n: 1, name: 'Lagerfeuer-Tal', pause: 6.5, hp: 1, dmg: 1, xp: 15,
@@ -6950,7 +6966,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   const RS = (g.RS = g.RS || {});
   const D = (RS.def = RS.def || {});
   const num = (v, d) => (typeof v === 'number' && isFinite(v) ? v : d);
-  const defaults = () => ({ v: 1, lv: 1, xp: 0, mats: { fell: 0, knochen: 0, stein: 0 }, prog: {}, diff: 'normal', paid: 0, endless: {}, own: { club: 0, sling: 0, hail: 0 }, eq: { main: 'club', second: 'sling', armor: null, head: null, a: ['hail', null, null] }, pets: [] });
+  const defaults = () => ({ v: 1, lv: 1, xp: 0, mats: { fell: 0, knochen: 0, stein: 0 }, prog: {}, diff: 'normal', paid: 0, endless: {}, own: { club: 0, sling: 0, hail: 0, fence: 0, house: 0 }, eq: { main: 'club', second: 'sling', armor: null, head: null, a: ['hail', null, null], t: [null, null, null, null] }, pets: [] });
   let mem = null;   // Ersatz ohne Spiel
 
   // Gespeicherte Daten pruefen und fehlende Felder auffuellen (aeltere oder beschaedigte Staende werden nicht abgelehnt)
@@ -6964,11 +6980,12 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     o.diff = ['easy', 'normal', 'hard'].includes(d.diff) ? d.diff : 'normal';
     o.paid = Math.max(0, Math.round(num(d.paid, 0) * 100) / 100);
     // Besitz (Stufe 0 bis 10) und Ausruestung
-    if (d.own && typeof d.own === 'object') for (const id of Object.keys(d.own)) if (D.GEAR[id] || D.ABIL[id]) o.own[id] = Math.max(0, Math.min(D.MAXUP, Math.round(num(d.own[id], 0))));
+    if (d.own && typeof d.own === 'object') for (const id of Object.keys(d.own)) if (D.GEAR[id] || D.ABIL[id] || D.BUILD[id] || D.TRAP[id]) o.own[id] = Math.max(0, Math.min(D.MAXUP, Math.round(num(d.own[id], 0))));
     const e = d.eq && typeof d.eq === 'object' ? d.eq : {}, ok = (id, slot) => (id && o.own[id] != null && D.GEAR[id] && D.GEAR[id].slot === slot ? id : null);
     o.eq = { main: ok(e.main, 'main') || 'club', second: ok(e.second, 'second') || 'sling', armor: ok(e.armor, 'armor'), head: ok(e.head, 'head'), a: [null, null, null] };
     const seen = {}; [0, 1, 2].forEach((i) => { const id = Array.isArray(e.a) ? e.a[i] : null; if (id && D.ABIL[id] && o.own[id] != null && !seen[id]) { seen[id] = 1; o.eq.a[i] = id; } });
     if (!o.eq.a.some(Boolean)) o.eq.a[0] = 'hail';
+    o.eq.t = [0, 1, 2, 3].map((i) => { const id = Array.isArray(e.t) ? e.t[i] : null; return id && D.TRAP[id] && o.own[id] != null ? id : null; });
     o.pets = []; if (Array.isArray(d.pets)) for (const q of d.pets.slice(0, 3)) if (q && typeof q.t === 'string') o.pets.push({ t: q.t, v: Math.max(0, Math.round(num(q.v, 0))) });
     // unbekannte Felder bleiben erhalten
     for (const k of Object.keys(d)) if (!(k in o)) o[k] = d[k];
@@ -6991,7 +7008,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   D.resetSave = function () { const w = RS.G && RS.G.world; if (w) w.def = null; mem = null; return D.data(); };
 
   /* ---------- Ausruestung: Besitz, Kaufen, Verbessern, Anlegen ---------- */
-  D.itemInfo = (id) => D.GEAR[id] || D.ABIL[id] || null;
+  D.itemInfo = (id) => D.GEAR[id] || D.ABIL[id] || D.BUILD[id] || D.TRAP[id] || null;
   D.slotsOpen = (lv) => D.SLOT_LV.filter((l) => lv >= l).length;
   D.upCost = function (id, lv) { const it = D.itemInfo(id), out = {}; for (const m of Object.keys(it.up)) out[m] = Math.ceil(it.up[m] * Math.pow(1.35, lv)); return out; };
   D.balance = function () { try { return RS.G && RS.G.balance ? RS.G.balance() : (D.testBalance || 0); } catch (e) { return D.testBalance || 0; } };
@@ -7015,7 +7032,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   // Anlegen/Ablegen: Waffen ersetzen den Platz, Ruestung und Kopf lassen sich wieder ablegen, Faehigkeiten wandern in den ersten freien offenen Platz
   D.equip = function (id) {
     const s = D.data(), it = D.itemInfo(id); if (!it || s.own[id] == null) return false;
-    if (D.GEAR[id]) { const sl = it.slot; s.eq[sl] = (sl === 'armor' || sl === 'head') && s.eq[sl] === id ? null : id; }
+    if (D.TRAP[id]) { const n = D.trapSlots(s.lv), t = s.eq.t; let i = 0; while (i < n && t[i]) i++; if (i >= n) return false; t[i] = id; }
+    else if (D.GEAR[id]) { const sl = it.slot; s.eq[sl] = (sl === 'armor' || sl === 'head') && s.eq[sl] === id ? null : id; }
     else {
       const n = D.slotsOpen(s.lv), a = s.eq.a, at = a.indexOf(id);
       if (at >= 0) { if (a.filter(Boolean).length > 1) a[at] = null; }
@@ -7037,6 +7055,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if (s.pets.length >= 3) return { ok: false, msg: 'Schon drei Begleiter dabei' };
     s.pets.push({ t: id, v }); D.commit(); return { ok: true };
   };
+  D.unequipTrap = function (id) { const t = D.data().eq.t, i = t.lastIndexOf(id); if (i < 0) return false; t[i] = null; D.commit(); return true; };
   // Werte der angelegten Ausruestung (Verbesserungsstufe wirkt mit +8 % je Stufe)
   function petList(s) {
     const own = RS.G && RS.G.world ? D.ownedPets() : null;
@@ -7047,7 +7066,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const wp = (id) => { const g = D.GEAR[id], o = Object.assign({ id, lv: lv(id) }, g); o.dmg = g.dmg * P(id); return o; };
     const ar = (id) => { if (!id) return null; const g = D.GEAR[id], p = P(id); return { id, lv: lv(id), hp: Math.round(g.hp * p), red: Math.min(0.5, g.red * p) }; };
     const ab = s.eq.a.slice(0, n).filter(Boolean).map((id) => ({ id, lv: lv(id), p: P(id) }));
-    return { main: wp(s.eq.main), second: wp(s.eq.second), armor: ar(s.eq.armor), head: ar(s.eq.head), abil: ab.length ? ab : [{ id: 'hail', lv: lv('hail'), p: P('hail') }], gear: { main: s.eq.main, second: s.eq.second, armor: s.eq.armor, head: s.eq.head }, pets: petList(s) };
+    return { main: wp(s.eq.main), second: wp(s.eq.second), armor: ar(s.eq.armor), head: ar(s.eq.head), abil: ab.length ? ab : [{ id: 'hail', lv: lv('hail'), p: P('hail') }], gear: { main: s.eq.main, second: s.eq.second, armor: s.eq.armor, head: s.eq.head }, pets: petList(s), build: { fence: lv('fence'), house: lv('house') }, traps: s.eq.t.slice(0, D.trapSlots(s.lv)).map((id, i) => (id ? { id, i, p: P(id), x: D.TRAP_X[i] } : null)).filter(Boolean) };
   };
 
   /* ---------- Held-Level ---------- */
@@ -8917,13 +8936,13 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     opts = opts || {};
     const stage = typeof opts.stage === 'string' ? D.stageById(opts.stage) : (opts.stage || D.STAGES[0]);
     const diff = D.DIFF.find((q) => q.id === (opts.diff || 'normal')) || D.DIFF[1];
-    const lv = Math.max(1, opts.heroLv | 0), HS = D.heroStats(lv), L = opts.loadout || D.loadout(), GB = (L.armor ? L.armor.hp : 0) + (L.head ? L.head.hp : 0);
+    const lv = Math.max(1, opts.heroLv | 0), HS = D.heroStats(lv), L = opts.loadout || D.loadout(), GB = (L.armor ? L.armor.hp : 0) + (L.head ? L.head.hp : 0), fhp = D.buildHp('fence', (L.build || {}).fence), hhp = D.buildHp('house', (L.build || {}).house);
     const S = {
       stage, diff, heroLv: lv, seed: opts.seed || ((Math.random() * 1e9) | 0), t: 0, phase: 'intro', timer: 1.6, wave: -1, waveT: 0, spawnQ: [], endT: 0,
       hero: { x: 80, band: 1, hp: HS.hp + GB, maxHp: HS.hp + GB, state: 'idle', face: 1, t: 0, walkT: 0, swingT: 0, swingHit: false, throwT: 0, thrown: false, cdMelee: 0, cdSling: 0.4, koT: 0, inv: 0, flash: 0, moving: false, stun: 0, castT: 0, hurtT: 0, stepN: 0 },
-      mons: [], proj: [], eproj: [], pools: [], rocks: [], fx: [], texts: [], arcs: [], drops: [], pickQ: [], memo: {},
-      fence: { x: D.FENCE.x, w: D.FENCE.w, hp: D.FENCE.hp, maxHp: D.FENCE.hp, state: 0, flash: 0 },
-      house: { x0: D.HOUSE.x0, x1: D.HOUSE.x1, hp: D.HOUSE.hp, maxHp: D.HOUSE.hp, state: 0, flash: 0 },
+      mons: [], proj: [], eproj: [], pools: [], rocks: [], fx: [], texts: [], arcs: [], drops: [], pickQ: [], memo: {}, flames: [],
+      fence: { x: D.FENCE.x, w: D.FENCE.w, hp: fhp, maxHp: fhp, state: 0, flash: 0 },
+      house: { x0: D.HOUSE.x0, x1: D.HOUSE.x1, hp: hhp, maxHp: hhp, state: 0, flash: 0 },
       in: { tx: null, dir: 0, ab: 0 }, W: { main: L.main, second: L.second }, red: Math.max(0.5, 1 - (L.armor ? L.armor.red : 0) - (L.head ? L.head.red : 0)), buff: { t: 0, dmg: 1, rate: 1 }, fires: [], rings: [], loadout: L,
       shake: 0, hitstop: 0, banner: null, tap: null, uid: 1, stars: 0,
       hpMul: stage.hp * diff.hp, monDmg: stage.dmg, dmgMul: HS.dmg, lootMul: diff.loot, xpMul: diff.xp,
@@ -8932,6 +8951,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     };
     S.rng = rng(S.seed);
     S.pets = (L.pets || []).slice(0, 3).map((q, i) => ({ kind: q.kind, id: q.id, v: q.v | 0, i, x: S.hero.x - 24 * (i + 1), face: 1, cd: 0.6, atk: 0, walkT: 0, moving: false, t: 0 }));
+    S.traps = (L.traps || []).map((q) => ({ id: q.id, i: q.i, x: q.x, p: q.p, max: D.TRAP[q.id].charges, charges: D.TRAP[q.id].charges, flash: 0 }));
     S.abs = L.abil.map((a) => ({ id: a.id, p: a.p, cd: 0, max: D.ABIL[a.id].cd })); S.ab = S.abs[0];
     return S;
   };
@@ -8968,7 +8988,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     S.banner = { text: 'Geschafft!', sub: 'Zaun repariert, kurz durchatmen', t: 0, life: 2 };
     // Pause: Held voll geheilt, Zaun um ein Drittel repariert
     S.hero.hp = S.hero.maxHp; S.fence.hp = Math.min(S.fence.maxHp, S.fence.hp + S.fence.maxHp * 0.34); S.fence.state = fenceState(S.fence);
-    S.pools.length = 0;
+    S.pools.length = 0; S.flames.length = 0; S.traps.forEach((t) => { t.charges = t.max; });
     sfx('waveEnd');
   }
   function finish(S, won) {
@@ -9030,7 +9050,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     o = o || {};
     const T = m.T;
     dmg = Math.max(1, Math.round(dmg));
-    m.hp -= dmg; m.flash = 0.12; m.stun = Math.max(m.stun, (o.stun || 0.08) * (T.boss ? 0.2 : 1));
+    m.hp -= dmg; m.flash = 0.12; m.stun = Math.max(m.stun, (o.stun != null ? o.stun : 0.08) * (T.boss ? 0.2 : 1));
     if (o.kb && !m.act) m.x += o.kb * T.kb;
     const hy = D.GY + m.dep - (m.alt || 0) - T.h;
     addText(S, m.x, hy - 4, String(dmg), o.crit ? '#ffe45a' : '#ffffff', o.crit);
@@ -9395,6 +9415,29 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       }
     }
   }
+  // Fallen: Gegner am Boden loesen sie aus (je Gegner und Falle einmal); Brandflecken brennen eine Weile weiter
+  function updateTraps(S, dt) {
+    S.traps.forEach((tr) => {
+      if (tr.flash > 0) tr.flash -= dt;
+      if (tr.charges <= 0) return;
+      const K = D.TRAP[tr.id];
+      for (const m of S.mons) {
+        if (tr.charges <= 0) break;
+        if (m.dead || m.T.fly || Math.abs(m.x - tr.x) > 9 + m.T.hw * 0.3) continue;
+        m.trapHit = m.trapHit || {}; if (m.trapHit[tr.i]) continue; m.trapHit[tr.i] = 1;
+        tr.charges--; tr.flash = 0.35;
+        if (tr.id === 'pit') damageMon(S, m, K.dmg * tr.p, { kb: 0, stun: 0 });
+        else if (tr.id === 'spikes') damageMon(S, m, K.dmg * tr.p, { kb: 2, stun: 0 });
+        else { S.flames.push({ x: tr.x, t: 0, life: K.dur, r: K.radius, dps: K.dmg * tr.p, tick: 0 }); damageMon(S, m, K.dmg * tr.p * 0.5, { kb: 0, stun: 0 }); }
+        burst(S, tr.x, D.GY + 8, 9, tr.id === 'fire' ? ['#ffd24a', '#ff8a3a'] : ['#b08450', '#d8b87c'], { speed: 0.9, up: 40 }); sfx(tr.id === 'spikes' ? 'hit' : 'rock');
+      }
+    });
+    for (let i = S.flames.length - 1; i >= 0; i--) {
+      const q = S.flames[i]; q.t += dt; q.tick -= dt;
+      if (q.tick <= 0) { q.tick = 0.5; for (const m of S.mons) if (!m.dead && !m.T.fly && Math.abs(m.x - q.x) < q.r + m.T.hw * 0.4) damageMon(S, m, q.dps * 0.5, { kb: 0, stun: 0 }); }
+      if (q.t > q.life) S.flames.splice(i, 1);
+    }
+  }
   // Begleiter: folgen dem Helden, greifen Gegner in der Naehe an (Hund, Katze, Hase), werfen aus der Ferne (Ente) oder halten beim Zaun Wache (Schildkroete)
   function updatePets(S, dt) {
     const h = S.hero, pw = 1 + 0.05 * S.heroLv;
@@ -9464,6 +9507,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     }
     updateHero(S, dt);
     updatePets(S, dt);
+    updateTraps(S, dt);
     updateMons(S, dt);
     updateProj(S, dt);
     updateEProj(S, dt);
@@ -9486,6 +9530,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const old = {}; S.abs.forEach((a) => { old[a.id] = a; S.memo[a.id] = { cd: a.cd, t: S.t }; });
     S.abs = L.abil.map((a) => { const o = old[a.id], m = S.memo[a.id]; return o ? Object.assign(o, { p: a.p, max: D.ABIL[a.id].cd }) : { id: a.id, p: a.p, cd: m ? Math.max(0, m.cd - (S.t - m.t)) : 0, max: D.ABIL[a.id].cd }; });
     S.ab = S.abs[0]; S.loadout = L;
+    [[S.fence, 'fence'], [S.house, 'house']].forEach((q) => { const nm = D.buildHp(q[1], (L.build || {})[q[1]]), df = nm - q[0].maxHp; q[0].maxHp = nm; q[0].hp = df > 0 && q[0].hp > 0 ? q[0].hp + df : Math.min(q[0].hp, nm); });
+    const oldt = S.traps; S.traps = (L.traps || []).map((q) => { const o = oldt.find((t) => t.i === q.i && t.id === q.id), mx = D.TRAP[q.id].charges; return o ? Object.assign(o, { p: q.p }) : { id: q.id, i: q.i, x: q.x, p: q.p, max: mx, charges: mx, flash: 0 }; });
     const oldp = S.pets; S.pets = (L.pets || []).slice(0, 3).map((q, i) => { const o = oldp.find((p) => p.id === q.id && p.v === q.v); return o ? Object.assign(o, { i }) : { kind: q.kind, id: q.id, v: q.v | 0, i, x: h.x - 24 * (i + 1), face: 1, cd: 0.6, atk: 0, walkT: 0, moving: false, t: 0 }; });
   };
   D.footY = footY;
@@ -9568,6 +9614,16 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       ctx.fillStyle = '#b8f070'; const bx = Math.round(q.x + Math.sin(tm * 3 + q.x) * w * 0.5); ctx.fillRect(bx, GY + 8 + ((tm * 6 + q.x) % 3 | 0) - 1, 1, 1);
       ctx.globalAlpha = 1;
     }
+    // Fallen am Boden (Ladungen als Punkte darueber), Brandflecken
+    for (const tr of S.traps) {
+      const x0 = Math.round(tr.x), y0 = GY + 9, on = tr.charges > 0;
+      if (tr.id === 'pit') { ctx.fillStyle = on ? '#2a1a12' : '#8a6a44'; ctx.fillRect(x0 - 8, y0 - 1, 16, 4); ctx.fillRect(x0 - 6, y0 - 2, 12, 6); ctx.fillStyle = on ? '#150b08' : '#a08050'; ctx.fillRect(x0 - 6, y0, 12, 3); ctx.fillStyle = '#b08450'; ctx.fillRect(x0 - 9, y0, 1, 3); ctx.fillRect(x0 + 8, y0, 1, 3); }
+      else if (tr.id === 'spikes') { for (let k = 0; k < 5; k++) { const sx = x0 - 8 + k * 4, hh = on ? 8 : 2; ctx.fillStyle = '#8a5a30'; ctx.fillRect(sx, y0 + 2 - hh, 2, hh); ctx.fillStyle = on ? '#f4ead7' : '#8a5a30'; ctx.fillRect(sx, y0 + 2 - hh, 2, on ? 2 : 1); } ctx.fillStyle = '#6b4222'; ctx.fillRect(x0 - 9, y0 + 2, 18, 2); }
+      else { ctx.fillStyle = '#6b4222'; ctx.fillRect(x0 - 5, y0 - 3, 10, 6); ctx.fillStyle = '#a8683a'; ctx.fillRect(x0 - 5, y0 - 3, 8, 5); ctx.fillStyle = '#3a2418'; ctx.fillRect(x0 - 4, y0 - 4, 8, 2); if (on) { const fl = Math.floor(tm * 10) % 3; ctx.fillStyle = '#ff8a3a'; ctx.fillRect(x0 - 3, y0 - 8 - fl, 6, 5); ctx.fillStyle = '#ffd24a'; ctx.fillRect(x0 - 1, y0 - 8 - fl, 3, 4); } }
+      for (let k = 0; k < tr.charges; k++) { ctx.fillStyle = '#ffffff'; ctx.fillRect(x0 - tr.max + k * 2 + 1, y0 - 12, 1, 1); }
+      if (tr.flash > 0) { ctx.fillStyle = 'rgba(255,255,255,' + (tr.flash * 1.4).toFixed(2) + ')'; ctx.fillRect(x0 - 8, y0 - 6, 16, 8); }
+    }
+    for (const q of S.flames) { const fade = Math.min(1, (q.life - q.t) / 0.8); ctx.globalAlpha = fade; for (let k = 0; k < 6; k++) { const fx = Math.round(q.x - q.r + 4 + k * (q.r * 2 - 8) / 5), fl = Math.floor(tm * 9 + k) % 3; ctx.fillStyle = '#ff8a3a'; ctx.fillRect(fx - 2, GY + 8 - 5 - fl, 4, 6 + fl); ctx.fillStyle = '#ffd24a'; ctx.fillRect(fx - 1, GY + 8 - 3 - fl, 2, 4 + fl); } ctx.globalAlpha = 1; }
     // Beute am Boden: Fell, Knochen, Feuerstein mit leichtem Schein, blinkt kurz vor dem Verschwinden
     for (const d of S.drops) {
       const left = d.life - d.t; if (left < 5 && Math.floor(tm * 8) % 2) continue;
@@ -9894,11 +9950,11 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   /* ---------- Ausruestung ---------- */
   const G = (H.g = {});
-  const CATS = [['main', 'Hauptwaffe'], ['second', 'Zweitwaffe'], ['armor', 'Rüstung'], ['head', 'Kopf'], ['abil', 'Fähigkeiten'], ['pets', 'Begleiter']];
+  const CATS = [['main', 'Hauptwaffe'], ['second', 'Zweitwaffe'], ['armor', 'Rüstung'], ['head', 'Kopf'], ['abil', 'Fähigkeiten'], ['pets', 'Begleiter'], ['traps', 'Fallen'], ['build', 'Haus & Zaun']];
   let gcat = 'main', gconf = null, gtimer = 0, mtimer = 0;
-  const idsOf = (cat) => (cat === 'abil' ? Object.keys(D.ABIL) : Object.keys(D.GEAR).filter((id) => D.GEAR[id].slot === cat));
+  const idsOf = (cat) => (cat === 'traps' ? Object.keys(D.TRAP) : cat === 'build' ? Object.keys(D.BUILD) : cat === 'abil' ? Object.keys(D.ABIL) : Object.keys(D.GEAR).filter((id) => D.GEAR[id].slot === cat));
   const iconOf = (id) => (D.itemInfo(id).icon || id);
-  const eqd = (id, s) => (D.GEAR[id] ? s.eq[D.GEAR[id].slot] === id : s.eq.a.includes(id));
+  const eqd = (id, s) => (D.GEAR[id] ? s.eq[D.GEAR[id].slot] === id : D.TRAP[id] ? s.eq.t.includes(id) : s.eq.a.includes(id));
   function statLine(id, lv) {
     const g2 = D.GEAR[id], p = D.power(lv);
     if (g2) {
@@ -9906,6 +9962,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       if (g2.slot === 'second') return 'Schaden ' + fmt(g2.dmg * p) + ' · Tempo ' + fmt(g2.rate) + ' s · Reichweite ' + g2.range + (g2.radius ? ' · Fläche ' + g2.radius : '');
       return '+' + Math.round(g2.hp * p) + ' Leben · ' + Math.round(Math.min(0.5, g2.red * p) * 100) + ' % weniger Schaden';
     }
+    if (D.TRAP[id]) { const k = D.TRAP[id]; return 'Schaden ' + fmt(k.dmg * p) + (k.dur ? ' je Sekunde, ' + k.dur + ' s' : '') + (k.stun ? ' · hält ' + fmt(k.stun) + ' s fest' : '') + ' · ' + k.charges + ' Ladungen'; }
+    if (D.BUILD[id]) return 'Leben ' + D.buildHp(id, lv) + (lv < D.MAXUP ? ' → ' + D.buildHp(id, lv + 1) : '');
     const a = D.ABIL[id];
     return 'Abklingzeit ' + a.cd + ' s' + (id === 'hail' ? ' · Schaden ' + Math.round(D.HERO.ability.dmg * p) : id === 'cry' ? ' · +' + Math.round((a.dmg - 1) * p * 100) + ' % Schaden für ' + a.dur + ' s' : ' · heilt ' + Math.round(a.heal * p * 100) + ' % Leben, Zaun ' + Math.round(a.fence * p * 100) + ' %');
   }
@@ -9920,7 +9978,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     let bt = '';
     if (!own) { const ok = bal + 1e-6 >= it.price; bt = '<button data-a="buy" data-id="' + id + '" class="gold' + (ok ? '' : ' dis') + '"' + (ok ? '' : ' disabled') + '>' + (gconf === id ? 'Sicher? ' : 'Kaufen · ') + fmt(it.price) + ' h</button>'; }
     else {
-      bt = on && weapon ? '<button disabled class="dis">Angelegt</button>' : '<button data-a="eq" data-id="' + id + '">' + (on ? 'Ablegen' : 'Anlegen') + '</button>';
+      bt = D.BUILD[id] ? '' : D.TRAP[id] ? '<button data-a="eq" data-id="' + id + '">Anlegen' + (on ? ' (' + s.eq.t.filter((q) => q === id).length + '×)' : '') + '</button>' + (on ? '<button data-a="uneq" data-id="' + id + '">Ablegen</button>' : '') : on && weapon ? '<button disabled class="dis">Angelegt</button>' : '<button data-a="eq" data-id="' + id + '">' + (on ? 'Ablegen' : 'Anlegen') + '</button>';
       if (lv >= D.MAXUP) bt += '<button disabled class="dis">Höchste Stufe</button>';
       else { const c = D.upCost(id, lv), ok = Object.keys(c).every((m) => s.mats[m] >= c[m]); bt += '<button data-a="up" data-id="' + id + '" class="' + (ok ? '' : 'dis') + '"' + (ok ? '' : ' disabled') + '>Stufe +' + (lv + 1) + ' · ' + Object.keys(c).map((m) => '<i style="background:' + D.MATS[m].col + '"></i>' + c[m]).join(' ') + '</button>'; }
     }
@@ -9933,8 +9991,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     $('gTabs').innerHTML = CATS.map((q) => '<button data-c="' + q[0] + '" class="' + (q[0] === gcat ? 'on' : '') + '">' + q[1] + '</button>').join('') + '<canvas id="gHeroCv" width="76" height="76"></canvas>';
     const chip = (id) => '<span class="gs">' + img(iconOf(id)) + D.itemInfo(id).name + ' +' + (s.own[id] || 0) + '</span>';
     const slots = ['main', 'second', 'armor', 'head'].map((k) => (s.eq[k] ? chip(s.eq[k]) : '<span class="gs">–</span>')).join('');
+    const tr = [0, 1, 2, 3].map((i) => (i < D.trapSlots(s.lv) ? (s.eq.t[i] ? chip(s.eq.t[i]) : '<span class="gs">frei</span>') : '<span class="gs lock">ab Held-Lv ' + D.TRAP_LV[i] + '</span>')).join('');
     const ab = [0, 1, 2].map((i) => (i < n ? (s.eq.a[i] ? chip(s.eq.a[i]) : '<span class="gs">frei</span>') : '<span class="gs lock">ab Held-Lv ' + D.SLOT_LV[i] + '</span>')).join('');
-    $('gEquip').innerHTML = '<b>Angelegt:</b>' + slots + '<b>Fähigkeiten:</b>' + ab;
+    $('gEquip').innerHTML = '<b>Angelegt:</b>' + slots + '<b>Fähigkeiten:</b>' + ab + '<b>Fallen:</b>' + tr;
     $('gEquip').innerHTML += '<b>Begleiter:</b>' + (s.pets.length ? s.pets.map((q) => '<span class="gs">' + (D.PET[RS.ITEM[q.t] ? RS.ITEM[q.t].petKind : ''] ? D.PET[RS.ITEM[q.t].petKind].name : q.t) + '</span>').join('') : '<span class="gs">–</span>');
     if (gcat === 'pets') { const own = D.ownedPets(); $('gList').innerHTML = own.length ? own.map((p) => petRow(p, s)).join('') : '<div class="gi" style="padding:8px">Du hast noch keine Haustiere. Im Raum unter „Haustiere“ kannst du welche kaufen; sie kämpfen dann an deiner Seite (bis zu drei).</div>'; }
     else $('gList').innerHTML = idsOf(gcat).map((id) => row(id, s)).join('');
@@ -9947,7 +10006,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       if (gconf !== id) { gconf = id; clearTimeout(gtimer); gtimer = setTimeout(() => { gconf = null; if ($('dgear') && $('dgear').classList.contains('show')) G.render(); }, 3500); G.render(); return; }
       gconf = null; r = D.buy(id); msg(r.ok ? 'Gekauft: ' + it.name + '. Jetzt anlegen!' : r.msg);
     } else if (a === 'up') { r = D.upgrade(id); msg(r.ok ? it.name + ' ist jetzt +' + D.data().own[id] : r.msg); }
-    else if (a === 'eq') D.equip(id);
+    else if (a === 'eq') { if (D.equip(id) === false) msg('Kein freier Platz (mehr Plätze mit dem Held-Level)'); }
+    else if (a === 'uneq') D.unequipTrap(id);
     else if (a === 'pet') { const q = id.split('|'); r = D.togglePet(q[0], +q[1] || 0); if (!r.ok) msg(r.msg); }
     try { if (RS.audio && RS.audio.sfx) RS.audio.sfx(r.ok ? 'buy' : 'error'); } catch (e) { /* Ton nicht bereit */ }
     afterChange();
@@ -10026,6 +10086,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     cry: ['............', '.......o.o..', '......o.o.o.', '..kkkk..o.o.', '.kwwwwkk.o..', 'kwwwwwwwk...', 'kwwwwwwwk...', '.kwwwwkk....', '..kkkk......', '............', '............', '............'],
     heal: ['.....o......', '....oyo.....', '...oyyyo....', '..oyyyyyo...', '..oyywyyo...', '..oywwwyo...', '...oywyo..g.', '....ooo..ggg', '.kkkkkkk..g.', 'kBbbbbbBk...', '.kkkkkkk....', '............']
   });
+  ART.pit = ['............', '............', '............', '...kkkkkk...', '..kBBBBBBk..', '.kBkkkkkkBk.', 'kBkkkkkkkkBk', 'kBkkkkkkkkBk', '.kBkkkkkkBk.', '..kBBBBBBk..', '...kkkkkk...', '............'];
+  ART.spikes = ['............', '..k..k..k...', '.kbk.kbk.kbk', '.kbk.kbk.kbk', '.kbk.kbk.kbk', 'kbbbkbbbkbbk', 'kttbkttbkttk', 'kBBBBBBBBBBk', '.kkkkkkkkkk.', '............', '............', '............'];
+  ART.firetrap = ['....o..o....', '...oyo.oy...', '...oyyoyyo..', '....oyyyo...', '..kkkkkkkk..', '.kbbbbbbbbk.', 'kbbtbbbbBBbk', 'kbtbbbbbBBbk', '.kbbbbbbBBk.', '..kkBBBBkk..', '............', '............'];
   ART.bag = ['....kkkk....', '...kbbbbk...', '..kbk..kbk..', '.kbbbbbbbbk.', 'kbbbbbbbbbbk', 'kbtttbbtttbk', 'kbtTtbbtTtbk', 'kbtttbbtttbk', 'kbbbbyybbbbk', 'kbbbbyybbbbk', '.kbbbbbbbbk.', '..kkkkkkkk..'];
   const iconCache = {};
   function swordIcon(x) {
