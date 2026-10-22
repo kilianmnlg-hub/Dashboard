@@ -75,14 +75,9 @@
         "id": "71d95361-f2c9-4e06-b88c-90beb6735638",
         "text": "clips",
         "done": false
-      },
-      {
-        "id": "8ff6ed45-7375-4ba2-bf01-ae2f14b5990b",
-        "text": "Bett beziehen",
-        "done": false
       }
     ],
-    "updatedAt": 1792647637318
+    "updatedAt": 1792647914905
   },
   "remoteTasks": {
     "items": [
@@ -764,7 +759,8 @@
       },
       "2026-10-22": {
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-22": 6,
-        "upload:OgiI51OTc3E:comment": 3
+        "upload:OgiI51OTc3E:comment": 3,
+        "task:8ff6ed45-7375-4ba2-bf01-ae2f14b5990b": 12
       }
     },
     "archive": {
@@ -772,7 +768,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792647874520
+    "updatedAt": 1792647914440
   },
   "msgSeen": {
     "ids": [
