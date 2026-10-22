@@ -2742,6 +2742,7 @@ html.tr-lock, html.tr-lock body { overflow: hidden; }
 .rm-bl { font-size: var(--fs-14); font-weight: 600; color: var(--text); }
 .rm-bs { flex-basis: 100%; font-size: var(--fs-12); color: var(--text-muted); }
 .rm-lv { font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--text); }
+.rm-def { font-size: var(--fs-14); font-weight: 600; color: var(--text); }
 .rm-next { margin: 0; font-size: var(--fs-14); color: var(--text-muted); text-wrap: balance; }
 .rm-go { justify-self: start; font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; letter-spacing: 0; color: var(--accent-ink); background: var(--accent); border: 2px solid var(--text); border-radius: var(--r); padding: 10px 14px; min-height: 38px; box-shadow: var(--sh-m) var(--pxs); cursor: pointer; transition: transform .08s steps(2), box-shadow .08s steps(2); }
 .rm-go:active { transform: translate(3px, 3px); box-shadow: none; }

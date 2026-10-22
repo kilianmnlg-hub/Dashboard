@@ -18,6 +18,7 @@
   const THUMB_RE = /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/;
   const isNum = (v) => typeof v === "number" && isFinite(v);
   const fmtH = (h) => (Math.round(h * 10) / 10).toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const ERAS = { stone: "Steinzeit" }; // Zeitalter des Kampfspiels "Verteidigung" (weitere kommen mit dem Spiel)
   const empty = () => ({ w: null, spent: 0, updatedAt: -1 });
   const sizeOk = (o) => { try { return JSON.stringify(o).length <= MAX_STATE; } catch (e) { return false; } };
 
@@ -59,7 +60,9 @@
       if (!host || !ready || overlay) return;
       const e = economy(), bal = e.earned - state.spent;
       // nur neu zeichnen, wenn sich etwas geaendert hat (Stunden/Training laden zum Teil erst nach dem Start nach)
-      const s2 = [e.earned, e.level, e.rank, state.spent, next ? next.lv + ":" + next.n : "", thumb.length].join("|");
+      // Kampfspiel: Zeitalter und Held-Level aus dem Spielstand (erst da, wenn "Verteidigen" einmal geoeffnet wurde)
+      const wd = state.w && state.w.world && state.w.world.def, df = wd && isNum(wd.lv) ? `Verteidigung · ${ERAS[wd.era] || ERAS.stone} · Held Lv ${Math.max(1, Math.round(wd.lv))}` : "";
+      const s2 = [e.earned, e.level, e.rank, state.spent, next ? next.lv + ":" + next.n : "", thumb.length, df].join("|");
       if (!force && s2 === sig && host.firstChild) return;
       sig = s2;
       const lv = e.level || e.rank ? `LEVEL ${e.level}${e.rank ? " · " + esc(e.rank).toUpperCase() : ""}` : "";
@@ -70,6 +73,7 @@
         `<div class="rm-info">` +
         `<div class="rm-bal" title="Seit dem ${SINCE_TXT} verdient: ${fmtH(e.earned)} h · im Raum ausgegeben: ${fmtH(state.spent)} h"><span class="rm-bn${bal < 0 ? " neg" : ""}">${fmtH(bal)} h</span><span class="rm-bl">zum Ausgeben</span><span class="rm-bs">seit dem ${SINCE_TXT} verdient: ${fmtH(e.earned)} h · ausgegeben: ${fmtH(state.spent)} h</span></div>` +
         (lv ? `<div class="rm-lv">${lv}</div>` : "") +
+        (df ? `<div class="rm-def">${esc(df)}</div>` : "") +
         (nx ? `<p class="rm-next">${nx}</p>` : "") +
         `<button type="button" class="rm-go" data-rm="open">RAUM ÖFFNEN</button>` +
         `<details class="rm-how"><summary>So funktioniert's</summary><p>Die Stunden aus Zeittracker (YouTube und Bricklink) und Training, die du seit dem ${SINCE_TXT} gesammelt hast, sind dein Geld. Damit richtest du deinen Raum ein: Möbel, Boden, Wände, weitere Räume, Haustiere und eine Figur zum Anziehen. Mit höheren Levels (Level-Anzeige oben) werden immer mehr Teile freigeschaltet. Wenn du etwas verkaufst, bekommst du die Stunden voll zurück.</p></details>` +
