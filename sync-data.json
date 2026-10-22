@@ -115,9 +115,14 @@
         "id": "5608e33d-339d-4c3f-af24-65ca25658f90",
         "text": "Brainwalkers Video Idee",
         "done": false
+      },
+      {
+        "id": "24651ac9-f004-4821-9257-a5129bbca41f",
+        "text": "Bluebrixx anschreiben",
+        "done": false
       }
     ],
-    "updatedAt": 1792647964832
+    "updatedAt": 1792699372834
   },
   "shopping": {
     "items": [
