@@ -53,11 +53,17 @@
   "todos": {
     "date": "2026-10-22",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "9c20b2bc-db41-4132-b3a9-6b563ec9ce77",
+          "text": "After upload",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1792647949877
   },
   "tasks": {
     "items": [
