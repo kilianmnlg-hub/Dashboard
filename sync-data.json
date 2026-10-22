@@ -1211,9 +1211,28 @@
             "hair:curly": true
           },
           "paid": 4,
-          "x": 281,
-          "y": 236,
-          "face": 0
+          "x": 190,
+          "y": 276,
+          "face": 3
+        },
+        "def": {
+          "v": 1,
+          "lv": 3,
+          "xp": 23,
+          "mats": {
+            "fell": 11,
+            "knochen": 9,
+            "stein": 0
+          },
+          "prog": {
+            "stone1": {
+              "stars": 1,
+              "best": 0
+            }
+          },
+          "diff": "normal",
+          "paid": 0,
+          "endless": {}
         },
         "styles": {
           "floor": {
@@ -1224,7 +1243,7 @@
           }
         },
         "next": 15,
-        "at": 1792581268505,
+        "at": 1792652774823,
         "items": [
           {
             "u": 1,
@@ -1434,6 +1453,6 @@
       }
     },
     "spent": 72.4,
-    "updatedAt": 1792650037284
+    "updatedAt": 1792652775295
   }
 }
