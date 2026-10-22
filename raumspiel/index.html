@@ -216,6 +216,49 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 #dv.dlow .dab { width: calc(var(--u) * 20); height: calc(var(--u) * 20); }
 #dv.dlow .dab small { display: none; }
 
+/* ---- Verteidigung: Auswahl vor dem Kampf, Boss-Leiste, Ergebnis ---- */
+#dhub { position: absolute; inset: calc(var(--u) * 3) calc(var(--u) * 4); display: none; flex-direction: column; gap: calc(var(--u) * 2); z-index: 3; background: rgba(18, 13, 29, .95); padding: calc(var(--u) * 3);
+  box-shadow: 0 calc(var(--u) * -1) 0 0 var(--line), 0 var(--u) 0 0 var(--line), calc(var(--u) * -1) 0 0 0 var(--line), var(--u) 0 0 0 var(--line), inset 0 var(--u) 0 0 var(--hi), inset 0 calc(var(--u) * -1) 0 0 var(--lo); }
+#dhub.show { display: flex; }
+.hhead { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 2); }
+.hhead .dtitle { margin: 0; font-size: calc(var(--u) * 6); }
+.hchips { display: flex; gap: calc(var(--u) * 2); }
+.hchips .chip { font-size: calc(var(--u) * 3.4); padding: calc(var(--u) * 1) calc(var(--u) * 2.5); }
+.hmain { flex: 1; display: flex; gap: calc(var(--u) * 3); min-height: 0; }
+.hhero { width: calc(var(--u) * 52); flex: none; display: flex; flex-direction: column; align-items: center; gap: calc(var(--u) * 1.4); padding: calc(var(--u) * 2); margin: 0; }
+#hHeroCv { width: calc(var(--u) * 30); height: calc(var(--u) * 30); image-rendering: pixelated; image-rendering: crisp-edges; flex: none; }
+.hname { color: var(--gold-hi); font-size: calc(var(--u) * 4.2); }
+.hxp { width: 100%; }
+.hxpt { font-size: calc(var(--u) * 2.8); color: var(--dim); text-align: center; line-height: 1.2; }
+.hmats { display: flex; flex-direction: column; gap: calc(var(--u) * 0.8); width: 100%; font-size: calc(var(--u) * 3.1); color: var(--tx); }
+.hmat { display: flex; align-items: center; gap: calc(var(--u) * 1.5); }
+.hmat i { width: calc(var(--u) * 3); height: calc(var(--u) * 3); display: inline-block; box-shadow: 0 0 0 calc(var(--u) * 0.5) var(--line); flex: none; }
+.hmat b { margin-left: auto; color: var(--gold-hi); font-weight: 700; }
+.hloot .hmat b { margin-left: calc(var(--u) * 1); }
+.hstages { flex: 1; display: flex; flex-direction: column; gap: calc(var(--u) * 1.4); overflow-y: auto; min-width: 0; scrollbar-width: none; }
+.hst { display: flex; align-items: center; gap: calc(var(--u) * 3); padding: calc(var(--u) * 1.4) calc(var(--u) * 3); background: var(--p1); text-align: left; min-height: calc(var(--u) * 12); flex: none; box-shadow: inset 0 var(--u) 0 0 var(--hi), inset 0 calc(var(--u) * -1) 0 0 var(--lo); }
+.hst.sel { background: var(--p3); box-shadow: inset calc(var(--u) * 1.5) 0 0 0 var(--gold), inset 0 var(--u) 0 0 #6d5ca0, inset 0 calc(var(--u) * -1) 0 0 #231a3b; }
+.hst.lock { opacity: .5; }
+.hst .hn { width: calc(var(--u) * 6); color: var(--gold-hi); font-size: calc(var(--u) * 4.2); }
+.hst .hnm { flex: 1; font-size: calc(var(--u) * 3.9); color: var(--tx); }
+.hst .hsr { display: flex; gap: calc(var(--u) * 0.6); align-items: center; }
+.hst .hsr .pxi { width: calc(var(--u) * 5.4); height: calc(var(--u) * 5.4); }
+.hst .hsr em { font-style: normal; color: var(--mute); font-size: calc(var(--u) * 3); }
+.hfoot { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 2); flex-wrap: wrap; }
+.hfoot .acts { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.hdiff { display: flex; gap: calc(var(--u) * 1); }
+.hdiff button { padding: calc(var(--u) * 2) calc(var(--u) * 3.2); background: var(--p1); color: var(--dim); font-family: var(--font2); font-size: calc(var(--u) * 3.2); text-transform: uppercase; box-shadow: inset 0 var(--u) 0 0 var(--hi); }
+.hdiff button.on { background: var(--gold); color: #2a1a05; }
+#dboss { position: absolute; left: 50%; top: calc(var(--u) * 22); transform: translateX(-50%); display: none; align-items: center; gap: calc(var(--u) * 2.5); padding: calc(var(--u) * 1.6) calc(var(--u) * 3); margin: 0; }
+#dboss.show { display: flex; }
+#dboss b { font-size: calc(var(--u) * 3.6); color: #ff9a8a; font-weight: 400; white-space: nowrap; }
+#dboss .dbar { width: calc(var(--u) * 56); }
+.hloot { display: flex; justify-content: center; gap: calc(var(--u) * 4); flex-wrap: wrap; margin: calc(var(--u) * 2) 0 calc(var(--u) * 1); }
+.hxpl { margin-top: calc(var(--u) * 1); color: var(--tx); font-size: calc(var(--u) * 3.8); }
+.hxpl .up { color: var(--gold-hi); }
+#dv.dlow #dhub { inset: calc(var(--u) * 2) calc(var(--u) * 3); padding: calc(var(--u) * 2.4); gap: calc(var(--u) * 1.4); }
+#dv.dlow .hst { min-height: calc(var(--u) * 10); }
+
 </style>
 </head>
 <body>
@@ -2163,6 +2206,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       this.styles = { floor: { oak: 0 }, wall: { panel: 0 } };
       this.nextUid = 1;
       this.av = null;
+      this.def = null;   // Verteidigung (Kampfspiel): Held, Material, Fortschritt, Ausruestung (src/def-save.js)
       this.listeners = [];
       this.updatedAt = 0;
     }
@@ -2173,7 +2217,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
     /* ---------- Wirtschaft ---------- */
     spent() {
-      let s = this.plan.paid() + (this.av ? this.av.paid || 0 : 0);
+      let s = this.plan.paid() + (this.av ? this.av.paid || 0 : 0) + (this.def ? this.def.paid || 0 : 0);
       this.items.forEach((i) => (s += i.p || 0));
       this.inv.forEach((i) => (s += i.p || 0));
       ['floor', 'wall'].forEach((k) => Object.values(this.styles[k]).forEach((p) => (s += p || 0)));
@@ -2331,7 +2375,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     /* ---------- Speicherstand ---------- */
     toJSON() {
       return {
-        v: 2, plan: this.plan.toJSON(), av: this.av, styles: this.styles, next: this.nextUid, at: this.updatedAt,
+        v: 2, plan: this.plan.toJSON(), av: this.av, def: this.def || undefined, styles: this.styles, next: this.nextUid, at: this.updatedAt,
         items: this.items.map((i) => ({ u: i.uid, t: i.t, x: i.x, y: i.y, z: i.z, r: i.rot, c: i.v, p: i.p, s: i.s, g: i.g })),
         inv: this.inv.map((i) => ({ t: i.t, c: i.c, p: i.p, g: i.g }))
       };
@@ -2348,6 +2392,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         off = st[0] * TILE;
       }
       this.av = j.av || null;
+      this.def = j.def && typeof j.def === 'object' ? j.def : null;
       this.styles = j.styles || { floor: { oak: 0 }, wall: { panel: 0 } };
       this.items = []; this.nextUid = j.next || 1; this.updatedAt = j.at || 0;
       (j.items || []).forEach((q) => {
@@ -6702,22 +6747,162 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   D.HOUSE = { x0: 2, x1: 124, hp: 240 };
   D.FENCE = { x: 160, w: 14, hp: 125 };
 
-  // hw = halbe Breite fuer Treffer und Gedraenge, h = Hoehe (Lebensbalken, Treffpunkt), reach = Angriffsweite vor dem Ziel, struct = Faktor gegen Zaun und Haus
+  // Held-Level: mehr Leben und Schaden; Obergrenze nach Dashboard-Level (Annahme im Plan: 2 x Level)
+  D.LV = {
+    hpPer: 9, dmgPer: 0.08,
+    xpNeed: (lv) => Math.round(36 * Math.pow(1.2, lv - 1)),
+    cap: (dashLv) => Math.max(3, 2 * (dashLv | 0))
+  };
+  // Schwierigkeit je Versuch: Monsterleben, Beute (Material) und Erfahrung
+  D.DIFF = [
+    { id: 'easy', name: 'Leicht', hp: 0.8, loot: 0.8, xp: 0.8 },
+    { id: 'normal', name: 'Normal', hp: 1, loot: 1, xp: 1 },
+    { id: 'hard', name: 'Schwer', hp: 1.35, loot: 1.5, xp: 1.3 }
+  ];
+  D.MATS = { fell: { name: 'Fell', col: '#d8a868' }, knochen: { name: 'Knochen', col: '#f4ead7' }, stein: { name: 'Feuerstein', col: '#9fb4e8' } };
+
+  /* Monster. hw = halbe Breite fuer Treffer und Gedraenge, h = Hoehe (Lebensbalken, Treffpunkt), reach = Angriffsweite vor dem Ziel, struct = Faktor gegen Zaun und Haus.
+   * loot: [Material, Chance, min, max]. Bosse haben boss = Art (Verhalten in def-core.js), base/scale = Modell (vergroesserte Fassung eines Grundmodells), phases = Lebensanteile der Phasenwechsel.
+   */
   D.MON = {
-    raptor: { name: 'Raptorling', hp: 26, speed: 50, dmg: 5, rate: 0.9, reach: 8, struct: 1, kb: 1, hw: 15, h: 28, fps: 10 },
-    rhino: { name: 'Wollnashorn', hp: 120, speed: 22, dmg: 17, rate: 1.7, reach: 14, struct: 2.2, kb: 0.22, hw: 32, h: 40, fps: 5 }
+    raptor: { name: 'Raptorling', hp: 26, speed: 50, dmg: 5, rate: 0.9, reach: 8, struct: 1, kb: 1, hw: 15, h: 28, fps: 10, xp: 1, loot: [['fell', 0.22, 1, 1], ['knochen', 0.14, 1, 1]] },
+    rhino: { name: 'Wollnashorn', hp: 120, speed: 22, dmg: 17, rate: 1.7, reach: 14, struct: 2.2, kb: 0.22, hw: 32, h: 40, fps: 5, xp: 5, loot: [['fell', 0.9, 1, 3], ['stein', 0.4, 1, 2]] },
+    // Fernkaempfer: bleibt auf Abstand stehen und spuckt Saeure im Bogen auf Zaun, Haus oder Held
+    spitter: { name: 'Spuckechse', hp: 24, speed: 36, dmg: 0, rate: 2.4, reach: 0, range: 100, shot: { dmg: 4.5, speed: 150 }, struct: 1.1, kb: 1.2, hw: 16, h: 30, fps: 8, ranged: true, xp: 2, loot: [['knochen', 0.5, 1, 2], ['stein', 0.2, 1, 1]] },
+    // Flieger: fliegt ueber den Zaun zum Haus (oder zum Held) und beisst aus der Luft; trifft nur im Nahkampf (niedrig) oder mit Wurfwaffen
+    flyer: { name: 'Flugsaurier', hp: 16, speed: 60, dmg: 4, rate: 1.3, reach: 12, struct: 1, kb: 1.8, hw: 20, h: 22, fps: 10, fly: true, alt: 74, atkAlt: 40, xp: 2, loot: [['knochen', 0.35, 1, 1], ['fell', 0.2, 1, 1]] },
+    // Bosse: je Stufe einer, am Ende der letzten Welle (Verhalten und Phasen in def-core.js)
+    alpha: { name: 'Rudelführer', boss: 'alpha', base: 'raptor', scale: 1.8, hp: 190, speed: 46, dmg: 10, rate: 0.95, reach: 14, struct: 1.4, kb: 0.35, hw: 30, h: 52, fps: 9, xp: 40, phases: [0.66, 0.33], loot: [['fell', 1, 4, 6], ['knochen', 1, 3, 5]] },
+    bull: { name: 'Zottelbulle', boss: 'bull', base: 'rhino', scale: 1.5, hp: 300, speed: 21, dmg: 12, rate: 1.7, reach: 20, struct: 2, kb: 0.05, hw: 48, h: 60, fps: 5, xp: 60, phases: [0.66, 0.33], loot: [['fell', 1, 6, 9], ['stein', 1, 4, 6], ['knochen', 1, 2, 4]] },
+    queen: { name: 'Pterra-Königin', boss: 'queen', base: 'flyer', scale: 2.3, hp: 300, speed: 52, dmg: 9, rate: 1.1, reach: 18, struct: 1.6, kb: 0.3, hw: 46, h: 48, fps: 10, fly: true, alt: 80, atkAlt: 46, xp: 70, phases: [0.66, 0.33], loot: [['knochen', 1, 6, 9], ['fell', 1, 3, 5], ['stein', 1, 2, 4]] },
+    swamp: { name: 'Sumpfkönig', boss: 'swamp', base: 'spitter', scale: 2.1, hp: 300, speed: 24, dmg: 0, rate: 4, reach: 0, range: 150, shot: { dmg: 7, speed: 170 }, struct: 1.2, kb: 0.15, hw: 34, h: 62, fps: 6, ranged: true, xp: 80, phases: [0.66, 0.33], loot: [['knochen', 1, 7, 10], ['stein', 1, 5, 7], ['fell', 1, 2, 4]] },
+    saber: { name: 'Säbelzahn-König', boss: 'saber', hp: 400, speed: 36, dmg: 10, rate: 1.0, reach: 18, struct: 1.4, kb: 0.1, hw: 44, h: 56, fps: 9, xp: 160, phases: [0.66, 0.33], loot: [['fell', 1, 10, 14], ['knochen', 1, 8, 12], ['stein', 1, 8, 12]] }
   };
 
   const run = (type, n, at, gap) => Array.from({ length: n }, (_, i) => ({ type, at: at + i * gap }));
-  D.STAGES = [{
-    id: 'stone1', name: 'Lagerfeuer-Tal', era: 'stone', pause: 6.5,
-    waves: [
-      run('raptor', 5, 0.5, 1.3),
-      run('raptor', 8, 0.5, 1.0).concat(run('rhino', 1, 4, 0)),
-      run('raptor', 10, 0.5, 0.85).concat(run('rhino', 2, 3, 5)),
-      run('raptor', 12, 0.5, 0.75).concat(run('rhino', 4, 2, 4.5))
-    ]
-  }];
+  const cat = (...a) => [].concat(...a);
+  // Stufen der Steinzeit: je Stufe 4 bis 6 Wellen, die letzte mit dem Boss. hp/dmg = Faktoren fuer Monsterleben und Schaden, xp = Bonus fuers Schaffen.
+  D.STAGES = [
+    {
+      id: 'stone1', era: 'stone', n: 1, name: 'Lagerfeuer-Tal', pause: 6.5, hp: 1, dmg: 1, xp: 15,
+      waves: [
+        run('raptor', 5, 0.5, 1.3),
+        cat(run('raptor', 8, 0.5, 1.0), run('rhino', 1, 4, 0)),
+        cat(run('raptor', 10, 0.5, 0.85), run('rhino', 2, 3, 5)),
+        cat(run('alpha', 1, 1.5, 0), run('raptor', 6, 3, 1.2), run('rhino', 1, 10, 0))
+      ]
+    },
+    {
+      id: 'stone2', era: 'stone', n: 2, name: 'Nebelwald', pause: 6.5, hp: 1.04, dmg: 1, xp: 30,
+      waves: [
+        cat(run('raptor', 6, 0.5, 1.1), run('spitter', 2, 3, 5)),
+        cat(run('raptor', 8, 0.5, 1.0), run('spitter', 2, 2, 4), run('rhino', 1, 6, 0)),
+        cat(run('raptor', 10, 0.5, 0.9), run('spitter', 3, 2, 4), run('rhino', 1, 4, 6)),
+        cat(run('rhino', 2, 1, 6), run('spitter', 4, 2, 3), run('raptor', 6, 5, 1.2)),
+        cat(run('bull', 1, 1.5, 0), run('raptor', 6, 3, 1.1), run('spitter', 2, 6, 5))
+      ]
+    },
+    {
+      id: 'stone3', era: 'stone', n: 3, name: 'Aschefeld', pause: 6.5, hp: 1.06, dmg: 1.02, xp: 45,
+      waves: [
+        cat(run('flyer', 4, 0.5, 1.8), run('raptor', 6, 2, 1.2)),
+        cat(run('flyer', 5, 0.5, 1.5), run('spitter', 2, 3, 4), run('rhino', 1, 5, 6)),
+        cat(run('flyer', 6, 0.5, 1.3), run('raptor', 8, 2, 1.0), run('rhino', 1, 6, 6)),
+        cat(run('flyer', 7, 0.5, 1.2), run('spitter', 3, 2, 3.5), run('rhino', 2, 4, 6)),
+        cat(run('queen', 1, 1.5, 0), run('flyer', 4, 4, 1.8), run('raptor', 5, 3, 1.3))
+      ]
+    },
+    {
+      id: 'stone4', era: 'stone', n: 4, name: 'Echsensumpf', pause: 6.5, hp: 1.06, dmg: 1, xp: 60,
+      waves: [
+        cat(run('spitter', 5, 0.5, 1.6), run('raptor', 8, 2, 1.0)),
+        cat(run('spitter', 6, 0.5, 1.4), run('rhino', 1, 3, 6), run('flyer', 4, 5, 2)),
+        cat(run('rhino', 2, 0.5, 5), run('spitter', 6, 1, 1.4), run('raptor', 10, 3, 0.9)),
+        cat(run('flyer', 6, 0.5, 1.4), run('spitter', 6, 2, 1.4), run('rhino', 2, 4, 5)),
+        cat(run('swamp', 1, 1.5, 0), run('spitter', 4, 3, 2.5), run('rhino', 1, 6, 0), run('raptor', 6, 4, 1.2))
+      ]
+    },
+    {
+      id: 'stone5', era: 'stone', n: 5, name: 'Säbelzahn-Höhle', pause: 7, hp: 1.12, dmg: 1.06, xp: 90,
+      waves: [
+        cat(run('raptor', 10, 0.5, 0.9), run('flyer', 4, 3, 2), run('spitter', 3, 4, 4)),
+        cat(run('rhino', 2, 1, 5), run('raptor', 10, 2, 1.0), run('spitter', 4, 3, 3.5)),
+        cat(run('flyer', 8, 0.5, 1.2), run('spitter', 5, 2, 2.6), run('rhino', 2, 5, 5)),
+        cat(run('rhino', 3, 1, 5), run('flyer', 6, 2, 1.5), run('spitter', 5, 3, 2.6), run('raptor', 8, 4, 1.0)),
+        cat(run('rhino', 3, 1, 4.5), run('raptor', 12, 2, 0.85), run('spitter', 5, 3, 3), run('flyer', 5, 5, 1.9)),
+        cat(run('saber', 1, 1.5, 0), run('raptor', 8, 4, 1.2), run('flyer', 4, 6, 2))
+      ]
+    }
+  ];
+  D.stageById = (id) => D.STAGES.find((s) => s.id === id) || D.STAGES[0];
+})(window);
+
+</script>
+<script>
+/* src/def-save.js */
+/* Raumspiel – Verteidigung: Spielstand (Held, Material, Fortschritt). Liegt als Feld `def` im Spielstand des Raums (world.def) und wandert so mit
+ * in die Cloud; ohne Spiel (Tests) bleibt er im Speicher. Alles rein als Zahlen und Namen, klein (wenige KB).
+ */
+(function (g) {
+  'use strict';
+  const RS = (g.RS = g.RS || {});
+  const D = (RS.def = RS.def || {});
+  const num = (v, d) => (typeof v === 'number' && isFinite(v) ? v : d);
+  const defaults = () => ({ v: 1, lv: 1, xp: 0, mats: { fell: 0, knochen: 0, stein: 0 }, prog: {}, diff: 'normal', paid: 0, endless: {} });
+  let mem = null;   // Ersatz ohne Spiel
+
+  // Gespeicherte Daten pruefen und fehlende Felder auffuellen (aeltere oder beschaedigte Staende werden nicht abgelehnt)
+  function fix(d) {
+    const o = defaults();
+    if (!d || typeof d !== 'object') return o;
+    o.lv = Math.max(1, Math.min(99, Math.round(num(d.lv, 1)))); o.xp = Math.max(0, Math.round(num(d.xp, 0)));
+    for (const k of Object.keys(o.mats)) o.mats[k] = Math.max(0, Math.round(num(d.mats && d.mats[k], 0)));
+    if (d.prog && typeof d.prog === 'object') for (const s of D.STAGES) { const p = d.prog[s.id]; if (p && typeof p === 'object') o.prog[s.id] = { stars: Math.max(0, Math.min(3, Math.round(num(p.stars, 0)))), best: Math.max(0, Math.round(num(p.best, 0))) }; }
+    if (d.endless && typeof d.endless === 'object') for (const k of Object.keys(d.endless)) o.endless[k] = Math.max(0, Math.round(num(d.endless[k], 0)));
+    o.diff = ['easy', 'normal', 'hard'].includes(d.diff) ? d.diff : 'normal';
+    o.paid = Math.max(0, Math.round(num(d.paid, 0) * 100) / 100);
+    // Ausruestung und Besitz (Etappe 2): unbekannte Felder bleiben erhalten
+    for (const k of Object.keys(d)) if (!(k in o)) o[k] = d[k];
+    return o;
+  }
+
+  // Der Spielstand des Kampfspiels (wird bei Bedarf angelegt)
+  D.data = function () {
+    const w = RS.G && RS.G.world;
+    if (w) { if (!w.def || w.def.v !== 1 || !w.def._ok) { w.def = fix(w.def); Object.defineProperty(w.def, '_ok', { value: true, enumerable: false, configurable: true }); } return w.def; }
+    return mem || (mem = fix(null));
+  };
+  // Aenderung melden: Zeitstempel (neuerer Stand gewinnt), speichern, Stunden-Anzeige im Raum auffrischen
+  D.commit = function () {
+    const G = RS.G; if (!G || !G.world) return;
+    G.world.updatedAt = Date.now();
+    if (G.saveSoon) G.saveSoon();
+    if (RS.ui && RS.ui.refreshAll) { try { RS.ui.refreshAll(); } catch (e) { /* Anzeige noch nicht bereit */ } }
+  };
+  D.resetSave = function () { const w = RS.G && RS.G.world; if (w) w.def = null; mem = null; return D.data(); };
+
+  /* ---------- Held-Level ---------- */
+  D.heroCap = () => D.LV.cap(RS.economy && RS.economy.level ? RS.economy.level() : 0);
+  D.heroStats = function (lv) {
+    lv = Math.max(1, lv | 0);
+    return { lv, hp: D.HERO.hp + D.LV.hpPer * (lv - 1), dmg: 1 + D.LV.dmgPer * (lv - 1) };
+  };
+  // Erfahrung gutschreiben; Rueckgabe: neue Level (bis zur Obergrenze)
+  D.addXp = function (save, xp) {
+    const cap = D.heroCap(), before = save.lv; save.xp += Math.max(0, Math.round(xp));
+    while (save.lv < cap && save.xp >= D.LV.xpNeed(save.lv)) { save.xp -= D.LV.xpNeed(save.lv); save.lv++; }
+    if (save.lv >= cap) save.xp = Math.min(save.xp, D.LV.xpNeed(save.lv) - 1);
+    return save.lv - before;
+  };
+
+  /* ---------- Fortschritt ---------- */
+  D.stageOpen = function (save, idx) {
+    if (idx <= 0) return true;
+    const prev = D.STAGES[idx - 1], p = prev && save.prog[prev.id];
+    return !!(p && p.stars >= 1);
+  };
+  D.stageStars = (save, id) => (save.prog[id] ? save.prog[id].stars : 0);
+  D.totalStars = (save) => D.STAGES.reduce((a, s) => a + D.stageStars(save, s.id), 0);
 })(window);
 
 </script>
@@ -6825,57 +7010,35 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     return ramp(Math.max(0, Math.min(7, l)));
   };
 
-  /* ---------- Held (deine Figur) mit Keule ----------
-   * pose: stand | walk | swing | throw | ko. Das Modell wird in einen groesseren Block gesetzt (y + 14), damit die Keule nach vorn und hinten ausholen kann.
-   */
-  const CLUB = { rest: [16, 25, 116], s0: [7, 37, 125], s1: [20, 27, -15], s2: [17, 22, -45] };
-  D.heroSprite = function (look, pose, frame, weapon) {
-    look = Object.assign({}, RS.AV.defaultLook, look || {}); frame = frame | 0; weapon = weapon === undefined ? 'club' : weapon;
-    const key = ['hero', look.skin, look.hair, look.hairC, look.top, look.topC, look.bottom, look.botC, look.shoe, look.shoeC, look.acc, look.accC, pose, frame, weapon].join('|');
-    return D.cached(key, () => {
-      if (pose === 'ko') return RS.sideSprite(RS.avatarVox(look, 'lie', 0), { ay: 28 });
-      const base = RS.avatarVox(look, pose === 'walk' ? 'walk' : 'stand', frame);
-      const v = RS.V(26, 66, 86); v.blit(base, 0, 14, 0);
-      const bob = pose === 'walk' ? frame & 1 : 0, z0 = 31 + bob, sk = (l) => c[look.skin](l == null ? 3 : l), tp = (l) => c[look.topC](l == null ? 3 : l);
-      const longSleeve = look.top !== 'tee' && look.top !== 'tank';
-      // Gesicht im Profil: Seitenhaar im Gesichtsbereich entfernen, Auge (gross), Nase, Mund, Wange
-      v.box(17, 23, z0 + 1, 19, 30, z0 + 9, 0);
-      v.box(16, 26, z0 + 5, 17, 28, z0 + 8, c.ink(2)); v.put(16, 27, z0 + 7, c.white(6));
-      v.put(16, 30, z0 + 4, sk(4)); v.put(16, 30, z0 + 3, sk(3)); v.put(16, 28, z0 + 2, c.rose(3)); v.put(16, 29, z0 + 2, c.rose(3)); v.put(16, 25, z0 + 3, c.pink(4));
-      // der nahe Arm wird neu gezeichnet
-      v.box(17, 0, 13, 22, 66, 33, 0);
-      let hand, club = null, sling = false;
-      if (pose === 'swing') { const k = [CLUB.s0, CLUB.s1, CLUB.s2][Math.max(0, Math.min(2, frame))]; hand = [k[0], k[1]]; club = k[2]; }
-      else if (pose === 'throw') { hand = frame ? [22, 31] : [14, 38]; sling = !frame; }
-      else { hand = [CLUB.rest[0] + (pose === 'walk' ? [2, 0, -2, 0][frame & 3] : 0), CLUB.rest[1] + bob]; club = CLUB.rest[2]; }
-      if (pose === 'throw') club = null;
-      if (weapon !== 'club') club = null;
-      const X = 18.5, sy = 25, sz = 28 + bob, hy = hand[0] + 14, hz = hand[1];
-      const ey = (sy + hy) / 2 - 1.2, ez = (sz + hz) / 2 - 2.5;
-      v.line(X, sy, sz, X, ey, ez, 1.9, tp(3));
-      v.line(X, ey, ez, X, hy, hz, 1.7, longSleeve ? tp(3) : sk(3));
-      v.sph(X, hy, hz, 2.1, sk(3));
-      if (club != null) {
-        const th = club * Math.PI / 180, dy = Math.cos(th), dz = Math.sin(th), len = 23, cy = hy + dy * len, cz = hz + dz * len;
-        v.line(X, hy - dy * 3, hz - dz * 3, X, cy, cz, 1.3, c.oak(3));
-        v.line(X, hy - dy * 3, hz - dz * 3, X, hy + dy * 5, hz + dz * 5, 1.5, c.leather(3));           // Griffwicklung
-        v.ell(X, cy, cz, 3.3, 3.8, 3.8, (x, y, z) => c.walnut(hs(x, y, z) > 0.6 ? 4 : 3));            // Keulenkopf
-        for (let i = 0; i < 5; i++) { const a2 = th + 1.571 + i * 1.256, sy2 = cy + Math.cos(a2) * 4.2, sz2 = cz + Math.sin(a2) * 4.2; v.line(X, cy + Math.cos(a2) * 2.4, cz + Math.sin(a2) * 2.4, X, sy2, sz2, 0.5, c.cream(5)); }   // Knochenzacken
-      }
-      if (sling) { v.line(X, hy, hz, X, hy + 8, hz + 8, 0.5, c.leather(4)); v.sph(X, hy + 9, hz + 9, 1.9, c.stone(4)); }
-      return RS.sideSprite(v, { ay: 25 });
-    });
-  };
+  /* Held: siehe def-hero.js */
 
   /* ---------- Raptorling (Laeufer) ----------
    * frame 0..3 laufen, 4 beissen. Grosser Kopf und grosses Auge (Tiny-Monsters-Stil), orange Streifen.
    */
-  D.raptorSprite = function (frame, variant) {
-    frame = frame | 0; variant = variant | 0;
-    return D.cached('raptor|' + frame + '|' + variant, () => {
-      const v = RS.V(14, 48, 32), bite = frame === 4, ph = (frame & 3) * Math.PI / 2, bob = bite ? 0 : frame & 1, hx = bite ? 3 : 0;
-      const body = variant ? c.teal : c.lime, belly = c.cream;
-      const BODY = (x, y, z) => { const stripe = z > 11 && ((y * 2 + z) % 12 < 2); return stripe ? c.orange(3) : shade(body, 13 + bob, 12)(x, y, z); };
+  // Vergroesserte Fassung eines Modells fuer Bosse: dieselben Bauanweisungen, alle Masse mit k multipliziert (Farbfunktionen bekommen die urspruenglichen Koordinaten)
+  function scaled(k, w, d, h) {
+    const v = RS.V(Math.ceil(w * k), Math.ceil(d * k), Math.ceil(h * k)), f = (cl) => (typeof cl === 'function' ? (x, y, z) => cl(x / k, y / k, z / k) : cl);
+    return {
+      real: v, w, d, h,
+      put: (x, y, z, cl) => v.box(Math.floor(x * k), Math.floor(y * k), Math.floor(z * k), Math.ceil((x + 1) * k), Math.ceil((y + 1) * k), Math.ceil((z + 1) * k), f(cl)),
+      box: (x0, y0, z0, x1, y1, z1, cl) => v.box(Math.floor(x0 * k), Math.floor(y0 * k), Math.floor(z0 * k), Math.ceil(x1 * k), Math.ceil(y1 * k), Math.ceil(z1 * k), f(cl)),
+      ell: (cx, cy, cz, rx, ry, rz, cl) => v.ell(cx * k, cy * k, cz * k, rx * k, ry * k, rz * k, f(cl)),
+      sph: (cx, cy, cz, r, cl) => v.sph(cx * k, cy * k, cz * k, r * k, f(cl)),
+      line: (x0, y0, z0, x1, y1, z1, r, cl) => v.line(x0 * k, y0 * k, z0 * k, x1 * k, y1 * k, z1 * k, r * k, f(cl)),
+      cyl: (cx, cy, r, z0, z1, cl) => v.cyl(cx * k, cy * k, r * k, Math.floor(z0 * k), Math.ceil(z1 * k), f(cl))
+    };
+  }
+  function vsprite(W, Dp, Hh, ay, k, build) {
+    const S = k > 1 ? scaled(k, W, Dp, Hh) : RS.V(W, Dp, Hh);
+    build(S);
+    return RS.sideSprite(k > 1 ? S.real : S, { ay: ay * (k > 1 ? k : 1) });
+  }
+  D.vsprite = vsprite;
+
+  function raptorBuild(v, frame, variant) {
+      const bite = frame === 4, ph = (frame & 3) * Math.PI / 2, bob = bite ? 0 : frame & 1, hx = bite ? 3 : 0;
+      const body = variant === 2 ? c.red : variant ? c.teal : c.lime, belly = c.cream, stripeCol = variant === 2 ? c.graphite(2) : c.orange(3);
+      const BODY = (x, y, z) => { const stripe = z > 11 && ((y * 2 + z) % 12 < 2); return stripe ? stripeCol : shade(body, 13 + bob, 12)(x, y, z); };
       // Schwanz, Koerper, Bauch
       v.line(7, 13, 14 + bob, 7, 7, 13 + bob, 2.8, shade(body, 13, 8));
       v.line(7, 7, 13 + bob, 7, 1.5, 10 + bob, 1.6, body(2));
@@ -6908,17 +7071,18 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       leg(5, -s, lf2, 2); leg(9.5, s, lf, 3);
       // kleiner Arm
       v.line(11, 26, 12 + bob, 11, 29.5 + hx * 0.3, 10 + bob, 1.1, body(3)); v.put(11, 30 + hx * 0.3, 9, c.cream(4));
-      return RS.sideSprite(v, { ay: 22 });
-    });
+  }
+  D.raptorSprite = function (frame, variant, k) {
+    frame = frame | 0; variant = variant | 0; k = k || 1;
+    return D.cached('raptor|' + frame + '|' + variant + '|' + k, () => vsprite(14, 48, 32, 22, k, (v) => raptorBuild(v, frame, variant)));
   };
 
   /* ---------- Wollnashorn (Tank) ---------- */
-  D.rhinoSprite = function (frame) {
-    frame = frame | 0;
-    return D.cached('rhino|' + frame, () => {
-      const v = RS.V(22, 80, 40), bite = frame === 4, ph = (frame & 3) * Math.PI / 2, bob = bite ? 0 : frame & 1, hz = bite ? -2 : 0, hy = bite ? 3 : 0;
-      const FUR = (x, y, z) => { const r = hs(x, y, z), lv = z > 26 ? 4 : z < 15 ? 2 : 3; return c.walnut(lv + (r > 0.88 ? 1 : r < 0.1 ? -1 : 0)); };
-      const FUR2 = (x, y, z) => { const r = hs(x + 3, y, z); return c.leather(3 + (r > 0.85 ? 1 : r < 0.12 ? -1 : 0)); };
+  function rhinoBuild(v, frame, variant) {
+      const bite = frame === 4, ph = (frame & 3) * Math.PI / 2, bob = bite ? 0 : frame & 1, hz = bite ? -2 : 0, hy = bite ? 3 : 0;
+      const furR = variant ? c.graphite : c.walnut, fur2R = variant ? c.stone : c.leather;
+      const FUR = (x, y, z) => { const r = hs(x, y, z), lv = z > 26 ? 4 : z < 15 ? 2 : 3; return furR(lv + (r > 0.88 ? 1 : r < 0.1 ? -1 : 0)); };
+      const FUR2 = (x, y, z) => { const r = hs(x + 3, y, z); return fur2R(3 + (r > 0.85 ? 1 : r < 0.12 ? -1 : 0)); };
       // Koerper
       v.ell(11, 30, 21 + bob, 9.2, 18, 11.5, FUR);
       v.ell(11, 18, 20 + bob, 8, 9, 10, FUR);
@@ -6951,8 +7115,10 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       leg(15.5, 47, s, lf, 3); leg(15.5, 14, -s, lf2, 3);
       // Schwanz
       v.line(11, 12, 25 + bob, 11, 6, 18 + bob, 1.5, c.walnut(2)); v.sph(11, 5, 16.5 + bob, 2.4, c.walnut(3));
-      return RS.sideSprite(v, { ay: 36 });
-    });
+  }
+  D.rhinoSprite = function (frame, variant, k) {
+    frame = frame | 0; variant = variant | 0; k = k || 1;
+    return D.cached('rhino|' + frame + '|' + variant + '|' + k, () => vsprite(22, 80, 40, 36, k, (v) => rhinoBuild(v, frame, variant)));
   };
 
   /* ---------- Haus (Vorderansicht mit Giebel) ----------
@@ -7041,6 +7207,410 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       v.sph(r + 1, r + 1, r + 1, r + 0.2, (x, y, z) => c.stone(2 + (z > r + 1 ? 2 : 0) + (hs(x, y, z) > 0.8 ? 1 : 0) - (z < r ? 1 : 0)));
       return RS.sideSprite(v, { ay: r + 1 });
     });
+  };
+})(window);
+
+</script>
+<script>
+/* src/def-hero.js */
+/* Raumspiel – Verteidigung: dein Held in Seitenansicht (Chibi-Figur mit grossem Kopf, Skelett fuer fluessige Posen)
+ * Eigenes Modell statt der Raumfigur: Kopf gross mit grossem Auge, Koerper klein, Gliedmassen ueber Gelenke (Knie/Ellbogen per 2-Knochen-Rechnung),
+ * dadurch Laufzyklus mit Vorlage, Ausholen und Zuschlagen mit Ausfallschritt, Schleuderwurf, Zauberpose, Treffer und Niederlage.
+ * Aussehen (Haut, Haare, Kleidung, Schuhe, Zubehoer) kommt aus dem Raum-Charakter (look). Voxel -> RS.sideSprite wie die Monster.
+ * Koordinaten im Modell: x = Tiefe (nah = gross), y = nach vorn (Blickrichtung, rechts im Bild), z = hoch; Fuesse bei z = 0, Koerpermitte bei y = Y0.
+ */
+(function (g) {
+  'use strict';
+  const RS = (g.RS = g.RS || {});
+  const D = (RS.def = RS.def || {});
+  const c = RS.c, hs = (x, y, z) => RS.hash(x, y, z);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const Y0 = 32, XB = 12, XN = 18.4, XF = 5.4;   // Koerpermitte (y), Rumpf-x, naher und ferner Arm/Bein
+  const L1 = 9.6, L2 = 9.4, UA = 7.2, FA = 7;       // Oberschenkel, Unterschenkel, Oberarm, Unterarm
+  const HIPZ = 21, TORSO = 13.5;
+
+  /* ---------- Geometrie-Helfer ---------- */
+  // Gelenk (Knie/Ellbogen) zwischen Wurzel r und Ziel t in der (y,z)-Ebene; dir > 0: Gelenk liegt auf der vorderen/oberen Seite der Verbindungslinie
+  function ik(r, t, a, b, dir) {
+    let dy = t[0] - r[0], dz = t[1] - r[1], d = Math.hypot(dy, dz);
+    const max = a + b - 0.05;
+    if (d > max) { dy *= max / d; dz *= max / d; d = max; }
+    if (d < 0.8) d = 0.8;
+    const A = (a * a - b * b + d * d) / (2 * d), h = Math.sqrt(Math.max(0, a * a - A * A)), uy = dy / d, uz = dz / d, sg = dir >= 0 ? 1 : -1;
+    return [r[0] + uy * A + (-uz) * h * sg, r[1] + uz * A + uy * h * sg];
+  }
+  const ang = (r, a, len) => [r[0] + Math.sin(a) * len, r[1] - Math.cos(a) * len];   // Winkel von senkrecht nach unten, positiv = nach vorn
+
+  function build(look, pose, frame, weapon) {
+    const v = RS.V(28, 74, 88);
+    const sk = (l) => c[look.skin](l == null ? 3 : l), hr = (l) => c[look.hairC](l == null ? 3 : l), tp = (l) => c[look.topC](l == null ? 3 : l);
+    const bt = (l) => c[look.botC](l == null ? 3 : l), sh = (l) => c[look.shoeC](l == null ? 3 : l), ac = (l) => c[look.accC](l == null ? 3 : l);
+    const Y = (y) => Y0 + y;                       // Koerper-y -> Modell-y
+    const P = (p, x) => [x, Y(p[0]), p[1]];
+    // abgestufte Farbe nach Hoehe (oben heller, unten dunkler), mit leichtem Rauschen
+    const zshade = (ramp, zc, h, base) => (x, y, z) => { const t = (z - zc) / h, r = hs(x, y, z); return ramp(clamp((base == null ? 3 : base) + (t > 0.3 ? 1 : t < -0.35 ? -1 : 0) + (r > 0.975 ? 1 : r < 0.02 ? -1 : 0), 0, 7)); };
+    const segM = (x, p, q, r0, r1, col) => {   // Kapsel von p nach q in Modell-Koordinaten (Radius veraendert sich linear)
+      const n = Math.max(2, Math.ceil(Math.hypot(q[0] - p[0], q[1] - p[1]) * 1.6));
+      for (let i = 0; i <= n; i++) { const t = i / n; v.sph(x, p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t, r0 + (r1 - r0) * t, col); }
+    };
+    const seg = (x, p, q, r0, r1, col) => segM(x, [Y(p[0]), p[1]], [Y(q[0]), q[1]], r0, r1, col);   // dasselbe in Koerper-Koordinaten (y relativ zur Koerpermitte)
+
+    /* ---------- Skelett je Pose ---------- */
+    const K = { hip: [0, HIPZ], lean: 0.04, head: [1, 0], footN: [3.5, 2.4], footF: [-4.5, 2.4], armN: [0.3, 1.1], armF: [-0.2, 0.6], club: null, face: 'normal', sway: [0, 0], sling: null, lift: [0, 0], mouth: 0 };
+    const f = frame | 0;
+    if (pose === 'stand') {
+      const b = [0, 0.5, 1, 0.5][f & 3];
+      K.hip = [0, HIPZ + b * 0.5]; K.lean = 0.03 + b * 0.01; K.head = [0.6, b * 0.5]; K.footN = [3.6, 2.4]; K.footF = [-4.2, 2.4];
+      K.armN = [0.5 + b * 0.03, 0.75]; K.armF = [-0.2 - b * 0.05, 0.35]; K.club = 38 + b * 2; K.sway = [-b * 0.6, 0];
+    } else if (pose === 'walk') {   // Laufzyklus mit 6 Bildern: Vorlage, Schritt, kurzer Flug
+      const n = 6, ph = (f % n) / n, TAU = Math.PI * 2;
+      const foot = (p) => { p = ((p % 1) + 1) % 1; const S = 7.2; if (p < 0.5) { const u = p / 0.5; return [S * (1 - 2 * u), 2.4]; } const u = (p - 0.5) / 0.5; return [S * (-1 + 2 * u), 2.4 + 7.4 * Math.sin(Math.PI * u)]; };
+      const bob = Math.abs(Math.sin(ph * TAU * 2 + 0.7)) * 1.8;
+      K.hip = [1.2, HIPZ - 1.2 + bob]; K.lean = 0.3; K.head = [1.6, 0.4];
+      K.footN = foot(ph); K.footF = foot(ph + 0.5);
+      const sw = Math.cos(ph * TAU);
+      K.armN = [-0.95 * sw + 0.15, 1.45]; K.armF = [0.95 * sw + 0.15, 1.35];
+      K.club = 24 + sw * 12; K.sway = [-3.2, 1 + Math.sin(ph * TAU) * 1.2];
+      K.mouth = 0;
+    } else if (pose === 'swing') {  // Ausholen, Zuschlagen mit Ausfallschritt, Nachschwung, Fangen
+      const T = [
+        { hip: [-1.5, HIPZ - 0.5], lean: -0.14, head: [-0.2, 0.4], footN: [5, 2.4], footF: [-7, 2.4], armN: [-2.2, 0.8], club: 105, face: 'normal', sway: [-1.5, 1] },
+        { hip: [-2.6, HIPZ - 1.2], lean: -0.26, head: [-0.8, 0.6], footN: [4, 2.4], footF: [-9, 2.4], armN: [-2.9, 0.5], club: 128, face: 'shout', sway: [-2.5, 1.6] },
+        { hip: [3.2, HIPZ - 2.4], lean: 0.34, head: [2.2, -0.2], footN: [10.5, 2.4], footF: [-9.5, 2.4], armN: [1.15, 0.15], club: 22, face: 'shout', sway: [-4.2, 0.4] },
+        { hip: [4.2, HIPZ - 2.8], lean: 0.38, head: [2.6, -0.6], footN: [11, 2.4], footF: [-8.5, 2.4], armN: [1.65, 0.1], club: -40, face: 'shout', sway: [-3.6, -0.4] },
+        { hip: [1.5, HIPZ - 1.2], lean: 0.16, head: [1.2, 0.2], footN: [7.5, 2.4], footF: [-5.5, 2.4], armN: [0.7, 0.8], club: 35, face: 'normal', sway: [-1.8, 0.4] }
+      ][clamp(f, 0, 4)];
+      Object.assign(K, T); K.armF = [-T.armN[0] * 0.55 - 0.3, 0.7];
+    } else if (pose === 'throw') {  // Schleuder: Ausholen, ueber den Kopf wirbeln, loslassen, Nachschwung
+      const T = [
+        { hip: [-1, HIPZ - 0.6], lean: -0.1, head: [-0.2, 0.2], footN: [4, 2.4], footF: [-6, 2.4], armN: [-1.45, 0.9], sling: [150, 12], face: 'normal', sway: [-1.2, 0.6] },
+        { hip: [-1.6, HIPZ - 0.9], lean: -0.18, head: [-0.5, 0.4], footN: [4.5, 2.4], footF: [-6.5, 2.4], armN: [-2.8, 0.2], sling: [95, 12], face: 'shout', sway: [-2, 1.2] },
+        { hip: [2.4, HIPZ - 1.8], lean: 0.26, head: [1.8, -0.1], footN: [9, 2.4], footF: [-8, 2.4], armN: [1.3, 0.15], sling: [12, 14], face: 'shout', sway: [-3.4, 0.4] },
+        { hip: [2.2, HIPZ - 1.4], lean: 0.2, head: [1.4, 0], footN: [8, 2.4], footF: [-7, 2.4], armN: [1.0, 0.5], sling: [-35, 9], face: 'normal', sway: [-2.4, -0.2] }
+      ][clamp(f, 0, 3)];
+      Object.assign(K, T); K.armF = [-T.armN[0] * 0.5 - 0.2, 0.6]; K.club = null;
+    } else if (pose === 'cast') {   // Steinhagel: beide Arme hoch, Schrei
+      const b = f & 1;
+      K.hip = [0, HIPZ - 0.4 + b * 0.4]; K.lean = -0.05; K.head = [0, 0.6 + b * 0.4]; K.footN = [4.5, 2.4]; K.footF = [-5.5, 2.4];
+      K.armN = [-2.95, 0.15]; K.armF = [-2.7, 0.2]; K.club = 98 + b * 6; K.face = 'shout'; K.sway = [-0.8, 1.6 + b];
+    } else if (pose === 'hurt') {   // getroffen: nach hinten gekippt, Arme weg, Augen zu
+      K.hip = [-1.2, HIPZ - 0.6]; K.lean = -0.38; K.head = [-2.2, 0.2]; K.footN = [5.5, 2.4]; K.footF = [-7.5, 3.6];
+      K.armN = [-0.6, 0.45]; K.armF = [-1.3, 0.3]; K.club = 168; K.face = 'hurt'; K.sway = [2.2, 1.2];
+    }
+
+    /* ---------- Niedergeschlagen: liegt auf dem Ruecken, Kopf nach hinten ---------- */
+    if (pose === 'ko') {
+      const gz = 4.2;
+      // Beine ausgestreckt nach vorn, Knie leicht angewinkelt
+      const hip = [4, gz + 1.5];
+      const kneeN = [14, gz + 6], ankN = [22, gz + 1.6], kneeF = [13, gz + 4.2], ankF = [21, gz + 1];
+      const pants = (look.bottom === 'shorts' || look.bottom === 'skirt');
+      const legCol = zshade(bt, gz, 5, 3), lowCol = pants ? zshade(sk, gz, 5, 3) : legCol;
+      seg(XF + 1, hip, kneeF, 2.6, 2.4, legCol); seg(XF + 1, kneeF, ankF, 2.3, 2.1, lowCol);
+      seg(XN - 1, hip, kneeN, 2.7, 2.5, legCol); seg(XN - 1, kneeN, ankN, 2.4, 2.1, lowCol);
+      const shoeCol = look.shoe === 'bare' ? zshade(sk, gz, 4, 3) : zshade(sh, gz, 4, 3);
+      v.ell(XN - 1, Y(ankN[0] + 2.8), ankN[1] - 0.4, 2.6, 4.2, 2.2, shoeCol); v.ell(XF + 1, Y(ankF[0] + 2.8), ankF[1] - 0.4, 2.4, 4, 2.1, shoeCol);
+      // Rumpf liegend
+      seg(XB, [4, gz + 2], [-9, gz + 2.5], 4.6, 4.6, zshade(tp, gz + 2, 5, 3));
+      v.ell(XB, Y(4), gz + 2, 4.8, 4.4, 4.6, zshade(bt, gz + 2, 5, 3));
+      // Arme neben dem Koerper
+      seg(XN, [-6, gz + 3.5], [-14, gz + 1.5], 2.1, 2, tp(3)); v.sph(XN, Y(-15.5), gz + 1.3, 2.2, sk(3));
+      seg(XF, [-6, gz + 3.5], [0, gz + 0.8], 2.1, 2, tp(3)); v.sph(XF, Y(1.5), gz + 0.8, 2.2, sk(3));
+      // Kopf
+      headAt([-17.5, gz + 7.2], 0.22, 'ko');
+      return v;
+    }
+
+    /* ---------- Rumpf, Beine, Arme ---------- */
+    const hip = K.hip, ls = Math.sin(K.lean), lc = Math.cos(K.lean);
+    const sho = [hip[0] + ls * TORSO, hip[1] + lc * TORSO], neckTop = [sho[0] + ls * 3.2, sho[1] + lc * 3.2];
+    const pants = look.bottom, short = pants === 'shorts', skirt = pants === 'skirt', joggers = pants === 'joggers';
+    const legs = [{ x: XF, foot: K.footF, shade: 2 }, { x: XN - 1.6, foot: K.footN, shade: 3 }];
+    const drawLeg = (L) => {
+      const ank = [L.foot[0], L.foot[1] + 0.4];
+      const knee = ik([hip[0] + (L.x < 10 ? -0.4 : 0.4), hip[1] - 1.2], ank, L1, L2, 1);
+      const topCol = zshade(bt, 14, 9, L.shade), lowCol = short || skirt ? zshade(sk, 8, 9, L.shade) : zshade(bt, 8, 9, L.shade);
+      const hp = [hip[0] + (L.x < 10 ? -0.4 : 0.4), hip[1] - 1.2];
+      seg(L.x, hp, knee, 3.1, 2.7, short || skirt ? topCol : topCol);
+      if (short || skirt) { const mid = [hp[0] + (knee[0] - hp[0]) * 0.55, hp[1] + (knee[1] - hp[1]) * 0.55]; seg(L.x, mid, knee, 2.8, 2.6, lowCol); }
+      seg(L.x, knee, ank, 2.6, 2.2, lowCol);
+      if (joggers) { const cuff = [ank[0] + (knee[0] - ank[0]) * 0.18, ank[1] + (knee[1] - ank[1]) * 0.18]; seg(L.x, ank, cuff, 2.8, 2.8, bt(4)); }
+      // Schuh
+      const bare = look.shoe === 'bare', boots = look.shoe === 'boots';
+      const shoeCol = bare ? zshade(sk, 2, 3, 3) : zshade(sh, 2, 3, 3);
+      v.ell(L.x, Y(ank[0] + 2.2), ank[1] - 0.6, 2.7, 4.6, 2.3, shoeCol);
+      if (!bare) { for (let yy = -2; yy <= 6; yy++) v.put(Math.round(L.x), Math.round(Y(ank[0]) + yy), Math.max(0, Math.round(ank[1] - 2.6)), c.white(4)); v.put(Math.round(L.x), Math.round(Y(ank[0] + 7)), Math.round(ank[1] - 0.8), sh(5)); }
+      if (boots) seg(L.x, ank, [ank[0] + (knee[0] - ank[0]) * 0.4, ank[1] + (knee[1] - ank[1]) * 0.4], 2.9, 2.8, sh(3));
+    };
+    drawLeg(legs[0]);
+    // ferner Arm (hinter dem Rumpf)
+    const drawArm = (x, a, far) => {
+      const s0 = [sho[0] - (far ? 0.6 : -0.2), sho[1] - 1.2];
+      const el = ang(s0, a[0], UA), hand = ang(el, a[0] + a[1], FA);
+      const slv = look.top !== 'tank', long = look.top !== 'tee' && look.top !== 'tank';
+      const sleeve = zshade(tp, sho[1] - 4, 8, far ? 2 : 3);
+      seg(x, s0, el, 2.2, 2, slv ? sleeve : zshade(sk, sho[1] - 4, 8, 3));
+      seg(x, el, hand, 2, 1.9, long ? sleeve : zshade(sk, sho[1] - 8, 8, far ? 2 : 3));
+      v.sph(x, Y(hand[0]), hand[1], 2.3, zshade(sk, hand[1], 4, far ? 2 : 3));
+      return { s0, el, hand };
+    };
+    const armF = drawArm(XF, K.armF, true);
+    // Rumpf: Wirbelsaeule von Huefte bis Schulter, Brust, Becken
+    const spineCol = zshade(tp, hip[1] + 6, 12, 3);
+    seg(XB, [hip[0], hip[1] + 1], sho, 4.5, 4.7, spineCol);
+    v.ell(XB, Y(hip[0] + 0.6), hip[1] + 0.4, 4.9, 4.7, 4.3, short || skirt || pants ? zshade(bt, hip[1], 5, 3) : spineCol);
+    // Oberteil: Saum, Kapuze, Kragen, Jacke
+    const tl = look.top, hemY = hip[0] + ls * 3.4, hemZ = hip[1] + lc * 3.4;
+    seg(XB, [hip[0] + ls * 2, hip[1] + lc * 2.4], [hemY, hemZ], 4.9, 4.9, tp(2));
+    if (tl === 'hoodie') { v.ell(XB, Y(sho[0] - 3.2), sho[1] + 0.2, 4.2, 3.6, 3.4, tp(2)); seg(XB, [hip[0] + ls * 3, hip[1] + lc * 3.4], [hip[0] + ls * 6.5, hip[1] + lc * 6.2], 4.95, 4.95, tp(2)); }
+    if (tl === 'shirt') { v.put(Math.round(XB + 4.5), Math.round(Y(sho[0] + 1.6)), Math.round(sho[1] + 1.5), c.white(5)); v.put(Math.round(XB + 4.5), Math.round(Y(sho[0] + 3.4)), Math.round(sho[1] + 0.8), c.white(5)); for (let i = 0; i < 4; i++) v.put(Math.round(XB + 4.7), Math.round(Y(hip[0] + ls * (3 + i * 3) + 1.2)), Math.round(hip[1] + lc * (3 + i * 3)), c.white(5)); }
+    if (tl === 'jacket') { for (let i = 0; i < 9; i++) { const q = [hip[0] + ls * (1.5 + i * 1.5) + 1.4, hip[1] + lc * (1.5 + i * 1.5)]; v.put(Math.round(XB + 4.6), Math.round(Y(q[0])), Math.round(q[1]), c.cream(4)); v.put(Math.round(XB + 4.6), Math.round(Y(q[0])) + 1, Math.round(q[1]), c.cream(3)); } }
+    if (tl === 'tank') { seg(XB, sho, [sho[0] + ls * 0.5, sho[1] + lc * 0.5], 4.3, 4.3, sk(3)); }
+    if (skirt) { for (let i = 0; i < 6; i++) { const a = i / 5; v.ell(XB, Y(hip[0] + 0.4 + (a - 0.5) * 1.6), hip[1] - 3.2 - a * 0.4, 5.6, 5.3 + a * 1.0, 3.4, zshade(bt, hip[1] - 3, 5, a > 0.8 ? 2 : 3)); } }
+    // Hals
+    seg(XB, [sho[0] + ls * 0.8, sho[1] + lc * 0.8], neckTop, 2.4, 2.3, zshade(sk, neckTop[1], 4, 3));
+    drawLeg(legs[1]);
+
+    /* ---------- Kopf ---------- */
+    const hc = [neckTop[0] + K.head[0] + ls * 6.8 + 0.4, neckTop[1] + 9.2 + K.head[1]];
+    headAt(hc, K.lean * 0.5, K.face);
+    // naher Arm vorne
+    const armN = drawArm(XN, K.armN, false);
+    // Waffe in der nahen Hand
+    if (K.club != null && weapon !== null) {
+      const hand = armN.hand, th = K.club * Math.PI / 180, dy = Math.cos(th), dz = Math.sin(th), len = 21;
+      const base = [hand[0] - dy * 3, hand[1] - dz * 3], tip = [hand[0] + dy * len, hand[1] + dz * len];
+      seg(XN + 0.6, base, tip, 1.3, 1.3, c.oak(3));
+      seg(XN + 0.6, base, [hand[0] + dy * 5, hand[1] + dz * 5], 1.5, 1.5, c.leather(3));
+      v.ell(XN + 0.6, Y(tip[0]), tip[1], 3.4, 3.8, 3.8, (x, y, z) => c.walnut(hs(x, y, z) > 0.6 ? 4 : 3));
+      for (let i = 0; i < 5; i++) { const a2 = th + 1.571 + i * 1.256; seg(XN + 0.6, [tip[0] + Math.cos(a2) * 2.4, tip[1] + Math.sin(a2) * 2.4], [tip[0] + Math.cos(a2) * 4.4, tip[1] + Math.sin(a2) * 4.4], 0.6, 0.5, c.cream(5)); }
+      v.sph(XN + 0.6, Y(hand[0]), hand[1], 2.4, sk(3));
+    }
+    if (K.sling) {   // Schleuder: Riemen von der Hand zum Stein (Winkel, Laenge)
+      const hand = armN.hand, th = K.sling[0] * Math.PI / 180, ln = K.sling[1], end = [hand[0] + Math.cos(th) * ln, hand[1] + Math.sin(th) * ln];
+      segM(XN + 0.6, [Y(hand[0]), hand[1]], [Y(end[0]), end[1]], 0.8, 0.8, c.leather(5));
+      if (f < 2) v.sph(XN + 0.6, Y(end[0]), end[1], 2, c.stone(4));
+    }
+    return v;
+
+    /* ---------- Kopf mit Gesicht, Haaren und Zubehoer (ctr = Kopfmitte in Koerper-Koordinaten, tilt = Neigung, face = Ausdruck) ---------- */
+    function headAt(ctr, tilt, face) {
+      const cy = Y(ctr[0]), cz = ctr[1], rx = 8.4, ry = 9.4, rz = 9.8;
+      const skinCol = (x, y, z) => { const t = (z - cz) / rz, r = hs(x, y, z); return sk(clamp(3 + (t > 0.55 ? 1 : t < -0.6 ? -1 : 0) + (y > cy + 6 && z < cz ? 1 : 0), 0, 7)); };
+      v.ell(XB, cy, cz, rx, ry, rz, skinCol);
+      v.ell(XB, cy - 0.6, cz - 6.4, rx - 1.6, ry - 2.2, 4, skinCol);                 // Kinn/Wange etwas voller
+      // Gesichtsoberflaeche: x der Kopfhuelle an der Stelle (y, z)
+      const sx = (y, z) => { const a = (y - cy) / ry, b = (z - cz) / rz, q = 1 - a * a - b * b; return q > 0 ? XB + rx * Math.sqrt(q) : null; };
+      const fp = (dy, dz, code) => { const y = Math.round(cy + dy), z = Math.round(cz + dz), x = sx(y + 0.5, z + 0.5); if (x != null) v.put(Math.floor(x + 0.2), y, z, code); };
+      const ink = c.ink(2);
+      // Nase: kleine Beule an der Vorderseite
+      v.sph(XB + 1.5, cy + ry - 0.6, cz - 1.6, 1.7, sk(4));
+      // Ohr (nahe Seite)
+      v.ell(XB + rx - 1.2, cy - 1.2, cz - 1.2, 1.4, 1.9, 2.6, sk(2)); v.put(Math.round(XB + rx + 0.2), Math.round(cy - 1.2), Math.round(cz - 1.2), sk(1));
+      // Auge: gross, weisser Augapfel, dunkle Iris, Glanzpunkt, Lid
+      const EY = 3.6;   // Abstand des Auges nach vorn
+      if (face === 'hurt' || face === 'ko') {
+        // zusammengekniffen ( > ) bzw. X
+        const pts = face === 'ko' ? [[EY - 1, 2], [EY, 1], [EY + 1, 0], [EY + 2, -1], [EY - 1, -1], [EY, 0], [EY + 2, 1], [EY + 3, 2]] : [[EY - 1, 2], [EY, 1], [EY + 1, 0], [EY, -1], [EY - 1, -2]];
+        pts.forEach((p) => fp(p[0], p[1], ink));
+      } else {
+        for (let dy = 0; dy < 5; dy++) for (let dz = -3; dz <= 3; dz++) { if ((dz === 3 || dz === -3) && (dy === 0 || dy === 4)) continue; fp(EY + dy, dz, c.white(dz === 3 ? 4 : 6)); }
+        for (let dy = 2; dy < 5; dy++) for (let dz = -2; dz <= 2; dz++) fp(EY + dy, dz, dz < -1 ? c[look.hairC](3) : ink);   // Iris/Pupille
+        fp(EY + 3, 1, c.white(7)); fp(EY + 4, 1, c.white(7)); fp(EY + 2, -2, c.white(5));                            // Glanzpunkte
+        for (let dy = -1; dy < 6; dy++) fp(EY + dy, 4, ink);                                                           // Lidstrich oben
+      }
+      // Augenbraue
+      const brow = face === 'shout' ? [[0, 6], [1, 6], [2, 5], [3, 5], [4, 4], [5, 4]] : face === 'hurt' || face === 'ko' ? [[0, 5], [1, 5], [2, 6], [3, 6], [4, 6]] : [[0, 6], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6]];
+      brow.forEach((p) => fp(EY + p[0], p[1], hr(2)));
+      // Mund
+      if (face === 'shout' || face === 'hurt') { for (let dy = 0; dy < 3; dy++) for (let dz = -7; dz <= -5; dz++) fp(EY + 1 + dy, dz, dz === -5 || dz === -7 || dy === 0 ? ink : c.red(3)); fp(EY + 2, -6, c.rose(4)); }
+      else { [[0, -6], [1, -6], [2, -6], [3, -5]].forEach((p) => fp(EY + 1 + p[0], p[1], c.rose(2))); }
+      // Wange
+      fp(EY, -3, c.pink(4)); fp(EY + 1, -3, c.pink(4)); fp(EY, -4, c.pink(3));
+      drawHair(cy, cz, tilt);
+      drawAcc(cy, cz);
+    }
+    function drawHair(cy, cz, tilt) {
+      const st = look.hair, rx = 8.4, ry = 9.4, rz = 9.8;
+      const hcol = (x, y, z) => { const t = (z - cz) / rz, r = hs(x, y, z); return hr(clamp(3 + (t > 0.55 ? 1 : t < -0.2 ? -1 : 0) + (r > 0.9 ? 1 : r < 0.08 ? -1 : 0), 0, 7)); };
+      const hairOK = (y, z) => (y < cy - 4.2) || (z > cz + 4.6 + (y > cy + 1.5 ? 0.8 : 0)) || (y < cy - 1 && z > cz - 1.4);
+      const cap = (grow, up, back) => {
+        for (let z = Math.floor(cz - rz - 1); z <= Math.ceil(cz + rz + grow + 2); z++) for (let y = Math.floor(cy - ry - grow - 2); y <= Math.ceil(cy + ry + 1); y++) for (let x = 2; x < 24; x++) {
+          const dx = (x + 0.5 - XB) / (rx + grow), dy = (y + 0.5 - (cy + back)) / (ry + grow), dz = (z + 0.5 - (cz + up)) / (rz + grow);
+          if (dx * dx + dy * dy + dz * dz <= 1 && hairOK(y + 0.5, z + 0.5)) v.put(x, y, z, hcol(x, y, z));
+        }
+      };
+      const sw = K.sway, tip = (y, z, n) => segM(XB + 1.2, [y, z], [y + sw[0] * n, z + sw[1] * n - n * 0.8], 1.6, 0.9, hcol);
+      if (st === 'buzz') cap(0.6, 0.5, 0);
+      else if (st === 'mohawk') { cap(0.4, 0.2, 0); for (let i = 0; i < 7; i++) { const a = -ry + 2 + i * 2.7; v.ell(XB, cy + a, cz + rz + 1.5 + (i % 2) * 1.4, 1.6, 1.7, 3.2 - Math.abs(i - 3) * 0.3, (x, y, z) => hr(4 + (i & 1))); } }
+      else {
+        cap(1.2, 0.9, -0.6);
+        // Stirnfransen: spitze Straehnen nach vorn
+        for (let i = 0; i < 4; i++) { const yy = cy + 1 + i * 2.5, zz = cz + rz - 0.4 - (i % 2) * 0.6; segM(XB + 0.6, [yy, zz + 0.5], [yy + 3.2, zz - 2.6 - i * 0.3], 1.9, 0.8, () => hr(i % 2 ? 3 : 4)); }
+        if (st === 'long') { segM(XB, [cy - ry + 1.5, cz - 1], [cy - ry - 0.5 + sw[0] * 3, cz - 12 + sw[1]], 4.2, 3.2, hcol); segM(XB + 3, [cy - ry + 2, cz - 2], [cy - ry + 0.6 + sw[0] * 3, cz - 11 + sw[1]], 2.6, 2.1, hcol); }
+        if (st === 'pony') { const e1 = [cy - ry - 2.6 + sw[0] * 1.6, cz - 1.5 + sw[1] * 1.2], e2 = [e1[0] - 1.4 + sw[0] * 1.4, e1[1] - 5.5 + sw[1] * 0.8]; v.sph(XB, cy - ry + 0.8, cz + 3.4, 2.6, hr(4)); segM(XB, [cy - ry + 0.4, cz + 2.4], e1, 2.5, 1.9, hcol); segM(XB, e1, e2, 1.9, 1, hcol); v.sph(XB, cy - ry + 0.2, cz + 3, 1.2, ac(3)); }
+        if (st === 'bun') v.sph(XB, cy - 1, cz + rz + 3.2, 4.2, (x, y, z) => hr(4));
+        if (st === 'curly') for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; v.sph(XB + Math.cos(a) * 3.4, cy - 1.4 + Math.sin(a) * 8.4, cz + rz - 1.2 + Math.abs(Math.cos(a + 0.8)) * 2.2, 3.1, (x, y, z) => hr(3 + (i & 1))); }
+        if (st === 'short') tip(cy - ry + 1, cz + 1.5, 1.6);
+      }
+    }
+    function drawAcc(cy, cz) {
+      const a = look.acc, rx = 8.4, ry = 9.4, rz = 9.8, EY = 3.6;
+      const fp2 = (dy, dz, code) => { const y = Math.round(cy + dy), z = Math.round(cz + dz), q = 1 - ((y + 0.5 - cy) / ry) ** 2 - ((z + 0.5 - cz) / rz) ** 2; if (q > 0) v.put(Math.round(XB + rx * Math.sqrt(q) + 0.9), y, z, code); };
+      if (a === 'glasses') { for (let dy = EY - 1; dy <= EY + 5; dy++) { fp2(dy, 5, c.graphite(3)); fp2(dy, -4, c.graphite(3)); } for (let dz = -4; dz <= 5; dz++) { fp2(EY - 1, dz, c.graphite(3)); fp2(EY + 5, dz, c.graphite(3)); } fp2(EY - 2, 1, c.graphite(3)); fp2(EY - 3, 1, c.graphite(3)); }
+      else if (a === 'sun') { for (let dy = EY - 1; dy <= EY + 5; dy++) for (let dz = -4; dz <= 5; dz++) fp2(dy, dz, c.ink(2)); for (let dy = EY - 4; dy < EY - 1; dy++) fp2(dy, 3, c.ink(3)); fp2(EY + 1, 4, c.white(6)); }
+      else if (a === 'cap') { for (let z = Math.floor(cz); z <= Math.ceil(cz + rz + 3); z++) for (let y = Math.floor(cy - ry - 2); y <= Math.ceil(cy + ry + 1); y++) for (let x = 2; x < 24; x++) { const dx = (x + 0.5 - XB) / (rx + 1.6), dy = (y + 0.5 - cy + 0.6) / (ry + 1.6), dz = (z + 0.5 - cz - 1.6) / (rz + 1.3); if (dx * dx + dy * dy + dz * dz <= 1 && z > cz + 3.2) v.put(x, y, z, ac(3 + ((z - cz) > 8 ? 1 : 0))); } v.ell(XB, cy + ry + 3.6, cz + 3.8, 5.4, 5.6, 1.1, ac(2)); v.put(Math.round(XB + 4), Math.round(cy + 2), Math.round(cz + 9), c.white(5)); }
+      else if (a === 'beanie') { v.ell(XB, cy - 0.4, cz + 3.2, rx + 1.4, ry + 1.4, rz - 1.2, (x, y, z) => ac(3 + (hs(x, y, z) > 0.8 ? 1 : 0))); for (let i = 0; i < 4; i++) v.box(2, Math.round(cy - ry - 1), Math.round(cz + 3.5 + i * 0), 24, Math.round(cy + ry + 2), Math.round(cz + 3.5) + 0, 0); v.ell(XB, cy, cz + 3.8, rx + 1.8, ry + 1.8, 2.2, ac(4)); v.sph(XB, cy - 0.6, cz + rz + 3.4, 2.8, c.white(5)); }
+      else if (a === 'phones') { for (let i = 0; i < 14; i++) { const t = i / 13, yy = cy - 6 + t * 12, zz = cz + rz + 1.6 - Math.pow(t - 0.5, 2) * 10; v.sph(XB, yy, zz, 1.1, c.graphite(3)); } v.ell(XB + rx - 0.5, cy - 0.6, cz - 1, 2.6, 4.4, 4.4, c.graphite(3)); v.ell(XB + rx + 1.2, cy - 0.6, cz - 1, 1.2, 3.4, 3.4, ac(4)); }
+      else if (a === 'cowboy') { v.ell(XB, cy - 0.5, cz + 7.2, 14, 13.6, 1.4, ac(4)); v.ell(XB, cy - 0.5, cz + 11.2, 7.2, 7.6, 4.6, ac(3)); v.ell(XB, cy - 0.5, cz + 14.2, 5.4, 5.6, 2.4, ac(5)); for (let y = Math.round(cy - 7); y <= Math.round(cy + 6); y++) v.put(Math.round(XB + 7.2), y, Math.round(cz + 9), c.graphite(3)); }
+      else if (a === 'wizard') { v.ell(XB, cy - 0.5, cz + 7, 14, 13.6, 1.3, c.indigo(3)); for (let i = 0; i < 22; i++) { const r = (22 - i) * 0.34 + 0.8; v.cyl(XB + 0.1, cy - 0.5 - Math.max(0, i - 10) * 0.45, r, Math.round(cz + 8 + i), Math.round(cz + 9 + i), c.indigo(i % 5 === 0 ? 4 : 3)); } for (let y = Math.round(cy - 6); y <= Math.round(cy + 5); y++) v.put(Math.round(XB + 7.5), y, Math.round(cz + 9), c.gold(4)); }
+    }
+  }
+
+  /* ---------- Sprites mit Zwischenspeicher ---------- */
+  D.HERO_FRAMES = { stand: 4, walk: 6, swing: 5, throw: 4, cast: 2, hurt: 1, ko: 1 };
+  D.heroSprite = function (look, pose, frame, weapon) {
+    look = Object.assign({}, RS.AV.defaultLook, look || {}); frame = frame | 0; weapon = weapon === undefined ? 'club' : weapon;
+    if (!D.HERO_FRAMES[pose]) pose = 'stand';
+    frame = frame % D.HERO_FRAMES[pose];
+    const key = ['hero2', look.skin, look.hair, look.hairC, look.top, look.topC, look.bottom, look.botC, look.shoe, look.shoeC, look.acc, look.accC, pose, frame, weapon].join('|');
+    return D.cached(key, () => RS.sideSprite(build(look, pose, frame, weapon), { ay: Y0 + 1, depthT: 3 }));
+  };
+})(window);
+
+</script>
+<script>
+/* src/def-mons.js */
+/* Raumspiel – Verteidigung: weitere Monster (Spuckechse, Flugsaurier, Saebelzahn) und die Zuordnung Monsterart -> Sprite
+ * Alle als Voxelmodelle von der Seite (wie Raptorling und Nashorn); Bosse sind vergroesserte Fassungen (def-sprites.js: vsprite/scaled).
+ */
+(function (g) {
+  'use strict';
+  const RS = (g.RS = g.RS || {});
+  const D = (RS.def = RS.def || {});
+  const c = RS.c, hs = (x, y, z) => RS.hash(x, y, z);
+  const shade = (ramp, cz, h, noise) => (x, y, z) => {
+    let l = 3 + (z > cz + h * 0.35 ? 1 : 0) - (z < cz - h * 0.35 ? 1 : 0);
+    if (noise) { const r = hs(x, y, z); if (r > 1 - noise) l += 1; else if (r < noise * 0.6) l -= 1; }
+    return ramp(Math.max(0, Math.min(7, l)));
+  };
+
+  /* ---------- Spuckechse: kleiner Fernkaempfer mit Halskrause; Bild 4 = spuckt ---------- */
+  function spitterBuild(v, frame, variant) {
+    const spit = frame === 4, ph = (frame & 3) * Math.PI / 2, bob = spit ? 0 : frame & 1, hx = spit ? 3 : 0, up = spit ? 4 : 0;
+    const body = variant ? c.forest : c.teal, belly = c.cream, frillA = variant ? c.red : c.amber, frillB = variant ? c.brick : c.orange;
+    const BODY = (x, y, z) => { const dots = z > 9 && ((y + z * 2) % 11 === 0); return dots ? c.lime(4) : shade(body, 12 + bob, 11, 0.08)(x, y, z); };
+    // Schwanz und Koerper (tief und gedrungen)
+    v.line(7, 13, 11 + bob, 7, 5, 8 + bob, 2.6, shade(body, 11, 6)); v.sph(7, 4, 7.6 + bob, 1.5, c.lime(4));
+    v.ell(7, 19, 12 + bob, 5.4, 8.6, 6, BODY);
+    v.ell(8.6, 20, 9.4 + bob, 3.6, 6.8, 3, belly(4));
+    // Hals und Kopf
+    v.line(7, 25, 15 + bob, 7, 29 + hx, 19.5 + bob + up, 3.2, shade(body, 18, 8));
+    v.ell(7, 33.5 + hx, 21.5 + bob + up, 4.9, 6.4, 5, shade(body, 21 + bob, 10, 0.06));
+    v.ell(7, 39.4 + hx, 20.4 + bob + up, 3.3, 4.2, 2.9, body(3));
+    // Maul: beim Spucken weit offen mit leuchtender Saeure
+    if (spit) { v.ell(7, 39 + hx, 16.6 + bob + up, 3.1, 4.6, 1.6, belly(3)); v.ell(7, 38 + hx, 18.4 + bob + up, 2.7, 4, 1.1, c.lime(6)); for (let i = 0; i < 3; i++) { v.put(10, 37 + i * 2 + hx, 18 + bob + up, c.white(6)); v.line(7, 39 + i + hx, 17 + bob + up, 7, 40 + i + hx, 12.5 + bob + up, 0.5, c.lime(5)); } }
+    else { v.ell(7, 38.4 + hx, 18.6 + bob + up, 3.1, 4.4, 1.5, belly(3)); for (let i = 0; i < 2; i++) v.put(10, 39 + i * 2 + hx, 19 + bob + up, c.white(6)); }
+    // Halskrause: Faecher hinter dem Kopf mit Rippen
+    v.ell(9.4, 28 + hx, 24.5 + bob + up, 1.4, 6, 7.4, (x, y, z) => ((y * 2 + z) % 5 === 0 ? frillB(3) : frillA(4)));
+    for (let i = 0; i < 5; i++) v.line(10.6, 29 + hx, 23 + bob + up, 10.6, 24 + i * 1.8 + hx, 29 + bob + up - Math.abs(i - 2) * 0.8, 0.5, frillB(2));
+    // Auge: gross und gelb mit schmaler Pupille
+    v.box(11.5, 34 + hx, 22 + bob + up, 12.5, 38 + hx, 26 + bob + up, c.yellow(5));
+    v.box(11.5, 36 + hx, 22 + bob + up, 12.5, 37 + hx, 26 + bob + up, c.ink(2)); v.put(11.5, 35 + hx, 25 + bob + up, c.white(7));
+    v.box(11.5, 33 + hx, 26 + bob + up, 12.5, 39 + hx, 27.4 + bob + up, c.forest(2));
+    // Beine (kurz) und Arm
+    const leg = (xc, s, lf, tone) => {
+      v.ell(xc, 18 + s * 0.3, 8 + bob, 2.6, 3.8, 3.6, body(tone));
+      v.line(xc, 18 + s * 0.3, 8, xc, 18 + s, 2 + lf, 1.9, body(tone));
+      const fy = Math.round(17 + s); v.box(xc - 1.5, fy, Math.round(lf), xc + 2, fy + 6, Math.round(lf) + 2, c.orange(tone)); v.put(xc + 1, fy + 6, Math.round(lf), c.cream(5));
+    };
+    const s = spit ? 0 : 4.4 * Math.cos(ph), lf = spit ? 0 : Math.max(0, -Math.sin(ph)) * 3, lf2 = spit ? 0 : Math.max(0, Math.sin(ph)) * 3;
+    leg(5, -s, lf2, 2); leg(9.6, s, lf, 3);
+    v.line(11, 25, 11 + bob, 11, 29 + hx * 0.3, 9 + bob, 1.1, body(3));
+  }
+  D.spitterSprite = (frame, variant, k) => { frame = frame | 0; variant = variant | 0; k = k || 1; return D.cached('spitter|' + frame + '|' + variant + '|' + k, () => D.vsprite(14, 48, 34, 22, k, (v) => spitterBuild(v, frame, variant))); };
+
+  /* ---------- Flugsaurier: Fledermausfluegel (Bilder 0 bis 3 = Schlag), langer Schnabel und Kamm ---------- */
+  function flyerBuild(v, frame, variant) {
+    const memb = variant ? c.red : c.purple, edge = variant ? c.orange : c.pink, bodyR = variant ? c.brick : c.indigo, crest = variant ? c.orange : c.rose;
+    const tri = (x0, x1, p, q, r, col) => {
+      const minY = Math.floor(Math.min(p[0], q[0], r[0])), maxY = Math.ceil(Math.max(p[0], q[0], r[0])), minZ = Math.floor(Math.min(p[1], q[1], r[1])), maxZ = Math.ceil(Math.max(p[1], q[1], r[1]));
+      const sg = (a, b, c2) => (a[0] - c2[0]) * (b[1] - c2[1]) - (b[0] - c2[0]) * (a[1] - c2[1]);
+      for (let y = minY; y <= maxY; y++) for (let z = minZ; z <= maxZ; z++) {
+        const pt = [y + 0.5, z + 0.5], d1 = sg(pt, p, q), d2 = sg(pt, q, r), d3 = sg(pt, r, p);
+        if (!((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0))) for (let x = x0; x < x1; x++) v.put(x, y, z, typeof col === 'function' ? col(x, y, z) : col);
+      }
+    };
+    const S = [24, 24], tip = [[19, 45], [13, 37], [18, 4], [12, 14]][frame & 3], tr = [[7, 31], [5, 26], [8, 11], [4, 17]][frame & 3], B = [11, 22];
+    const memC = (x, y, z) => memb(3 + (hs(x, y, z) > 0.86 ? 1 : 0) + (z > 24 ? 1 : 0));
+    // ferner Fluegel (dunkler, versetzt) und naher Fluegel
+    tri(3, 5, [S[0] + 1, S[1] - 1], [tip[0] + 3, tip[1] - 1], [B[0] + 3, B[1]], (x, y, z) => memb(2));
+    tri(9, 11, S, tip, B, memC); tri(9, 11, S, tr, tip, (x, y, z) => memb(2 + (hs(x, y, z) > 0.8 ? 1 : 0)));
+    v.line(10.5, S[0], S[1], 10.5, tip[0], tip[1], 0.9, edge(4)); v.line(10.5, S[0], S[1], 10.5, B[0], B[1], 0.8, edge(3));
+    for (let i = 1; i < 3; i++) v.line(10.5, S[0], S[1], 10.5, S[0] + (tr[0] - S[0]) * i / 3 + (tip[0] - S[0]) * (1 - i / 3) * 0.1, S[1] + (tr[1] - S[1]) * i / 3 + (tip[1] - S[1]) * (1 - i / 3) * 0.1, 0.5, edge(2));
+    // Koerper, Hals, Kopf, Schnabel, Kamm
+    v.ell(7, 24, 22, 3.6, 7.6, 3.7, shade(bodyR, 22, 6, 0.06));
+    v.ell(8.2, 24, 20.2, 2.4, 5.4, 1.8, c.cream(4));
+    v.line(7, 30, 24, 7, 35, 28.4, 2.1, shade(bodyR, 26, 6));
+    v.ell(7, 38.2, 29.6, 3.1, 4.8, 3.3, shade(bodyR, 29.6, 6));
+    v.line(7, 41, 29, 7, 53, 27.4, 1.3, c.orange(4)); v.line(7, 41, 28, 7, 52, 26.6, 0.9, c.orange(3));
+    v.line(7, 37, 32.5, 7, 28, 38, 1.2, crest(3)); v.line(7, 36, 32, 7, 30, 35, 1.6, crest(4));
+    // Auge
+    v.box(9.5, 39, 29, 10.5, 42, 32, c.white(6)); v.box(9.5, 40.4, 29, 10.5, 42, 31, c.ink(2)); v.put(9.5, 41, 31, c.white(7));
+    // Beine mit Krallen und Schwanz
+    v.line(5.6, 21, 19, 5.6, 19.5, 12.5, 1.1, c.orange(3)); v.line(8.6, 21, 19, 8.6, 19.5, 12.5, 1.1, c.orange(4));
+    v.line(5.6, 19.5, 12.5, 5.6, 22, 10.6, 0.6, c.cream(5)); v.line(8.6, 19.5, 12.5, 8.6, 22, 10.6, 0.6, c.cream(5));
+    v.line(7, 17, 21, 7, 8, 17.4, 1.3, shade(bodyR, 19, 6)); v.ell(7, 6.4, 16.8, 1.3, 2.4, 1.3, crest(3));
+  }
+  D.flyerSprite = (frame, variant, k) => { frame = frame | 0; variant = variant | 0; k = k || 1; return D.cached('flyer|' + frame + '|' + variant + '|' + k, () => D.vsprite(14, 58, 48, 28, k, (v) => flyerBuild(v, frame, variant))); };
+
+  /* ---------- Saebelzahn: grosse Katze mit langen Fangzaehnen; Bilder 0 bis 3 laufen, 4 faucht, 5 springt ---------- */
+  function saberBuild(v, frame) {
+    const atk = frame === 4, leap = frame === 5, ph = (frame & 3) * Math.PI / 2, bob = atk || leap ? 0 : frame & 1;
+    const hz = atk ? -2.5 : leap ? 2 : 0, hy = atk ? 3 : leap ? 4 : 0;
+    const FUR = (x, y, z) => { const stripe = z > 21 && z < 38 && y > 14 && y < 52 && ((y + (z >> 1)) % 10 < 2); return stripe ? c.walnut(2) : shade(c.orange, 26 + bob, 22, 0.07)(x, y, z); };
+    const belly = c.cream;
+    // Rumpf: grosse Brust, schmale Taille, kraeftige Hinterhand, Schwanz
+    v.ell(11, 46, 27 + bob, 8.4, 13, 11, FUR); v.ell(11, 24, 25 + bob, 7.6, 11.5, 9.6, FUR); v.ell(11, 35, 26.5 + bob, 7.4, 9, 9.4, FUR);
+    v.ell(13.6, 38, 18.6 + bob, 4.4, 15, 3.4, belly(4));
+    v.line(11, 14, 28 + bob, 11, 6, 36 + bob + (leap ? 4 : 0), 2.6, shade(c.orange, 30, 8)); v.sph(11, 5, 37 + bob + (leap ? 4 : 0), 2.4, c.walnut(3));
+    // Nacken, Kopf, Schnauze, Nase
+    v.ell(11, 56, 31 + bob + hz * 0.5, 6.4, 6.5, 8, FUR);
+    v.ell(11, 63 + hy, 29.5 + bob + hz, 6.2, 7.6, 6.8, shade(c.orange, 29, 12, 0.05));
+    v.ell(11, 70 + hy, 26.6 + bob + hz, 4.6, 4.6, 3.5, belly(3)); v.sph(11, 74.6 + hy, 27.4 + bob + hz, 1.7, c.ink(2));
+    // Maul: beim Fauchen offen
+    if (atk) { v.ell(11, 69.6 + hy, 21.6 + bob + hz, 4, 5, 1.8, c.rose(3)); v.ell(11, 69.6 + hy, 23.4 + bob + hz, 3.6, 4.6, 1.2, c.red(2)); }
+    // Saebelzaehne
+    const tz = 22.6 + bob + hz;
+    v.line(13.6, 71 + hy, tz, 13.2, 72.4 + hy, tz - 12.5, 1.1, c.white(6)); v.line(8.4, 71 + hy, tz, 8.8, 72.4 + hy, tz - 12.5, 1, c.white(5));
+    // Ohren, Auge, Narben-Streifen
+    v.sph(11 + 5, 59 + hy * 0.7, 36 + bob + hz, 2.4, FUR); v.sph(11 - 5, 59 + hy * 0.7, 36 + bob + hz, 2.2, FUR); v.sph(15.6, 59.4 + hy * 0.7, 36.2 + bob + hz, 1.2, c.rose(3));
+    v.box(16.5, 66 + hy, 30.4 + bob + hz, 17.5, 70 + hy, 33.8 + bob + hz, c.yellow(5)); v.box(16.5, 68 + hy, 30.4 + bob + hz, 17.5, 69 + hy, 33.8 + bob + hz, c.ink(2)); v.put(16.5, 67 + hy, 33 + bob + hz, c.white(7));
+    v.box(16.5, 65 + hy, 33.8 + bob + hz, 17.5, 71 + hy, 35.2 + bob + hz, c.walnut(1));
+    // Beine: vorn y = 48, hinten y = 22
+    const leg = (xc, y0, s, lf, tone, big) => {
+      const fy = Math.round(y0 + s), top = 22 + bob;
+      v.ell(xc, y0 + s * 0.2, top - 4, 3.8, big ? 5.2 : 4.6, 8.4, shade(c.orange, 18, 14)(0, 0, tone * 6));
+      v.line(xc, y0 + s * 0.2, top - 7, xc, fy, 6 + lf, 2.5, shade(c.orange, 14, 10));
+      v.ell(xc, fy + 2, 2.4 + lf, 3.2, 4.4, 2.4, c.walnut(tone)); v.put(Math.round(xc), fy + 6, Math.round(1.5 + lf), c.cream(5));
+    };
+    let sA, sB, lA, lB;
+    if (leap) { sA = 8; sB = -8; lA = 7; lB = 7; } else { sA = atk ? 0 : 6.5 * Math.cos(ph); sB = -sA; lA = atk ? 0 : Math.max(0, -Math.sin(ph)) * 4; lB = atk ? 0 : Math.max(0, Math.sin(ph)) * 4; }
+    leg(5.4, 47, sB, lB, 2, true); leg(5.4, 22, sA, lA, 2, false);
+    leg(16.6, 47, sA, lA, 3, true); leg(16.6, 22, sB, lB, 3, false);
+  }
+  D.saberSprite = (frame) => { frame = frame | 0; return D.cached('saber|' + frame, () => D.vsprite(22, 80, 46, 40, 1, (v) => saberBuild(v, frame))); };
+
+  /* ---------- Zuordnung: Monsterart + Bild -> Sprite ---------- */
+  // Bilder: 0 bis 3 Laufen/Fliegen, 4 Angriff, 5 Sprung (Saebelzahn)
+  D.monSprite = function (type, frame) {
+    const T = D.MON[type], base = T.base || type, k = T.scale || 1, v = T.boss ? (T.boss === 'alpha' ? 2 : 1) : 0;
+    if (base === 'raptor') return D.raptorSprite(frame, v, k);
+    if (base === 'rhino') return D.rhinoSprite(frame, v, k);
+    if (base === 'spitter') return D.spitterSprite(frame, v, k);
+    if (base === 'flyer') return D.flyerSprite(frame, v, k);
+    if (base === 'saber') return D.saberSprite(frame);
+    return D.raptorSprite(frame, 0, 1);
   };
 })(window);
 
@@ -7611,7 +8181,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 <script>
 /* src/def-core.js */
 /* Raumspiel – Verteidigung: Simulation (ohne Zeichnen, ohne DOM; laeuft auch ohne Bildschirm fuer Balance-Tests)
- * Ablauf: intro -> wave -> break -> wave ... -> win | lose. Der Held kaempft halbautomatisch: Keule (nah), Schleuder (fern), Fahigkeit auf Knopf.
+ * Ablauf: intro -> wave -> break -> wave ... -> win | lose. Der Held kaempft halbautomatisch: Keule (nah), Schleuder (fern), Faehigkeit auf Knopf.
+ * Monsterarten: Laeufer und Tank (Nahkampf), Spuckechse (Fernkampf, Saeure im Bogen), Flugsaurier (fliegt ueber den Zaun) und je Stufe ein Boss mit Phasen.
  */
 (function (g) {
   'use strict';
@@ -7621,19 +8192,24 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const rng = (seed) => { let s = seed >>> 0; return () => { s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
   const R = (a, b) => a + Math.random() * (b - a);   // nur Optik (Teilchen); die Spielzufaelle laufen ueber S.rng
+  const GRAV = 260;   // Schwerkraft fuer Wuerfe (Steine, Saeure)
 
   D.newBattle = function (opts) {
     opts = opts || {};
-    const stage = opts.stage || D.STAGES[0], H = D.HERO;
+    const stage = typeof opts.stage === 'string' ? D.stageById(opts.stage) : (opts.stage || D.STAGES[0]);
+    const diff = D.DIFF.find((q) => q.id === (opts.diff || 'normal')) || D.DIFF[1];
+    const lv = Math.max(1, opts.heroLv | 0), HS = D.heroStats(lv), H = D.HERO;
     const S = {
-      stage, seed: opts.seed || ((Math.random() * 1e9) | 0), t: 0, phase: 'intro', timer: 1.6, wave: -1, waveT: 0, spawnQ: [], endT: 0,
-      hero: { x: 128, band: 1, hp: H.hp, maxHp: H.hp, state: 'idle', face: 1, t: 0, walkT: 0, swingT: 0, swingHit: false, throwT: 0, thrown: false, cdMelee: 0, cdSling: 0.4, koT: 0, inv: 0, flash: 0, moving: false },
-      mons: [], proj: [], rocks: [], fx: [], texts: [], arcs: [],
+      stage, diff, heroLv: lv, seed: opts.seed || ((Math.random() * 1e9) | 0), t: 0, phase: 'intro', timer: 1.6, wave: -1, waveT: 0, spawnQ: [], endT: 0,
+      hero: { x: 128, band: 1, hp: HS.hp, maxHp: HS.hp, state: 'idle', face: 1, t: 0, walkT: 0, swingT: 0, swingHit: false, throwT: 0, thrown: false, cdMelee: 0, cdSling: 0.4, koT: 0, inv: 0, flash: 0, moving: false, stun: 0, castT: 0, hurtT: 0, stepN: 0 },
+      mons: [], proj: [], eproj: [], pools: [], rocks: [], fx: [], texts: [], arcs: [],
       fence: { x: D.FENCE.x, w: D.FENCE.w, hp: D.FENCE.hp, maxHp: D.FENCE.hp, state: 0, flash: 0 },
       house: { x0: D.HOUSE.x0, x1: D.HOUSE.x1, hp: D.HOUSE.hp, maxHp: D.HOUSE.hp, state: 0, flash: 0 },
       ab: { cd: 0, max: H.ability.cd }, in: { tx: null, dir: 0, ab: false },
-      shake: 0, hitstop: 0, banner: null, tap: null, uid: 1, hpMul: 1, stars: 0,
-      stats: { kills: 0, time: 0, kos: 0, taken: 0 }
+      shake: 0, hitstop: 0, banner: null, tap: null, uid: 1, stars: 0,
+      hpMul: stage.hp * diff.hp, monDmg: stage.dmg, dmgMul: HS.dmg, lootMul: diff.loot, xpMul: diff.xp,
+      loot: { fell: 0, knochen: 0, stein: 0 }, xp: 0, boss: null, bossDown: false, bossT: 0, result: null,
+      stats: { kills: 0, time: 0, kos: 0, taken: 0, by: {} }
     };
     S.rng = rng(S.seed);
     return S;
@@ -7653,13 +8229,16 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   D.burst = burst;
   const fenceState = (f) => { const r = f.hp / f.maxHp; return r > 0.66 ? 0 : r > 0.33 ? 1 : r > 0 ? 2 : 3; };
+  const alive = (S) => S.mons.some((m) => !m.dead);
+  const isBossWave = (S, w) => S.stage.waves[w].some((e) => D.MON[e.type].boss);
 
   /* ---------- Wellen ---------- */
   function startWave(S) {
     S.wave++;
     S.phase = 'wave'; S.waveT = 0;
     S.spawnQ = S.stage.waves[S.wave].map((e) => Object.assign({}, e)).sort((a, b) => a.at - b.at);
-    S.banner = { text: 'WELLE ' + (S.wave + 1), sub: S.wave + 1 === S.stage.waves.length ? 'Letzte Welle!' : '', t: 0, life: 2 };
+    const last = S.wave + 1 === S.stage.waves.length;
+    S.banner = { text: isBossWave(S, S.wave) ? 'BOSS-WELLE' : 'WELLE ' + (S.wave + 1), sub: last && !isBossWave(S, S.wave) ? 'Letzte Welle!' : '', t: 0, life: 2 };
     sfx('wave');
   }
   function endWave(S) {
@@ -7668,6 +8247,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     S.banner = { text: 'Geschafft!', sub: 'Zaun repariert, kurz durchatmen', t: 0, life: 2 };
     // Pause: Held voll geheilt, Zaun um ein Drittel repariert
     S.hero.hp = S.hero.maxHp; S.fence.hp = Math.min(S.fence.maxHp, S.fence.hp + S.fence.maxHp * 0.34); S.fence.state = fenceState(S.fence);
+    S.pools.length = 0;
     sfx('waveEnd');
   }
   function finish(S, won) {
@@ -7675,53 +8255,85 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const r = S.house.hp / S.house.maxHp;
     S.stars = won ? (r >= 0.9 ? 3 : r >= 0.5 ? 2 : 1) : 0;
     S.banner = { text: won ? 'SIEG!' : 'Das Haus ist gefallen', sub: '', t: 0, life: 99 };
+    // Ergebnis: Material gibt es nur beim Sieg, Erfahrung immer (plus Bonus fuers Schaffen)
+    S.result = {
+      won, stars: S.stars, xp: Math.round(S.xp + (won ? (S.stage.xp || 0) * S.xpMul : 0)),
+      loot: won ? Object.assign({}, S.loot) : { fell: 0, knochen: 0, stein: 0 }, lostLoot: won ? null : Object.assign({}, S.loot)
+    };
     sfx(won ? 'win' : 'lose');
   }
-  function spawn(S, type) {
+
+  /* ---------- Monster erzeugen ---------- */
+  function spawn(S, type, opt) {
+    opt = opt || {};
     const T = D.MON[type], band = Math.floor(S.rng() * 3);
-    S.mons.push({ id: S.uid++, type, T, x: D.W + 26 + S.rng() * 14, band, dep: D.BANDS[band], hp: T.hp * S.hpMul, maxHp: T.hp * S.hpMul, t: 0, walkT: S.rng() * 2, cd: 0.3, bite: 0, stun: 0, flash: 0, dead: false, deadT: 0, state: 'walk', slow: 0 });
-    if (type === 'rhino') sfx('roar');
+    const m = {
+      id: S.uid++, type, T, x: opt.x != null ? opt.x : D.W + 26 + S.rng() * 14, band, dep: D.BANDS[band],
+      hp: T.hp * S.hpMul, maxHp: T.hp * S.hpMul, t: 0, walkT: S.rng() * 2, cd: 0.3 + S.rng() * 0.4, bite: 0, stun: 0, flash: 0, dead: false, deadT: 0, state: 'walk', slow: 0,
+      spd: 1, rate: 1, alt: T.fly ? T.alt + S.rng() * 14 - 7 : 0, phase: 0, specT: T.boss ? 5.5 : 0, specGap: 0, act: null, volley: 3, dmg: T.dmg * S.monDmg
+    };
+    S.mons.push(m);
+    if (T.boss) { S.boss = m; S.banner = { text: 'BOSS', sub: T.name, t: 0, life: 2.4 }; sfx('roar'); S.shake = Math.max(S.shake, 3); }
+    else if (type === 'rhino') sfx('roar');
+    return m;
   }
+  function summon(S, type, n) { for (let i = 0; i < n; i++) spawn(S, type, { x: D.W + 18 + i * 13 }); }
 
   /* ---------- Schaden ---------- */
+  function rollLoot(S, m) {
+    for (const e of (m.T.loot || [])) {
+      const mat = e[0], c = e[1] * S.lootMul, q = e[2] + Math.floor(S.rng() * (e[3] - e[2] + 1));
+      let n = 0;
+      if (e[1] >= 1) n = Math.max(1, Math.round(q * S.lootMul)); else if (S.rng() < Math.min(1, c)) n = q;
+      if (n > 0) { S.loot[mat] += n; if (D.MATS[mat]) addText(S, m.x, D.GY + m.dep - m.T.h - 12, '+' + n, D.MATS[mat].col, m.T.boss); }
+    }
+  }
   function damageMon(S, m, dmg, o) {
     o = o || {};
+    const T = m.T;
     dmg = Math.max(1, Math.round(dmg));
-    m.hp -= dmg; m.flash = 0.12; m.stun = Math.max(m.stun, o.stun || 0.08);
-    if (o.kb) m.x += o.kb * m.T.kb;
-    addText(S, m.x, D.GY + m.dep - m.T.h - 4, String(dmg), o.crit ? '#ffe45a' : '#ffffff', o.crit);
-    burst(S, m.x, D.GY + m.dep - m.T.h * 0.5, o.crit ? 9 : 5, ['#fff6c0', '#ffd24a', '#ffffff'], { speed: 0.8 });
+    m.hp -= dmg; m.flash = 0.12; m.stun = Math.max(m.stun, (o.stun || 0.08) * (T.boss ? 0.2 : 1));
+    if (o.kb && !m.act) m.x += o.kb * T.kb;
+    const hy = D.GY + m.dep - (m.alt || 0) - T.h;
+    addText(S, m.x, hy - 4, String(dmg), o.crit ? '#ffe45a' : '#ffffff', o.crit);
+    burst(S, m.x, hy + T.h * 0.5, o.crit ? 9 : 5, ['#fff6c0', '#ffd24a', '#ffffff'], { speed: 0.8 });
     if (m.hp <= 0) {
-      m.dead = true; m.deadT = 0; S.stats.kills++;
-      burst(S, m.x, D.GY + m.dep - m.T.h * 0.4, 12, m.type === 'rhino' ? ['#8a5a30', '#b8844a', '#6b4222'] : ['#8ed04a', '#d8f28a', '#f08a3a'], { speed: 1.1 });
-      sfx('die'); S.shake = Math.max(S.shake, m.T.hw > 25 ? 3 : 0.8);
-      if (m.T.hw > 25) S.hitstop = Math.max(S.hitstop, 0.08);
+      m.dead = true; m.deadT = 0; m.act = null; S.stats.kills++; S.xp += T.xp * S.xpMul; rollLoot(S, m);
+      burst(S, m.x, hy + T.h * 0.6, T.boss ? 30 : 12, T.fly ? ['#8a6aa8', '#b49ad0', '#6a5090'] : m.type === 'rhino' || T.base === 'rhino' ? ['#8a5a30', '#b8844a', '#6b4222'] : ['#8ed04a', '#d8f28a', '#f08a3a'], { speed: 1.1 });
+      sfx('die'); S.shake = Math.max(S.shake, T.hw > 25 ? 3 : 0.8);
+      if (T.hw > 25) S.hitstop = Math.max(S.hitstop, 0.08);
+      if (T.boss) { S.bossDown = true; S.bossT = 0; S.banner = { text: 'BOSS BESIEGT!', sub: T.name, t: 0, life: 2.6 }; S.shake = 6; S.hitstop = 0.22; sfx('bossDown'); }
     } else {
       sfx(o.crit ? 'crit' : (o.stone ? 'stone' : 'hit'));
-      if (m.T.hw > 25 && o.melee) S.hitstop = Math.max(S.hitstop, 0.035);
+      if (T.hw > 25 && o.melee) S.hitstop = Math.max(S.hitstop, 0.035);
     }
   }
   function hurtHero(S, dmg, fromX) {
     const h = S.hero;
     if (h.state === 'ko' || h.inv > 0) return;
-    h.hp -= dmg; h.flash = 0.18; S.stats.taken += dmg;
+    h.hp -= dmg; h.flash = 0.18; h.hurtT = 0.3; S.stats.taken += dmg;
     addText(S, h.x, D.GY + D.BANDS[h.band] - 58, '-' + Math.round(dmg), '#ff6b6b');
     sfx('hurt'); S.shake = Math.max(S.shake, 1.6);
     h.x = clamp(h.x + (fromX > h.x ? -3 : 3), 16, D.W - 14);
-    if (h.hp <= 0) { h.hp = 0; h.state = 'ko'; h.koT = D.HERO.ko; S.stats.kos++; S.in.tx = null; sfx('ko'); burst(S, h.x, D.GY + D.BANDS[h.band] - 20, 10, ['#ffffff', '#ffd24a'], { speed: 0.9 }); }
+    if (h.hp <= 0) { h.hp = 0; h.state = 'ko'; h.koT = D.HERO.ko; h.stun = 0; S.stats.kos++; S.in.tx = null; sfx('ko'); burst(S, h.x, D.GY + D.BANDS[h.band] - 20, 10, ['#ffffff', '#ffd24a'], { speed: 0.9 }); }
   }
-  function hitFence(S, dmg) {
+  function stunHero(S, sec) {
+    const h = S.hero; if (h.state === 'ko') return;
+    h.stun = Math.max(h.stun, sec); S.in.tx = null; sfx('hurt');
+    burst(S, h.x, footY(h.band) - 50, 8, ['#ffe45a', '#ffffff'], { speed: 0.6, up: 60 });
+  }
+  function hitFence(S, dmg, src) {
     const f = S.fence; if (f.hp <= 0) return;
-    f.hp = Math.max(0, f.hp - dmg); f.flash = 0.12; S.stats.taken += dmg;
+    f.hp = Math.max(0, f.hp - dmg); f.flash = 0.12; S.stats.taken += dmg; if (src) S.stats.by[src] = (S.stats.by[src] || 0) + dmg;
     const st = fenceState(f);
     burst(S, f.x + f.w / 2 + 4, D.GY - 20, 4, ['#b8844a', '#8a5a30', '#d8a868'], { speed: 0.7 });
     addText(S, f.x + f.w / 2 + 6, D.GY - 52, String(Math.round(dmg)), '#ffb04a');
     if (st !== f.state) { f.state = st; if (st === 3) { sfx('fenceBreak'); S.shake = Math.max(S.shake, 4); burst(S, f.x, D.GY - 18, 22, ['#b8844a', '#8a5a30', '#d8a868', '#e8c890'], { speed: 1.4 }); } }
     sfx('fenceHit');
   }
-  function hitHouse(S, dmg) {
+  function hitHouse(S, dmg, src) {
     const h = S.house; if (h.hp <= 0) return;
-    h.hp = Math.max(0, h.hp - dmg); h.flash = 0.14; S.stats.taken += dmg;
+    h.hp = Math.max(0, h.hp - dmg); h.flash = 0.14; S.stats.taken += dmg; if (src) S.stats.by[src] = (S.stats.by[src] || 0) + dmg;
     h.state = h.hp / h.maxHp < 0.5 ? 1 : 0;
     S.shake = Math.max(S.shake, 2.2); sfx('houseHit');
     burst(S, h.x1 + 2, D.GY - 26, 6, ['#d8a868', '#e8c890', '#b8844a'], { speed: 0.8 });
@@ -7730,6 +8342,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
 
   /* ---------- Held ---------- */
+  // Nahkampf erreicht Flieger nur, wenn sie tief genug fliegen
+  const MELEE_ALT = 52;
   function nearestMon(S, x, maxD) {
     let best = null, bd = maxD == null ? 1e9 : maxD;
     for (const m of S.mons) { if (m.dead) continue; const d = Math.abs(m.x - x); if (d < bd) { bd = d; best = m; } }
@@ -7737,7 +8351,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   function meleeTarget(S) {
     const h = S.hero, C = D.HERO.club;
-    for (const m of S.mons) { if (m.dead) continue; const d = (m.x - h.x) * h.face; if (d > -10 && d < C.reach + m.T.hw * 0.5) return m; }
+    for (const m of S.mons) { if (m.dead || m.alt > MELEE_ALT) continue; const d = (m.x - h.x) * h.face; if (d > -10 && d < C.reach + m.T.hw * 0.5) return m; }
     return null;
   }
   function slingTarget(S) {
@@ -7747,13 +8361,13 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   function meleeHit(S) {
     const h = S.hero, C = D.HERO.club, list = [];
-    for (const m of S.mons) { if (m.dead) continue; const d = (m.x - h.x) * h.face; if (d > -10 && d < C.reach + m.T.hw * 0.5) list.push([d, m]); }
+    for (const m of S.mons) { if (m.dead || m.alt > MELEE_ALT) continue; const d = (m.x - h.x) * h.face; if (d > -10 && d < C.reach + m.T.hw * 0.5) list.push([d, m]); }
     list.sort((a, b) => a[0] - b[0]);
     let n = 0;
     for (const e of list) {
       if (n++ >= C.cleave) break;
       const crit = S.rng() < C.crit;
-      damageMon(S, e[1], C.dmg * (crit ? C.critMul : 1) * (0.9 + S.rng() * 0.2), { kb: C.kb * h.face, crit, melee: true, stun: 0.16 });
+      damageMon(S, e[1], C.dmg * S.dmgMul * (crit ? C.critMul : 1) * (0.9 + S.rng() * 0.2), { kb: C.kb * h.face, crit, melee: true, stun: 0.16 });
     }
     S.arcs.push({ x: h.x + h.face * 16, y: footY(h.band) - 30, face: h.face, t: 0 });
     if (!list.length) sfx('swing');
@@ -7763,8 +8377,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const sx = h.x + h.face * 12, sy = footY(h.band) - 40;
     let vx = A.speed * h.face, vy = -60;
     if (m) {
-      const tx = m.x, ty = D.GY + m.dep - m.T.h * 0.55, dt = Math.max(0.12, Math.abs(tx - sx) / A.speed);
-      vx = (tx - sx) / dt; vy = (ty - sy - 0.5 * 260 * dt * dt) / dt;
+      const tx = m.x, ty = D.GY + m.dep - (m.alt || 0) - m.T.h * 0.55, dt = Math.max(0.12, Math.abs(tx - sx) / A.speed);
+      vx = (tx - sx) / dt; vy = (ty - sy - 0.5 * GRAV * dt * dt) / dt;
     }
     S.proj.push({ x: sx, y: sy, vx, vy, t: 0 });
     sfx('sling');
@@ -7776,24 +8390,29 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       const x = clamp(h.x + A.from + (i + S.rng() * 0.8) * (A.spread / A.rocks), 24, D.W - 16);
       S.rocks.push({ x, dep: D.BANDS[Math.floor(S.rng() * 3)], delay: 0.35 + i * 0.12, y: -24, vy: 0, state: 'wait', r: A.radius });
     }
-    if (h.state === 'idle') { h.state = 'throw'; h.throwT = 0; h.thrown = true; }
+    if (h.state === 'idle') { h.state = 'cast'; h.castT = 0; }
   }
 
   function updateHero(S, dt) {
     const h = S.hero, I = S.in, HD = D.HERO;
-    h.t += dt; if (h.inv > 0) h.inv -= dt; if (h.flash > 0) h.flash -= dt;
+    h.t += dt; if (h.inv > 0) h.inv -= dt; if (h.flash > 0) h.flash -= dt; if (h.hurtT > 0) h.hurtT -= dt;
     if (h.state === 'ko') {
       h.koT -= dt;
       if (h.koT <= 0) { h.state = 'idle'; h.hp = Math.ceil(h.maxHp * 0.5); h.inv = 1.8; sfx('revive'); burst(S, h.x, footY(h.band) - 20, 12, ['#ffffff', '#7be08c', '#ffd24a'], { speed: 0.9 }); }
       return;
     }
+    if (h.stun > 0) { h.stun -= dt; h.moving = false; return; }   // benommen (Schrei): keine Bewegung, kein Angriff
     h.cdMelee -= dt; h.cdSling -= dt;
     // Eingabe: Tastatur hat Vorrang, sonst das angetippte Ziel
     let dir = I.dir || 0;
     if (!dir && I.tx != null) { const d = I.tx - h.x; if (Math.abs(d) < 3) I.tx = null; else dir = Math.sign(d); }
-    const busy = h.state === 'swing' || h.state === 'throw';
+    const busy = h.state === 'swing' || h.state === 'throw' || h.state === 'cast';
     h.moving = !!dir;
-    if (dir) { h.x = clamp(h.x + dir * HD.speed * (busy ? 0.4 : 1) * dt, 16, D.W - 14); h.walkT += dt; }
+    if (dir) {
+      h.x = clamp(h.x + dir * HD.speed * (busy ? 0.4 : 1) * dt, 16, D.W - 14); h.walkT += dt;
+      const stp = Math.floor(h.walkT * 6);   // Staubwoelkchen bei jedem Schritt
+      if (stp !== h.stepN) { h.stepN = stp; if (!busy) burst(S, h.x - h.face * 5, footY(h.band) - 1, 2, ['#d8b87c', '#b08450', '#e8c890'], { speed: 0.3, up: 14, g: 120 }); }
+    }
     // Blick: zum naechsten Gegner in der Naehe, sonst in Laufrichtung
     const foe = nearestMon(S, h.x, 240);
     if (foe) h.face = foe.x >= h.x ? 1 : -1; else if (dir) h.face = dir;
@@ -7802,6 +8421,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       h.swingT += dt;
       if (!h.swingHit && h.swingT >= 0.14) { h.swingHit = true; meleeHit(S); }
       if (h.swingT >= 0.4) h.state = 'idle';
+    } else if (h.state === 'cast') {
+      h.castT += dt;
+      if (h.castT >= 0.5) h.state = 'idle';
     } else if (h.state === 'throw') {
       h.throwT += dt;
       if (!h.thrown && h.throwT >= 0.16) { h.thrown = true; throwStone(S); }
@@ -7812,7 +8434,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     }
   }
 
-  /* ---------- Monster ---------- */
+  /* ---------- Monster: Ziele und Verhalten ---------- */
   function pickTarget(S, m) {
     const h = S.hero, f = S.fence;
     // vorderstes Hindernis vor dem Monster: Held (wenn er vor dem Zaun steht oder der Zaun gefallen ist), Zaun, Haus
@@ -7821,52 +8443,183 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if (h.state !== 'ko' && h.inv <= 0 && m.x > h.x && (f.hp <= 0 || h.x > fenceFront(S) - 2)) { const hx = h.x + 9; if (hx > best.x) best = { kind: 'hero', x: hx }; }
     return best;
   }
+  function hitTarget(S, m, tgt, mul) {
+    const dmg = m.dmg * (mul || 1);
+    if (tgt.kind === 'hero') hurtHero(S, dmg, m.x);
+    else if (tgt.kind === 'fence') hitFence(S, dmg * m.T.struct, m.type);
+    else hitHouse(S, dmg * m.T.struct, m.type);
+  }
+  function queued(S, m) {
+    for (const o of S.mons) { if (o === m || o.dead || o.fly || o.band !== m.band || o.x >= m.x || o.T.fly) continue; if (m.x - o.x < (m.T.hw + o.T.hw) * 0.72) return true; }
+    return false;
+  }
+  function walk(S, m, dt) {
+    if (queued(S, m)) { m.state = 'wait'; return; }
+    m.x -= m.T.speed * m.spd * dt; m.walkT += dt * m.spd; m.state = 'walk';
+  }
+  function meleeAI(S, m, dt) {
+    const tgt = pickTarget(S, m), gap = m.x - tgt.x;
+    if (gap <= m.T.reach) {
+      m.state = 'attack'; m.cd -= dt;
+      if (m.cd <= 0) { m.cd = m.T.rate * m.rate; m.bite = 0.24; hitTarget(S, m, tgt, 1); }
+    } else walk(S, m, dt);
+  }
+  // Spuckechse: bleibt auf Abstand stehen und wirft Saeure im Bogen
+  function spit(S, m, tgt, spread) {
+    const T = m.T, h = S.hero;
+    const sx = m.x - T.hw * 0.55, sy = D.GY + m.dep - T.h * 0.8;
+    let tx = tgt.kind === 'hero' ? h.x : tgt.kind === 'fence' ? fenceFront(S) - 2 : S.house.x1 - 8;
+    const ty = tgt.kind === 'hero' ? footY(h.band) - 22 : D.GY - 14;
+    tx += spread || 0;
+    const t2 = clamp(Math.abs(sx - tx) / T.shot.speed, 0.5, 1.7);
+    S.eproj.push({ x: sx, y: sy, vx: (tx - sx) / t2, vy: (ty - sy - 0.5 * GRAV * t2 * t2) / t2, t: 0, dmg: T.shot.dmg * S.monDmg, struct: T.struct, big: !!T.boss, pool: false, src: m.type });
+    m.bite = 0.3; sfx('spit');
+  }
+  function rangedAI(S, m, dt) {
+    const T = m.T, tgt = pickTarget(S, m), gap = m.x - tgt.x;
+    if (gap <= T.range) {
+      m.state = 'attack'; m.cd -= dt;
+      if (m.cd <= 0) { m.cd = T.rate * m.rate; if (T.boss) { const n = m.volley; for (let i = 0; i < n; i++) spit(S, m, tgt, (i - (n - 1) / 2) * 16); } else spit(S, m, tgt, 0); }
+    } else walk(S, m, dt);
+  }
+  // Flieger: fliegt hoch heran, sinkt vor dem Ziel ab und beisst aus der Luft; Ziel ist das Haus (oder der Held, wenn er nah darunter steht)
+  function flyerAI(S, m, dt) {
+    const T = m.T, h = S.hero;
+    let tx = S.house.x1 + 16, kind = 'house';
+    if (h.state !== 'ko' && h.inv <= 0 && m.x > h.x - 8 && m.x - h.x < 40) { tx = h.x + 8; kind = 'hero'; }
+    const gap = m.x - tx;
+    if (gap <= T.reach) {
+      m.alt += (T.atkAlt - m.alt) * Math.min(1, dt * 5);
+      m.state = 'attack'; m.cd -= dt;
+      if (m.cd <= 0) { m.cd = T.rate * m.rate; m.bite = 0.24; if (kind === 'hero') hurtHero(S, m.dmg, m.x); else hitHouse(S, m.dmg * T.struct, m.type); }
+    } else {
+      m.alt += ((gap < 80 ? T.atkAlt : T.alt) - m.alt) * Math.min(1, dt * 2.4);
+      m.x -= T.speed * m.spd * dt; m.walkT += dt * m.spd; m.state = 'walk';
+    }
+  }
+
+  /* ---------- Bosse: Phasen und Spezialangriffe ---------- */
+  function bossPhase(S, m) {
+    const T = m.T, k = T.boss;
+    S.banner = { text: 'PHASE ' + (m.phase + 1), sub: T.name, t: 0, life: 1.8 }; S.shake = Math.max(S.shake, 4); S.hitstop = Math.max(S.hitstop, 0.12); sfx('roar');
+    burst(S, m.x, D.GY + m.dep - (m.alt || 0) - T.h * 0.6, 16, ['#ffffff', '#ff8a5a', '#ffd24a'], { speed: 1.2 });
+    const first = m.phase === 1;
+    if (k === 'alpha') { if (first) summon(S, 'raptor', 4); else { m.spd = 1.45; m.rate = 0.7; } }
+    else if (k === 'bull') { if (first) m.specGap = 6; else { m.spd = 1.3; m.rate = 0.8; summon(S, 'rhino', 1); } }
+    else if (k === 'queen') { if (first) summon(S, 'flyer', 2); else { m.spd = 1.3; m.specGap = 4.6; stunHero(S, 1.3); } }
+    else if (k === 'swamp') { if (first) { for (let i = 0; i < 3; i++) S.pools.push({ x: 196 + i * 54 + S.rng() * 14, t: 0, life: 9, r: 15 }); } else { summon(S, 'spitter', 3); m.volley = 5; } }
+    else if (k === 'saber') { if (first) { summon(S, 'raptor', 6); m.spd = 1.25; } else { m.specGap = 4.6; m.rate = 0.75; m.spd = 1.4; } }
+  }
+  function bossSpecial(S, m) {
+    const T = m.T, k = T.boss, h = S.hero;
+    m.specT = m.specGap || { alpha: 6.5, bull: 9, queen: 7.5, swamp: 5.5, saber: 7 }[k] || 7;
+    const hx = h.state === 'ko' ? S.house.x1 + 40 : h.x + 6;
+    if (k === 'alpha') m.act = { kind: 'dash', t: 0, dur: 0.9, mul: 3 };
+    else if (k === 'bull') { m.act = { kind: 'dash', t: 0, dur: 1.5, mul: 4.6, smash: true }; sfx('roar'); }
+    else if (k === 'queen') { m.act = { kind: 'dive', t: 0, dur: 1.2, x0: m.x, tx: hx, a0: m.alt }; sfx('screech'); }
+    else if (k === 'swamp') { const tgt = pickTarget(S, m); const n = m.volley; for (let i = 0; i < n; i++) spit(S, m, tgt, (i - (n - 1) / 2) * 22); if (m.phase >= 1) S.eproj[S.eproj.length - 1].pool = true; }
+    else if (k === 'saber') { m.act = { kind: 'leap', t: 0, dur: 0.95, x0: m.x, tx: clamp(hx, S.house.x1 + 22, D.W - 40) }; sfx('roar'); }
+  }
+  function slam(S, m, x, r, mulFence) {
+    const h = S.hero;
+    S.shake = Math.max(S.shake, 5); sfx('rock'); burst(S, x, D.GY + 6, 16, ['#d8b87c', '#b08450', '#8a6a40'], { speed: 1.2, up: 50 });
+    if (h.state !== 'ko' && Math.abs(h.x - x) < r) hurtHero(S, m.dmg * 1.2, x + 1);
+    if (S.fence.hp > 0 && Math.abs(fenceFront(S) - x) < r + 6) hitFence(S, m.dmg * m.T.struct * (mulFence || 1));
+    if (x - S.house.x1 < r + 10) hitHouse(S, m.dmg * m.T.struct * (mulFence || 1));
+  }
+  function updateAct(S, m, dt) {
+    const a = m.act, T = m.T, h = S.hero;
+    a.t += dt;
+    if (a.kind === 'dash') {
+      const tgt = pickTarget(S, m), gap = m.x - tgt.x;
+      if (gap <= T.reach) {
+        if (a.smash) { slam(S, m, m.x - T.reach, 34, 1.6); } else hitTarget(S, m, tgt, 1.6);
+        m.bite = 0.3; m.act = null; return;
+      }
+      m.x -= T.speed * m.spd * a.mul * dt; m.walkT += dt * 2; m.state = 'walk';
+      if (a.t >= a.dur) m.act = null;
+    } else if (a.kind === 'dive') {
+      const k = a.t / a.dur, dk = 0.55;
+      if (k < dk) { const u = k / dk; m.x = a.x0 + (a.tx - a.x0) * u; m.alt = a.a0 + (14 - a.a0) * u * u; m.state = 'walk'; m.walkT += dt * 2; }
+      else {
+        if (!a.hit) { a.hit = true; m.bite = 0.3; slam(S, m, m.x, 26, 1.2); }
+        m.alt += ((T.alt) - m.alt) * Math.min(1, dt * 3.4);
+      }
+      if (k >= 1) m.act = null;
+    } else if (a.kind === 'leap') {
+      const k = Math.min(1, a.t / a.dur), e = k * k * (3 - 2 * k);
+      m.x = a.x0 + (a.tx - a.x0) * e; m.alt = Math.sin(Math.PI * k) * 76; m.state = 'leap'; m.walkT += dt;
+      if (k >= 1) { m.alt = 0; slam(S, m, m.x, 40, 1.8); m.bite = 0.3; m.act = null; }
+    }
+  }
+  function bossThink(S, m, dt) {
+    const T = m.T;
+    while (m.phase < (T.phases || []).length && m.hp / m.maxHp <= T.phases[m.phase]) { m.phase++; bossPhase(S, m); }
+    if (!m.act) { m.specT -= dt; if (m.specT <= 0) bossSpecial(S, m); }
+  }
+
   function updateMons(S, dt) {
     for (const m of S.mons) {
       if (m.dead) { m.deadT += dt; continue; }
       m.t += dt;
       if (m.flash > 0) m.flash -= dt;
       if (m.bite > 0) m.bite -= dt;
-      if (m.stun > 0) { m.stun -= dt; m.state = 'stun'; continue; }
-      const tgt = pickTarget(S, m), gap = m.x - tgt.x;
-      if (gap <= m.T.reach) {
-        m.state = 'attack'; m.cd -= dt;
-        if (m.cd <= 0) {
-          m.cd = m.T.rate; m.bite = 0.24;
-          if (tgt.kind === 'hero') hurtHero(S, m.T.dmg, m.x);
-          else if (tgt.kind === 'fence') hitFence(S, m.T.dmg * m.T.struct);
-          else hitHouse(S, m.T.dmg * m.T.struct);
-        }
-      } else {
-        // Warteschlange: im gleichen Streifen nicht in den Vordermann laufen
-        let blocked = false;
-        for (const o of S.mons) { if (o === m || o.dead || o.band !== m.band || o.x >= m.x) continue; if (m.x - o.x < (m.T.hw + o.T.hw) * 0.72) { blocked = true; break; } }
-        if (blocked) m.state = 'wait';
-        else { m.x -= m.T.speed * dt; m.walkT += dt; m.state = 'walk'; }
-      }
+      if (m.stun > 0) { m.stun -= dt; m.state = 'stun'; if (m.T.fly && !m.act) m.alt = Math.max(0, m.alt - 20 * dt); continue; }
+      if (m.T.boss) bossThink(S, m, dt);
+      if (m.act) { updateAct(S, m, dt); continue; }
+      if (m.T.fly) flyerAI(S, m, dt);
+      else if (m.T.ranged) rangedAI(S, m, dt);
+      else meleeAI(S, m, dt);
     }
     for (let i = S.mons.length - 1; i >= 0; i--) if (S.mons[i].dead && S.mons[i].deadT > 0.8) S.mons.splice(i, 1);
   }
 
-  /* ---------- Geschosse, Steinhagel, Effekte ---------- */
+  /* ---------- Geschosse, Saeure, Steinhagel, Effekte ---------- */
   function updateProj(S, dt) {
     for (let i = S.proj.length - 1; i >= 0; i--) {
       const p = S.proj[i]; p.t += dt;
-      p.vy += 260 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vy += GRAV * dt; p.x += p.vx * dt; p.y += p.vy * dt;
       let gone = p.x < -10 || p.x > D.W + 10 || p.t > 3;
       if (!gone) {
         for (const m of S.mons) {
           if (m.dead) continue;
-          const top = D.GY + m.dep - m.T.h - 4, bot = D.GY + m.dep + 4;
+          const top = D.GY + m.dep - (m.alt || 0) - m.T.h - 4, bot = D.GY + m.dep - (m.alt || 0) + 4;
           if (Math.abs(p.x - m.x) < m.T.hw * 0.75 && p.y > top && p.y < bot) {
             const A = D.HERO.sling, crit = S.rng() < A.crit;
-            damageMon(S, m, A.dmg * (crit ? 2 : 1) * (0.9 + S.rng() * 0.2), { kb: 3 * Math.sign(p.vx), crit, stone: true, stun: 0.1 });
+            damageMon(S, m, A.dmg * S.dmgMul * (crit ? 2 : 1) * (0.9 + S.rng() * 0.2), { kb: 3 * Math.sign(p.vx), crit, stone: true, stun: 0.1 });
             gone = true; break;
           }
         }
       }
       if (!gone && p.y > D.GY + 22) { burst(S, p.x, D.GY + 20, 3, ['#d8b87c', '#b08450'], { speed: 0.5 }); gone = true; }
       if (gone) S.proj.splice(i, 1);
+    }
+  }
+  function landAcid(S, p) {
+    burst(S, p.x, D.GY + 8, p.big ? 14 : 7, ['#8ed04a', '#d8f28a', '#5aa83a'], { speed: 0.9, up: 40 }); sfx('splat');
+    const f = S.fence, h = S.hero;
+    if (f.hp > 0 && p.x > f.x - 8 && p.x < f.x + f.w + 8) hitFence(S, p.dmg * p.struct, p.src);
+    else if (p.x <= S.house.x1 + 10) hitHouse(S, p.dmg * p.struct, p.src);
+    else if (h.state !== 'ko' && Math.abs(h.x - p.x) < 14) hurtHero(S, p.dmg, p.x + 4);
+    if (p.pool) S.pools.push({ x: p.x, t: 0, life: 7, r: 14 });
+  }
+  function updateEProj(S, dt) {
+    const h = S.hero;
+    for (let i = S.eproj.length - 1; i >= 0; i--) {
+      const p = S.eproj[i]; p.t += dt;
+      p.vy += GRAV * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      let gone = p.x < -20 || p.t > 4;
+      const fy = footY(h.band);
+      if (!gone && h.state !== 'ko' && h.inv <= 0 && Math.abs(p.x - h.x) < 9 && p.y > fy - 52 && p.y < fy + 2) { burst(S, p.x, p.y, 6, ['#8ed04a', '#d8f28a'], { speed: 0.7 }); hurtHero(S, p.dmg, p.x + 6); gone = true; }
+      if (!gone && p.y >= D.GY + 6) { landAcid(S, p); gone = true; }
+      if (gone) S.eproj.splice(i, 1);
+    }
+    // Saeurepfuetzen: schaden dem Held, solange er darin steht
+    const hh = S.hero;
+    for (let i = S.pools.length - 1; i >= 0; i--) {
+      const q = S.pools[i]; q.t += dt;
+      if (hh.state !== 'ko' && hh.inv <= 0 && Math.abs(hh.x - q.x) < q.r) { q.tick = (q.tick || 0) - dt; if (q.tick <= 0) { q.tick = 0.6; hurtHero(S, 4 * S.monDmg, q.x + 3); } }
+      if (q.t > q.life) S.pools.splice(i, 1);
     }
   }
   function updateRocks(S, dt) {
@@ -7876,7 +8629,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       if (r.state === 'wait') { r.delay -= dt; if (r.delay <= 0) r.state = 'fall'; continue; }
       r.vy += 900 * dt; r.y += r.vy * dt;
       if (r.y >= D.GY + r.dep - 6) {
-        for (const m of S.mons) { if (!m.dead && Math.abs(m.x - r.x) <= r.r + m.T.hw * 0.4) damageMon(S, m, A.dmg * (0.9 + S.rng() * 0.2), { kb: 5, stun: A.stun, heavy: true }); }
+        for (const m of S.mons) { if (!m.dead && (m.alt || 0) < 34 && Math.abs(m.x - r.x) <= r.r + m.T.hw * 0.4) damageMon(S, m, A.dmg * S.dmgMul * (0.9 + S.rng() * 0.2), { kb: 5, stun: A.stun, heavy: true }); }
         burst(S, r.x, D.GY + r.dep - 4, 9, ['#b8b8c8', '#8a8aa0', '#d8c8a0', '#b08450'], { speed: 1, up: 50 });
         S.shake = Math.max(S.shake, 1.4); sfx('rock');
         S.rocks.splice(i, 1);
@@ -7900,17 +8653,24 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if (S.phase === 'win' || S.phase === 'lose') { S.endT += dt; updateFx(S, dt); updateMons(S, dt * 0); return; }
     S.t += dt;
     S.ab.cd = Math.max(0, S.ab.cd - dt);
-    if (S.in.ab) { S.in.ab = false; if (S.ab.cd <= 0 && S.hero.state !== 'ko' && S.phase === 'wave') castHail(S); }
+    if (S.in.ab) { S.in.ab = false; if (S.ab.cd <= 0 && S.hero.state !== 'ko' && S.hero.stun <= 0 && S.phase === 'wave') castHail(S); }
     if (S.phase === 'intro') { S.timer -= dt; if (S.timer <= 0) startWave(S); }
     else if (S.phase === 'break') { S.timer -= dt; if (S.timer <= 0) startWave(S); }
     else if (S.phase === 'wave') {
       S.waveT += dt;
       while (S.spawnQ.length && S.spawnQ[0].at <= S.waveT) spawn(S, S.spawnQ.shift().type);
-      if (!S.spawnQ.length && !S.mons.some((m) => !m.dead)) endWave(S);
+      // Boss besiegt: die Uebrigen fliehen (fallen um), die Stufe ist geschafft
+      if (S.bossDown) {
+        S.bossT += dt;
+        if (S.bossT > 0.4) for (const m of S.mons) if (!m.dead) { m.dead = true; m.deadT = 0; m.act = null; burst(S, m.x, D.GY + m.dep - (m.alt || 0) - m.T.h * 0.5, 7, ['#ffffff', '#ffd24a'], { speed: 0.8 }); }
+        S.spawnQ.length = 0;
+        if (S.bossT > 1.6) { finish(S, true); return; }
+      } else if (!S.spawnQ.length && !alive(S)) endWave(S);
     }
     updateHero(S, dt);
     updateMons(S, dt);
     updateProj(S, dt);
+    updateEProj(S, dt);
     updateRocks(S, dt);
     updateFx(S, dt);
   };
@@ -7932,7 +8692,6 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   const RS = (g.RS = g.RS || {});
   const D = (RS.def = RS.def || {});
   const W = D.W, H = D.H, GY = D.GY;
-  const rng = (seed) => { let s = seed >>> 0; return () => { s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
 
   /* ---------- kleine Zeichenhilfen ---------- */
   const GLY = {
@@ -7969,6 +8728,11 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const s = flip ? spr.flip() : spr, dx = Math.round(x - s.ox), dy = Math.round(y - s.oy);
     ctx.drawImage(tint ? s.tint(tint[0], tint[1]) : s.cv, dx, dy);
   }
+  // Ring auf dem Boden (Warnung vor Sprung und Sturzflug)
+  function ring(ctx, x, y, r, a) {
+    ctx.fillStyle = 'rgba(255,70,50,' + a.toFixed(2) + ')';
+    for (let i = 0; i < 18; i++) { const an = i / 18 * Math.PI * 2; ctx.fillRect(Math.round(x + Math.cos(an) * r), Math.round(y + Math.sin(an) * r * 0.32), 2, 1); }
+  }
 
   /* ---------- Szene ---------- */
   D.render = function (ctx, S, tm) {
@@ -7986,6 +8750,16 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if (world.mid) world.mid(ctx, S, tm);
     // Telegraph des Steinhagels (Schatten am Boden)
     for (const r of S.rocks) { const a = 0.22 + 0.14 * Math.sin(tm * 18 + r.x); ctx.fillStyle = 'rgba(40,20,50,' + a.toFixed(2) + ')'; for (let dy = -3; dy <= 3; dy++) { const w = Math.round(r.r * Math.sqrt(1 - (dy / 3.6) * (dy / 3.6))); ctx.fillRect(Math.round(r.x - w), GY + r.dep + dy - 2, w * 2, 1); } }
+    // Saeurepfuetzen auf dem Boden
+    for (const q of S.pools) {
+      const fade = Math.min(1, (q.life - q.t) / 1.2, q.t / 0.3 + 0.2), w = q.r;
+      ctx.globalAlpha = 0.85 * fade;
+      for (let dy = -3; dy <= 3; dy++) { const ww = Math.round(w * Math.sqrt(1 - (dy / 3.6) * (dy / 3.6))); ctx.fillStyle = Math.abs(dy) > 2 ? '#2f6a24' : '#4f9a36'; ctx.fillRect(Math.round(q.x - ww), GY + 9 + dy, ww * 2, 1); }
+      ctx.fillStyle = '#b8f070'; const bx = Math.round(q.x + Math.sin(tm * 3 + q.x) * w * 0.5); ctx.fillRect(bx, GY + 8 + ((tm * 6 + q.x) % 3 | 0) - 1, 1, 1);
+      ctx.globalAlpha = 1;
+    }
+    // Warnringe fuer Sprung und Sturzflug der Bosse
+    for (const m of S.mons) if (m.act && m.act.tx != null && !m.dead) ring(ctx, m.act.tx, GY + 12, 26 + Math.sin(tm * 20) * 3, 0.5 + 0.3 * Math.sin(tm * 16));
 
     // Figuren nach Tiefe sortiert: Held, Monster, Zaun
     const list = [];
@@ -8002,49 +8776,61 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         if (f.hp > 0 && f.hp < f.maxHp) bar(ctx, Math.round(f.x - 10), GY - 66, 20, f.hp / f.maxHp);
       } else if (e.k === 'hero') {
         shadow(ctx, hero.x, e.y + 1, 9);
-        let pose = 'stand', fr = 0, ox = 0;
-        if (hero.state === 'ko') pose = 'ko';
-        else if (hero.state === 'swing') { pose = 'swing'; fr = hero.swingT < 0.14 ? 0 : hero.swingT < 0.26 ? 1 : 2; if (fr === 1) ox = 3 * hero.face; }
-        else if (hero.state === 'throw') { pose = 'throw'; fr = hero.throwT < 0.16 ? 0 : 1; }
-        else if (hero.moving) { pose = 'walk'; fr = Math.floor(hero.walkT * 9) % 4; }
+        let pose = 'stand', fr = Math.floor(tm * 5) % 4;
+        if (hero.state === 'ko') { pose = 'ko'; fr = 0; }
+        else if (hero.state === 'swing') { pose = 'swing'; const t = hero.swingT; fr = t < 0.07 ? 0 : t < 0.14 ? 1 : t < 0.2 ? 2 : t < 0.3 ? 3 : 4; }
+        else if (hero.state === 'throw') { pose = 'throw'; const t = hero.throwT; fr = t < 0.08 ? 0 : t < 0.16 ? 1 : t < 0.24 ? 2 : 3; }
+        else if (hero.state === 'cast') { pose = 'cast'; fr = hero.castT < 0.22 ? 0 : 1; }
+        else if (hero.hurtT > 0) { pose = 'hurt'; fr = 0; }
+        else if (hero.moving) { pose = 'walk'; fr = Math.floor(hero.walkT * 12) % 6; }
         const spr = D.heroSprite(look, pose, fr, 'club');
         const blink = hero.inv > 0 && Math.floor(tm * 14) % 2 === 0;
         if (blink) ctx.globalAlpha = 0.45;
-        drawSpr(ctx, spr, hero.x + ox, e.y, pose === 'ko' ? false : hero.face < 0, hero.flash > 0 ? ['hurt', 'rgba(255,60,60,0.6)'] : null);
+        drawSpr(ctx, spr, hero.x, e.y, hero.face < 0, hero.flash > 0 ? ['hurt', 'rgba(255,60,60,0.6)'] : null);
         ctx.globalAlpha = 1;
-        if (hero.state !== 'ko' && hero.hp < hero.maxHp) bar(ctx, Math.round(hero.x - 11), e.y - 62, 22, hero.hp / hero.maxHp);
-        if (hero.state === 'ko') drawText(ctx, String(Math.ceil(hero.koT)), hero.x, e.y - 22, '#ffffff', false);
+        if (hero.state !== 'ko' && hero.hp < hero.maxHp) bar(ctx, Math.round(hero.x - 11), e.y - 70, 22, hero.hp / hero.maxHp);
+        if (hero.state === 'ko') drawText(ctx, String(Math.ceil(hero.koT)), hero.x - hero.face * 6, e.y - 30, '#ffffff', false);
+        if (hero.stun > 0) for (let i = 0; i < 3; i++) { const a = tm * 6 + i * 2.1; ctx.fillStyle = '#ffe45a'; ctx.fillRect(Math.round(hero.x + Math.cos(a) * 9), Math.round(e.y - 66 + Math.sin(a) * 2.5), 2, 2); }
       } else {
-        const m = e.m, T = m.T;
-        shadow(ctx, m.x, e.y + 1, T.hw * 0.62);
-        const fps = T.fps;
-        let fr = Math.floor(m.walkT * fps) % 4;
-        if (m.bite > 0) fr = 4; else if (m.state === 'stun') fr = 1;
-        const spr = m.type === 'rhino' ? D.rhinoSprite(fr) : D.raptorSprite(fr, 0);
+        const m = e.m, T = m.T, alt = m.alt || 0;
+        shadow(ctx, m.x, e.y + 1, T.hw * 0.62 * (1 - Math.min(0.55, alt / 150)));
+        let fr = Math.floor(m.walkT * T.fps) % 4;
+        if (m.bite > 0) fr = 4; else if (m.state === 'stun') fr = 1; else if (m.state === 'leap') fr = 5;
+        const spr = D.monSprite(m.type, fr);
         if (m.dead) {
           const k = Math.min(1, m.deadT / 0.45);
           const s = spr.flip(), dx = Math.round(m.x - s.ox), dh = Math.max(1, Math.round(s.h * (1 - k * 0.85)));
           ctx.globalAlpha = 1 - k * k;
-          ctx.drawImage(m.deadT < 0.1 ? s.tint('white', '#ffffff') : s.cv, 0, 0, s.w, s.h, dx, Math.round(e.y - dh + (s.h - s.oy)), s.w, dh);
+          ctx.drawImage(m.deadT < 0.1 ? s.tint('white', '#ffffff') : s.cv, 0, 0, s.w, s.h, dx, Math.round(e.y - alt * (1 - k) - dh + (s.h - s.oy)), s.w, dh);
           ctx.globalAlpha = 1;
         } else {
-          drawSpr(ctx, spr, m.x, e.y, true, m.flash > 0 ? ['white', 'rgba(255,255,255,0.7)'] : null);
-          if (m.hp < m.maxHp || m.type === 'rhino') bar(ctx, Math.round(m.x - 10), e.y - T.h - 11, 20, m.hp / m.maxHp);
+          drawSpr(ctx, spr, m.x, e.y - alt, true, m.flash > 0 ? ['white', 'rgba(255,255,255,0.7)'] : null);
+          if (!T.boss && (m.hp < m.maxHp || m.type === 'rhino')) bar(ctx, Math.round(m.x - 10), e.y - alt - T.h - 11, 20, m.hp / m.maxHp);
         }
       }
     }
 
     // Geschosse
     for (const p of S.proj) { const st = D.stoneSprite(2); ctx.drawImage(st.cv, Math.round(p.x - st.ox), Math.round(p.y - st.oy + st.h / 2)); }
+    // Saeure der Spuckechsen
+    for (const p of S.eproj) {
+      const r = p.big ? 3 : 2;
+      for (let i = 3; i >= 1; i--) { ctx.globalAlpha = 0.18 * (4 - i); ctx.fillStyle = '#8ed04a'; ctx.fillRect(Math.round(p.x - p.vx * 0.016 * i * 2) - 1, Math.round(p.y - p.vy * 0.016 * i * 2) - 1, 2, 2); }
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#2f6a24'; ctx.fillRect(Math.round(p.x) - r - 1, Math.round(p.y) - r, r * 2 + 3, r * 2 + 1); ctx.fillRect(Math.round(p.x) - r, Math.round(p.y) - r - 1, r * 2 + 1, r * 2 + 3);
+      ctx.fillStyle = '#6ac040'; ctx.fillRect(Math.round(p.x) - r, Math.round(p.y) - r, r * 2 + 1, r * 2 + 1);
+      ctx.fillStyle = '#d8f28a'; ctx.fillRect(Math.round(p.x) - r + 1, Math.round(p.y) - r + 1, 2, 2);
+    }
     // Steinhagel: fallende Steine
     for (const r of S.rocks) if (r.state === 'fall') { const st = D.stoneSprite(5); ctx.drawImage(st.cv, Math.round(r.x - st.ox), Math.round(r.y - st.oy + st.h / 2)); ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fillRect(Math.round(r.x - 1), Math.round(r.y - 22), 2, 14); }
-    // Hieb-Bogen
+    // Hieb-Bogen: Halbmond aus hellen Pixeln, wird schnell blasser
     for (const a of S.arcs) {
       const k = a.t / 0.16;
-      for (let i = 0; i < 9; i++) {
-        const ang = (-1.25 + i * 0.26) * (1 - 0.0) , R = 26;
-        const px = a.x + a.face * Math.cos(ang) * R * 0.9, py = a.y - Math.sin(ang) * R + 8;
-        ctx.fillStyle = 'rgba(255,255,255,' + (0.9 * (1 - k)).toFixed(2) + ')'; ctx.fillRect(Math.round(px), Math.round(py), i > 2 && i < 7 ? 2 : 1, 2);
+      for (let i = 0; i < 13; i++) {
+        const an = -1.45 + i * 0.2, R1 = 30 - k * 3, R2 = R1 - 5 + Math.abs(i - 6) * 0.5;
+        const px = a.x + a.face * Math.cos(an) * R1 * 0.9, py = a.y - Math.sin(an) * R1 + 10, qx = a.x + a.face * Math.cos(an) * R2 * 0.9, qy = a.y - Math.sin(an) * R2 + 10;
+        ctx.fillStyle = 'rgba(255,255,255,' + (0.95 * (1 - k)).toFixed(2) + ')'; ctx.fillRect(Math.round(px), Math.round(py), 2, 2);
+        ctx.fillStyle = 'rgba(255,236,160,' + (0.6 * (1 - k)).toFixed(2) + ')'; ctx.fillRect(Math.round(qx), Math.round(qy), 2, 2);
       }
     }
     // Teilchen
@@ -8090,17 +8876,138 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     waveEnd() { [523, 659, 784].forEach((f, i) => t('square', f, f, 0.12, 0.12, i * 0.09)); },
     win() { [523, 659, 784, 1047, 1319].forEach((f, i) => t('square', f, f, 0.16, 0.14, i * 0.1)); t('triangle', 1568, 1568, 0.6, 0.12, 0.5); },
     lose() { [392, 330, 262, 196].forEach((f, i) => t('sawtooth', f, f * 0.96, 0.3, 0.16, i * 0.18)); },
-    tap() { t('square', 600, 800, 0.03, 0.05); }
+    tap() { t('square', 600, 800, 0.03, 0.05); },
+    spit() { t('sawtooth', 320, 190, 0.12, 0.12); n(0.08, 0.1, 1400, 2); },
+    splat() { n(0.12, 0.2, 700, 0.8); t('sine', 170, 70, 0.1, 0.18); },
+    screech() { t('sawtooth', 900, 1500, 0.28, 0.14); t('square', 1300, 700, 0.3, 0.08, 0.05); },
+    bossDown() { [196, 165, 131, 98].forEach((f, i) => t('sawtooth', f, f * 0.9, 0.3, 0.16, i * 0.12)); t('sine', 60, 30, 0.8, 0.4); n(0.5, 0.3, 300, 0.5); },
+    levelUp() { [392, 523, 659, 784, 1047].forEach((f, i) => t('square', f, f, 0.14, 0.13, i * 0.08)); }
   };
   Object.assign(A.SFX, E);
   // Wiederholte Treffer nicht zu einem Knattern verschmelzen lassen
-  const MIN = { hit: 0.045, crit: 0.045, stone: 0.045, swing: 0.1, fenceHit: 0.06, die: 0.05, rock: 0.04, houseHit: 0.1, hurt: 0.08 }, last = {};
+  const MIN = { hit: 0.045, crit: 0.045, stone: 0.045, swing: 0.1, fenceHit: 0.06, die: 0.05, rock: 0.04, houseHit: 0.1, hurt: 0.08, splat: 0.06, spit: 0.08 }, last = {};
   D.sfx = function (name) {
     const now = performance.now() / 1000, gap = MIN[name] || 0;
     if (gap && last[name] && now - last[name] < gap) return;
     last[name] = now;
     A.sfx(name);
   };
+})(window);
+
+</script>
+<script>
+/* src/def-hub.js */
+/* Raumspiel – Verteidigung: Auswahl vor dem Kampf (Stufen mit Sternen, Schwierigkeit, Held mit Level und Material) und Ergebnis nach dem Kampf.
+ * Liest und schreibt den Spielstand ueber D.data()/D.commit() (def-save.js). Die Oberflaeche (Fenster, Schleife) steckt in def-ui.js.
+ */
+(function (g) {
+  'use strict';
+  const RS = (g.RS = g.RS || {});
+  const D = (RS.def = RS.def || {});
+  const $ = (id) => document.getElementById(id);
+  const H = (D.hub = { sel: 0, diff: 'normal', ready: true });
+  const fmt = (n) => (Math.round(n * 10) / 10).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const matHtml = (m, n) => '<span class="hmat"><i style="background:' + D.MATS[m].col + '"></i>' + D.MATS[m].name + ' <b>' + n + '</b></span>';
+  const stars = (n, big) => [0, 1, 2].map((i) => '<img class="pxi ' + (big ? 'big ' : '') + '" alt="" draggable="false" src="' + D.icon(i < n ? 'star' : 'star0') + '">').join('');
+
+  // Stunden zum Ausgeben (gemeinsamer Topf mit dem Raum)
+  H.balance = function () { try { return RS.G && RS.G.balance ? RS.G.balance() : 0; } catch (e) { return 0; } };
+
+  H.html = function () {
+    return '<div id="dhub" class="dui">' +
+      '<div class="hhead"><div class="dtitle num">VERTEIDIGUNG</div><div class="hchips"><span class="chip" id="hLv"></span><span class="chip gold" id="hHours"></span></div></div>' +
+      '<div class="hmain">' +
+        '<div class="hhero panel p2"><canvas id="hHeroCv" width="76" height="76"></canvas><div class="hname num" id="hName"></div>' +
+          '<div class="hxp"><div class="dbar"><i id="hXp"></i></div></div><div class="hxpt" id="hXpT"></div><div class="hxpt hstat" id="hStat"></div><div class="hmats" id="hMats"></div></div>' +
+        '<div class="hstages" id="hStages"></div>' +
+      '</div>' +
+      '<div class="hfoot"><div class="hdiff" id="hDiff"></div><div class="acts"><button class="btn" id="hBack">Zurück zum Raum</button><button class="btn sm rotbtn" id="dRotM">Bild drehen</button><button class="btn gold big" id="hGo">Kampf starten</button></div></div>' +
+      '</div>';
+  };
+
+  H.bind = function () {
+    $('hBack').onclick = () => D.close();
+    $('hGo').onclick = () => { if (RS.audio) RS.audio.init(); if (H.canStart()) D.start({ stage: H.sel, diff: H.diff }); };
+    $('hStages').addEventListener('click', (e) => { const b = e.target.closest('.hst'); if (!b || b.classList.contains('lock')) return; H.select(+b.dataset.i); });
+    $('hDiff').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; H.diff = b.dataset.d; const s = D.data(); s.diff = H.diff; D.commit(); H.refresh(); });
+  };
+
+  H.canStart = () => D.ready && H.ready && D.stageOpen(D.data(), H.sel);
+
+  // Stufe waehlen und ihre Monster (vor allem die grossen Bosse) im Hintergrund vorbereiten
+  H.select = function (i) {
+    H.sel = Math.max(0, Math.min(D.STAGES.length - 1, i)); H.refresh();
+    const types = {}; D.STAGES[H.sel].waves.forEach((w) => w.forEach((e) => (types[e.type] = 1)));
+    const jobs = []; Object.keys(types).forEach((t) => { const n = t === 'saber' ? 6 : 5; for (let f = 0; f < n; f++) jobs.push(() => D.monSprite(t, f)); });
+    H.ready = false; setGo();
+    let k = 0; clearTimeout(H.timer);
+    const run = () => { const t0 = performance.now(); while (k < jobs.length && performance.now() - t0 < 14) jobs[k++](); if (k < jobs.length) H.timer = setTimeout(run, 0); else { H.ready = true; setGo(); } };
+    if (RS.G && RS.G.manual) { jobs.forEach((j) => j()); H.ready = true; setGo(); } else H.timer = setTimeout(run, 30);
+  };
+  function setGo() {
+    const b = $('hGo'); if (!b) return;
+    const open = D.stageOpen(D.data(), H.sel), ok = D.ready && H.ready && open;
+    b.disabled = !ok; b.textContent = !open ? 'Gesperrt' : ok ? 'Kampf starten' : 'Lade …';
+  }
+
+  H.refresh = function () {
+    const s = D.data(), cap = D.heroCap(), need = D.LV.xpNeed(s.lv);
+    H.diff = s.diff || H.diff;
+    $('hLv').textContent = 'Held Lv ' + s.lv + (s.lv >= cap ? ' (max.)' : '');
+    $('hHours').textContent = fmt(H.balance()) + ' h';
+    $('hName').textContent = 'LV ' + s.lv;
+    const pr = s.lv >= cap ? 1 : s.xp / need; $('hXp').style.width = Math.round(pr * 100) + '%';
+    $('hXpT').textContent = s.lv >= cap ? 'Obergrenze erreicht (2 × Dashboard-Level)' : s.xp + ' / ' + need + ' EP';
+    const hst = D.heroStats(s.lv); $('hStat').textContent = 'LP ' + hst.hp + ' · Schaden +' + Math.round((hst.dmg - 1) * 100) + ' %';
+    $('hMats').innerHTML = Object.keys(D.MATS).map((m) => matHtml(m, s.mats[m])).join('');
+    $('hStages').innerHTML = D.STAGES.map((st, i) => {
+      const open = D.stageOpen(s, i), n = D.stageStars(s, st.id);
+      return '<button class="hst' + (i === H.sel ? ' sel' : '') + (open ? '' : ' lock') + '" data-i="' + i + '"><span class="hn num">' + (i + 1) + '</span><span class="hnm">' + st.name + '</span>' +
+        '<span class="hsr">' + (open ? stars(n, false) : '<em>gesperrt</em>') + '</span></button>';
+    }).join('');
+    $('hDiff').innerHTML = D.DIFF.map((q) => '<button data-d="' + q.id + '" class="' + (q.id === H.diff ? 'on' : '') + '">' + q.name + '</button>').join('');
+    setGo();
+  };
+
+  H.show = function () {
+    const s = D.data();
+    // vorgewaehlt: die erste noch nicht geschaffte freie Stufe, sonst die letzte
+    let i = 0; for (let k = 0; k < D.STAGES.length; k++) { if (D.stageOpen(s, k)) { i = k; if (D.stageStars(s, D.STAGES[k].id) < 1) break; } }
+    if (H.sel > i || !D.stageOpen(s, H.sel)) H.sel = i;
+    $('dhub').classList.add('show'); H.select(H.sel); H.drawHero(0);
+  };
+  H.hide = function () { const e = $('dhub'); if (e) e.classList.remove('show'); clearTimeout(H.timer); };
+
+  // Held-Vorschau (leicht atmend)
+  H.drawHero = function (tm) {
+    const cv = $('hHeroCv'); if (!cv || !D.ready) return;
+    const f = Math.floor(tm * 5) % 4, spr = D.heroSprite(D.look, 'stand', f), x = cv.getContext('2d');
+    x.clearRect(0, 0, cv.width, cv.height); x.imageSmoothingEnabled = false;
+    x.drawImage(spr.cv, Math.round(cv.width / 2 - spr.ox), Math.round(cv.height - 4 - spr.oy));
+  };
+
+  /* ---------- Ergebnis nach dem Kampf: in den Spielstand uebernehmen und als Text zurueckgeben ---------- */
+  H.applyResult = function (S) {
+    const s = D.data(), R = S.result, st = S.stage, info = { lines: [], levelUp: 0, unlocked: null, newStars: 0 };
+    if (!R) return info;
+    const before = D.stageStars(s, st.id), wasOpen = D.STAGES.map((q, i) => D.stageOpen(s, i));
+    info.levelUp = D.addXp(s, R.xp);
+    for (const m of Object.keys(R.loot)) s.mats[m] += R.loot[m];
+    if (R.won) { const p = s.prog[st.id] || (s.prog[st.id] = { stars: 0, best: 0 }); p.stars = Math.max(p.stars, R.stars); info.newStars = Math.max(0, R.stars - before); }
+    const now = D.STAGES.findIndex((q, i) => !wasOpen[i] && D.stageOpen(s, i)); if (now >= 0) info.unlocked = D.STAGES[now].name;
+    D.commit();
+    return info;
+  };
+  H.endHtml = function (S, info) {
+    const R = S.result, m = Math.floor(S.stats.time / 60), sec = Math.floor(S.stats.time % 60), s = D.data();
+    let h = (R.won ? '' : 'Das Haus ist gefallen. Diesmal keine Beute.<br>') + 'Monster besiegt: <b>' + S.stats.kills + '</b> · Haus: <b>' + Math.round(S.house.hp / S.house.maxHp * 100) + ' %</b> · Zeit: <b>' + m + ':' + (sec < 10 ? '0' : '') + sec + '</b>';
+    if (S.stats.kos) h += ' · Held ausgeschaltet: <b>' + S.stats.kos + '×</b>';
+    if (R.won) { const parts = Object.keys(R.loot).filter((k) => R.loot[k] > 0).map((k) => matHtml(k, '+' + R.loot[k])); h += '<div class="hloot">' + (parts.length ? parts.join('') : 'keine Beute') + '</div>'; }
+    h += '<div class="hxpl"><b>+' + R.xp + ' EP</b>' + (info.levelUp ? ' · <span class="up">HELD LEVEL ' + s.lv + '!</span>' : '') + '</div>';
+    if (info.unlocked) h += '<div class="hxpl"><span class="up">Neue Stufe: ' + info.unlocked + '</span></div>';
+    return h;
+  };
+  H.stars = stars;
 })(window);
 
 </script>
@@ -8114,7 +9021,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   const RS = (g.RS = g.RS || {});
   const D = (RS.def = RS.def || {});
   const $ = (id) => document.getElementById(id);
-  let root = null, cv = null, ctx = null, S = null, raf = 0, last = 0, acc = 0, paused = false, portrait = false, turnOk = false, blocked = false, endShown = false, down = false, keys = { l: false, r: false };
+  let root = null, cv = null, ctx = null, S = null, curOpts = { stage: 0, diff: 'normal' }, raf = 0, last = 0, acc = 0, paused = false, portrait = false, turnOk = false, blocked = false, endShown = false, down = false, keys = { l: false, r: false };
   // Querformat: Android kann es auf Anfrage erzwingen (Bildschirmsperre per API, auch in einer Verknuepfung, die auf Hochformat festgelegt ist).
   // Klappt das nicht (z. B. iPhone), kippt der Spieler das Bild selbst: rotDir 0 = aus, 1 = Handy-Oberseite links, -1 = rechts (CSS-Drehung des ganzen Spiels).
   let lockState = 'none', lockAt = 0, lockTimer = 0, lockTok = 0, fsByUs = false, lockedByUs = false, rotDir = 0, rotOn = false;
@@ -8167,25 +9074,25 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
           '<div class="drow">' + img('fence') + '<div class="dbar"><i id="dbF"></i></div><span id="dnF" class="num"></span></div>' +
         '</div>' +
         '<div id="dwave" class="panel p2"><b id="dwt" class="num">BEREIT</b><span class="lbl">' + img('skull') + ' <span id="dwm">0</span></span></div>' +
+        '<div id="dboss" class="panel p2"><b id="dbn" class="num"></b><div class="dbar"><i id="dbB"></i></div></div>' +
         '<button id="dpause" class="btn ico dui" title="Pause">' + img('pause') + '</button>' +
         '<div id="dhero" class="panel p2">' + img('heart') + '<div class="dbar"><i id="dbP"></i></div><span id="dnP" class="num"></span></div>' +
         '<button id="dab" class="dab dui" title="Steinhagel (1)">' + img('rock') + '<span class="cd" id="dcd"></span><span class="ct num" id="dct"></span><small>Steinhagel</small></button>' +
         '<div id="dbanner"><div class="bt num" id="dbt"></div><div class="bs" id="dbs"></div></div>' +
       '</div>' +
-      '<div id="dmenu" class="dcenter panel dui"><div class="dtitle num">VERTEIDIGUNG</div><div class="dsub">Steinzeit · ' + D.STAGES[0].name + '</div>' +
-        '<ul><li>Tippe auf den Boden: dein Held läuft dorthin.</li><li>Keule und Schleuder greifen von allein an.</li><li>Steinhagel: Knopf unten rechts.</li><li>Halte Haus und Zaun, bis keine Monster mehr kommen.</li></ul>' +
-        '<div class="acts"><button class="btn" id="dBack">Zurück zum Raum</button><button class="btn sm rotbtn" id="dRotM">Bild drehen</button><button class="btn gold big" id="dGo">Kampf starten</button></div></div>' +
+      D.hub.html() +
       '<div id="dpanel" class="dcenter panel dui"><div class="dtitle num">PAUSE</div><div class="acts"><button class="btn" id="dQuit">Beenden</button><button class="btn sm rotbtn" id="dRotP">Bild drehen</button><button class="btn gold big" id="dResume">Weiter</button></div></div>' +
-      '<div id="dend" class="dcenter panel dui"><div class="dtitle num" id="det"></div><div class="dstars" id="dstars"></div><div class="dsub" id="des"></div><div class="acts"><button class="btn" id="dBack2">Zurück zum Raum</button><button class="btn gold big" id="dAgain">Nochmal</button></div></div>' +
+      '<div id="dend" class="dcenter panel dui"><div class="dtitle num" id="det"></div><div class="dstars" id="dstars"></div><div class="dsub" id="des"></div><div class="acts"><button class="btn" id="dBack2">Auswahl</button><button class="btn" id="dNext">Weiter</button><button class="btn gold big" id="dAgain">Nochmal</button></div></div>' +
       '<div id="dturn" class="dui"><div class="phone"></div><div class="dsub">Bitte das Handy drehen</div>' +
         '<div class="dhint">Bleibt das Bild hochkant? Dann halte das Handy quer und tippe, wo oben (Kamera) ist:</div>' +
         '<div class="acts"><button class="btn" id="dRotL">Oben links</button><button class="btn" id="dRotR">Oben rechts</button></div>' +
         '<button class="btn sm" id="dTurnOk">Trotzdem hochkant spielen</button></div>';
     document.body.appendChild(root);
     cv = $('dcv'); ctx = cv.getContext('2d');
-    $('dGo').onclick = () => { RS.audio && RS.audio.init(); D.start(); };
-    $('dBack').onclick = $('dBack2').onclick = $('dQuit').onclick = () => D.close();
-    $('dAgain').onclick = () => { RS.audio && RS.audio.init(); D.start(); };
+    D.hub.bind();
+    $('dBack2').onclick = $('dQuit').onclick = () => D.toHub();
+    $('dAgain').onclick = () => { RS.audio && RS.audio.init(); D.start({ stage: curOpts.stage, diff: curOpts.diff }); };
+    $('dNext').onclick = () => { RS.audio && RS.audio.init(); D.hub.sel = Math.min(D.STAGES.length - 1, curOpts.stage + 1); D.start({ stage: D.hub.sel, diff: curOpts.diff }); };
     $('dResume').onclick = () => setPaused(false);
     $('dpause').onclick = () => setPaused(!paused);
     $('dTurnOk').onclick = () => { turnOk = true; layout(); };
@@ -8289,6 +9196,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if (hv.cd !== p) { hv.cd = p; $('dcd').style.setProperty('--p', p); }
     txt('dct', cd > 0 ? String(Math.ceil(cd)) : '');
     $('dab').classList.toggle('ready', cd <= 0 && S.phase === 'wave');
+    const bo = S.boss && !S.boss.dead && S.phase === 'wave' ? S.boss : null;
+    $('dboss').classList.toggle('show', !!bo);
+    if (bo) { txt('dbn', bo.T.name); fill('dbB', bo.hp / bo.maxHp); }
     const b = S.banner;
     if (b && hv.banner !== b) { hv.banner = b; $('dbt').textContent = b.text; $('dbs').textContent = b.sub || ''; const el = $('dbanner'); el.classList.remove('go'); void el.offsetWidth; el.classList.add('go'); }
     if (!b) hv.banner = null;
@@ -8296,12 +9206,15 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   function showEnd() {
     endShown = true;
-    const won = S.phase === 'win', m = Math.floor(S.stats.time / 60), sec = Math.floor(S.stats.time % 60);
+    const won = S.phase === 'win', info = D.hub.applyResult(S);   // Beute, Erfahrung und Sterne in den Spielstand uebernehmen
     $('det').textContent = won ? 'SIEG!' : 'NIEDERLAGE';
     $('dstars').innerHTML = won ? [0, 1, 2].map((i) => img(i < S.stars ? 'star' : 'star0', 'big')).join('') : '';
-    $('des').innerHTML = (won ? '' : 'Das Haus ist gefallen. Diesmal keine Beute.<br>') + 'Monster besiegt: <b>' + S.stats.kills + '</b> · Haus: <b>' + Math.round(S.house.hp / S.house.maxHp * 100) + ' %</b><br>Zeit: <b>' + m + ':' + (sec < 10 ? '0' : '') + sec + '</b>' + (S.stats.kos ? ' · Held ausgeschaltet: <b>' + S.stats.kos + '×</b>' : '');
+    $('des').innerHTML = D.hub.endHtml(S, info);
+    $('dNext').style.display = won && curOpts.stage + 1 < D.STAGES.length && D.stageOpen(D.data(), curOpts.stage + 1) ? '' : 'none';
     $('dend').classList.add('show');
+    if (info.levelUp) sfx2('levelUp');
   }
+  function sfx2(n) { if (D.sfx) D.sfx(n); }
 
   /* ---------- Ablauf ---------- */
   // Sprites und Welt in kleinen Etappen vorbereiten: nach dem Antippen erscheint das Menue sofort, der Start-Knopf zeigt "Lade ..." bis alles fertig ist
@@ -8309,18 +9222,15 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   function warmJobs() {
     const look = D.look, jobs = [];
     jobs.push(() => D.worldStep('stone'));   // false = noch nicht fertig, wird noch einmal aufgerufen
-    jobs.push(() => { D.heroSprite(look, 'stand', 0); D.heroSprite(look, 'ko', 0); });
-    for (let f = 0; f < 4; f++) jobs.push(() => D.heroSprite(look, 'walk', f));
-    for (let f = 0; f < 3; f++) jobs.push(() => D.heroSprite(look, 'swing', f));
-    for (let f = 0; f < 2; f++) jobs.push(() => D.heroSprite(look, 'throw', f));
-    for (let f = 0; f < 5; f++) jobs.push(() => { D.raptorSprite(f, 0); D.rhinoSprite(f); });
+    for (const pose of Object.keys(D.HERO_FRAMES)) for (let f = 0; f < D.HERO_FRAMES[pose]; f++) jobs.push(() => D.heroSprite(look, pose, f));
+    for (const type of ['raptor', 'rhino', 'spitter', 'flyer']) for (let f = 0; f < 5; f++) jobs.push(() => D.monSprite(type, f));
     jobs.push(() => { for (let s2 = 0; s2 < 4; s2++) D.fenceSprite(s2); });
     jobs.push(() => { D.houseSprite(0); D.houseSprite(1); D.stoneSprite(2); D.stoneSprite(5); });
     return jobs;
   }
   function setReady() {
     if (!root) return;
-    const b = $('dGo'); b.disabled = !D.ready; b.textContent = D.ready ? 'Kampf starten' : 'Lade …';
+    D.hub.refresh();
   }
   let warmTimer = 0;
   D.warm = function (sync) {
@@ -8337,14 +9247,21 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   function showMenu() {
     endShown = false; paused = false;
     ['dpanel', 'dend'].forEach((id) => $(id).classList.remove('show'));
-    $('dmenu').classList.add('show');
-    $('dhud').style.visibility = 'hidden';
+    $('dhud').style.visibility = 'hidden'; $('dboss').classList.remove('show');
+    D.hub.show();
   }
-  D.start = function () {
+  // Zurueck zur Auswahl (nach dem Kampf oder ueber Pause -> Beenden)
+  D.toHub = function () {
+    if (!root) return;
+    S = D.newBattle({ heroLv: D.data().lv }); S.phase = 'menu'; hv = {}; acc = 0; showMenu();
+  };
+  D.start = function (opts) {
     if (!D.ready) return null;
+    opts = opts || { stage: D.hub.sel, diff: D.hub.diff };
     D.look = RS.avatar && RS.avatar.data ? RS.avatar.data.look : D.look;
-    S = D.newBattle(); endShown = false; paused = false; acc = 0; hv = {}; if (D.worldReset) D.worldReset();
-    ['dmenu', 'dpanel', 'dend'].forEach((id) => $(id).classList.remove('show'));
+    curOpts = { stage: Math.max(0, Math.min(D.STAGES.length - 1, opts.stage | 0)), diff: opts.diff || 'normal' };
+    S = D.newBattle({ stage: D.STAGES[curOpts.stage], diff: curOpts.diff, heroLv: D.data().lv }); endShown = false; paused = false; acc = 0; hv = {}; if (D.worldReset) D.worldReset();
+    D.hub.hide(); ['dpanel', 'dend'].forEach((id) => $(id).classList.remove('show'));
     $('dhud').style.visibility = 'visible'; $('dbanner').classList.remove('go');
     return S;
   };
@@ -8355,7 +9272,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     D.look = RS.avatar && RS.avatar.data ? RS.avatar.data.look : null;
     const G = RS.G; if (G && G.settings && G.settings.music && RS.audio) RS.audio.music(false);
     D.warm(!!(G && G.manual));
-    S = D.newBattle(); S.phase = 'menu'; hv = {};
+    S = D.newBattle({ heroLv: D.data().lv }); S.phase = 'menu'; hv = {};
     enterLandscape();   // innerhalb des Antippens, nur so erlauben Browser Vollbild und Drehsperre
     showMenu(); layout();
     last = 0; acc = 0;
@@ -8378,7 +9295,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       if (acc > STEP) acc = 0;
     }
     D.render(ctx, S, performance.now() / 1000);
-    if (S.phase !== 'menu') hud();
+    if (S.phase !== 'menu') hud(); else D.hub.drawHero(performance.now() / 1000);
   };
   let fpsT = 0, fpsN = 0, slowRuns = 0;
   function loop(ts) {
