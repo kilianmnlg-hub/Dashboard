@@ -181,7 +181,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 #dbanner .bt { font-size: calc(var(--u) * 9); color: var(--gold-hi); text-shadow: 0 calc(var(--u) * 1) 0 var(--gold-lo), 0 calc(var(--u) * 2) 0 var(--line), calc(var(--u) * -1) 0 0 var(--line), var(--u) 0 0 var(--line); white-space: nowrap; }
 #dbanner .bs { margin-top: calc(var(--u) * 2); color: var(--tx); font-size: calc(var(--u) * 4); text-shadow: 0 var(--u) 0 var(--line); }
 @keyframes dban { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.6); } 12% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 20% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
-.dcenter { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(88vw, calc(var(--u) * 150)); padding: calc(var(--u) * 5); text-align: center; display: none; z-index: 3; }
+.dcenter { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(88%, calc(var(--u) * 150)); padding: calc(var(--u) * 5); text-align: center; display: none; z-index: 3; }
 .dcenter.show { display: block; }
 .dtitle { font-size: calc(var(--u) * 7); color: var(--gold-hi); text-shadow: 0 calc(var(--u) * 1) 0 var(--gold-lo); margin-bottom: calc(var(--u) * 2); }
 .dsub { color: var(--dim); font-size: calc(var(--u) * 4); line-height: 1.35; margin: calc(var(--u) * 1) 0 calc(var(--u) * 2); }
@@ -191,15 +191,30 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 .dcenter li::before { content: ''; position: absolute; left: 0; top: calc(var(--u) * 2.6); width: calc(var(--u) * 2); height: calc(var(--u) * 2); background: var(--gold); }
 .dcenter .acts { display: flex; justify-content: center; flex-wrap: wrap; margin-top: calc(var(--u) * 3); }
 .dstars { display: flex; justify-content: center; gap: calc(var(--u) * 2); margin: calc(var(--u) * 2) 0; }
-#dturn { position: absolute; inset: 0; z-index: 6; background: rgba(10, 6, 20, .94); display: none; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 4); }
+#dturn { position: absolute; inset: 0; z-index: 6; background: rgba(10, 6, 20, .98); display: none; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 4); }
 #dturn.show { display: flex; }
 #dturn .phone { width: calc(var(--u) * 12); height: calc(var(--u) * 20); border: calc(var(--u) * 1.5) solid var(--tx); background: var(--p2); animation: dtr 1.6s steps(8) infinite; }
 @keyframes dtr { 0%, 25% { transform: rotate(0); } 55%, 100% { transform: rotate(90deg); } }
-@media (max-height: 460px) {
-  .dcenter { padding: calc(var(--u) * 3); } .dtitle { font-size: calc(var(--u) * 5.5); margin-bottom: calc(var(--u) * 1); } .dcenter li { font-size: calc(var(--u) * 3.3); padding-top: 0; padding-bottom: 0; }
-  .dsub { font-size: calc(var(--u) * 3.4); margin: 0 0 calc(var(--u) * 1); } .dcenter ul { margin: calc(var(--u) * 1) 0; } .dcenter .acts { margin-top: calc(var(--u) * 1); }
-  .dab { width: calc(var(--u) * 20); height: calc(var(--u) * 20); } .dab small { display: none; }
-}
+/* Hochformat-Hinweis: Schrift und Knoepfe nach Bildschirmbreite (das Spielraster --u ist fuer das Querbild gedacht) */
+#dturn { padding: 0 5vw; text-align: center; }
+#dv #dturn .dsub { font-size: clamp(15px, 5vw, 24px); margin: 0; }
+#dturn .dhint { color: var(--dim); font-size: clamp(12px, 3.8vw, 17px); line-height: 1.4; max-width: 92%; }
+#dturn .acts { display: flex; justify-content: center; flex-wrap: wrap; }
+#dturn .btn { min-height: 46px; font-size: clamp(13px, 4vw, 17px); padding: 0 16px; margin: 6px; }
+#dturn .acts .btn { min-width: 150px; }
+#dturn .phone { margin-bottom: 4px; }
+/* "Bild drehen" nur bei hochkantem Bildschirm */
+.rotbtn { display: none; }
+#dv.dportrait .rotbtn { display: inline-flex; }
+/* niedrige Flaeche (Handy quer, auch bei gedrehtem Bild): kleinere Tafeln; die Klasse setzt layout() je nach Hoehe des Spielbilds */
+#dv.dlow .dcenter { padding: calc(var(--u) * 3); }
+#dv.dlow .dtitle { font-size: calc(var(--u) * 5.5); margin-bottom: calc(var(--u) * 1); }
+#dv.dlow .dcenter li { font-size: calc(var(--u) * 3.3); padding-top: 0; padding-bottom: 0; }
+#dv.dlow .dsub { font-size: calc(var(--u) * 3.4); margin: 0 0 calc(var(--u) * 1); }
+#dv.dlow .dcenter ul { margin: calc(var(--u) * 1) 0; }
+#dv.dlow .dcenter .acts { margin-top: calc(var(--u) * 1); }
+#dv.dlow .dab { width: calc(var(--u) * 20); height: calc(var(--u) * 20); }
+#dv.dlow .dab small { display: none; }
 
 </style>
 </head>
@@ -8097,7 +8112,11 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   const RS = (g.RS = g.RS || {});
   const D = (RS.def = RS.def || {});
   const $ = (id) => document.getElementById(id);
-  let root = null, cv = null, ctx = null, S = null, raf = 0, last = 0, acc = 0, paused = false, portrait = false, turnOk = false, endShown = false, down = false, keys = { l: false, r: false };
+  let root = null, cv = null, ctx = null, S = null, raf = 0, last = 0, acc = 0, paused = false, portrait = false, turnOk = false, blocked = false, endShown = false, down = false, keys = { l: false, r: false };
+  // Querformat: Android kann es auf Anfrage erzwingen (Bildschirmsperre per API, auch in einer Verknuepfung, die auf Hochformat festgelegt ist).
+  // Klappt das nicht (z. B. iPhone), kippt der Spieler das Bild selbst: rotDir 0 = aus, 1 = Handy-Oberseite links, -1 = rechts (CSS-Drehung des ganzen Spiels).
+  let lockState = 'none', lockAt = 0, lockTimer = 0, lockTok = 0, fsByUs = false, rotDir = 0, rotOn = false;
+  try { rotDir = Math.max(-1, Math.min(1, Math.round(+localStorage.getItem('rs.def.rot') || 0))); } catch (e) { rotDir = 0; }
   const STEP = 1 / 60;
   D.active = false;
   D.lite = /[?&]lite=1/.test(g.location.search);   // einfachere Kulisse (wird bei zu langsamen Geraeten automatisch eingeschaltet)
@@ -8153,10 +8172,13 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       '</div>' +
       '<div id="dmenu" class="dcenter panel dui"><div class="dtitle num">VERTEIDIGUNG</div><div class="dsub">Steinzeit · ' + D.STAGES[0].name + '</div>' +
         '<ul><li>Tippe auf den Boden: dein Held läuft dorthin.</li><li>Keule und Schleuder greifen von allein an.</li><li>Steinhagel: Knopf unten rechts.</li><li>Halte Haus und Zaun, bis keine Monster mehr kommen.</li></ul>' +
-        '<div class="acts"><button class="btn" id="dBack">Zurück zum Raum</button><button class="btn gold big" id="dGo">Kampf starten</button></div></div>' +
-      '<div id="dpanel" class="dcenter panel dui"><div class="dtitle num">PAUSE</div><div class="acts"><button class="btn" id="dQuit">Beenden</button><button class="btn gold big" id="dResume">Weiter</button></div></div>' +
+        '<div class="acts"><button class="btn" id="dBack">Zurück zum Raum</button><button class="btn sm rotbtn" id="dRotM">Bild drehen</button><button class="btn gold big" id="dGo">Kampf starten</button></div></div>' +
+      '<div id="dpanel" class="dcenter panel dui"><div class="dtitle num">PAUSE</div><div class="acts"><button class="btn" id="dQuit">Beenden</button><button class="btn sm rotbtn" id="dRotP">Bild drehen</button><button class="btn gold big" id="dResume">Weiter</button></div></div>' +
       '<div id="dend" class="dcenter panel dui"><div class="dtitle num" id="det"></div><div class="dstars" id="dstars"></div><div class="dsub" id="des"></div><div class="acts"><button class="btn" id="dBack2">Zurück zum Raum</button><button class="btn gold big" id="dAgain">Nochmal</button></div></div>' +
-      '<div id="dturn" class="dui"><div class="phone"></div><div class="dsub">Bitte das Handy drehen</div><button class="btn sm" id="dTurnOk">Trotzdem spielen</button></div>';
+      '<div id="dturn" class="dui"><div class="phone"></div><div class="dsub">Bitte das Handy drehen</div>' +
+        '<div class="dhint">Bleibt das Bild hochkant? Dann halte das Handy quer und tippe, wo oben (Kamera) ist:</div>' +
+        '<div class="acts"><button class="btn" id="dRotL">Oben links</button><button class="btn" id="dRotR">Oben rechts</button></div>' +
+        '<button class="btn sm" id="dTurnOk">Trotzdem hochkant spielen</button></div>';
     document.body.appendChild(root);
     cv = $('dcv'); ctx = cv.getContext('2d');
     $('dGo').onclick = () => { RS.audio && RS.audio.init(); D.start(); };
@@ -8165,6 +8187,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     $('dResume').onclick = () => setPaused(false);
     $('dpause').onclick = () => setPaused(!paused);
     $('dTurnOk').onclick = () => { turnOk = true; layout(); };
+    const setRot = (d) => { rotDir = d; turnOk = false; try { localStorage.setItem('rs.def.rot', String(d)); } catch (err) { /* Speicher gesperrt: egal */ } layout(); };
+    $('dRotL').onclick = () => setRot(1); $('dRotR').onclick = () => setRot(-1);
+    $('dRotM').onclick = $('dRotP').onclick = () => setRot(rotDir > 0 ? -1 : rotDir < 0 ? 0 : 1);   // links -> rechts -> aus (dann fragt der Hinweis wieder) -> links ...
     // Fahigkeit: sofort beim Beruehren
     $('dab').addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); if (S && S.phase === 'wave') D.pressAbility(S); });
     // Held laufen lassen: antippen oder ziehen
@@ -8174,21 +8199,65 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     root.addEventListener('pointerup', up); root.addEventListener('pointercancel', up);
     root.addEventListener('contextmenu', (e) => e.preventDefault());
     g.addEventListener('resize', () => { if (D.active) layout(); });
+    g.addEventListener('orientationchange', () => { if (D.active) setTimeout(layout, 120); });
+    document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) fsByUs = false; if (D.active) setTimeout(layout, 300); });
     document.addEventListener('visibilitychange', () => { if (document.hidden && D.active && S && S.phase !== 'menu') setPaused(true); });
   }
   function aim(e) {
     if (!S || S.phase === 'menu' || paused) return;
     const r = cv.getBoundingClientRect();
-    D.tapTo(S, (e.clientX - r.left) / r.width * D.W);
+    // gedrehtes Bild: die Breite des Spielfelds liegt auf der Bildschirmhoehe (Oberseite links: von oben nach unten, rechts: von unten nach oben)
+    const f = !rotOn ? (e.clientX - r.left) / r.width : rotDir > 0 ? (e.clientY - r.top) / r.height : 1 - (e.clientY - r.top) / r.height;
+    D.tapTo(S, f * D.W);
     if (RS.audio) RS.audio.sfx('tap');
   }
+  // Querformat anfordern (beim Oeffnen, innerhalb des Antippens): erst direkt (installierte Verknuepfung/App), sonst im Vollbild (Browser-Tab auf dem Handy)
+  function enterLandscape() {
+    clearTimeout(lockTimer);
+    const so = g.screen && g.screen.orientation, tok = ++lockTok;
+    if (!(g.innerHeight > g.innerWidth * 1.05)) { lockState = 'none'; return; }   // schon quer (oder PC): nichts zu tun
+    if (!so || typeof so.lock !== 'function') { lockState = 'fail'; return; }      // z. B. iPhone: Spieler dreht selbst
+    lockState = 'pending'; lockAt = Date.now();
+    const coarse = !!(g.matchMedia && g.matchMedia('(pointer: coarse)').matches);
+    const lock = () => { try { return so.lock('landscape').then(() => true, () => false); } catch (err) { return Promise.resolve(false); } };
+    lock().then((ok) => {
+      if (ok || !coarse) return ok;
+      const el = document.documentElement;
+      if (!el.requestFullscreen || document.fullscreenElement) return false;
+      return el.requestFullscreen().then(() => { fsByUs = true; return lock(); }, () => false);
+    }).then((ok) => {
+      if (tok !== lockTok) { try { so.unlock(); } catch (err) { /* egal */ } return; }   // inzwischen geschlossen: Sperre wieder loesen
+      lockState = ok ? 'ok' : 'fail'; lockAt = Date.now();
+      clearTimeout(lockTimer); lockTimer = setTimeout(layout, ok ? 1300 : 0);   // bei Erfolg kurz warten, bis das System gedreht hat
+      layout();
+    });
+  }
+  function exitLandscape() {
+    lockTok++; clearTimeout(lockTimer); lockState = 'none';
+    try { const so = g.screen && g.screen.orientation; if (so && typeof so.unlock === 'function') so.unlock(); } catch (err) { /* egal */ }
+    try { if (fsByUs && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); } catch (err) { /* egal */ }
+    fsByUs = false;
+  }
   function layout() {
-    const dpr = g.devicePixelRatio || 1, vw = g.innerWidth, vh = g.innerHeight;
+    const dpr = g.devicePixelRatio || 1, iw = g.innerWidth, ih = g.innerHeight;
+    portrait = ih > iw * 1.05;
+    // Sperre geglueckt, Bild bleibt aber hochkant (Verknuepfung ohne Rechte o. ae.): nach kurzer Wartezeit als gescheitert behandeln
+    if (lockState === 'ok' && portrait && Date.now() - lockAt > 1200) lockState = 'fail';
+    const waiting = lockState === 'pending' || (lockState === 'ok' && Date.now() - lockAt <= 1200);
+    const useRot = portrait && rotDir !== 0 && !waiting;
+    const vw = useRot ? ih : iw, vh = useRot ? iw : ih;   // Flaeche aus Sicht des Spielbilds
     let s = Math.min(vw * dpr / D.W, vh * dpr / D.H);
     if (s >= 1) s = Math.floor(s);
     cv.style.width = (D.W * s / dpr) + 'px'; cv.style.height = (D.H * s / dpr) + 'px';
-    portrait = vh > vw * 1.05;
-    $('dturn').classList.toggle('show', portrait && !turnOk);
+    const st = root.style;
+    if (useRot) {
+      st.inset = 'auto'; st.left = '0'; st.top = '0'; st.width = ih + 'px'; st.height = iw + 'px'; st.transformOrigin = '0 0';
+      st.transform = rotDir > 0 ? 'translateX(' + iw + 'px) rotate(90deg)' : 'translateY(' + ih + 'px) rotate(-90deg)';
+    } else { st.inset = st.left = st.top = st.width = st.height = st.transformOrigin = st.transform = ''; }
+    rotOn = useRot;
+    blocked = portrait && !useRot && !turnOk && !waiting;
+    root.classList.toggle('dportrait', portrait); root.classList.toggle('dlow', vh < 460);
+    $('dturn').classList.toggle('show', blocked);
   }
   function setPaused(p) {
     if (!S || S.phase === 'menu' || S.phase === 'win' || S.phase === 'lose') return;
@@ -8281,6 +8350,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const G = RS.G; if (G && G.settings && G.settings.music && RS.audio) RS.audio.music(false);
     D.warm(!!(G && G.manual));
     S = D.newBattle(); S.phase = 'menu'; hv = {};
+    enterLandscape();   // innerhalb des Antippens, nur so erlauben Browser Vollbild und Drehsperre
     showMenu(); layout();
     last = 0; acc = 0;
     if (!(RS.G && RS.G.manual)) raf = requestAnimationFrame(loop);
@@ -8289,13 +8359,14 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   D.close = function () {
     if (!D.active) return;
     D.active = false; root.classList.remove('show'); cancelAnimationFrame(raf); S = null; down = false; keys.l = keys.r = false;
+    exitLandscape();
     const G = RS.G; if (G && G.settings && G.settings.music && G.settings.sound && RS.audio && RS.audio.ctx) RS.audio.music(true);
     if (G && G.layout) G.layout();
   };
   D.state = () => S;
   D.tick = function (dt) {
     if (!S) return;
-    if (S.phase !== 'menu' && !paused && !(portrait && !turnOk)) {
+    if (S.phase !== 'menu' && !paused && !blocked) {
       acc += dt; let n = 0;
       while (acc >= STEP && n < 6) { D.step(S, STEP); acc -= STEP; n++; }
       if (acc > STEP) acc = 0;

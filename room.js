@@ -11,7 +11,7 @@
   const SINCE = new Date(2026, 9, 1).getTime(); // 1. Oktober 2026, 0 Uhr (Ortszeit)
   const SINCE_TXT = "1. Oktober";
   const GAME_URL = "raumspiel/index.html";
-  const GAME_VER = "20261022a";
+  const GAME_VER = "20261022b";
   const KEY = "dashboard-room-v2", THUMB_KEY = "dashboard-room-thumb", NEXT_KEY = "dashboard-room-next";
   const MAX_STATE = 200000; // Zeichen; schuetzt die Cloud-Datei vor Ausreissern
   const SYNC_DELAY = 4000; // Aenderungen im Spiel werden gebuendelt in die Cloud geschickt
@@ -114,7 +114,8 @@
       overlay.className = "rm-ov";
       frame = document.createElement("iframe");
       frame.title = "Mein Raum";
-      frame.setAttribute("allow", "autoplay");
+      frame.setAttribute("allow", "autoplay; fullscreen");   // Vollbild: das Kampfspiel braucht es, um auf dem Handy das Querformat zu erzwingen
+      frame.setAttribute("allowfullscreen", "");
       frame.src = `${GAME_URL}?embed=1&v=${GAME_VER}`;
       frame.addEventListener("load", () => { try { frame.focus(); } catch (e) { /* egal */ } });
       overlay.appendChild(frame);
@@ -138,6 +139,7 @@
       window.removeEventListener("popstate", onPop);
       overlay.remove(); overlay = null; frame = null;
       document.body.classList.remove("rm-open");
+      try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) { /* keine Sperre oder nicht unterstuetzt */ }
       if (hasPush) schedulePush(true);
       try { if (history.state && history.state.rm) history.back(); } catch (e) { /* egal */ }
       renderTile(true);
