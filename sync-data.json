@@ -71,7 +71,7 @@
         {
           "id": "36fe10bf-354e-4277-a838-03db22d187b7",
           "text": "Alle 2026 jw sets skript",
-          "done": false
+          "done": true
         },
         {
           "id": "b70255eb-e1a7-4144-91bc-5ca119983237",
@@ -82,7 +82,7 @@
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1792671475622
+    "updatedAt": 1792673859696
   },
   "tasks": {
     "items": [
@@ -781,7 +781,8 @@
         "upload:OgiI51OTc3E:idea": 3,
         "todo:9c20b2bc-db41-4132-b3a9-6b563ec9ce77": 10,
         "todo:f957de14-c86a-4a8c-b64b-6dcf8f7366b5": 10,
-        "todo:b70255eb-e1a7-4144-91bc-5ca119983237": 10
+        "todo:b70255eb-e1a7-4144-91bc-5ca119983237": 10,
+        "todo:36fe10bf-354e-4277-a838-03db22d187b7": 10
       }
     },
     "archive": {
@@ -789,7 +790,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792671475585
+    "updatedAt": 1792673859635
   },
   "msgSeen": {
     "ids": [
