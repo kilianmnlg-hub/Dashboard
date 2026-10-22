@@ -10210,7 +10210,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const useRot = portrait && rotDir !== 0 && !waiting;
     const vw = useRot ? ih : iw, vh = useRot ? iw : ih;   // Flaeche aus Sicht des Spielbilds
     let s = Math.min(vw * dpr / D.W, vh * dpr / D.H);
-    if (s >= 1) s = Math.floor(s);
+    // ganze Stufen sind am schaerfsten, lassen aber oft breite Raender (z. B. 3,6 -> 3 = Bild 17 % kleiner): dann lieber exakt einpassen, damit das Bild den Schirm fuellt
+    const si = Math.floor(s);
+    if (si >= 1 && si / s >= 0.97) s = si;
     cv.style.width = (D.W * s / dpr) + 'px'; cv.style.height = (D.H * s / dpr) + 'px';
     const st = root.style;
     if (useRot) {
