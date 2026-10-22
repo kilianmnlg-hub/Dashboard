@@ -1234,7 +1234,7 @@
           "xp": 27,
           "mats": {
             "fell": 18,
-            "knochen": 41,
+            "knochen": 42,
             "stein": 16
           },
           "prog": {
@@ -1257,7 +1257,9 @@
           "own": {
             "club": 6,
             "sling": 0,
-            "hail": 0
+            "hail": 0,
+            "fence": 0,
+            "house": 0
           },
           "eq": {
             "main": "club",
@@ -1266,6 +1268,12 @@
             "head": null,
             "a": [
               "hail",
+              null,
+              null
+            ],
+            "t": [
+              null,
+              null,
               null,
               null
             ]
@@ -1281,7 +1289,7 @@
           }
         },
         "next": 15,
-        "at": 1792670158740,
+        "at": 1792670571180,
         "items": [
           {
             "u": 1,
@@ -1491,6 +1499,6 @@
       }
     },
     "spent": 72.4,
-    "updatedAt": 1792670159123
+    "updatedAt": 1792670572003
   }
 }
