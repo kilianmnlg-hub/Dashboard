@@ -821,18 +821,12 @@
         "u": 1792649146778
       }
     },
-    "tAt": 1792649155720,
-    "updatedAt": 1792649155720,
+    "tAt": 1792649166279,
+    "updatedAt": 1792649166279,
     "items": [
       {
         "id": "title",
         "t": "Titel und Thumbnail prüfen",
-        "g": "Auf YouTube",
-        "k": "edit"
-      },
-      {
-        "id": "playlist",
-        "t": "Playlist zuordnen, Untertitel prüfen",
         "g": "Auf YouTube",
         "k": "edit"
       },
