@@ -821,8 +821,77 @@
         "u": 1792649146778
       }
     },
-    "tAt": 0,
-    "updatedAt": 1792649146778
+    "tAt": 1792649155720,
+    "updatedAt": 1792649155720,
+    "items": [
+      {
+        "id": "title",
+        "t": "Titel und Thumbnail prüfen",
+        "g": "Auf YouTube",
+        "k": "edit"
+      },
+      {
+        "id": "playlist",
+        "t": "Playlist zuordnen, Untertitel prüfen",
+        "g": "Auf YouTube",
+        "k": "edit"
+      },
+      {
+        "id": "endscreen",
+        "t": "End Screen und Karten setzen",
+        "g": "Auf YouTube",
+        "k": "editor"
+      },
+      {
+        "id": "comment",
+        "t": "Kommentar schreiben und anheften",
+        "g": "Auf YouTube",
+        "k": "watch"
+      },
+      {
+        "id": "post",
+        "t": "Post im Community-Tab veröffentlichen",
+        "g": "Auf YouTube"
+      },
+      {
+        "id": "short",
+        "t": "Short schneiden und hochladen",
+        "g": "Verbreiten"
+      },
+      {
+        "id": "insta",
+        "t": "Instagram: Reel oder Story, Link in Bio",
+        "g": "Verbreiten"
+      },
+      {
+        "id": "facebook",
+        "t": "Facebook: Seite und Gruppen",
+        "g": "Verbreiten"
+      },
+      {
+        "id": "tiktok",
+        "t": "TikTok",
+        "g": "Verbreiten"
+      },
+      {
+        "id": "reply",
+        "t": "Kommentare beantworten (erste Stunden)",
+        "g": "Danach",
+        "k": "comments"
+      },
+      {
+        "id": "stats",
+        "t": "Nach 24 Stunden: Klickrate und Zuschauerbindung ansehen",
+        "g": "Danach",
+        "k": "analytics"
+      },
+      {
+        "id": "idea",
+        "t": "Nächste Video-Idee festlegen",
+        "g": "Danach",
+        "k": "idea"
+      }
+    ]
   },
   "room": {
     "w": {
