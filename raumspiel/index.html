@@ -301,6 +301,14 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 .hmode button { flex: 1; padding: calc(var(--u) * 1.6) calc(var(--u) * 3); background: var(--p1); color: var(--dim); font-family: var(--font2); font-size: calc(var(--u) * 3.2); text-transform: uppercase; box-shadow: inset 0 var(--u) 0 0 var(--hi); }
 .hmode button.on { background: var(--gold); color: #2a1a05; }
 
+/* ---- Verteidigung: Ausruestung im Kampf, Beute ---- */
+#dgbtn { position: absolute; right: calc(var(--u) * 18 + env(safe-area-inset-right, 0px)); top: calc(var(--u) * 2 + env(safe-area-inset-top, 0px)); width: calc(var(--u) * 14); min-height: calc(var(--u) * 14); }
+#dgear { inset: calc(var(--u) * 3) calc(var(--u) * 4); z-index: 6; box-shadow: 0 calc(var(--u) * -1) 0 0 var(--line), 0 var(--u) 0 0 var(--line), calc(var(--u) * -1) 0 0 0 var(--line), var(--u) 0 0 0 var(--line), inset 0 var(--u) 0 0 var(--hi), inset 0 calc(var(--u) * -1) 0 0 var(--lo); }
+#dv.dlow #dgear { inset: calc(var(--u) * 2) calc(var(--u) * 3); }
+.gmats { display: inline-flex; gap: calc(var(--u) * 2.4); align-items: center; font-size: calc(var(--u) * 3); color: var(--tx); }
+.gmats .gm { display: inline-flex; align-items: center; gap: calc(var(--u) * 1); white-space: nowrap; }
+.gmats .gm i { width: calc(var(--u) * 3); height: calc(var(--u) * 3); display: inline-block; box-shadow: 0 0 0 calc(var(--u) * 0.5) var(--line); }
+
 </style>
 </head>
 <body>
@@ -8913,7 +8921,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const S = {
       stage, diff, heroLv: lv, seed: opts.seed || ((Math.random() * 1e9) | 0), t: 0, phase: 'intro', timer: 1.6, wave: -1, waveT: 0, spawnQ: [], endT: 0,
       hero: { x: 80, band: 1, hp: HS.hp + GB, maxHp: HS.hp + GB, state: 'idle', face: 1, t: 0, walkT: 0, swingT: 0, swingHit: false, throwT: 0, thrown: false, cdMelee: 0, cdSling: 0.4, koT: 0, inv: 0, flash: 0, moving: false, stun: 0, castT: 0, hurtT: 0, stepN: 0 },
-      mons: [], proj: [], eproj: [], pools: [], rocks: [], fx: [], texts: [], arcs: [],
+      mons: [], proj: [], eproj: [], pools: [], rocks: [], fx: [], texts: [], arcs: [], drops: [], pickQ: [], memo: {},
       fence: { x: D.FENCE.x, w: D.FENCE.w, hp: D.FENCE.hp, maxHp: D.FENCE.hp, state: 0, flash: 0 },
       house: { x0: D.HOUSE.x0, x1: D.HOUSE.x1, hp: D.HOUSE.hp, maxHp: D.HOUSE.hp, state: 0, flash: 0 },
       in: { tx: null, dir: 0, ab: 0 }, W: { main: L.main, second: L.second }, red: Math.max(0.5, 1 - (L.armor ? L.armor.red : 0) - (L.head ? L.head.red : 0)), buff: { t: 0, dmg: 1, rate: 1 }, fires: [], rings: [], loadout: L,
@@ -8971,7 +8979,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     // Ergebnis: Material gibt es nur beim Sieg, Erfahrung immer (plus Bonus fuers Schaffen)
     S.result = {
       won, stars: S.stars, xp: Math.round(S.xp + (won ? (S.stage.xp || 0) * S.xpMul : 0)),
-      loot: won || S.stage.endless ? Object.assign({}, S.loot) : { fell: 0, knochen: 0, stein: 0 }, lostLoot: won || S.stage.endless ? null : Object.assign({}, S.loot), wave: S.wave + 1
+      loot: Object.assign({}, S.loot), lostLoot: null, wave: S.wave + 1
     };
     sfx(won ? 'win' : 'lose');
   }
@@ -8993,12 +9001,29 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   function summon(S, type, n) { for (let i = 0; i < n; i++) spawn(S, type, { x: D.W + 18 + i * 13 }); }
 
   /* ---------- Schaden ---------- */
+  // Beute faellt als Gegenstand auf den Boden und muss vom Helden ueberlaufen werden (Bosse lassen mehrere Haufen fallen)
   function rollLoot(S, m) {
     for (const e of (m.T.loot || [])) {
       const mat = e[0], c = e[1] * S.lootMul, q = e[2] + Math.floor(S.rng() * (e[3] - e[2] + 1));
       let n = 0;
       if (e[1] >= 1) n = Math.max(1, Math.round(q * S.lootMul)); else if (S.rng() < Math.min(1, c)) n = q;
-      if (n > 0) { S.loot[mat] += n; if (D.MATS[mat]) addText(S, m.x, D.GY + m.dep - m.T.h - 12, '+' + n, D.MATS[mat].col, m.T.boss); }
+      if (n <= 0 || !D.MATS[mat]) continue;
+      const piles = m.T.boss ? Math.min(n, 1 + Math.ceil(n / 3)) : 1, per = Math.ceil(n / piles);
+      for (let i = 0; i < piles && n > 0; i++) { const k = Math.min(per, n); n -= k; S.drops.push({ x: clamp(m.x + (i - (piles - 1) / 2) * 18 + (S.rng() - 0.5) * 8, 24, D.W - 20), dep: m.dep, mat, n: k, t: 0, life: m.T.boss ? 45 : 24, h: 0, vy: 95 + S.rng() * 40 }); }
+    }
+  }
+  function updateDrops(S, dt) {
+    const h = S.hero;
+    for (let i = S.drops.length - 1; i >= 0; i--) {
+      const d = S.drops[i]; d.t += dt;
+      if (d.h > 0 || d.vy > 0) { d.vy -= 520 * dt; d.h += d.vy * dt; if (d.h <= 0) { d.h = 0; d.vy = d.vy < -40 ? -d.vy * 0.38 : 0; } }
+      if (h.state !== 'ko' && d.t > 0.2 && Math.abs(h.x - d.x) < 15) {
+        S.loot[d.mat] += d.n; S.pickQ.push({ mat: d.mat, n: d.n });
+        addText(S, d.x, D.GY + d.dep - 18, '+' + d.n + ' ' + D.MATS[d.mat].name, D.MATS[d.mat].col, d.n >= 4);
+        burst(S, d.x, D.GY + d.dep - 6, 7, [D.MATS[d.mat].col, '#ffffff'], { speed: 0.6, up: 40 }); sfx('pick');
+        S.drops.splice(i, 1); continue;
+      }
+      if (d.t > d.life) S.drops.splice(i, 1);
     }
   }
   function damageMon(S, m, dmg, o) {
@@ -9433,7 +9458,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         S.bossT += dt;
         if (S.bossT > 0.4) for (const m of S.mons) if (!m.dead) { m.dead = true; m.deadT = 0; m.act = null; burst(S, m.x, D.GY + m.dep - (m.alt || 0) - m.T.h * 0.5, 7, ['#ffffff', '#ffd24a'], { speed: 0.8 }); }
         S.spawnQ.length = 0;
-        if (S.bossT > 1.6) { finish(S, true); return; }
+        if (S.bossT > 1.6 && (!S.drops.length || S.bossT > 9)) { finish(S, true); return; }
+        if (S.bossT > 1.6 && !S.collectHint) { S.collectHint = true; S.banner = { text: 'BEUTE EINSAMMELN!', sub: 'Lauf über die Beute', t: 0, life: 3 }; }
       } else if (!S.spawnQ.length && !alive(S)) endWave(S);
     }
     updateHero(S, dt);
@@ -9442,6 +9468,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     updateProj(S, dt);
     updateEProj(S, dt);
     updateRocks(S, dt);
+    updateDrops(S, dt);
     updateExtras(S, dt);
     updateFx(S, dt);
   };
@@ -9449,6 +9476,18 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   // Bildschirm-Eingaben (UI -> Simulation)
   D.tapTo = function (S, x) { S.in.tx = clamp(x, 16, D.W - 14); S.tap = { x: S.in.tx, t: 0 }; };
   D.pressAbility = function (S, i) { S.in.ab = (i | 0) + 1; };
+  // Ausruestung im laufenden Kampf wechseln (Waffen, Ruestung, Faehigkeiten mit behaltener Abklingzeit, Begleiter)
+  D.applyLoadout = function (S, L) {
+    L = L || D.loadout(); const h = S.hero;
+    const bonus = (L.armor ? L.armor.hp : 0) + (L.head ? L.head.hp : 0), oldMax = h.maxHp, newMax = D.heroStats(S.heroLv).hp + bonus;
+    h.maxHp = newMax; h.hp = Math.min(newMax, h.hp + Math.max(0, newMax - oldMax));
+    S.W = { main: L.main, second: L.second };
+    S.red = Math.max(0.5, 1 - (L.armor ? L.armor.red : 0) - (L.head ? L.head.red : 0));
+    const old = {}; S.abs.forEach((a) => { old[a.id] = a; S.memo[a.id] = { cd: a.cd, t: S.t }; });
+    S.abs = L.abil.map((a) => { const o = old[a.id], m = S.memo[a.id]; return o ? Object.assign(o, { p: a.p, max: D.ABIL[a.id].cd }) : { id: a.id, p: a.p, cd: m ? Math.max(0, m.cd - (S.t - m.t)) : 0, max: D.ABIL[a.id].cd }; });
+    S.ab = S.abs[0]; S.loadout = L;
+    const oldp = S.pets; S.pets = (L.pets || []).slice(0, 3).map((q, i) => { const o = oldp.find((p) => p.id === q.id && p.v === q.v); return o ? Object.assign(o, { i }) : { kind: q.kind, id: q.id, v: q.v | 0, i, x: h.x - 24 * (i + 1), face: 1, cd: 0.6, atk: 0, walkT: 0, moving: false, t: 0 }; });
+  };
   D.footY = footY;
 })(window);
 
@@ -9528,6 +9567,17 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       for (let dy = -3; dy <= 3; dy++) { const ww = Math.round(w * Math.sqrt(1 - (dy / 3.6) * (dy / 3.6))); ctx.fillStyle = Math.abs(dy) > 2 ? '#2f6a24' : '#4f9a36'; ctx.fillRect(Math.round(q.x - ww), GY + 9 + dy, ww * 2, 1); }
       ctx.fillStyle = '#b8f070'; const bx = Math.round(q.x + Math.sin(tm * 3 + q.x) * w * 0.5); ctx.fillRect(bx, GY + 8 + ((tm * 6 + q.x) % 3 | 0) - 1, 1, 1);
       ctx.globalAlpha = 1;
+    }
+    // Beute am Boden: Fell, Knochen, Feuerstein mit leichtem Schein, blinkt kurz vor dem Verschwinden
+    for (const d of S.drops) {
+      const left = d.life - d.t; if (left < 5 && Math.floor(tm * 8) % 2) continue;
+      const x0 = Math.round(d.x), y0 = Math.round(GY + d.dep - d.h + (d.h === 0 ? Math.sin(tm * 4 + d.x) * 0.8 : 0));
+      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x0 - 4, GY + d.dep + 1, 8, 1);
+      ctx.globalAlpha = 0.09 + 0.05 * Math.sin(tm * 5 + d.x); ctx.fillStyle = '#fff6c8'; ctx.fillRect(x0 - 3, y0 - 9, 6, 9); ctx.fillRect(x0 - 6, y0 - 7, 12, 5); ctx.globalAlpha = 1;
+      if (d.mat === 'fell') { ctx.fillStyle = '#b88848'; ctx.fillRect(x0 - 3, y0 - 3, 6, 3); ctx.fillStyle = '#d8a868'; ctx.fillRect(x0 - 3, y0 - 4, 5, 2); ctx.fillStyle = '#f0c890'; ctx.fillRect(x0 - 2, y0 - 4, 2, 1); ctx.fillStyle = '#6b4222'; ctx.fillRect(x0 - 3, y0, 6, 1); }
+      else if (d.mat === 'knochen') { ctx.fillStyle = '#c8bca0'; ctx.fillRect(x0 - 4, y0 - 2, 8, 2); ctx.fillStyle = '#f4ead7'; ctx.fillRect(x0 - 4, y0 - 3, 8, 2); ctx.fillRect(x0 - 5, y0 - 4, 2, 3); ctx.fillRect(x0 + 3, y0 - 4, 2, 3); ctx.fillRect(x0 - 5, y0 - 1, 2, 1); ctx.fillRect(x0 + 3, y0 - 1, 2, 1); }
+      else { ctx.fillStyle = '#6f84c8'; ctx.fillRect(x0 - 2, y0 - 1, 4, 1); ctx.fillStyle = '#9fb4e8'; ctx.fillRect(x0 - 3, y0 - 3, 6, 2); ctx.fillRect(x0 - 2, y0 - 5, 4, 2); ctx.fillStyle = '#dbe6ff'; ctx.fillRect(x0 - 2, y0 - 4, 2, 1); }
+      if (d.n > 1) { ctx.fillStyle = '#ffd84a'; ctx.fillRect(x0 + 3, y0 - 7, 3, 1); ctx.fillRect(x0 + 4, y0 - 8, 1, 3); }
     }
     // Warnringe fuer Sprung und Sturzflug der Bosse
     for (const m of S.mons) if (m.act && m.act.tx != null && !m.dead) ring(ctx, m.act.tx, GY + 12, 26 + Math.sin(tm * 20) * 3, 0.5 + 0.3 * Math.sin(tm * 16));
@@ -9738,8 +9788,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   // Stunden zum Ausgeben (gemeinsamer Topf mit dem Raum)
   H.balance = () => D.balance();
 
-  const gearHtml = () => '<div id="dgear">' +
-    '<div class="hhead"><div class="dtitle num">AUSRÜSTUNG</div><div class="hchips"><span class="chip gold" id="gHours"></span><button class="btn gold" id="gDone">Fertig</button></div></div>' +
+  const gearHtml = () => '<div id="dgear" class="dui">' +
+    '<div class="hhead"><div class="dtitle num">AUSRÜSTUNG</div><div class="hchips"><span class="gmats" id="gMats"></span><span class="chip gold" id="gHours"></span><button class="btn gold" id="gDone">Fertig</button></div></div>' +
     '<div class="gmain"><div class="gtabs" id="gTabs"></div><div class="gcol"><div class="gequip" id="gEquip"></div><div class="glist" id="gList"></div></div></div>' +
     '<div class="gmsg" id="gMsg"></div></div>';
 
@@ -9752,8 +9802,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         '<div class="hstages" id="hStages"></div>' +
       '</div>' +
       '<div class="hfoot"><div class="hdiff" id="hDiff"></div><div class="acts"><button class="btn" id="hBack">Zurück zum Raum</button><button class="btn sm rotbtn" id="dRotM">Bild drehen</button><button class="btn" id="hGear">Ausrüstung</button><button class="btn gold big" id="hGo">Kampf starten</button></div></div>' +
-      gearHtml() +
-      '</div>';
+      '</div>' +
+      gearHtml();
   };
 
   H.bind = function () {
@@ -9761,7 +9811,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     $('hGo').onclick = () => { if (RS.audio) RS.audio.init(); if (H.canStart()) D.start({ stage: H.sel, diff: H.diff, endless: H.mode === 'endless' }); };
     $('hStages').addEventListener('click', (e) => { const mb = e.target.closest('.hmode button'); if (mb) { H.mode = mb.dataset.m; H.refresh(); return; } const b = e.target.closest('.hst'); if (!b || b.classList.contains('lock')) return; H.select(+b.dataset.i); });
     $('hDiff').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; H.diff = b.dataset.d; const s = D.data(); s.diff = H.diff; D.commit(); H.refresh(); });
-    $('hGear').onclick = () => G.open(); $('gDone').onclick = () => G.close();
+    $('hGear').onclick = () => G.open(); $('gDone').onclick = () => { if (H.ready) G.close(); };
     $('hVer').textContent = 'v' + ((/[?&]v=([\w.-]+)/.exec(g.location.search) || [])[1] || '?') + ' · neu laden';
     $('hVer').onclick = () => { if (RS.bridge && RS.bridge.embedded && RS.bridge.reload) RS.bridge.reload(); else g.location.reload(); };
     $('gTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; gcat = b.dataset.c; gconf = null; G.render(); });
@@ -9798,6 +9848,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const b = $('hGo'); if (!b) return;
     const open = D.stageOpen(D.data(), H.sel), ok = D.ready && H.ready && open;
     b.disabled = !ok; b.textContent = !open ? 'Gesperrt' : ok ? 'Kampf starten' : 'Lade …';
+    const gd = $('gDone'); if (gd) { gd.disabled = !H.ready; gd.textContent = !H.ready ? 'Lade …' : H.battle ? 'Weiter kämpfen' : 'Fertig'; }
   }
 
   H.refresh = function () {
@@ -9878,6 +9929,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   G.render = function () {
     const s = D.data(), n = D.slotsOpen(s.lv);
     $('gHours').textContent = fmt(D.balance()) + ' h';
+    $('gMats').innerHTML = Object.keys(D.MATS).map((m) => '<span class="gm"><i style="background:' + D.MATS[m].col + '"></i>' + D.MATS[m].name + ' ' + s.mats[m] + '</span>').join('');
     $('gTabs').innerHTML = CATS.map((q) => '<button data-c="' + q[0] + '" class="' + (q[0] === gcat ? 'on' : '') + '">' + q[1] + '</button>').join('') + '<canvas id="gHeroCv" width="76" height="76"></canvas>';
     const chip = (id) => '<span class="gs">' + img(iconOf(id)) + D.itemInfo(id).name + ' +' + (s.own[id] || 0) + '</span>';
     const slots = ['main', 'second', 'armor', 'head'].map((k) => (s.eq[k] ? chip(s.eq[k]) : '<span class="gs">–</span>')).join('');
@@ -9888,7 +9940,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     else $('gList').innerHTML = idsOf(gcat).map((id) => row(id, s)).join('');
   };
   const msg = (t) => { const e = $('gMsg'); if (!e) return; e.textContent = t || ''; clearTimeout(mtimer); if (t) mtimer = setTimeout(() => { e.textContent = ''; }, 4000); };
-  const afterChange = () => { H.gear = D.loadout().gear; H.refresh(); G.render(); H.warmHero(); };
+  const afterChange = () => { H.gear = D.loadout().gear; H.refresh(); G.render(); H.warmHero(); if (H.onChange) H.onChange(); };
   G.act = function (a, id) {
     const it = D.itemInfo(id) || { name: id }; let r = { ok: true };
     if (a === 'buy') {
@@ -9900,8 +9952,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     try { if (RS.audio && RS.audio.sfx) RS.audio.sfx(r.ok ? 'buy' : 'error'); } catch (e) { /* Ton nicht bereit */ }
     afterChange();
   };
-  G.open = function () { gconf = null; $('dgear').classList.add('show'); G.render(); msg(''); };
-  G.close = function () { $('dgear').classList.remove('show'); H.refresh(); };
+  G.open = function () { gconf = null; $('dgear').classList.add('show'); G.render(); msg(''); setGo(); };
+  G.close = function () { $('dgear').classList.remove('show'); H.refresh(); if (H.gearOnClose) H.gearOnClose(); };
 
   /* ---------- Ergebnis nach dem Kampf: in den Spielstand uebernehmen und als Text zurueckgeben ---------- */
   H.applyResult = function (S) {
@@ -9909,7 +9961,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if (!R) return info;
     const before = D.stageStars(s, st.id), wasOpen = D.STAGES.map((q, i) => D.stageOpen(s, i));
     info.levelUp = D.addXp(s, R.xp);
-    for (const m of Object.keys(R.loot)) s.mats[m] += R.loot[m];
+    // Beute wurde schon beim Einsammeln gutgeschrieben (def-ui.js drainPick)
     if (st.endless) { const r = R.wave || 0; if (r > (s.endless[st.id] || 0)) { s.endless[st.id] = r; info.record = r; } }
     if (R.won) { const p = s.prog[st.id] || (s.prog[st.id] = { stars: 0, best: 0 }); p.stars = Math.max(p.stars, R.stars); info.newStars = Math.max(0, R.stars - before); }
     const now = D.STAGES.findIndex((q, i) => !wasOpen[i] && D.stageOpen(s, i)); if (now >= 0) info.unlocked = D.STAGES[now].name;
@@ -9918,9 +9970,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   };
   H.endHtml = function (S, info) {
     const R = S.result, m = Math.floor(S.stats.time / 60), sec = Math.floor(S.stats.time % 60), s = D.data();
-    let h = (S.stage.endless ? 'Das Haus ist bei Welle <b>' + R.wave + '</b> gefallen.' + (info.record ? ' <span class="up">Neuer Rekord!</span>' : ' Rekord: Welle <b>' + (s.endless[S.stage.id] || 0) + '</b>') + '<br>' : R.won ? '' : 'Das Haus ist gefallen. Diesmal keine Beute.<br>') + 'Monster besiegt: <b>' + S.stats.kills + '</b> · Haus: <b>' + Math.round(S.house.hp / S.house.maxHp * 100) + ' %</b> · Zeit: <b>' + m + ':' + (sec < 10 ? '0' : '') + sec + '</b>';
+    let h = (S.stage.endless ? 'Das Haus ist bei Welle <b>' + R.wave + '</b> gefallen.' + (info.record ? ' <span class="up">Neuer Rekord!</span>' : ' Rekord: Welle <b>' + (s.endless[S.stage.id] || 0) + '</b>') + '<br>' : R.won ? '' : 'Das Haus ist gefallen.<br>') + 'Monster besiegt: <b>' + S.stats.kills + '</b> · Haus: <b>' + Math.round(S.house.hp / S.house.maxHp * 100) + ' %</b> · Zeit: <b>' + m + ':' + (sec < 10 ? '0' : '') + sec + '</b>';
     if (S.stats.kos) h += ' · Held ausgeschaltet: <b>' + S.stats.kos + '×</b>';
-    if (R.won || S.stage.endless) { const parts = Object.keys(R.loot).filter((k) => R.loot[k] > 0).map((k) => matHtml(k, '+' + R.loot[k])); h += '<div class="hloot">' + (parts.length ? parts.join('') : 'keine Beute') + '</div>'; }
+    { const parts = Object.keys(R.loot).filter((k) => R.loot[k] > 0).map((k) => matHtml(k, '+' + R.loot[k])); h += '<div class="hloot">' + (parts.length ? 'Eingesammelt: ' + parts.join('') : 'keine Beute eingesammelt') + '</div>'; }
     h += '<div class="hxpl"><b>+' + R.xp + ' EP</b>' + (info.levelUp ? ' · <span class="up">HELD LEVEL ' + s.lv + '!</span>' : '') + '</div>';
     if (info.unlocked) h += '<div class="hxpl"><span class="up">Neue Stufe: ' + info.unlocked + '</span></div>';
     return h;
@@ -9974,6 +10026,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     cry: ['............', '.......o.o..', '......o.o.o.', '..kkkk..o.o.', '.kwwwwkk.o..', 'kwwwwwwwk...', 'kwwwwwwwk...', '.kwwwwkk....', '..kkkk......', '............', '............', '............'],
     heal: ['.....o......', '....oyo.....', '...oyyyo....', '..oyyyyyo...', '..oyywyyo...', '..oywwwyo...', '...oywyo..g.', '....ooo..ggg', '.kkkkkkk..g.', 'kBbbbbbBk...', '.kkkkkkk....', '............']
   });
+  ART.bag = ['....kkkk....', '...kbbbbk...', '..kbk..kbk..', '.kbbbbbbbbk.', 'kbbbbbbbbbbk', 'kbtttbbtttbk', 'kbtTtbbtTtbk', 'kbtttbbtttbk', 'kbbbbyybbbbk', 'kbbbbyybbbbk', '.kbbbbbbbbk.', '..kkkkkkkk..'];
   const iconCache = {};
   function swordIcon(x) {
     const cells = {}, set = (xx, yy, ch) => { if (xx >= 0 && yy >= 0 && xx < 12 && yy < 12) cells[xx + ',' + yy] = ch; };
@@ -10008,6 +10061,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         '<div id="dwave" class="panel p2"><b id="dwt" class="num">BEREIT</b><span class="lbl">' + img('skull') + ' <span id="dwm">0</span></span></div>' +
         '<div id="dboss" class="panel p2"><b id="dbn" class="num"></b><div class="dbar"><i id="dbB"></i></div></div>' +
         '<button id="dpause" class="btn ico dui" title="Pause">' + img('pause') + '</button>' +
+        '<button id="dgbtn" class="btn ico dui" title="Ausrüstung (I)">' + img('bag') + '</button>' +
         '<div id="dhero" class="panel p2">' + img('heart') + '<div class="dbar"><i id="dbP"></i></div><span id="dnP" class="num"></span></div>' +
         '<div id="dabs"></div>' +
         '<div id="dbanner"><div class="bt num" id="dbt"></div><div class="bs" id="dbs"></div></div>' +
@@ -10027,6 +10081,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     $('dNext').onclick = () => { RS.audio && RS.audio.init(); D.hub.sel = Math.min(D.STAGES.length - 1, curOpts.stage + 1); D.start({ stage: D.hub.sel, diff: curOpts.diff }); };
     $('dResume').onclick = () => setPaused(false);
     $('dpause').onclick = () => setPaused(!paused);
+    $('dgbtn').onclick = () => openGear();
     $('dTurnOk').onclick = () => { turnOk = true; layout(); };
     const setRot = (d) => { rotDir = d; turnOk = false; try { localStorage.setItem('rs.def.rot', String(d)); } catch (err) { /* Speicher gesperrt: egal */ } layout(); };
     $('dRotL').onclick = () => setRot(1); $('dRotR').onclick = () => setRot(-1);
@@ -10120,6 +10175,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   function txt(id, v) { if (hv[id] !== v) { hv[id] = v; $(id).textContent = v; } }
   function hud() {
+    drainPick(false);
     fill('dbH', S.house.hp / S.house.maxHp); txt('dnH', String(Math.ceil(S.house.hp)));
     fill('dbF', S.fence.hp / S.fence.maxHp); txt('dnF', String(Math.ceil(S.fence.hp)));
     fill('dbP', S.hero.hp / S.hero.maxHp); txt('dnP', String(Math.ceil(S.hero.hp)));
@@ -10141,7 +10197,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if ((S.phase === 'win' || S.phase === 'lose') && S.endT > 1.5 && !endShown) showEnd();
   }
   function showEnd() {
-    endShown = true;
+    endShown = true; drainPick(true);
     const won = S.phase === 'win', info = D.hub.applyResult(S);   // Beute, Erfahrung und Sterne in den Spielstand uebernehmen
     if (D.music) D.music(false);
     $('det').textContent = S.stage.endless ? 'WELLE ' + (S.wave + 1) : won ? 'SIEG!' : 'NIEDERLAGE';
@@ -10155,10 +10211,32 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   /* ---------- Ablauf ---------- */
   // Sprites und Welt in kleinen Etappen vorbereiten: nach dem Antippen erscheint das Menue sofort, der Start-Knopf zeigt "Lade ..." bis alles fertig ist
+  // Beute: eingesammeltes Material wandert sofort in den Vorrat (auch wenn das Haus spaeter faellt); gespeichert wird gebuendelt
+  let gearOpen = false, lastCommit = 0, pickDirty = false;
+  function drainPick(force) {
+    if (S && S.pickQ && S.pickQ.length) { const s = D.data(); S.pickQ.splice(0).forEach((q) => { s.mats[q.mat] += q.n; }); pickDirty = true; }
+    if (pickDirty && (force || performance.now() - lastCommit > 3000)) { D.commit(); lastCommit = performance.now(); pickDirty = false; }
+  }
+  // Ausruestung im Kampf: Kampf haelt an, Kaufen/Verbessern/Anlegen wirken sofort, "Weiter kaempfen" setzt fort
+  function openGear() {
+    if (!S || gearOpen || (S.phase !== 'wave' && S.phase !== 'break' && S.phase !== 'intro')) return;
+    gearOpen = true; paused = true; drainPick(true);
+    D.hub.battle = true; D.hub.gearOnClose = closeGear; D.hub.onChange = () => { if (S) { D.applyLoadout(S); buildAbil(); } };
+    D.hub.g.open();
+  }
+  function closeGear() {
+    if (!gearOpen) return;
+    gearOpen = false; D.hub.battle = false; D.hub.onChange = null; D.hub.gearOnClose = null;
+    if (S) { D.applyLoadout(S); buildAbil(); }
+    paused = false; acc = 0;
+  }
+  function closeGearQuiet() { if (!gearOpen) return; gearOpen = false; D.hub.battle = false; D.hub.onChange = null; D.hub.gearOnClose = null; const e = $('dgear'); if (e) e.classList.remove('show'); }
+  D.openGear = openGear;
   // Faehigkeiten-Knoepfe des Kampfs (je angelegter Faehigkeit einer)
   let abEls = [];
   function buildAbil() {
     const box = $('dabs'); if (!box || !S) return;
+    Object.keys(hv).forEach((k) => { if (/^c[dt]\d/.test(k)) delete hv[k]; });
     box.innerHTML = S.abs.map((a, i) => { const AB = D.ABIL[a.id]; return '<button class="dab dui" title="' + AB.name + ' (' + (i + 1) + ')">' + img(AB.icon) + '<span class="cd"></span><span class="ct num"></span><small>' + AB.name + '</small></button>'; }).join('');
     abEls = [...box.children].map((b, i) => { b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); if (S && S.phase === 'wave') D.pressAbility(S, i); }); return { b, cd: b.querySelector('.cd'), ct: b.querySelector('.ct') }; });
   }
@@ -10198,6 +10276,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   // Zurueck zur Auswahl (nach dem Kampf oder ueber Pause -> Beenden)
   D.toHub = function () {
     if (!root) return;
+    closeGearQuiet();
     if (D.music) D.music(false);
     S = D.newBattle({ heroLv: D.data().lv }); S.phase = 'menu'; hv = {}; acc = 0; showMenu();
   };
@@ -10228,6 +10307,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   D.close = function () {
     if (!D.active) return;
     if (D.music) D.music(false);
+    closeGearQuiet(); drainPick(true);
     D.active = false; root.classList.remove('show'); cancelAnimationFrame(raf); S = null; down = false; keys.l = keys.r = false;
     exitLandscape();
     const G = RS.G; if (G && G.settings && G.settings.music && G.settings.sound && RS.audio && RS.audio.ctx) RS.audio.music(true);
@@ -10260,6 +10340,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   g.addEventListener('keydown', (e) => {
     if (!D.active) return;
     const k = e.key.toLowerCase();
+    if (gearOpen) { if (k === 'escape' || k === 'i') D.hub.g.close(); return; }
+    if (k === 'i') { openGear(); return; }
     if (k === 'a' || k === 'arrowleft') keys.l = true;
     else if (k === 'd' || k === 'arrowright') keys.r = true;
     else if (k === '1' || k === ' ' || k === 'e' || k === '2' || k === '3') { if (S && S.phase === 'wave' && !paused) D.pressAbility(S, k === '2' ? 1 : k === '3' ? 2 : 0); }
