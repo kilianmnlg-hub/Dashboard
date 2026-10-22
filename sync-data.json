@@ -767,7 +767,8 @@
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-22": 6,
         "upload:OgiI51OTc3E:comment": 3,
         "task:8ff6ed45-7375-4ba2-bf01-ae2f14b5990b": 12,
-        "upload:OgiI51OTc3E:title": 3
+        "upload:OgiI51OTc3E:title": 3,
+        "upload:OgiI51OTc3E:post": 3
       }
     },
     "archive": {
@@ -775,7 +776,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792649146779
+    "updatedAt": 1792649179182
   },
   "msgSeen": {
     "ids": [
@@ -814,15 +815,16 @@
       "OgiI51OTc3E": {
         "d": {
           "comment": 1792647874520,
-          "title": 1792649146778
+          "title": 1792649146778,
+          "post": 1792649179182
         },
         "x": 0,
         "c": 0,
-        "u": 1792649146778
+        "u": 1792649179182
       }
     },
     "tAt": 1792649173920,
-    "updatedAt": 1792649173920,
+    "updatedAt": 1792649179182,
     "items": [
       {
         "id": "title",
