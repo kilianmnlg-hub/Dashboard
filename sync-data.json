@@ -1224,8 +1224,8 @@
             "hair:curly": true
           },
           "paid": 4,
-          "x": 238,
-          "y": 278,
+          "x": 226,
+          "y": 280,
           "face": 3
         },
         "def": {
@@ -1249,7 +1249,24 @@
           },
           "diff": "normal",
           "paid": 0,
-          "endless": {}
+          "endless": {},
+          "own": {
+            "club": 0,
+            "sling": 0,
+            "hail": 0
+          },
+          "eq": {
+            "main": "club",
+            "second": "sling",
+            "armor": null,
+            "head": null,
+            "a": [
+              "hail",
+              null,
+              null
+            ]
+          },
+          "pets": []
         },
         "styles": {
           "floor": {
@@ -1470,6 +1487,6 @@
       }
     },
     "spent": 72.4,
-    "updatedAt": 1792665494899
+    "updatedAt": 1792667703054
   }
 }
