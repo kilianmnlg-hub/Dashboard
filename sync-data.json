@@ -821,20 +821,14 @@
         "u": 1792649146778
       }
     },
-    "tAt": 1792649166279,
-    "updatedAt": 1792649166279,
+    "tAt": 1792649173920,
+    "updatedAt": 1792649173920,
     "items": [
       {
         "id": "title",
         "t": "Titel und Thumbnail prüfen",
         "g": "Auf YouTube",
         "k": "edit"
-      },
-      {
-        "id": "endscreen",
-        "t": "End Screen und Karten setzen",
-        "g": "Auf YouTube",
-        "k": "editor"
       },
       {
         "id": "comment",
