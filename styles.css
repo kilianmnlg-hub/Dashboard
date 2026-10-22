@@ -2750,7 +2750,16 @@ html.tr-lock, html.tr-lock body { overflow: hidden; }
 .rm-how p { max-width: 70ch; margin: 8px 0 0; }
 .rm-pic:focus-visible, .rm-go:focus-visible, .rm-how summary:focus-visible { outline: var(--focus); outline-offset: 2px; }
 @media (pointer: coarse) { .rm-go { min-height: var(--tap); } }
-.rm-ov { position: fixed; inset: 0; z-index: 10000; display: grid; background: #1a1428; }
+.rm-ov { position: fixed; inset: 0; z-index: 10000; display: grid; background: #1a1428; overflow: hidden; }
 .rm-ov iframe { display: block; width: 100%; height: 100%; border: 0; background: #1a1428; }
 body.rm-open { overflow: hidden; }
+/* Handy: Bild laesst sich nicht quer sperren -> Auswahl, wie herum das Handy gehalten wird (room.js dreht dann den iframe) */
+.rm-turn { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; padding: 16px; background: rgba(14, 10, 24, .97); }
+.rm-turn-box { display: grid; gap: 14px; justify-items: center; text-align: center; max-width: 340px; color: #f4ead7; }
+.rm-turn-box b { font-family: var(--px); font-size: 12px; line-height: 1.6; font-weight: 400; color: #ffd87a; }
+.rm-turn-box span { font-size: 14px; line-height: 1.4; color: #a99bc7; text-wrap: balance; }
+.rm-turn-btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.rm-turn button { font-family: var(--px); font-size: 10px; line-height: 1.6; color: #2a1a05; background: #f2b544; border: 2px solid #0c0814; border-radius: 0; padding: 12px 16px; min-height: 48px; min-width: 132px; box-shadow: 3px 3px 0 #0c0814; cursor: pointer; }
+.rm-turn button:active { transform: translate(3px, 3px); box-shadow: none; }
+.rm-turn .rm-turn-x { color: #f4ead7; background: #3a2d5c; font-size: 9px; min-width: 0; }
 /* ==== Ende Mein Raum ==== */

@@ -11,7 +11,7 @@
   const SINCE = new Date(2026, 9, 1).getTime(); // 1. Oktober 2026, 0 Uhr (Ortszeit)
   const SINCE_TXT = "1. Oktober";
   const GAME_URL = "raumspiel/index.html";
-  const GAME_VER = "20261022b";
+  const GAME_VER = "20261022c";
   const KEY = "dashboard-room-v2", THUMB_KEY = "dashboard-room-thumb", NEXT_KEY = "dashboard-room-next";
   const MAX_STATE = 200000; // Zeichen; schuetzt die Cloud-Datei vor Ausreissern
   const SYNC_DELAY = 4000; // Aenderungen im Spiel werden gebuendelt in die Cloud geschickt
@@ -90,6 +90,7 @@
       const d = e.data;
       if (!frame || e.origin !== location.origin || e.source !== frame.contentWindow || !d || d.src !== "raumspiel") return;
       if (d.type === "hello") { send({ type: "init", economy: economy(), state: state.w }); return; }
+      if (d.type === "orient") { setPref(d.mode); return; }
       if (d.type === "save") {
         if (d.state === null) { state.w = null; state.spent = 0; }
         else if (d.state && typeof d.state === "object" && sizeOk(d.state)) { state.w = d.state; if (isNum(d.spent) && d.spent >= 0) state.spent = Math.round(d.spent * 100) / 100; }
@@ -108,6 +109,83 @@
       if (d.type === "close") finish();
     }
     function onPop() { if (overlay) close(); }
+
+    /* ---------- Querformat (Handy) ----------
+       Auf dem Handy oeffnet sich der Raum sofort quer (Standard; der Knopf im Spiel wechselt zurueck auf hochkant und merkt sich die Wahl).
+       Die installierte Verknuepfung ist per Manifest auf Hochformat festgelegt: ihr wird per Bildschirmsperre (screen.orientation.lock) Querformat
+       abgenommen, im Browser-Tab zusammen mit Vollbild. Klappt das nicht (z. B. iPhone), dreht dieser Teil das Bild des Spiels selbst (CSS auf dem iframe),
+       die Seite (Oberseite des Handys links/rechts) waehlt der Spieler einmal und sie wird gemerkt. */
+    const ORIENT_KEY = "dashboard-room-orient", ROT_KEY = "dashboard-room-rot";
+    let pref = "landscape", rotDir = 0, oState = "none", oAt = 0, oTok = 0, oTimer = null, fsByUs = false, chooser = null;
+    try {
+      if (localStorage.getItem(ORIENT_KEY) === "portrait") pref = "portrait";
+      const r = Number(localStorage.getItem(ROT_KEY)); if (r === 1 || r === -1) rotDir = r;
+    } catch (e) { /* ohne Browser-Speicher: Standard */ }
+    const savePref = () => { try { localStorage.setItem(ORIENT_KEY, pref); localStorage.setItem(ROT_KEY, String(rotDir)); } catch (e) { /* egal */ } };
+    const isPortrait = () => window.innerHeight > window.innerWidth * 1.05;
+    const isTouch = () => !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    function requestLandscape() {
+      clearTimeout(oTimer);
+      const so = screen.orientation, tok = ++oTok;
+      if (!isPortrait()) { oState = "none"; applyRot(); return; }   // schon quer (PC, oder das Handy liegt quer und dreht selbst)
+      if (!so || typeof so.lock !== "function") { oState = "fail"; applyRot(); return; }
+      oState = "pending"; oAt = Date.now();
+      const lock = () => { try { return so.lock("landscape").then(() => true, () => false); } catch (e) { return Promise.resolve(false); } };
+      lock().then((ok) => {
+        if (ok || !isTouch()) return ok;
+        if (!overlay || !overlay.requestFullscreen || document.fullscreenElement) return false;
+        return overlay.requestFullscreen().then(() => { fsByUs = true; return lock(); }, () => false);
+      }).then((ok) => {
+        if (tok !== oTok) { if (!overlay || pref !== "landscape") { try { so.unlock(); } catch (e) { /* egal */ } } return; }   // inzwischen geschlossen oder umgestellt
+        oState = ok ? "ok" : "fail"; oAt = Date.now();
+        clearTimeout(oTimer); oTimer = setTimeout(applyRot, ok ? 1300 : 0);   // bei Erfolg kurz warten, bis das System gedreht hat
+        applyRot();
+      });
+    }
+    function releaseOrientation() {
+      clearTimeout(oTimer); oTok++; oState = "none";
+      try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) { /* keine Sperre oder nicht unterstuetzt */ }
+      try { if (fsByUs && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); } catch (e) { /* egal */ }
+      fsByUs = false;
+    }
+    // Bild soll quer sein, ist aber hochkant (Sperre ging nicht oder greift nicht): iframe selbst drehen. rotDir 1 = Oberseite des Handys links, -1 = rechts, 0 = noch nicht gewaehlt
+    function applyRot() {
+      if (!overlay || !frame) return;
+      const iw = window.innerWidth, ih = window.innerHeight, p = isPortrait();
+      if (oState === "ok" && p && Date.now() - oAt > 1200) oState = "fail";
+      const waiting = oState === "pending" || (oState === "ok" && Date.now() - oAt <= 1200);
+      const want = pref === "landscape" && p && !waiting;
+      const st = frame.style;
+      if (want && rotDir !== 0) {
+        st.position = "absolute"; st.left = "0"; st.top = "0"; st.width = ih + "px"; st.height = iw + "px"; st.transformOrigin = "0 0";
+        st.transform = rotDir > 0 ? `translateX(${iw}px) rotate(90deg)` : `translateY(${ih}px) rotate(-90deg)`;
+      } else { st.position = st.left = st.top = st.width = st.height = st.transformOrigin = st.transform = ""; }
+      showChooser(want && rotDir === 0);
+    }
+    function showChooser(on) {
+      if (!on) { if (chooser) { chooser.remove(); chooser = null; } return; }
+      if (chooser || !overlay) return;
+      chooser = document.createElement("div");
+      chooser.className = "rm-turn";
+      chooser.innerHTML = `<div class="rm-turn-box"><b>Bitte das Handy quer halten</b><span>Dreht sich das Bild nicht mit? Halte das Handy quer und tippe, wo oben (Kamera) ist:</span>` +
+        `<div class="rm-turn-btns"><button type="button" data-rot="1">Oben links</button><button type="button" data-rot="-1">Oben rechts</button></div>` +
+        `<button type="button" class="rm-turn-x" data-rot="0">Hochkant bleiben</button></div>`;
+      chooser.addEventListener("click", (ev) => {
+        const b = ev.target.closest("[data-rot]"); if (!b) return;
+        const v = Number(b.dataset.rot);
+        if (v === 0) { setPref("portrait"); return; }
+        rotDir = v; savePref(); applyRot();
+      });
+      overlay.appendChild(chooser);
+    }
+    function setPref(mode) {
+      pref = mode === "portrait" ? "portrait" : "landscape"; savePref();
+      if (pref === "portrait") releaseOrientation(); else requestLandscape();
+      applyRot();
+    }
+    const onResize = () => applyRot();
+    const onFs = () => { if (!document.fullscreenElement) fsByUs = false; setTimeout(applyRot, 300); };
+
     function launch() {
       if (overlay) return;
       overlay = document.createElement("div");
@@ -123,6 +201,10 @@
       document.body.classList.add("rm-open");
       window.addEventListener("message", onMessage);
       window.addEventListener("popstate", onPop);
+      window.addEventListener("resize", onResize);
+      window.addEventListener("orientationchange", onResize);
+      document.addEventListener("fullscreenchange", onFs);
+      if (pref === "landscape") requestLandscape();   // innerhalb des Antippens: nur so erlauben Browser Sperre und Vollbild
       try { history.pushState({ rm: 1 }, "", location.href); } catch (e) { /* ohne Verlauf */ }
       tick = setInterval(() => send({ type: "economy", economy: economy() }), 20000);
     }
@@ -137,9 +219,12 @@
       clearTimeout(closing); closing = null; clearInterval(tick);
       window.removeEventListener("message", onMessage);
       window.removeEventListener("popstate", onPop);
-      overlay.remove(); overlay = null; frame = null;
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+      document.removeEventListener("fullscreenchange", onFs);
+      overlay.remove(); overlay = null; frame = null; chooser = null;
       document.body.classList.remove("rm-open");
-      try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) { /* keine Sperre oder nicht unterstuetzt */ }
+      releaseOrientation();   // Sperre und Vollbild loesen, das Dashboard selbst bleibt hochkant
       if (hasPush) schedulePush(true);
       try { if (history.state && history.state.rm) history.back(); } catch (e) { /* egal */ }
       renderTile(true);

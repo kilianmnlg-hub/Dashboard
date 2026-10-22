@@ -45,7 +45,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 .btn.red { background: #c9453a; box-shadow: 0 calc(var(--u) * -1) 0 0 var(--line), 0 var(--u) 0 0 var(--line), calc(var(--u) * -1) 0 0 0 var(--line), var(--u) 0 0 0 var(--line), inset 0 var(--u) 0 0 #f07a6c, inset 0 calc(var(--u) * -1) 0 0 #7d241d; }
 .btn.sm { min-height: calc(var(--u) * 8); padding: calc(var(--u) * 1) calc(var(--u) * 2.5); font-size: calc(var(--u) * 3); }
 .btn.ico { width: calc(var(--u) * 11); padding: 0; }
-#bBack[hidden] { display: none; }
+#bBack[hidden], #bRot[hidden] { display: none; }
 .btn[disabled] { opacity: .45; pointer-events: none; }
 .ico svg, .pxi { width: calc(var(--u) * 7); height: calc(var(--u) * 7); image-rendering: pixelated; }
 .lbl { font-family: var(--font2); font-size: calc(var(--u) * 3); letter-spacing: calc(var(--u) * 0.25); text-transform: uppercase; color: var(--dim); }
@@ -228,6 +228,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   </div>
   <div id="topr">
     <button class="btn ico" id="bBack" title="Zurück zum Dashboard" hidden><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><use href="#i-home"/></svg></button>
+    <button class="btn ico" id="bRot" title="Quer / hochkant" hidden><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><use href="#i-rot"/></svg></button>
     <button class="btn ico" id="bDef" title="Verteidigen"></button>
     <button class="btn ico" id="bMe" title="Mein Charakter"><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><use href="#i-user"/></svg></button>
     <button class="btn ico" id="bZout" title="Kleiner"><svg viewBox="0 0 12 12" shape-rendering="crispEdges"><use href="#i-minus"/></svg></button>
@@ -6520,6 +6521,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     eye: [['r', 'w', 1, 4, 10, 4], ['r', 'w', 3, 3, 6, 6], ['c', 'B', 6, 6, 2], ['c', 'k', 6, 6, 1]],
     plus: [['r', 'l', 5, 2, 2, 8], ['r', 'l', 2, 5, 8, 2]],
     minus: [['r', 'w', 2, 5, 8, 2]],
+    rot: [['r', 'w', 1, 3, 5, 7], ['r', 'e', 2, 4, 3, 5], ['p', 'w', [3, 9]], ['p', 'y', [8, 1], [9, 1], [10, 2], [10, 3], [10, 4], [9, 5], [10, 5], [11, 5], [10, 6]]],
     book: [['r', 'R', 1, 2, 10, 9], ['r', 'w', 2, 3, 8, 7], ['r', 'R', 5, 2, 1, 9], ['p', 'k', [3, 4], [4, 4], [3, 6], [4, 6], [7, 4], [8, 4], [7, 6], [8, 6]]],
     user: [['c', 'skin', 6, 4, 3], ['r', 'b', 2, 8, 8, 4], ['r', 'B', 2, 11, 8, 1]],
     zoomin: [['c', 'w', 5, 5, 4], ['c', '.', 5, 5, 2.6], ['r', 'w', 4, 4, 2, 2], ['r', 'w', 8, 8, 3, 1], ['r', 'w', 9, 9, 3, 1], ['r', 'w', 10, 10, 2, 2]],
@@ -8115,7 +8117,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   let root = null, cv = null, ctx = null, S = null, raf = 0, last = 0, acc = 0, paused = false, portrait = false, turnOk = false, blocked = false, endShown = false, down = false, keys = { l: false, r: false };
   // Querformat: Android kann es auf Anfrage erzwingen (Bildschirmsperre per API, auch in einer Verknuepfung, die auf Hochformat festgelegt ist).
   // Klappt das nicht (z. B. iPhone), kippt der Spieler das Bild selbst: rotDir 0 = aus, 1 = Handy-Oberseite links, -1 = rechts (CSS-Drehung des ganzen Spiels).
-  let lockState = 'none', lockAt = 0, lockTimer = 0, lockTok = 0, fsByUs = false, rotDir = 0, rotOn = false;
+  let lockState = 'none', lockAt = 0, lockTimer = 0, lockTok = 0, fsByUs = false, lockedByUs = false, rotDir = 0, rotOn = false;
   try { rotDir = Math.max(-1, Math.min(1, Math.round(+localStorage.getItem('rs.def.rot') || 0))); } catch (e) { rotDir = 0; }
   const STEP = 1 / 60;
   D.active = false;
@@ -8215,7 +8217,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   function enterLandscape() {
     clearTimeout(lockTimer);
     const so = g.screen && g.screen.orientation, tok = ++lockTok;
-    if (!(g.innerHeight > g.innerWidth * 1.05)) { lockState = 'none'; return; }   // schon quer (oder PC): nichts zu tun
+    lockedByUs = false;
+    if (!(g.innerHeight > g.innerWidth * 1.05)) { lockState = 'none'; return; }   // schon quer (oder PC, oder das Dashboard hat das Bild schon quer gestellt): nichts zu tun
     if (!so || typeof so.lock !== 'function') { lockState = 'fail'; return; }      // z. B. iPhone: Spieler dreht selbst
     lockState = 'pending'; lockAt = Date.now();
     const coarse = !!(g.matchMedia && g.matchMedia('(pointer: coarse)').matches);
@@ -8227,6 +8230,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       return el.requestFullscreen().then(() => { fsByUs = true; return lock(); }, () => false);
     }).then((ok) => {
       if (tok !== lockTok) { try { so.unlock(); } catch (err) { /* egal */ } return; }   // inzwischen geschlossen: Sperre wieder loesen
+      lockedByUs = !!ok;
       lockState = ok ? 'ok' : 'fail'; lockAt = Date.now();
       clearTimeout(lockTimer); lockTimer = setTimeout(layout, ok ? 1300 : 0);   // bei Erfolg kurz warten, bis das System gedreht hat
       layout();
@@ -8234,7 +8238,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   function exitLandscape() {
     lockTok++; clearTimeout(lockTimer); lockState = 'none';
-    try { const so = g.screen && g.screen.orientation; if (so && typeof so.unlock === 'function') so.unlock(); } catch (err) { /* egal */ }
+    // nur loesen, was wir selbst gesperrt haben (steht der Raum schon quer, gehoert die Sperre dem Dashboard)
+    try { const so = g.screen && g.screen.orientation; if (lockedByUs && so && typeof so.unlock === 'function') so.unlock(); } catch (err) { /* egal */ }
+    lockedByUs = false;
     try { if (fsByUs && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {}); } catch (err) { /* egal */ }
     fsByUs = false;
   }
@@ -8919,6 +8925,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     $('bSnd').onclick = () => { const S = G.settings; RS.audio.init(); const v = !S.sound ? 1 : S.music ? 0 : 2; S.sound = v > 0; S.music = v === 2; RS.audio.setOn(S.sound); RS.audio.music(S.music && S.sound); UI.refreshSound(); UI.toast(v === 0 ? 'Ton aus' : v === 1 ? 'Nur Effekte' : 'Musik an'); G.saveSoon(); };
     $('bCam').onclick = () => UI.photo();
     if (RS.bridge && RS.bridge.embedded) { $('bBack').hidden = false; $('bBack').onclick = () => { G.save(); RS.bridge.close(); }; }
+    // Quer/hochkant wechseln (nur Handy im Dashboard): das Dashboard haelt die Sperre und das gedrehte Bild, hier wird nur die Gegenrichtung angefragt
+    if (RS.bridge && RS.bridge.embedded && g.matchMedia && g.matchMedia('(pointer: coarse)').matches) { $('bRot').hidden = false; $('bRot').onclick = () => RS.bridge.orient(g.innerWidth >= g.innerHeight ? 'portrait' : 'landscape'); }
     $('bMe').onclick = () => UI.openMe();
     const zoom = (d) => { const z = G.settings.zoom + d; if (z < -4 || z > 4) return; G.settings.zoom = z; G.layout(); G.saveSoon(); RS.audio.init(); RS.audio.sfx('click'); };
     $('bZin').onclick = () => zoom(1); $('bZout').onclick = () => zoom(-1);
@@ -8938,7 +8946,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 /* src/bridge.js */
 /* Raumspiel – Anbindung ans Dashboard (nur aktiv, wenn die Seite als iframe mit ?embed=1 im Dashboard laeuft).
  * Das Dashboard ist die einzige Quelle fuer Stunden (seit 1. Oktober) und Level und der einzige, der in die Cloud schreibt.
- *   Spiel -> Dashboard: hello (bereit), save {state, spent, next, thumb}, close, flushed
+ *   Spiel -> Dashboard: hello (bereit), save {state, spent, next, thumb}, close, flushed, orient {mode: 'landscape' | 'portrait'}
  *   Dashboard -> Spiel: init {economy, state}, economy {economy} (Stunden/Level aktualisieren), flush (jetzt speichern)
  * Nachrichten werden nur von der eigenen Herkunft und nur vom Eltern-Fenster angenommen. Ohne Dashboard spielt das Spiel normal weiter
  * (Demo-Stunden, Speicherstand im Browser).
@@ -8978,6 +8986,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   });
   B.save = (state, meta) => post(Object.assign({ type: 'save', state }, meta || {}));
   B.close = () => post({ type: 'close' });
+  B.orient = (mode) => post({ type: 'orient', mode });   // 'landscape' | 'portrait': das Dashboard sperrt die Ausrichtung bzw. dreht das Bild
 })(window);
 
 </script>
