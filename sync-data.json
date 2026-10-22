@@ -51,30 +51,13 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-10-21",
+    "date": "2026-10-22",
     "items": {
-      "business": [
-        {
-          "id": "b3a9b47f-b8b5-437b-a394-813aeb9d0059",
-          "text": "JW KI Skript",
-          "done": true
-        },
-        {
-          "id": "f6c315e5-2aa6-4e18-b8f1-760c62f5785c",
-          "text": "clips",
-          "done": false
-        }
-      ],
+      "business": [],
       "studium": [],
-      "privat": [
-        {
-          "id": "b39f20dd-86a8-49af-a88e-8bd47e67b7ab",
-          "text": "Bett beziehen",
-          "done": false
-        }
-      ]
+      "privat": []
     },
-    "updatedAt": 1792580871685
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -87,9 +70,19 @@
         "id": "a92ed787-13b2-4914-a11b-2d396173b5e9",
         "text": "buchhaltung",
         "done": false
+      },
+      {
+        "id": "71d95361-f2c9-4e06-b88c-90beb6735638",
+        "text": "clips",
+        "done": false
+      },
+      {
+        "id": "8ff6ed45-7375-4ba2-bf01-ae2f14b5990b",
+        "text": "Bett beziehen",
+        "done": false
       }
     ],
-    "updatedAt": 1792562897508
+    "updatedAt": 1792647637318
   },
   "remoteTasks": {
     "items": [
