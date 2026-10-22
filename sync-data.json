@@ -58,12 +58,17 @@
           "id": "9c20b2bc-db41-4132-b3a9-6b563ec9ce77",
           "text": "After upload",
           "done": false
+        },
+        {
+          "id": "f957de14-c86a-4a8c-b64b-6dcf8f7366b5",
+          "text": "JW KI Sets Thumbnail",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1792647949877
+    "updatedAt": 1792647957817
   },
   "tasks": {
     "items": [
@@ -103,17 +108,12 @@
         "done": false
       },
       {
-        "id": "a1c250b9-6838-4231-98bb-312daebd61a8",
-        "text": "JW KI Sets Thumbnail",
-        "done": false
-      },
-      {
         "id": "c7b4cf04-887a-4fe9-a803-8a9ecb8379da",
         "text": "Alle 2026 jw sets skript",
         "done": false
       }
     ],
-    "updatedAt": 1792580869772
+    "updatedAt": 1792647957817
   },
   "shopping": {
     "items": [
