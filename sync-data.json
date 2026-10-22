@@ -63,12 +63,17 @@
           "id": "f957de14-c86a-4a8c-b64b-6dcf8f7366b5",
           "text": "JW KI Sets Thumbnail",
           "done": false
+        },
+        {
+          "id": "36fe10bf-354e-4277-a838-03db22d187b7",
+          "text": "Alle 2026 jw sets skript",
+          "done": false
         }
       ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 1792647957817
+    "updatedAt": 1792647961568
   },
   "tasks": {
     "items": [
@@ -106,14 +111,9 @@
         "id": "5608e33d-339d-4c3f-af24-65ca25658f90",
         "text": "Brainwalkers Video Idee",
         "done": false
-      },
-      {
-        "id": "c7b4cf04-887a-4fe9-a803-8a9ecb8379da",
-        "text": "Alle 2026 jw sets skript",
-        "done": false
       }
     ],
-    "updatedAt": 1792647957817
+    "updatedAt": 1792647961568
   },
   "shopping": {
     "items": [
