@@ -826,8 +826,8 @@
         "u": 1792651564339
       }
     },
-    "tAt": 1792651532431,
-    "updatedAt": 1792651564339,
+    "tAt": 1792651571575,
+    "updatedAt": 1792651571575,
     "items": [
       {
         "id": "title",
@@ -871,12 +871,6 @@
         "t": "Kommentare beantworten (erste Stunden)",
         "g": "Danach",
         "k": "comments"
-      },
-      {
-        "id": "stats",
-        "t": "Nach 24 Stunden: Klickrate und Zuschauerbindung ansehen",
-        "g": "Danach",
-        "k": "analytics"
       },
       {
         "id": "idea",
