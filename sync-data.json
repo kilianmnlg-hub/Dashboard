@@ -824,8 +824,8 @@
         "u": 1792651509416
       }
     },
-    "tAt": 1792649173920,
-    "updatedAt": 1792651509416,
+    "tAt": 1792651532431,
+    "updatedAt": 1792651532431,
     "items": [
       {
         "id": "title",
@@ -881,6 +881,11 @@
         "t": "Nächste Video-Idee festlegen",
         "g": "Danach",
         "k": "idea"
+      },
+      {
+        "id": "umvj6fr0vz0",
+        "t": "Clips erstellen",
+        "g": "Danach"
       }
     ]
   },
