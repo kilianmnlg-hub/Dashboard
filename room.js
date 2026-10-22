@@ -11,7 +11,7 @@
   const SINCE = new Date(2026, 9, 1).getTime(); // 1. Oktober 2026, 0 Uhr (Ortszeit)
   const SINCE_TXT = "1. Oktober";
   const GAME_URL = "raumspiel/index.html";
-  const GAME_VER = "20261022h";
+  const GAME_VER = "20261022i";
   const KEY = "dashboard-room-v2", THUMB_KEY = "dashboard-room-thumb", NEXT_KEY = "dashboard-room-next";
   const MAX_STATE = 200000; // Zeichen; schuetzt die Cloud-Datei vor Ausreissern
   const SYNC_DELAY = 4000; // Aenderungen im Spiel werden gebuendelt in die Cloud geschickt
@@ -76,6 +76,7 @@
         (df ? `<div class="rm-def">${esc(df)}</div>` : "") +
         (nx ? `<p class="rm-next">${nx}</p>` : "") +
         `<button type="button" class="rm-go" data-rm="open">RAUM ÖFFNEN</button>` +
+        `<div class="rm-ver">Spiel-Version ${GAME_VER}</div>` +
         `<details class="rm-how"><summary>So funktioniert's</summary><p>Die Stunden aus Zeittracker (YouTube und Bricklink) und Training, die du seit dem ${SINCE_TXT} gesammelt hast, sind dein Geld. Damit richtest du deinen Raum ein: Möbel, Boden, Wände, weitere Räume, Haustiere und eine Figur zum Anziehen. Mit höheren Levels (Level-Anzeige oben) werden immer mehr Teile freigeschaltet. Wenn du etwas verkaufst, bekommst du die Stunden voll zurück.</p></details>` +
         `</div></div>`;
     }
@@ -90,11 +91,17 @@
       clearTimeout(syncT);
       syncT = setTimeout(() => { hasPush = false; scheduleAutoSync("syncdata"); }, now ? 0 : SYNC_DELAY);
     }
+    // Aktualisieren auf Wunsch des Spiels (Version antippen): Stand sichern lassen, Service Worker nach neuer Version fragen, Seite neu laden
+    function reloadApp() {
+      send({ type: "flush" });
+      setTimeout(async () => { try { const reg = await navigator.serviceWorker?.getRegistration(); if (reg) await reg.update(); } catch (e) { /* egal */ } location.reload(); }, 900);
+    }
     function onMessage(e) {
       const d = e.data;
       if (!frame || e.origin !== location.origin || e.source !== frame.contentWindow || !d || d.src !== "raumspiel") return;
       if (d.type === "hello") { send({ type: "init", economy: economy(), state: state.w }); return; }
       if (d.type === "orient") { setPref(d.mode); return; }
+      if (d.type === "reload") { reloadApp(); return; }
       if (d.type === "save") {
         if (d.state === null) { state.w = null; state.spent = 0; }
         else if (d.state && typeof d.state === "object" && sizeOk(d.state)) { state.w = d.state; if (isNum(d.spent) && d.spent >= 0) state.spent = Math.round(d.spent * 100) / 100; }

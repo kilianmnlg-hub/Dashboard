@@ -9745,7 +9745,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   H.html = function () {
     return '<div id="dhub" class="dui">' +
-      '<div class="hhead"><div class="dtitle num">VERTEIDIGUNG</div><div class="hchips"><span class="chip" id="hLv"></span><span class="chip gold" id="hHours"></span></div></div>' +
+      '<div class="hhead"><div class="dtitle num">VERTEIDIGUNG</div><div class="hchips"><button class="chip" id="hVer" title="Tippen: Spiel aktualisieren"></button><span class="chip" id="hLv"></span><span class="chip gold" id="hHours"></span></div></div>' +
       '<div class="hmain">' +
         '<div class="hhero panel p2"><canvas id="hHeroCv" width="76" height="76"></canvas><div class="hname num" id="hName"></div>' +
           '<div class="hxp"><div class="dbar"><i id="hXp"></i></div></div><div class="hxpt" id="hXpT"></div><div class="hxpt hstat" id="hStat"></div><div class="hmats" id="hMats"></div></div>' +
@@ -9762,6 +9762,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     $('hStages').addEventListener('click', (e) => { const mb = e.target.closest('.hmode button'); if (mb) { H.mode = mb.dataset.m; H.refresh(); return; } const b = e.target.closest('.hst'); if (!b || b.classList.contains('lock')) return; H.select(+b.dataset.i); });
     $('hDiff').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; H.diff = b.dataset.d; const s = D.data(); s.diff = H.diff; D.commit(); H.refresh(); });
     $('hGear').onclick = () => G.open(); $('gDone').onclick = () => G.close();
+    $('hVer').textContent = 'v' + ((/[?&]v=([\w.-]+)/.exec(g.location.search) || [])[1] || '?') + ' · neu laden';
+    $('hVer').onclick = () => { if (RS.bridge && RS.bridge.embedded && RS.bridge.reload) RS.bridge.reload(); else g.location.reload(); };
     $('gTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; gcat = b.dataset.c; gconf = null; G.render(); });
     $('gList').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b || b.disabled) return; G.act(b.dataset.a, b.dataset.id); });
   };
@@ -10848,6 +10850,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   });
   B.save = (state, meta) => post(Object.assign({ type: 'save', state }, meta || {}));
   B.close = () => post({ type: 'close' });
+  B.reload = () => post({ type: 'reload' });   // das Dashboard laedt sich neu (holt die neueste Version)
   B.orient = (mode) => post({ type: 'orient', mode });   // 'landscape' | 'portrait': das Dashboard sperrt die Ausrichtung bzw. dreht das Bild
 })(window);
 
