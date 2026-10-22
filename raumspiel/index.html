@@ -262,40 +262,46 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 /* ---- Verteidigung: Faehigkeiten-Knoepfe und Ausruestung ---- */
 #dabs { position: absolute; right: calc(var(--u) * 4 + env(safe-area-inset-right, 0px)); bottom: calc(var(--u) * 4 + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: row-reverse; gap: calc(var(--u) * 2); }
 #dabs .dab { position: relative; right: auto; bottom: auto; }
-#dgear { position: absolute; inset: 0; display: none; flex-direction: column; gap: calc(var(--u) * 2); z-index: 5; background: rgba(18, 13, 29, .98); padding: calc(var(--u) * 3); }
+/* Menues (Auswahl, Ausruestung, Pause, Ergebnis): Masseinheit nach der Bildhoehe, damit Schrift und Knoepfe auf dem Handy lesbar sind (layout() in def-ui.js setzt --du) */
+#dhub, #dgear, #dpanel, #dend { --u: var(--du, 2.5px); }   /* nur die Menue-Tafeln, nicht die Knoepfe im Kampf */
+#dgear { position: absolute; inset: calc(var(--u) * 2.2) calc(var(--u) * 3); display: none; flex-direction: column; gap: calc(var(--u) * 1.8); z-index: 6; background: var(--bg); padding: calc(var(--u) * 2.4) calc(var(--u) * 3);
+  box-shadow: 0 calc(var(--u) * -1) 0 0 var(--line), 0 var(--u) 0 0 var(--line), calc(var(--u) * -1) 0 0 0 var(--line), var(--u) 0 0 0 var(--line), inset 0 var(--u) 0 0 var(--hi), inset 0 calc(var(--u) * -1) 0 0 var(--lo); }
 #dgear.show { display: flex; }
-.gmain { flex: 1; display: flex; gap: calc(var(--u) * 3); min-height: 0; }
-.gtabs { width: calc(var(--u) * 38); flex: none; display: flex; flex-direction: column; gap: calc(var(--u) * 1.2); }
-.gtabs button { padding: calc(var(--u) * 2) calc(var(--u) * 3); text-align: left; background: var(--p1); color: var(--dim); font-family: var(--font2); font-size: calc(var(--u) * 3.2); text-transform: uppercase; box-shadow: inset 0 var(--u) 0 0 var(--hi), inset 0 calc(var(--u) * -1) 0 0 var(--lo); }
+#dgear .hhead .dtitle { font-size: calc(var(--u) * 5); }
+#dgear .hhead .btn { min-height: calc(var(--u) * 8.4); margin: 0 0 0 calc(var(--u) * 1); padding: 0 calc(var(--u) * 4); font-size: calc(var(--u) * 3.2); }
+.gmain { flex: 1; display: flex; gap: calc(var(--u) * 2.4); min-height: 0; }
+.gtabs { width: calc(var(--u) * 30); flex: none; display: flex; flex-direction: column; gap: calc(var(--u) * 1); min-height: 0; }
+.gtabs button { flex: 1 1 0; min-height: 0; padding: 0 calc(var(--u) * 2.6); display: flex; align-items: center; text-align: left; background: var(--p1); color: var(--dim); font-family: var(--font2); font-size: calc(var(--u) * 3); text-transform: uppercase; box-shadow: inset 0 var(--u) 0 0 var(--hi), inset 0 calc(var(--u) * -1) 0 0 var(--lo); }
 .gtabs button.on { background: var(--p3); color: var(--tx); box-shadow: inset calc(var(--u) * 1.5) 0 0 0 var(--gold), inset 0 var(--u) 0 0 #6d5ca0, inset 0 calc(var(--u) * -1) 0 0 #231a3b; }
-#gHeroCv { width: calc(var(--u) * 26); height: calc(var(--u) * 26); image-rendering: pixelated; image-rendering: crisp-edges; align-self: center; margin-top: auto; }
-.gcol { flex: 1; display: flex; flex-direction: column; gap: calc(var(--u) * 1.6); min-width: 0; min-height: 0; }
-.gequip { display: flex; gap: calc(var(--u) * 1.2); flex-wrap: wrap; align-items: center; font-size: calc(var(--u) * 2.7); color: var(--dim); }
-.gequip b { font-weight: 400; color: var(--gold-hi); margin-right: calc(var(--u) * 0.6); }
-.gs { display: inline-flex; align-items: center; gap: calc(var(--u) * 0.8); padding: calc(var(--u) * 0.6) calc(var(--u) * 1.4); background: var(--p1); color: var(--tx); white-space: nowrap; }
-.gs.lock { opacity: .55; color: var(--mute); }
-.gs .pxi { width: calc(var(--u) * 4.4); height: calc(var(--u) * 4.4); }
-.glist { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: calc(var(--u) * 1.4); min-height: 0; scrollbar-width: none; }
-.grow { display: flex; align-items: center; gap: calc(var(--u) * 2.4); padding: calc(var(--u) * 1.4) calc(var(--u) * 2.4); background: var(--p1); flex: none; box-shadow: inset 0 var(--u) 0 0 var(--hi), inset 0 calc(var(--u) * -1) 0 0 var(--lo); }
+.gcol { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.glist { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: calc(var(--u) * 1.6); min-height: 0; scrollbar-width: none; }
+.grow { display: flex; align-items: center; gap: calc(var(--u) * 2.6); padding: calc(var(--u) * 1.8) calc(var(--u) * 2.6); background: var(--p1); flex: none; box-shadow: inset 0 var(--u) 0 0 var(--hi), inset 0 calc(var(--u) * -1) 0 0 var(--lo); }
 .grow.eq { background: var(--p3); box-shadow: inset calc(var(--u) * 1.5) 0 0 0 var(--gold), inset 0 var(--u) 0 0 #6d5ca0, inset 0 calc(var(--u) * -1) 0 0 #231a3b; }
 .grow.new { opacity: .92; }
-.grow > .pxi { width: calc(var(--u) * 9); height: calc(var(--u) * 9); flex: none; }
-.gtx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: calc(var(--u) * 0.4); }
-.gtx b { font-size: calc(var(--u) * 3.6); color: var(--tx); font-weight: 700; }
+.grow > .pxi { width: calc(var(--u) * 11); height: calc(var(--u) * 11); flex: none; }
+.gtx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: calc(var(--u) * 0.7); }
+.gtx b { font-size: calc(var(--u) * 4); color: var(--tx); font-weight: 700; }
 .gtx b em { font-style: normal; color: var(--gold-hi); }
-.gtx span { font-size: calc(var(--u) * 2.7); color: var(--dim); line-height: 1.25; }
-.gtx .gi { color: var(--mute); }
-.gbt { display: flex; flex-direction: column; gap: calc(var(--u) * 1); align-items: stretch; flex: none; }
-.gbt button { padding: calc(var(--u) * 1.4) calc(var(--u) * 2.4); font-family: var(--font2); font-size: calc(var(--u) * 2.7); background: var(--p3); color: var(--tx); text-transform: uppercase; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 0.8); }
-.gbt button.gold { background: var(--gold); color: #2a1a05; }
+.gtx span { font-size: calc(var(--u) * 3); color: var(--dim); line-height: 1.25; }
+.gtx .gi { color: var(--mute); font-size: calc(var(--u) * 2.8); }
+.gbt { display: flex; flex-direction: column; gap: calc(var(--u) * 1.2); align-items: stretch; flex: none; width: calc(var(--u) * 31); }
+.gbt button { min-height: calc(var(--u) * 7.8); padding: 0 calc(var(--u) * 2); font-family: var(--font2); font-size: calc(var(--u) * 2.9); background: var(--p3); color: var(--tx); text-transform: uppercase; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 1); box-shadow: inset 0 var(--u) 0 0 #6d5ca0, inset 0 calc(var(--u) * -1) 0 0 #231a3b; }
+.gbt button.gold { background: var(--gold); color: #2a1a05; box-shadow: inset 0 var(--u) 0 0 var(--gold-hi), inset 0 calc(var(--u) * -1) 0 0 var(--gold-lo); }
 .gbt button.dis, .gbt button:disabled { opacity: .45; }
-.gbt button i { width: calc(var(--u) * 2.6); height: calc(var(--u) * 2.6); display: inline-block; box-shadow: 0 0 0 calc(var(--u) * 0.4) var(--line); }
-.gmsg { min-height: calc(var(--u) * 4.4); font-size: calc(var(--u) * 3.2); color: var(--gold-hi); }
-#dv.dlow #dgear { padding: calc(var(--u) * 2.2); gap: calc(var(--u) * 1.2); }
-#dv.dlow .grow { padding: calc(var(--u) * 1) calc(var(--u) * 2); }
-#dv.dlow .grow > .pxi { width: calc(var(--u) * 7); height: calc(var(--u) * 7); }
-#dv.dlow .gtabs button { padding: calc(var(--u) * 1.4) calc(var(--u) * 2.4); }
-#dv.dlow #gHeroCv { width: calc(var(--u) * 20); height: calc(var(--u) * 20); }
+.gbt button i { width: calc(var(--u) * 2.8); height: calc(var(--u) * 2.8); display: inline-block; box-shadow: 0 0 0 calc(var(--u) * 0.4) var(--line); }
+/* rechts: der Held mit dem, was er gerade traegt */
+.gside { width: calc(var(--u) * 41); flex: none; display: flex; flex-direction: column; align-items: center; gap: calc(var(--u) * 1.4); padding: calc(var(--u) * 1.6) calc(var(--u) * 2); background: var(--p1); min-height: 0; overflow: hidden; box-shadow: inset 0 var(--u) 0 0 var(--hi), inset 0 calc(var(--u) * -1) 0 0 var(--lo); }
+#gHeroCv { width: calc(var(--u) * 22); height: calc(var(--u) * 22); image-rendering: pixelated; image-rendering: crisp-edges; flex: none; }
+.gsg { width: 100%; display: flex; flex-direction: column; gap: calc(var(--u) * 0.7); }
+.gsg b { font-family: var(--font2); font-weight: 400; font-size: calc(var(--u) * 2.5); color: var(--gold-hi); text-transform: uppercase; letter-spacing: calc(var(--u) * .2); }
+.gsg div { display: flex; gap: calc(var(--u) * 0.9); }
+.gslot { position: relative; width: calc(var(--u) * 8.6); height: calc(var(--u) * 8.6); flex: none; background: var(--bg); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 calc(var(--u) * 0.5) var(--line); }
+.gslot.on { background: var(--p3); box-shadow: inset 0 0 0 calc(var(--u) * 0.5) var(--gold-lo); }
+.gslot .pxi { width: calc(var(--u) * 6.6); height: calc(var(--u) * 6.6); }
+.gslot em { position: absolute; right: calc(var(--u) * 0.6); bottom: calc(var(--u) * 0.2); font-style: normal; font-size: calc(var(--u) * 2.3); color: var(--gold-hi); text-shadow: 0 var(--u) 0 var(--line); }
+.gslot.lock { opacity: .55; }
+.gslot.lock span { font-family: var(--font2); font-size: calc(var(--u) * 2.2); color: var(--mute); }
+#dv.dnarrow .gside { display: none; }
 
 .hmode { display: flex; gap: calc(var(--u) * 1); flex: none; }
 .hmode button { flex: 1; padding: calc(var(--u) * 1.6) calc(var(--u) * 3); background: var(--p1); color: var(--dim); font-family: var(--font2); font-size: calc(var(--u) * 3.2); text-transform: uppercase; box-shadow: inset 0 var(--u) 0 0 var(--hi); }
@@ -303,11 +309,11 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
 /* ---- Verteidigung: Ausruestung im Kampf, Beute ---- */
 #dgbtn { position: absolute; right: calc(var(--u) * 18 + env(safe-area-inset-right, 0px)); top: calc(var(--u) * 2 + env(safe-area-inset-top, 0px)); width: calc(var(--u) * 14); min-height: calc(var(--u) * 14); }
-#dgear { inset: calc(var(--u) * 3) calc(var(--u) * 4); z-index: 6; box-shadow: 0 calc(var(--u) * -1) 0 0 var(--line), 0 var(--u) 0 0 var(--line), calc(var(--u) * -1) 0 0 0 var(--line), var(--u) 0 0 0 var(--line), inset 0 var(--u) 0 0 var(--hi), inset 0 calc(var(--u) * -1) 0 0 var(--lo); }
-#dv.dlow #dgear { inset: calc(var(--u) * 2) calc(var(--u) * 3); }
-.gmats { display: inline-flex; gap: calc(var(--u) * 2.4); align-items: center; font-size: calc(var(--u) * 3); color: var(--tx); }
+.gmsg { position: absolute; left: 50%; bottom: calc(var(--u) * 3); transform: translateX(-50%); max-width: 80%; padding: calc(var(--u) * 1.6) calc(var(--u) * 4); background: var(--gold); color: #2a1a05; font-size: calc(var(--u) * 3.4); text-align: center; display: none; z-index: 2; box-shadow: 0 calc(var(--u) * 1) 0 0 var(--line); }
+.gmsg:not(:empty) { display: block; }
+.gmats { display: inline-flex; gap: calc(var(--u) * 2.6); align-items: center; font-size: calc(var(--u) * 3.2); color: var(--tx); }
 .gmats .gm { display: inline-flex; align-items: center; gap: calc(var(--u) * 1); white-space: nowrap; }
-.gmats .gm i { width: calc(var(--u) * 3); height: calc(var(--u) * 3); display: inline-block; box-shadow: 0 0 0 calc(var(--u) * 0.5) var(--line); }
+.gmats .gm i { width: calc(var(--u) * 3.2); height: calc(var(--u) * 3.2); display: inline-block; box-shadow: 0 0 0 calc(var(--u) * 0.5) var(--line); }
 
 </style>
 </head>
@@ -7431,6 +7437,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   function build(look, pose, frame, G) {
     const main = G.main, second = G.second, armor = G.armor, headG = G.head;
+    const stow = !!G.sheathed && !!D.HERO_STOW[pose];   // nicht im Kampf: Waffen am Ruecken bzw. Guertel, Haende frei
     let v = RS.V(28, 74, 88); const V0 = v;
     // Zeichner, der alles um die Kopfmitte verkleinert (Haare und Zubehoer behalten ihre Form); Farbfunktionen bekommen die urspruenglichen Koordinaten
     const headProxy = (k, cx, cy, cz) => {
@@ -7518,6 +7525,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       K.armN = [-0.6, 0.45]; K.armF = [-1.3, 0.3]; K.club = 168; K.face = 'hurt'; K.sway = [2.2, 1.2];
     }
 
+    // weggesteckt: nichts in der Hand; im Stehen haengen die Arme locker (Gehen, Rennen und Sprung behalten ihre Armbewegung)
+    if (stow) { K.club = null; K.sling = null; if (pose === 'stand') { const sb = [0, 0.5, 1, 0.5][f & 3]; K.armN = [0.16 + sb * 0.02, 0.3]; K.armF = [-0.14 - sb * 0.03, 0.3]; } }
+
     /* ---------- Niedergeschlagen: liegt auf dem Ruecken, Kopf nach hinten ---------- */
     if (pose === 'ko') {
       const gz = 4.2;
@@ -7588,6 +7598,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if (tl === 'tank') { seg(XB, sho, [sho[0] + ls * 0.5, sho[1] + lc * 0.5], 4.3, 4.3, sk(3)); }
     if (skirt) { for (let i = 0; i < 6; i++) { const a = i / 5; v.ell(XB, Y(hip[0] + 0.4 + (a - 0.5) * 1.6), hip[1] - 3.2 - a * 0.4, 5.6, 5.3 + a * 1.0, 3.4, zshade(bt, hip[1] - 3, 5, a > 0.8 ? 2 : 3)); } }
     drawArmor();
+    if (stow) drawStowed();
     // Hals
     seg(XB, [sho[0] + ls * 0.8, sho[1] + lc * 0.8], neckTop, 2.4, 2.3, zshade(sk, neckTop[1], 4, 3));
     drawLeg(legs[1]);
@@ -7657,6 +7668,41 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         seg(XB, t0, t1, 5.8, 5.6, (x, y, z) => c.cream(((z - zb) % 3.6) < 1.5 ? 6 : 2));
         v.sph(XB + 1, Y(sho[0] - 0.4), sho[1] - 0.8, 3.6, c.cream(4));
         seg(XB, [hip[0] + ls * 1.2, hip[1] + lc * 1.2], [hip[0] + ls * 2.2, hip[1] + lc * 2.2], 5.9, 5.9, c.leather(3));
+      }
+    }
+    // Waffen weggesteckt: Hauptwaffe schraeg am Ruecken (folgt der Wirbelsaeule, oben etwas nach hinten), Zweitwaffe am Guertel (Schleuder, Feuertopf) oder als Bogen am Ruecken
+    function drawStowed() {
+      const bp = (t, d) => [hip[0] + ls * t - lc * d, hip[1] + lc * t + ls * d];   // t = Weg an der Wirbelsaeule entlang, d = Abstand nach hinten
+      const xs = XB + 1.6;
+      if (second === 'bow') {
+        let prev = bp(1.5, 6.2);
+        for (let i = 1; i <= 8; i++) { const cur = bp(1.5 + i * 2.2, 6.2 + 5.2 * Math.sin(Math.PI * i / 8)); seg(xs - 1.4, prev, cur, 0.9, 0.9, c.oak(3)); prev = cur; }
+        seg(xs - 1.4, bp(1.5, 6.2), bp(19.1, 6.2), 0.4, 0.4, c.cream(5));
+      } else if (second === 'pot') {
+        const p = bp(1.4, 7.6); v.sph(xs - 0.8, Y(p[0]), p[1], 3.1, c.brick(3)); v.ell(xs - 0.8, Y(p[0]), p[1] + 2.6, 2.4, 2.4, 1, c.brick(2)); v.sph(xs - 0.8, Y(p[0]), p[1] + 4, 1.3, c.orange(4));
+      } else {   // Schleuder: Lederbeutel mit Stein und Riemen am Guertel (nahe Seite)
+        const p = [hip[0] + 2.4, hip[1] + 0.4];
+        v.sph(XB + 5.6, Y(p[0]), p[1], 2.2, c.leather(3)); v.sph(XB + 6.4, Y(p[0] + 1.2), p[1] + 1.7, 1.1, c.stone(4));
+        seg(XB + 5.4, [p[0] - 0.6, p[1] + 1.4], [p[0] - 2.4, p[1] - 2.8], 0.7, 0.7, c.leather(5));
+      }
+      if (!main) return;
+      const tl = main === 'spear' ? 34 : main === 'axe' ? 17 : 19, a = bp(main === 'spear' ? -3 : 0.5, main === 'spear' ? 6.8 : 6.6), b = bp(tl, main === 'spear' ? 11 : main === 'axe' ? 9 : 11.4);
+      const ln = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / ln, uz = (b[1] - a[1]) / ln;
+      if (main === 'axe') {
+        const qx = -uz, qz = ux;   // Klinge zeigt nach hinten, vom Koerper weg
+        seg(xs, a, b, 1.3, 1.3, c.oak(3)); seg(xs, a, [a[0] + ux * 5, a[1] + uz * 5], 1.5, 1.5, c.leather(3));
+        seg(xs, [b[0] - qx * 2, b[1] - qz * 2], [b[0] + qx * 6, b[1] + qz * 6], 2.7, 1.5, c.stone(3));
+        seg(xs + 0.7, [b[0] + qx * 2.2, b[1] + qz * 2.2], [b[0] + qx * 6.4, b[1] + qz * 6.4], 1.1, 0.7, c.stone(6));
+      } else if (main === 'spear') {
+        seg(xs, a, b, 1.1, 1.1, c.oak(3));
+        seg(xs, [b[0] - ux * 6, b[1] - uz * 6], [b[0] + ux * 2, b[1] + uz * 2], 2.1, 0.5, c.stone(4));
+        seg(xs + 0.6, [b[0] - ux * 4, b[1] - uz * 4], [b[0] + ux * 1, b[1] + uz * 1], 1.0, 0.4, c.stone(6));
+        seg(xs, [b[0] - ux * 7.4, b[1] - uz * 7.4], [b[0] - ux * 5.4, b[1] - uz * 5.4], 1.5, 1.5, c.leather(3));
+      } else {
+        const th = Math.atan2(uz, ux), hc2 = [b[0] + ux * 1.4, b[1] + uz * 1.4];
+        seg(xs, a, b, 1.3, 1.3, c.oak(3)); seg(xs, a, [a[0] + ux * 5, a[1] + uz * 5], 1.5, 1.5, c.leather(3));
+        v.ell(xs, Y(hc2[0]), hc2[1], 3.4, 3.8, 3.8, (x, y, z) => c.walnut(hs(x, y, z) > 0.6 ? 4 : 3));
+        for (let i = 0; i < 5; i++) { const a2 = th + 1.571 + i * 1.256; seg(xs, [hc2[0] + Math.cos(a2) * 2.4, hc2[1] + Math.sin(a2) * 2.4], [hc2[0] + Math.cos(a2) * 4.4, hc2[1] + Math.sin(a2) * 4.4], 0.6, 0.5, c.cream(5)); }
       }
     }
     function headAt(ctr, tilt, face) {
@@ -7745,14 +7791,17 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   /* ---------- Sprites mit Zwischenspeicher ---------- */
   D.HERO_FRAMES = { stand: 4, walk: 4, run: 6, swing: 5, jump: 4, throw: 4, cast: 2, hurt: 1, ko: 1 };
-  // gear: Name der Hauptwaffe (Kurzform) oder { main, second, armor, head }; die Hauptwaffe sieht man in allen Posen ausser Wurf, die Zweitwaffe nur im Wurf
-  D.heroSprite = function (look, pose, frame, gear) {
+  D.HERO_STOW = { stand: 1, walk: 1, run: 1, jump: 1 };   // Posen, in denen die Waffe weggesteckt sein kann (nicht im Kampf)
+  // gear: Name der Hauptwaffe (Kurzform) oder { main, second, armor, head }; die Hauptwaffe sieht man in allen Posen ausser Wurf, die Zweitwaffe nur im Wurf;
+  // sheathed (nicht im Kampf): Stehen, Gehen, Rennen und Sprung ohne Waffe in der Hand, die Waffen stecken am Ruecken bzw. Guertel
+  D.heroSprite = function (look, pose, frame, gear, sheathed) {
     look = Object.assign({}, RS.AV.defaultLook, look || {}); frame = frame | 0;
     const G = typeof gear === 'string' ? { main: gear } : (gear || {}), main = G.main === undefined ? 'club' : G.main, second = G.second || 'sling', armor = G.armor || '', head = G.head || '';
     if (!D.HERO_FRAMES[pose]) pose = 'stand';
     frame = frame % D.HERO_FRAMES[pose];
-    const key = ['hero3', look.skin, look.hair, look.hairC, look.top, look.topC, look.bottom, look.botC, look.shoe, look.shoeC, look.acc, look.accC, pose, frame, pose === 'throw' ? second : main, armor, head].join('|');
-    return D.cached(key, () => RS.sideSprite(build(look, pose, frame, { main, second, armor, head }), { ay: Y0 + 1, depthT: 3 }));
+    const stow = !!sheathed && !!D.HERO_STOW[pose];
+    const key = ['hero3', look.skin, look.hair, look.hairC, look.top, look.topC, look.bottom, look.botC, look.shoe, look.shoeC, look.acc, look.accC, pose, frame, pose === 'throw' ? second : main, armor, head, stow ? 'w' + second : ''].join('|');
+    return D.cached(key, () => RS.sideSprite(build(look, pose, frame, { main, second, armor, head, sheathed: stow }), { ay: Y0 + 1, depthT: 3 }));
   };
 })(window);
 
@@ -8939,7 +8988,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const lv = Math.max(1, opts.heroLv | 0), HS = D.heroStats(lv), L = opts.loadout || D.loadout(), GB = (L.armor ? L.armor.hp : 0) + (L.head ? L.head.hp : 0), fhp = D.buildHp('fence', (L.build || {}).fence), hhp = D.buildHp('house', (L.build || {}).house);
     const S = {
       stage, diff, heroLv: lv, seed: opts.seed || ((Math.random() * 1e9) | 0), t: 0, phase: 'intro', timer: 1.6, wave: -1, waveT: 0, spawnQ: [], endT: 0,
-      hero: { x: 80, band: 1, hp: HS.hp + GB, maxHp: HS.hp + GB, state: 'idle', face: 1, t: 0, walkT: 0, swingT: 0, swingHit: false, throwT: 0, thrown: false, cdMelee: 0, cdSling: 0.4, koT: 0, inv: 0, flash: 0, moving: false, stun: 0, castT: 0, hurtT: 0, stepN: 0 },
+      hero: { x: 80, band: 1, hp: HS.hp + GB, maxHp: HS.hp + GB, state: 'idle', face: 1, t: 0, walkT: 0, swingT: 0, swingHit: false, throwT: 0, thrown: false, cdMelee: 0, cdSling: 0.4, koT: 0, inv: 0, flash: 0, moving: false, stun: 0, castT: 0, hurtT: 0, stepN: 0, fight: false },
       mons: [], proj: [], eproj: [], pools: [], rocks: [], fx: [], texts: [], arcs: [], drops: [], pickQ: [], memo: {}, flames: [],
       fence: { x: D.FENCE.x, w: D.FENCE.w, hp: fhp, maxHp: fhp, state: 0, flash: 0 },
       house: { x0: D.HOUSE.x0, x1: D.HOUSE.x1, hp: hhp, maxHp: hhp, state: 0, flash: 0 },
@@ -9194,6 +9243,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     }
     // Blick: zum naechsten Gegner in der Naehe, sonst in Laufrichtung
     const foe = nearestMon(S, h.x, 240);
+    h.fight = !!foe || busy || h.hurtT > 0;   // im Kampf = Gegner in der Naehe oder gerade Angriff/Treffer; sonst steckt der Held die Waffe weg (def-render.js)
     if (foe) h.face = foe.x >= h.x ? 1 : -1; else if (dir) h.face = dir;
     // Aktionen
     if (h.state === 'swing') {
@@ -9668,7 +9718,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         else if (hero.hurtT > 0) { pose = 'hurt'; fr = 0; }
         else if (jmp) { pose = 'jump'; fr = jmp[0]; jy = jmp[1]; }
         else if (hero.moving) { if (S.in.dir || (S.in.tx != null && Math.abs(S.in.tx - hero.x) > 40)) { pose = 'run'; fr = Math.floor(hero.walkT * 12 * D.PACE) % 6; } else { pose = 'walk'; fr = Math.floor(hero.walkT * 8 * D.PACE) % 4; } }
-        const spr = D.heroSprite(look, pose, fr, S.loadout ? S.loadout.gear : 'club');
+        const spr = D.heroSprite(look, pose, fr, S.loadout ? S.loadout.gear : 'club', !hero.fight);
         const blink = hero.inv > 0 && Math.floor(tm * 14) % 2 === 0;
         if (blink) ctx.globalAlpha = 0.45;
         drawSpr(ctx, spr, hero.x, e.y + jy, hero.face < 0, hero.flash > 0 ? ['hurt', 'rgba(255,60,60,0.6)'] : null);
@@ -9846,7 +9896,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   const gearHtml = () => '<div id="dgear" class="dui">' +
     '<div class="hhead"><div class="dtitle num">AUSRÜSTUNG</div><div class="hchips"><span class="gmats" id="gMats"></span><span class="chip gold" id="gHours"></span><button class="btn gold" id="gDone">Fertig</button></div></div>' +
-    '<div class="gmain"><div class="gtabs" id="gTabs"></div><div class="gcol"><div class="gequip" id="gEquip"></div><div class="glist" id="gList"></div></div></div>' +
+    '<div class="gmain"><div class="gtabs" id="gTabs"></div><div class="gcol"><div class="glist" id="gList"></div></div><div class="gside" id="gSide"></div></div>' +
     '<div class="gmsg" id="gMsg"></div></div>';
 
   H.html = function () {
@@ -9888,7 +9938,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   };
   H.warmHero = function () {
     const gear = D.loadout().gear, jobs = [];
-    for (const pose of Object.keys(D.HERO_FRAMES)) for (let f = 0; f < D.HERO_FRAMES[pose]; f++) jobs.push(() => D.heroSprite(D.look, pose, f, gear));
+    for (const pose of Object.keys(D.HERO_FRAMES)) for (let f = 0; f < D.HERO_FRAMES[pose]; f++) { jobs.push(() => D.heroSprite(D.look, pose, f, gear)); if (D.HERO_STOW[pose]) jobs.push(() => D.heroSprite(D.look, pose, f, gear, true)); }
     for (const q of D.loadout().pets) [0, 3, 4, 5, 6].forEach((f) => jobs.push(() => D.petSprite(q.id, q.v, f)));
     H.work(jobs);
   };
@@ -9940,7 +9990,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   // Held-Vorschau (leicht atmend), auch im Ausruestungsfenster
   H.drawHero = function (tm) {
     if (!D.ready) return;
-    const f = Math.floor(tm * 5) % 4, spr = D.heroSprite(D.look, 'stand', f, H.gear);
+    const f = Math.floor(tm * 5) % 4, spr = D.heroSprite(D.look, 'stand', f, H.gear, true);   // im Menue ist der Held nicht im Kampf: Waffen weggesteckt
     ['hHeroCv', 'gHeroCv'].forEach((id) => {
       const cv = $(id); if (!cv) return;
       const x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); x.imageSmoothingEnabled = false;
@@ -9988,15 +10038,20 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const s = D.data(), n = D.slotsOpen(s.lv);
     $('gHours').textContent = fmt(D.balance()) + ' h';
     $('gMats').innerHTML = Object.keys(D.MATS).map((m) => '<span class="gm"><i style="background:' + D.MATS[m].col + '"></i>' + D.MATS[m].name + ' ' + s.mats[m] + '</span>').join('');
-    $('gTabs').innerHTML = CATS.map((q) => '<button data-c="' + q[0] + '" class="' + (q[0] === gcat ? 'on' : '') + '">' + q[1] + '</button>').join('') + '<canvas id="gHeroCv" width="76" height="76"></canvas>';
-    const chip = (id) => '<span class="gs">' + img(iconOf(id)) + D.itemInfo(id).name + ' +' + (s.own[id] || 0) + '</span>';
-    const slots = ['main', 'second', 'armor', 'head'].map((k) => (s.eq[k] ? chip(s.eq[k]) : '<span class="gs">–</span>')).join('');
-    const tr = [0, 1, 2, 3].map((i) => (i < D.trapSlots(s.lv) ? (s.eq.t[i] ? chip(s.eq.t[i]) : '<span class="gs">frei</span>') : '<span class="gs lock">ab Held-Lv ' + D.TRAP_LV[i] + '</span>')).join('');
-    const ab = [0, 1, 2].map((i) => (i < n ? (s.eq.a[i] ? chip(s.eq.a[i]) : '<span class="gs">frei</span>') : '<span class="gs lock">ab Held-Lv ' + D.SLOT_LV[i] + '</span>')).join('');
-    $('gEquip').innerHTML = '<b>Angelegt:</b>' + slots + '<b>Fähigkeiten:</b>' + ab + '<b>Fallen:</b>' + tr;
-    $('gEquip').innerHTML += '<b>Begleiter:</b>' + (s.pets.length ? s.pets.map((q) => '<span class="gs">' + (D.PET[RS.ITEM[q.t] ? RS.ITEM[q.t].petKind : ''] ? D.PET[RS.ITEM[q.t].petKind].name : q.t) + '</span>').join('') : '<span class="gs">–</span>');
+    $('gTabs').innerHTML = CATS.map((q) => '<button data-c="' + q[0] + '" class="' + (q[0] === gcat ? 'on' : '') + '">' + q[1] + '</button>').join('');
+    // rechts: der Held und was er traegt (Waffen/Ruestung, Faehigkeiten, Fallen, Begleiter) als Platzreihen
+    const slot = (id) => (id ? '<div class="gslot on" title="' + D.itemInfo(id).name + '">' + img(iconOf(id)) + '<em>+' + (s.own[id] || 0) + '</em></div>' : '<div class="gslot"></div>');
+    const lock = (lv) => '<div class="gslot lock"><span>Lv ' + lv + '</span></div>';
+    const petSlot = (q) => { if (!q) return '<div class="gslot"></div>'; let src = ''; try { src = D.petSprite(q.t, q.v, 0).cv.toDataURL(); } catch (e) { /* Bild nicht bereit */ } return '<div class="gslot on"><img class="pxi" alt="" draggable="false" src="' + src + '"></div>'; };
+    const grp = (t, cells) => '<div class="gsg"><b>' + t + '</b><div>' + cells.join('') + '</div></div>';
+    $('gSide').innerHTML = '<canvas id="gHeroCv" width="76" height="76"></canvas>' +
+      grp('Ausrüstung', ['main', 'second', 'armor', 'head'].map((k) => slot(s.eq[k]))) +
+      grp('Fähigkeiten', [0, 1, 2].map((i) => (i < n ? slot(s.eq.a[i]) : lock(D.SLOT_LV[i])))) +
+      grp('Fallen', [0, 1, 2, 3].map((i) => (i < D.trapSlots(s.lv) ? slot(s.eq.t[i]) : lock(D.TRAP_LV[i])))) +
+      grp('Begleiter', [0, 1, 2].map((i) => petSlot(s.pets[i])));
     if (gcat === 'pets') { const own = D.ownedPets(); $('gList').innerHTML = own.length ? own.map((p) => petRow(p, s)).join('') : '<div class="gi" style="padding:8px">Du hast noch keine Haustiere. Im Raum unter „Haustiere“ kannst du welche kaufen; sie kämpfen dann an deiner Seite (bis zu drei).</div>'; }
     else $('gList').innerHTML = idsOf(gcat).map((id) => row(id, s)).join('');
+    H.drawHero(performance.now() / 1000);   // im Kampf laeuft die Menue-Schleife nicht: Held einmal zeichnen
   };
   const msg = (t) => { const e = $('gMsg'); if (!e) return; e.textContent = t || ''; clearTimeout(mtimer); if (t) mtimer = setTimeout(() => { e.textContent = ''; }, 4000); };
   const afterChange = () => { H.gear = D.loadout().gear; H.refresh(); G.render(); H.warmHero(); if (H.onChange) H.onChange(); };
@@ -10221,6 +10276,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     } else { st.inset = st.left = st.top = st.width = st.height = st.transformOrigin = st.transform = ''; }
     rotOn = useRot;
     blocked = portrait && !useRot && !turnOk && !waiting;
+    // Menues: Masseinheit aus der Bildhoehe (Handy quer etwa 3,8 px), damit Schrift und Knoepfe lesbar bleiben; schmal = ohne Held-Spalte
+    root.style.setProperty('--du', Math.max(2.6, Math.min(6, vh / 108, vw / 215)).toFixed(2) + 'px'); root.classList.toggle('dnarrow', vw < 760);
     root.classList.toggle('dportrait', portrait); root.classList.toggle('dlow', vh < 460);
     $('dturn').classList.toggle('show', blocked);
   }
@@ -10310,7 +10367,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   function warmJobs() {
     const look = D.look, jobs = [], gear = D.loadout().gear;
     jobs.push(() => D.worldStep('stone'));   // false = noch nicht fertig, wird noch einmal aufgerufen
-    for (const pose of Object.keys(D.HERO_FRAMES)) for (let f = 0; f < D.HERO_FRAMES[pose]; f++) jobs.push(() => D.heroSprite(look, pose, f, gear));
+    for (const pose of Object.keys(D.HERO_FRAMES)) for (let f = 0; f < D.HERO_FRAMES[pose]; f++) { jobs.push(() => D.heroSprite(look, pose, f, gear)); if (D.HERO_STOW[pose]) jobs.push(() => D.heroSprite(look, pose, f, gear, true)); }
     for (const type of ['raptor', 'rhino', 'spitter', 'flyer']) for (let f = 0; f < 5; f++) jobs.push(() => D.monSprite(type, f));
     jobs.push(() => { for (let s2 = 0; s2 < 4; s2++) D.fenceSprite(s2); });
     jobs.push(() => { D.houseSprite(0); D.houseSprite(1); D.stoneSprite(2); D.stoneSprite(5); });
