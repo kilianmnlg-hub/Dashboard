@@ -297,6 +297,10 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 #dv.dlow .gtabs button { padding: calc(var(--u) * 1.4) calc(var(--u) * 2.4); }
 #dv.dlow #gHeroCv { width: calc(var(--u) * 20); height: calc(var(--u) * 20); }
 
+.hmode { display: flex; gap: calc(var(--u) * 1); flex: none; }
+.hmode button { flex: 1; padding: calc(var(--u) * 1.6) calc(var(--u) * 3); background: var(--p1); color: var(--dim); font-family: var(--font2); font-size: calc(var(--u) * 3.2); text-transform: uppercase; box-shadow: inset 0 var(--u) 0 0 var(--hi); }
+.hmode button.on { background: var(--gold); color: #2a1a05; }
+
 </style>
 </head>
 <body>
@@ -6715,6 +6719,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     wow() { tone('triangle', 400, 1200, 0.3, 0.2); }
   };
   A.SFX = SFX; A.tone = tone; A.noise = noise;   // fuer weitere Effekte (z.B. Verteidigung)
+  A.bus = () => ({ sfx: sfxBus, mus: musBus, rev: reverb, noise: noiseBuf });
   A.sfx = function (name) { try { if (A.ctx && SFX[name]) SFX[name](); } catch (e) { /* ignore */ } };
 
   /* ---------- Lo-Fi-Loop ---------- */
@@ -6898,6 +6903,23 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       ]
     }
   ];
+  // Endlos: Wellen aus Daten, wachsende Staerke (Leben +6 %, Schaden +2 % je Welle, siehe spawn in def-core.js), alle 10 Wellen ein Boss; Rekord = erreichte Welle
+  D.ENDLESS_BOSS = ['alpha', 'bull', 'queen', 'swamp', 'saber'];
+  D.endlessStage = function (base) {
+    const waves = [];
+    for (let n = 0; n < 150; n++) {
+      const k = n + 1, parts = [];
+      if (k % 10 === 0) { parts.push(run(D.ENDLESS_BOSS[(k / 10 - 1) % D.ENDLESS_BOSS.length], 1, 1.5, 0), run('raptor', 4 + Math.floor(k / 5), 3, 1.0)); if (k >= 20) parts.push(run('spitter', 2 + Math.floor(k / 10), 4, 3)); }
+      else {
+        parts.push(run('raptor', 4 + Math.floor(k * 0.9), 0.5, Math.max(0.5, 1.2 - k * 0.012)));
+        if (k >= 3) parts.push(run('rhino', Math.floor((k + 1) / 4), 3, 5));
+        if (k >= 5) parts.push(run('spitter', Math.floor(k / 4), 2, 3.5));
+        if (k >= 8) parts.push(run('flyer', Math.floor(k / 4), 1, 1.6));
+      }
+      waves.push(cat(...parts));
+    }
+    return { id: 'endless_' + base.id, era: base.era, world: base.world, n: 0, name: 'Endlos · ' + base.name, pause: 5, hp: 1, dmg: 1, xp: 0, endless: true, waves };
+  };
   D.stageById = (id) => D.STAGES.find((s) => s.id === id) || D.STAGES[0];
 })(window);
 
@@ -8916,7 +8938,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     // Ergebnis: Material gibt es nur beim Sieg, Erfahrung immer (plus Bonus fuers Schaffen)
     S.result = {
       won, stars: S.stars, xp: Math.round(S.xp + (won ? (S.stage.xp || 0) * S.xpMul : 0)),
-      loot: won ? Object.assign({}, S.loot) : { fell: 0, knochen: 0, stein: 0 }, lostLoot: won ? null : Object.assign({}, S.loot)
+      loot: won || S.stage.endless ? Object.assign({}, S.loot) : { fell: 0, knochen: 0, stein: 0 }, lostLoot: won || S.stage.endless ? null : Object.assign({}, S.loot), wave: S.wave + 1
     };
     sfx(won ? 'win' : 'lose');
   }
@@ -8924,11 +8946,11 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   /* ---------- Monster erzeugen ---------- */
   function spawn(S, type, opt) {
     opt = opt || {};
-    const T = D.MON[type], band = Math.floor(S.rng() * 3);
+    const T = D.MON[type], band = Math.floor(S.rng() * 3), ws = S.stage.endless ? 1 + 0.06 * Math.max(0, S.wave) : 1, wd = S.stage.endless ? 1 + 0.02 * Math.max(0, S.wave) : 1;
     const m = {
       id: S.uid++, type, T, x: opt.x != null ? opt.x : D.W + 26 + S.rng() * 14, band, dep: D.BANDS[band],
-      hp: T.hp * S.hpMul, maxHp: T.hp * S.hpMul, t: 0, walkT: S.rng() * 2, cd: 0.3 + S.rng() * 0.4, bite: 0, stun: 0, flash: 0, dead: false, deadT: 0, state: 'walk', slow: 0,
-      spd: 1, rate: 1, alt: T.fly ? T.alt + S.rng() * 14 - 7 : 0, phase: 0, specT: T.boss ? 5.5 : 0, specGap: 0, act: null, volley: 3, dmg: T.dmg * S.monDmg
+      hp: T.hp * S.hpMul * ws, maxHp: T.hp * S.hpMul * ws, t: 0, walkT: S.rng() * 2, cd: 0.3 + S.rng() * 0.4, bite: 0, stun: 0, flash: 0, dead: false, deadT: 0, state: 'walk', slow: 0,
+      spd: 1, rate: 1, alt: T.fly ? T.alt + S.rng() * 14 - 7 : 0, phase: 0, specT: T.boss ? 5.5 : 0, specGap: 0, act: null, volley: 3, dmg: T.dmg * S.monDmg * wd
     };
     S.mons.push(m);
     if (T.boss) { S.boss = m; S.banner = { text: 'BOSS', sub: T.name, t: 0, life: 2.4 }; sfx('roar'); S.shake = Math.max(S.shake, 3); }
@@ -8960,7 +8982,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       burst(S, m.x, hy + T.h * 0.6, T.boss ? 30 : 12, T.fly ? ['#8a6aa8', '#b49ad0', '#6a5090'] : m.type === 'rhino' || T.base === 'rhino' ? ['#8a5a30', '#b8844a', '#6b4222'] : ['#8ed04a', '#d8f28a', '#f08a3a'], { speed: 1.1 });
       sfx('die'); S.shake = Math.max(S.shake, T.hw > 25 ? 3 : 0.8);
       if (T.hw > 25) S.hitstop = Math.max(S.hitstop, 0.08);
-      if (T.boss) { S.bossDown = true; S.bossT = 0; S.banner = { text: 'BOSS BESIEGT!', sub: T.name, t: 0, life: 2.6 }; S.shake = 6; S.hitstop = 0.22; sfx('bossDown'); }
+      if (T.boss) { if (!S.stage.endless) { S.bossDown = true; S.bossT = 0; } S.banner = { text: 'BOSS BESIEGT!', sub: T.name, t: 0, life: 2.6 }; S.shake = 6; S.hitstop = 0.22; sfx('bossDown'); }
     } else {
       sfx(o.crit ? 'crit' : (o.stone ? 'stone' : 'hit'));
       if (T.hw > 25 && o.melee) S.hitstop = Math.max(S.hitstop, 0.035);
@@ -9595,6 +9617,45 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     last[name] = now;
     A.sfx(name);
   };
+
+  /* ---------- Musik der Steinzeit: Trommeln, Bordun, Holzfloete (a-Moll-Pentatonik); Stufe 0 ruhig (Pause), 1 Kampf, 2 Boss ---------- */
+  const mtof = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  const PENT = [57, 60, 62, 64, 67, 69, 72, 74, 76, 79];
+  const MOTIFS = [[0, null, 3, null, 4, null, 3, 2, null, null, 2, null, 0, null, null, null], [5, null, null, 4, 3, null, 2, null, 3, null, null, 1, 0, null, 2, null], [7, null, 6, null, 5, null, 3, null, 4, null, 3, null, 2, null, 0, null]];
+  let mTimer = null, mNext = 0, mStep = 0, mMotif = 0;
+  D.mLevel = 0;
+  function flute(f, t, dur, vol) {
+    const ctx = A.ctx, B = A.bus(), o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), lf = ctx.createOscillator(), lg = ctx.createGain(), gn = ctx.createGain(), fl = ctx.createBiquadFilter();
+    o1.type = 'triangle'; o2.type = 'sine'; o1.frequency.value = f; o2.frequency.value = f * 2.005; lf.frequency.value = 5.2; lg.gain.value = f * 0.006; lf.connect(lg); lg.connect(o1.frequency);
+    fl.type = 'lowpass'; fl.frequency.value = 2600;
+    gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.05); gn.gain.exponentialRampToValueAtTime(vol * 0.6, t + dur * 0.6); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const g2 = ctx.createGain(); g2.gain.value = 0.12; o1.connect(fl); o2.connect(g2); g2.connect(fl); fl.connect(gn); gn.connect(B.mus); gn.connect(B.rev);
+    o1.start(t); o2.start(t); lf.start(t); o1.stop(t + dur + 0.05); o2.stop(t + dur + 0.05); lf.stop(t + dur + 0.05);
+  }
+  function tom(t, f, vol) { const ctx = A.ctx, B = A.bus(), o = ctx.createOscillator(), gn = ctx.createGain(); o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.45, t + 0.16); gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.001, t + 0.22); o.connect(gn); gn.connect(B.mus); o.start(t); o.stop(t + 0.26); }
+  function stick(t, vol) { const ctx = A.ctx, B = A.bus(), s = ctx.createBufferSource(); s.buffer = B.noise; const fl = ctx.createBiquadFilter(); fl.type = 'bandpass'; fl.frequency.value = 2600; fl.Q.value = 3; const gn = ctx.createGain(); gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.001, t + 0.05); s.connect(fl); fl.connect(gn); gn.connect(B.mus); s.start(t, Math.random()); s.stop(t + 0.07); }
+  function drone(t, dur) { const ctx = A.ctx, B = A.bus(); [[110, 0.16], [165, 0.07]].forEach((q) => { const o = ctx.createOscillator(), gn = ctx.createGain(); o.type = 'sine'; o.frequency.value = q[0]; gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(q[1], t + 0.2); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(gn); gn.connect(B.mus); o.start(t); o.stop(t + dur + 0.05); }); }
+  function sched() {
+    const ctx = A.ctx, lv = D.mLevel, s16 = 60 / (112 + lv * 8) / 4;
+    while (mNext < ctx.currentTime + 0.4) {
+      const b = mStep % 16, t = mNext + (b % 2 ? s16 * 0.1 : 0);
+      if (b === 0) drone(t, s16 * 16 + 0.3);
+      if (b === 0 || b === 8) tom(t, 120, 0.5); if (b === 6 || b === 14) tom(t, 160, 0.28);
+      if (lv >= 1 && (b === 3 || b === 11)) tom(t, 190, 0.22);
+      if (lv >= 2 && b % 2 === 0) tom(t, 140 + (b % 4) * 10, 0.2);
+      if (b === 4 || b === 12) stick(t, 0.16); if (lv >= 1 && b % 4 === 2) stick(t, 0.07);
+      const idx = MOTIFS[mMotif][b];
+      if (idx != null && (lv >= 1 || mStep % 32 < 16)) flute(mtof(PENT[idx]), t, s16 * (MOTIFS[mMotif][(b + 1) % 16] == null ? 3 : 1.6), lv === 0 ? 0.09 : 0.13);
+      if (b === 15 && Math.random() < 0.5) mMotif = (mMotif + 1) % MOTIFS.length;
+      mNext += s16; mStep++;
+    }
+  }
+  D.music = function (on) {
+    if (!A.ctx || !A.bus || !A.on) return;
+    if (on && !mTimer) { mNext = A.ctx.currentTime + 0.1; mStep = 0; mTimer = setInterval(sched, 120); }
+    if (!on && mTimer) { clearInterval(mTimer); mTimer = null; }
+  };
+  D.musicMood = (lv) => { D.mLevel = lv; };
 })(window);
 
 </script>
@@ -9608,7 +9669,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   const RS = (g.RS = g.RS || {});
   const D = (RS.def = RS.def || {});
   const $ = (id) => document.getElementById(id);
-  const H = (D.hub = { sel: 0, diff: 'normal', ready: true, q: [], busy: false, gear: 'club' });
+  const H = (D.hub = { sel: 0, diff: 'normal', ready: true, q: [], busy: false, gear: 'club', mode: 'camp' });
   const fmt = (n) => (Math.round(n * 10) / 10).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const matHtml = (m, n) => '<span class="hmat"><i style="background:' + D.MATS[m].col + '"></i>' + D.MATS[m].name + ' <b>' + n + '</b></span>';
   const img = (name, cls) => '<img class="pxi ' + (cls || '') + '" alt="" draggable="false" src="' + D.icon(name) + '">';
@@ -9637,8 +9698,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   H.bind = function () {
     $('hBack').onclick = () => D.close();
-    $('hGo').onclick = () => { if (RS.audio) RS.audio.init(); if (H.canStart()) D.start({ stage: H.sel, diff: H.diff }); };
-    $('hStages').addEventListener('click', (e) => { const b = e.target.closest('.hst'); if (!b || b.classList.contains('lock')) return; H.select(+b.dataset.i); });
+    $('hGo').onclick = () => { if (RS.audio) RS.audio.init(); if (H.canStart()) D.start({ stage: H.sel, diff: H.diff, endless: H.mode === 'endless' }); };
+    $('hStages').addEventListener('click', (e) => { const mb = e.target.closest('.hmode button'); if (mb) { H.mode = mb.dataset.m; H.refresh(); return; } const b = e.target.closest('.hst'); if (!b || b.classList.contains('lock')) return; H.select(+b.dataset.i); });
     $('hDiff').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; H.diff = b.dataset.d; const s = D.data(); s.diff = H.diff; D.commit(); H.refresh(); });
     $('hGear').onclick = () => G.open(); $('gDone').onclick = () => G.close();
     $('gTabs').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; gcat = b.dataset.c; gconf = null; G.render(); });
@@ -9687,10 +9748,11 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const hst = D.heroStats(s.lv), bonus = (L.armor ? L.armor.hp : 0) + (L.head ? L.head.hp : 0), prot = Math.round((1 - Math.max(0.5, 1 - (L.armor ? L.armor.red : 0) - (L.head ? L.head.red : 0))) * 100);
     $('hStat').textContent = 'LP ' + (hst.hp + bonus) + ' · Schaden +' + Math.round((hst.dmg - 1) * 100) + ' %' + (prot ? ' · Schutz ' + prot + ' %' : '');
     $('hMats').innerHTML = Object.keys(D.MATS).map((m) => matHtml(m, s.mats[m])).join('');
-    $('hStages').innerHTML = D.STAGES.map((st, i) => {
-      const open = D.stageOpen(s, i), n = D.stageStars(s, st.id);
+    const mode = '<div class="hmode"><button data-m="camp" class="' + (H.mode === 'camp' ? 'on' : '') + '">Kampagne</button><button data-m="endless" class="' + (H.mode === 'endless' ? 'on' : '') + '">Endlos</button></div>';
+    $('hStages').innerHTML = mode + D.STAGES.map((st, i) => {
+      const open = D.stageOpen(s, i), n = D.stageStars(s, st.id), best = s.endless['endless_' + st.id] || 0;
       return '<button class="hst' + (i === H.sel ? ' sel' : '') + (open ? '' : ' lock') + '" data-i="' + i + '"><span class="hn num">' + (i + 1) + '</span><span class="hnm">' + st.name + '</span>' +
-        '<span class="hsr">' + (open ? stars(n, false) : '<em>gesperrt</em>') + '</span></button>';
+        '<span class="hsr">' + (!open ? '<em>gesperrt</em>' : H.mode === 'endless' ? '<em>' + (best ? 'Rekord: Welle ' + best : 'noch kein Rekord') + '</em>' : stars(n, false)) + '</span></button>';
     }).join('');
     $('hDiff').innerHTML = D.DIFF.map((q) => '<button data-d="' + q.id + '" class="' + (q.id === H.diff ? 'on' : '') + '">' + q.name + '</button>').join('');
     setGo();
@@ -9776,6 +9838,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const before = D.stageStars(s, st.id), wasOpen = D.STAGES.map((q, i) => D.stageOpen(s, i));
     info.levelUp = D.addXp(s, R.xp);
     for (const m of Object.keys(R.loot)) s.mats[m] += R.loot[m];
+    if (st.endless) { const r = R.wave || 0; if (r > (s.endless[st.id] || 0)) { s.endless[st.id] = r; info.record = r; } }
     if (R.won) { const p = s.prog[st.id] || (s.prog[st.id] = { stars: 0, best: 0 }); p.stars = Math.max(p.stars, R.stars); info.newStars = Math.max(0, R.stars - before); }
     const now = D.STAGES.findIndex((q, i) => !wasOpen[i] && D.stageOpen(s, i)); if (now >= 0) info.unlocked = D.STAGES[now].name;
     D.commit();
@@ -9783,9 +9846,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   };
   H.endHtml = function (S, info) {
     const R = S.result, m = Math.floor(S.stats.time / 60), sec = Math.floor(S.stats.time % 60), s = D.data();
-    let h = (R.won ? '' : 'Das Haus ist gefallen. Diesmal keine Beute.<br>') + 'Monster besiegt: <b>' + S.stats.kills + '</b> · Haus: <b>' + Math.round(S.house.hp / S.house.maxHp * 100) + ' %</b> · Zeit: <b>' + m + ':' + (sec < 10 ? '0' : '') + sec + '</b>';
+    let h = (S.stage.endless ? 'Das Haus ist bei Welle <b>' + R.wave + '</b> gefallen.' + (info.record ? ' <span class="up">Neuer Rekord!</span>' : ' Rekord: Welle <b>' + (s.endless[S.stage.id] || 0) + '</b>') + '<br>' : R.won ? '' : 'Das Haus ist gefallen. Diesmal keine Beute.<br>') + 'Monster besiegt: <b>' + S.stats.kills + '</b> · Haus: <b>' + Math.round(S.house.hp / S.house.maxHp * 100) + ' %</b> · Zeit: <b>' + m + ':' + (sec < 10 ? '0' : '') + sec + '</b>';
     if (S.stats.kos) h += ' · Held ausgeschaltet: <b>' + S.stats.kos + '×</b>';
-    if (R.won) { const parts = Object.keys(R.loot).filter((k) => R.loot[k] > 0).map((k) => matHtml(k, '+' + R.loot[k])); h += '<div class="hloot">' + (parts.length ? parts.join('') : 'keine Beute') + '</div>'; }
+    if (R.won || S.stage.endless) { const parts = Object.keys(R.loot).filter((k) => R.loot[k] > 0).map((k) => matHtml(k, '+' + R.loot[k])); h += '<div class="hloot">' + (parts.length ? parts.join('') : 'keine Beute') + '</div>'; }
     h += '<div class="hxpl"><b>+' + R.xp + ' EP</b>' + (info.levelUp ? ' · <span class="up">HELD LEVEL ' + s.lv + '!</span>' : '') + '</div>';
     if (info.unlocked) h += '<div class="hxpl"><span class="up">Neue Stufe: ' + info.unlocked + '</span></div>';
     return h;
@@ -9888,7 +9951,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     cv = $('dcv'); ctx = cv.getContext('2d');
     D.hub.bind();
     $('dBack2').onclick = $('dQuit').onclick = () => D.toHub();
-    $('dAgain').onclick = () => { RS.audio && RS.audio.init(); D.start({ stage: curOpts.stage, diff: curOpts.diff }); };
+    $('dAgain').onclick = () => { RS.audio && RS.audio.init(); D.start({ stage: curOpts.stage, diff: curOpts.diff, endless: curOpts.endless }); };
     $('dNext').onclick = () => { RS.audio && RS.audio.init(); D.hub.sel = Math.min(D.STAGES.length - 1, curOpts.stage + 1); D.start({ stage: D.hub.sel, diff: curOpts.diff }); };
     $('dResume').onclick = () => setPaused(false);
     $('dpause').onclick = () => setPaused(!paused);
@@ -9969,9 +10032,11 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     root.classList.toggle('dportrait', portrait); root.classList.toggle('dlow', vh < 460);
     $('dturn').classList.toggle('show', blocked);
   }
+  const musicOk = () => { const G = RS.G; return !!(G && G.settings && G.settings.music && G.settings.sound && RS.audio && RS.audio.ctx && D.music); };
   function setPaused(p) {
     if (!S || S.phase === 'menu' || S.phase === 'win' || S.phase === 'lose') return;
     paused = p; $('dpanel').classList.toggle('show', p);
+    if (D.music) { if (p) D.music(false); else if (musicOk()) D.music(true); }
   }
 
   /* ---------- Anzeigen ---------- */
@@ -9986,7 +10051,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     fill('dbH', S.house.hp / S.house.maxHp); txt('dnH', String(Math.ceil(S.house.hp)));
     fill('dbF', S.fence.hp / S.fence.maxHp); txt('dnF', String(Math.ceil(S.fence.hp)));
     fill('dbP', S.hero.hp / S.hero.maxHp); txt('dnP', String(Math.ceil(S.hero.hp)));
-    txt('dwt', S.wave >= 0 ? 'WELLE ' + (S.wave + 1) + '/' + S.stage.waves.length : 'BEREIT');
+    txt('dwt', S.wave >= 0 ? 'WELLE ' + (S.wave + 1) + (S.stage.endless ? '' : '/' + S.stage.waves.length) : 'BEREIT');
+    const ml = S.phase === 'wave' ? (S.boss && !S.boss.dead ? 2 : 1) : 0; if (hv.mood !== ml) { hv.mood = ml; if (D.musicMood) D.musicMood(ml); }
     txt('dwm', String(S.mons.filter((m) => !m.dead).length + S.spawnQ.length));
     S.abs.forEach((A, i) => {
       const E = abEls[i]; if (!E) return;
@@ -10005,7 +10071,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   function showEnd() {
     endShown = true;
     const won = S.phase === 'win', info = D.hub.applyResult(S);   // Beute, Erfahrung und Sterne in den Spielstand uebernehmen
-    $('det').textContent = won ? 'SIEG!' : 'NIEDERLAGE';
+    if (D.music) D.music(false);
+    $('det').textContent = S.stage.endless ? 'WELLE ' + (S.wave + 1) : won ? 'SIEG!' : 'NIEDERLAGE';
     $('dstars').innerHTML = won ? [0, 1, 2].map((i) => img(i < S.stars ? 'star' : 'star0', 'big')).join('') : '';
     $('des').innerHTML = D.hub.endHtml(S, info);
     $('dNext').style.display = won && curOpts.stage + 1 < D.STAGES.length && D.stageOpen(D.data(), curOpts.stage + 1) ? '' : 'none';
@@ -10059,14 +10126,15 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   // Zurueck zur Auswahl (nach dem Kampf oder ueber Pause -> Beenden)
   D.toHub = function () {
     if (!root) return;
+    if (D.music) D.music(false);
     S = D.newBattle({ heroLv: D.data().lv }); S.phase = 'menu'; hv = {}; acc = 0; showMenu();
   };
   D.start = function (opts) {
     if (!D.ready) return null;
     opts = opts || { stage: D.hub.sel, diff: D.hub.diff };
     D.look = RS.avatar && RS.avatar.data ? RS.avatar.data.look : D.look;
-    curOpts = { stage: Math.max(0, Math.min(D.STAGES.length - 1, opts.stage | 0)), diff: opts.diff || 'normal' };
-    S = D.newBattle({ stage: D.STAGES[curOpts.stage], diff: curOpts.diff, heroLv: D.data().lv, loadout: D.loadout() }); endShown = false; paused = false; acc = 0; hv = {}; buildAbil(); if (D.worldReset) D.worldReset();
+    curOpts = { stage: Math.max(0, Math.min(D.STAGES.length - 1, opts.stage | 0)), diff: opts.diff || 'normal', endless: !!opts.endless };
+    S = D.newBattle({ stage: curOpts.endless ? D.endlessStage(D.STAGES[curOpts.stage]) : D.STAGES[curOpts.stage], diff: curOpts.diff, heroLv: D.data().lv, loadout: D.loadout() }); endShown = false; paused = false; acc = 0; hv = {}; buildAbil(); if (D.worldReset) D.worldReset(); if (musicOk()) D.music(true);
     D.hub.hide(); ['dpanel', 'dend'].forEach((id) => $(id).classList.remove('show'));
     $('dhud').style.visibility = 'visible'; $('dbanner').classList.remove('go');
     return S;
@@ -10087,6 +10155,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   };
   D.close = function () {
     if (!D.active) return;
+    if (D.music) D.music(false);
     D.active = false; root.classList.remove('show'); cancelAnimationFrame(raf); S = null; down = false; keys.l = keys.r = false;
     exitLandscape();
     const G = RS.G; if (G && G.settings && G.settings.music && G.settings.sound && RS.audio && RS.audio.ctx) RS.audio.music(true);
