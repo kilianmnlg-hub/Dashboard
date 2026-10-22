@@ -126,6 +126,12 @@
         "name": "Bananen",
         "qty": "",
         "aisle": "obst"
+      },
+      {
+        "id": "6199a327-41dd-4042-b929-902907c01b4b",
+        "name": "Harzer Käse",
+        "qty": "",
+        "aisle": "kuehl"
       }
     ],
     "history": {
@@ -262,7 +268,7 @@
         ]
       }
     ],
-    "updatedAt": 1792479474108
+    "updatedAt": 1792698239969
   },
   "timetracker": {
     "entries": [
