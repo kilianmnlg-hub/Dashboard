@@ -532,6 +532,12 @@
         "end": 1792751400000
       },
       {
+        "id": "0bf14c2f-9b81-4fd6-9f9c-dec99a12ad4a",
+        "cat": "youtube",
+        "start": 1792765593082,
+        "end": 1792770149704
+      },
+      {
         "id": "aace3af3-4f18-40b9-81e9-cb21cef9d3ad",
         "cat": "bricklink",
         "start": 1791528006328,
@@ -607,14 +613,14 @@
       "youtube|29749714"
     ],
     "active": {
-      "youtube": 1792765593082,
+      "youtube": null,
       "bricklink": null
     },
     "targets": {
       "youtube": 20,
       "bricklink": 7
     },
-    "updatedAt": 1792765600803
+    "updatedAt": 1792770149705
   },
   "inbox": {
     "items": [
