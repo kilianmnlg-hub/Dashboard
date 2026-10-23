@@ -67,6 +67,11 @@
           "id": "b710168b-41c1-439b-9e44-7944d012c4c1",
           "text": "Shorts aufnehmen",
           "done": false
+        },
+        {
+          "id": "c9a28637-81c7-4eb6-a026-aca37eafb923",
+          "text": "jw KI Sets Audio",
+          "done": false
         }
       ],
       "studium": [],
@@ -78,7 +83,7 @@
         }
       ]
     },
-    "updatedAt": 1792735341585
+    "updatedAt": 1792735351787
   },
   "tasks": {
     "items": [
