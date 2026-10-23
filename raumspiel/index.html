@@ -344,7 +344,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 /* Level-Karte */
 .hstages { position: relative; overflow: hidden; gap: 0; }
 .hmapbox { position: relative; flex: 1; min-width: 0; min-height: 0; background: #2a63a8; box-shadow: 0 0 0 calc(var(--u) * 0.6) #0e0a16; }
-.hmaps { position: absolute; inset: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; touch-action: pan-x; }
+.hmaps { position: absolute; inset: 0; overflow-x: auto; overflow-y: auto; scrollbar-width: none; touch-action: pan-x pan-y; }
 .hmaps::-webkit-scrollbar { display: none; }
 .hmapc { position: relative; }
 #hMap { display: block; image-rendering: pixelated; cursor: pointer; }
@@ -6884,7 +6884,13 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     armored: { name: 'Panzernashorn', tag: 'gepanzert', info: 'Steine und Pfeile prallen ab. Nahkampf, Hagel, Katapult und Laser wirken voll.', base: 'rhino', variant: 2, hp: 210, speed: 22, dmg: 20, rate: 1.7, reach: 14, struct: 2.4, kb: 0.1, hw: 32, h: 40, fps: 5, xp: 9, armor: 0.55, loot: [['stein', 0.9, 1, 3], ['fell', 0.5, 1, 2]] },
     hunter: { name: 'Jäger-Raptor', tag: 'springt', info: 'Springt über den Zaun und greift Held und Haus an.', base: 'raptor', variant: 5, scale: 1.12, hp: 56, speed: 64, dmg: 7, rate: 0.85, reach: 9, struct: 1.1, kb: 0.7, hw: 17, h: 31, fps: 12, xp: 4, leap: { cd: 6, range: 150 }, loot: [['knochen', 0.35, 1, 2], ['fell', 0.3, 1, 1]] },
     shaman: { name: 'Schamane', tag: 'heilt', info: 'Heilt und beschleunigt Gegner um sich herum. Zuerst ausschalten!', base: 'spitter', variant: 2, hp: 70, speed: 30, dmg: 0, rate: 3, reach: 0, range: 150, shot: { dmg: 3, speed: 150 }, struct: 1, kb: 0.8, hw: 16, h: 32, fps: 8, ranged: true, xp: 8, aura: { r: 110, heal: 0.02, cap: 6, haste: 0.3 }, loot: [['knochen', 0.8, 1, 2], ['stein', 0.5, 1, 2]] },
-    mammoth: { name: 'Mammut', tag: 'stampft', info: 'Riesig: sein Stampfen lähmt den Helden und zerlegt den Zaun.', base: 'rhino', variant: 3, scale: 1.35, hp: 340, speed: 17, dmg: 26, rate: 2.0, reach: 20, struct: 2.8, kb: 0, hw: 44, h: 55, fps: 4, xp: 16, stomp: { cd: 4.5, r: 46, stun: 0.7 }, loot: [['fell', 1, 2, 4], ['stein', 0.7, 1, 3], ['knochen', 0.6, 1, 2]] },
+    mammoth: { name: 'Mammut', tag: 'stampft', info: 'Riesig: sein Stampfen lähmt den Helden und zerlegt den Zaun.', base: 'mammoth', hp: 340, speed: 17, dmg: 26, rate: 2.0, reach: 20, struct: 2.8, kb: 0, hw: 44, h: 55, fps: 4, xp: 16, stomp: { cd: 4.5, r: 46, stun: 0.7 }, loot: [['fell', 1, 2, 4], ['stein', 0.7, 1, 3], ['knochen', 0.6, 1, 2]] },
+    // Weitere Steinzeit-Arten: Schwarm, Ramme (Anlauf), Graeber (unter dem Zaun durch), Bomber (Steine von oben), Frost (verlangsamt)
+    schnapper: { name: 'Schnapper', tag: 'schwärmt', info: 'Winzig, flink und immer im Schwarm: viele kleine Bisse.', base: 'raptor', variant: 8, scale: 0.72, hp: 11, speed: 80, dmg: 3, rate: 0.6, reach: 7, struct: 0.5, kb: 1.5, hw: 11, h: 21, fps: 14, xp: 0.5, loot: [['fell', 0.1, 1, 1]] },
+    rammbock: { name: 'Rammbock-Nashorn', tag: 'rammt', info: 'Nimmt Anlauf und rammt Zaun und Wehren: früh abfangen!', base: 'rhino', variant: 4, hp: 150, speed: 24, dmg: 20, rate: 1.9, reach: 14, struct: 2.6, kb: 0.15, hw: 32, h: 40, fps: 5, xp: 7, charge: { cd: 7, mul: 3.4, range: 200 }, loot: [['fell', 0.9, 1, 3], ['stein', 0.5, 1, 2]] },
+    wuehler: { name: 'Wühler', tag: 'gräbt', info: 'Gräbt sich unter dem Zaun durch und taucht dahinter auf.', base: 'raptor', variant: 6, hp: 40, speed: 50, dmg: 6, rate: 0.9, reach: 8, struct: 1, kb: 1, hw: 14, h: 25, fps: 10, xp: 3, dig: true, loot: [['knochen', 0.3, 1, 1], ['fell', 0.25, 1, 1]] },
+    bomber: { name: 'Steinbomber', tag: 'wirft Steine', info: 'Kreist hoch über dem Zaun und lässt Steine auf Zaun, Wehren und Held fallen.', base: 'flyer', variant: 2, hp: 24, speed: 56, dmg: 0, rate: 1.6, reach: 0, struct: 1, kb: 1.8, hw: 20, h: 22, fps: 10, fly: true, alt: 84, atkAlt: 84, xp: 3, bomb: { dmg: 9, rate: 2.2 }, loot: [['stein', 0.4, 1, 1], ['knochen', 0.3, 1, 1]] },
+    frost: { name: 'Frost-Raptor', tag: 'verlangsamt', info: 'Sein eisiger Biss verlangsamt den Helden.', base: 'raptor', variant: 7, hp: 48, speed: 54, dmg: 5, rate: 0.9, reach: 8, struct: 1, kb: 0.9, hw: 15, h: 28, fps: 10, xp: 4, chill: { dur: 3, mul: 0.55 }, loot: [['knochen', 0.3, 1, 1], ['fell', 0.3, 1, 1]] },
     // Bosse: je Stufe einer, am Ende der letzten Welle (Verhalten und Phasen in def-core.js)
     alpha: { name: 'Rudelführer', info: 'Ruft in der Not Raptoren und wird schneller.', boss: 'alpha', base: 'raptor', scale: 1.8, hp: 190, speed: 46, dmg: 10, rate: 0.95, reach: 14, struct: 1.4, kb: 0.35, hw: 30, h: 52, fps: 9, xp: 40, phases: [0.66, 0.33], loot: [['fell', 1, 4, 6], ['knochen', 1, 3, 5]] },
     bull: { name: 'Zottelbulle', info: 'Rennt mit Wucht gegen Zaun und Haus, ab der Hälfte schneller.', boss: 'bull', base: 'rhino', scale: 1.5, hp: 300, speed: 21, dmg: 12, rate: 1.7, reach: 20, struct: 2, kb: 0.05, hw: 48, h: 60, fps: 5, xp: 60, phases: [0.66, 0.33], loot: [['fell', 1, 6, 9], ['stein', 1, 4, 6], ['knochen', 1, 2, 4]] },
@@ -6900,6 +6906,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const T = D.MON[k]; if (T.boss) return;
     const E = Object.assign({}, T, { name: 'Elite-' + T.name, elite: true, base: T.base || k, hp: Math.round(T.hp * 2.4), dmg: Math.round(T.dmg * 1.3 * 10) / 10, scale: Math.round((T.scale || 1) * 1.2 * 100) / 100, hw: Math.round(T.hw * 1.15), h: Math.round(T.h * 1.2), xp: Math.round(T.xp * 2.5), struct: Math.round(T.struct * 1.2 * 100) / 100 });
     if (T.shot) E.shot = Object.assign({}, T.shot, { dmg: Math.round(T.shot.dmg * 1.3 * 10) / 10 });
+    if (T.bomb) E.bomb = Object.assign({}, T.bomb, { dmg: Math.round(T.bomb.dmg * 1.3 * 10) / 10 });
     E.loot = (T.loot || []).map((q) => [q[0], Math.min(1, q[1] * 1.6), q[2] * 2, q[3] * 2]);
     D.MON[k + '_e'] = E;
   });
@@ -6988,32 +6995,32 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   const LV = [
     ['Erste Nacht', 4, { raptor: 1 }, ['raptor'], []],
     ['Am Flussufer', 4, { raptor: 3, rhino: 1 }, ['rhino'], []],
-    ['Raptorenhügel', 5, { raptor: 4, rhino: 1 }, [], []],
+    ['Raptorenhügel', 5, { raptor: 2.5, schnapper: 2.5, rhino: 0.8 }, ['schnapper'], []],
     ['Steinkreis', 5, { raptor: 3, rhino: 1 }, [], ['raptor']],
-    ['Rudelführer-Lager', 5, { raptor: 3, rhino: 1 }, [], []],
-    ['Nebelpfad', 5, { raptor: 2, spitter: 1.5, rhino: 0.5 }, ['spitter'], []],
+    ['Rudelführer-Lager', 5, { raptor: 2, schnapper: 2, rhino: 1 }, [], []],
+    ['Nebelpfad', 5, { raptor: 2, schnapper: 1, spitter: 1.5, rhino: 0.5 }, ['spitter'], []],
     ['Moosgrund', 5, { raptor: 2, spitter: 2, rhino: 0.7 }, [], ['spitter']],
     ['Giftdorn-Lichtung', 5, { raptor: 2, toxic: 2, spitter: 1 }, ['toxic'], []],
-    ['Hohler Baum', 5, { raptor: 1.5, toxic: 2, spitter: 1.5, rhino: 1 }, [], []],
+    ['Hohler Baum', 5, { raptor: 1.5, toxic: 2, spitter: 1.5, rammbock: 0.8 }, ['rammbock'], []],
     ['Zottelbulle-Wiese', 6, { raptor: 2, toxic: 2, spitter: 1.5, rhino: 1 }, [], []],
     ['Aschenregen', 5, { flyer: 2, raptor: 1, rhino: 0.4 }, ['flyer'], []],
-    ['Rauchende Spalten', 5, { flyer: 2, raptor: 1, spitter: 1, rhino: 0.6 }, [], []],
-    ['Glutfeld', 5, { flyer: 1.5, ember: 2, raptor: 1 }, ['ember'], []],
-    ['Pterra-Klippe', 6, { flyer: 2.5, ember: 1.5, spitter: 1, rhino: 0.5 }, [], []],
-    ['Vulkanhorst', 6, { flyer: 2, ember: 1.5, raptor: 1 }, [], []],
+    ['Rauchende Spalten', 5, { flyer: 2, raptor: 1, wuehler: 1.5, spitter: 1, rhino: 0.6 }, ['wuehler'], []],
+    ['Glutfeld', 5, { flyer: 1.5, ember: 2, raptor: 1, wuehler: 0.8 }, ['ember'], []],
+    ['Pterra-Klippe', 6, { bomber: 2, flyer: 1.5, ember: 1.5, spitter: 1, rhino: 0.5 }, ['bomber'], []],
+    ['Vulkanhorst', 6, { flyer: 2, ember: 1.5, raptor: 1, bomber: 1 }, [], []],
     ['Schilfufer', 5, { spitter: 2, armored: 1, raptor: 1 }, ['armored'], []],
-    ['Faulwasser', 5, { spitter: 2, armored: 1, toxic: 1.5, flyer: 1 }, [], []],
-    ['Krötenpfuhl', 6, { spitter: 2, hunter: 2, toxic: 1.5, armored: 0.8 }, ['hunter'], []],
-    ['Mangroven-Labyrinth', 6, { spitter: 2, hunter: 2, armored: 1.2, ember: 1.5, flyer: 1 }, [], ['armored']],
+    ['Faulwasser', 5, { spitter: 2, armored: 1, toxic: 1, frost: 1.5, flyer: 1 }, ['frost'], []],
+    ['Krötenpfuhl', 6, { spitter: 2, hunter: 2, toxic: 1.5, armored: 0.8, frost: 1 }, ['hunter'], []],
+    ['Mangroven-Labyrinth', 6, { spitter: 2, hunter: 2, armored: 1.2, ember: 1.5, flyer: 1, wuehler: 1, bomber: 1 }, [], ['armored']],
     ['Sumpfthron', 6, { spitter: 2, armored: 1, hunter: 2, toxic: 1.5 }, [], []],
-    ['Höhleneingang', 6, { raptor: 2, hunter: 2, shaman: 0.8, spitter: 1.5 }, ['shaman'], []],
-    ['Tropfsteinhalle', 6, { hunter: 2.5, ember: 2, shaman: 1, flyer: 1.5 }, [], ['hunter']],
+    ['Höhleneingang', 6, { raptor: 2, hunter: 2, shaman: 0.8, spitter: 1.5, frost: 1 }, ['shaman'], []],
+    ['Tropfsteinhalle', 6, { hunter: 2.5, ember: 2, shaman: 1, flyer: 1.5, bomber: 1 }, [], ['hunter']],
     ['Mammutgrab', 6, { mammoth: 0.45, armored: 1, toxic: 2, shaman: 1, hunter: 1.5 }, ['mammoth'], []],
-    ['Knochenschlucht', 6, { mammoth: 0.8, hunter: 2, ember: 2, shaman: 1.2, flyer: 1.5 }, [], ['shaman']],
-    ['Säbelzahn-Thron', 7, { hunter: 2, shaman: 1.2, flyer: 1.5, ember: 1.5, mammoth: 0.8 }, [], []]
+    ['Knochenschlucht', 6, { mammoth: 0.8, hunter: 2, ember: 2, shaman: 1.2, flyer: 1.5, wuehler: 1, frost: 1 }, [], ['shaman']],
+    ['Säbelzahn-Thron', 7, { hunter: 2, shaman: 1.2, flyer: 1.5, ember: 1.5, mammoth: 0.8, bomber: 1, rammbock: 0.6 }, [], []]
   ];
   // Staerke je Level (Leben, Schaden): Anfang flach, spaeter steil; die Wellen werden zusaetzlich groesser (Budget)
-  D.TUNE = { b0: 13, b1: 2.3, hp1: 0.05, hp2: 0.0042, dm1: 0.018, dm2: 0.0007, xpk: 0.5, mul: [1, 1, 1, 1, 1.15, 1.3, 1.45, 1.5, 1.5, 1.3, 1.5, 1.6, 1.6, 1.3, 1.0, 0.9, 1.2, 1.4, 1.5, 1.15, 1.4, 1.55, 0.9, 1.7, 1.6] };   // Stellschrauben (im Labor veraenderbar: window.__tune)
+  D.TUNE = { b0: 13, b1: 2.3, hp1: 0.05, hp2: 0.0042, dm1: 0.018, dm2: 0.0007, xpk: 0.5, mul: [1, 1, 1.1, 1, 1, 1.2, 1.45, 1.5, 1.5, 1, 1.7, 1.8, 1.1, 1.3, 1.15, 0.9, 1.5, 1.8, 1.4, 1.15, 1.7, 1.9, 1, 1.9, 0.85] };   // Stellschrauben (im Labor veraenderbar: window.__tune)
   D.levelMul = (n) => { const T = D.TUNE; return { hp: 1 + T.hp1 * (n - 1) + T.hp2 * (n - 1) * (n - 1), dmg: 1 + T.dm1 * (n - 1) + T.dm2 * (n - 1) * (n - 1) }; };
   const genWaves = (n, spec, boss) => {
     const W = spec[1], pool = spec[2], fresh = spec[3], elite = spec[4], types = Object.keys(pool), wsum = types.reduce((a, t) => a + pool[t], 0), waves = [];
@@ -7403,23 +7410,24 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     };
   }
   function vsprite(W, Dp, Hh, ay, k, build) {
-    const S = k > 1 ? scaled(k, W, Dp, Hh) : RS.V(W, Dp, Hh);
+    const S = k !== 1 ? scaled(k, W, Dp, Hh) : RS.V(W, Dp, Hh);
     build(S);
-    return RS.sideSprite(k > 1 ? S.real : S, { ay: ay * (k > 1 ? k : 1) });
+    return RS.sideSprite(k !== 1 ? S.real : S, { ay: ay * (k !== 1 ? k : 1) });
   }
   D.vsprite = vsprite;
 
   function raptorBuild(v, frame, variant) {
       const bite = frame === 4, ph = (frame & 3) * Math.PI / 2, bob = bite ? 0 : frame & 1, hx = bite ? 3 : 0;
-      const RP = [[c.lime, c.orange(3), c.cream], [c.teal, c.orange(3), c.cream], [c.red, c.graphite(2), c.cream], [c.purple, c.lime(5), c.mint], [c.orange, c.graphite(2), c.yellow], [c.navy, c.sky(5), c.cream]][variant] || [c.lime, c.orange(3), c.cream];
+      const RP = [[c.lime, c.orange(3), c.cream], [c.teal, c.orange(3), c.cream], [c.red, c.graphite(2), c.cream], [c.purple, c.lime(5), c.mint], [c.orange, c.graphite(2), c.yellow], [c.navy, c.sky(5), c.cream], [c.walnut, c.leather(5), c.sand], [c.sky, c.cyan(6), c.white], [c.yellow, c.brick(3), c.cream]][variant] || [c.lime, c.orange(3), c.cream];
       const body = RP[0], stripeCol = RP[1], belly = RP[2];
       const BODY = (x, y, z) => { const stripe = z > 11 && ((y * 2 + z) % 12 < 2); return stripe ? stripeCol : shade(body, 13 + bob, 12)(x, y, z); };
       // Schwanz, Koerper, Bauch
       v.line(7, 13, 14 + bob, 7, 7, 13 + bob, 2.8, shade(body, 13, 8));
       v.line(7, 7, 13 + bob, 7, 1.5, 10 + bob, 1.6, body(2));
-      v.sph(7, 1.5, 10 + bob, 1.4, variant === 4 ? c.yellow(5) : c.orange(3));
+      v.sph(7, 1.5, 10 + bob, 1.4, variant === 4 ? c.yellow(5) : variant === 7 ? c.cyan(5) : c.orange(3));
       v.ell(7, 18, 13 + bob, 5.2, 8.8, 6.2, BODY);
       if (variant === 3) for (let i = 0; i < 4; i++) v.sph(7, 14.5 + i * 3.2, 19.4 + bob + (i % 2) * 0.6, 1.25, c.lime(6));   // Giftdruesen auf dem Ruecken
+      if (variant === 7) for (let i = 0; i < 5; i++) v.line(7, 13 + i * 3.3, 18.5 + bob, 7, 13.6 + i * 3.3, 24.5 + bob - (i % 2) * 1.4, 1.1, c.cyan(5 + (i % 2)));   // Eiskristalle auf dem Ruecken
       v.ell(8.6, 19, 10.2 + bob, 3.6, 6.8, 3.2, belly(4));
       // Hals und Kopf (gross)
       v.line(7, 25, 17 + bob, 7 + 0, 29 + hx, 20 + bob, 3.6, shade(body, 19, 8));
@@ -7434,7 +7442,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       v.box(12, 31 + hx, 26 + bob, 13, 37 + hx, 27 + bob, c.forest(2)); v.put(12, 37 + hx, 26 + bob, c.forest(2));
       v.put(11, 43 + hx, 21 + bob, c.ink(2));
       // Kamm
-      for (let i = 0; i < 3; i++) v.line(7, 30 + i * 2 + hx, 27 + bob, 7, 28 + i * 2 + hx, 30 + bob, 1, variant === 4 ? c.yellow(5) : variant === 3 ? c.lime(5) : c.orange(4));
+      for (let i = 0; i < 3; i++) v.line(7, 30 + i * 2 + hx, 27 + bob, 7, 28 + i * 2 + hx, 30 + bob, 1, variant === 4 ? c.yellow(5) : variant === 3 ? c.lime(5) : variant === 7 ? c.cyan(5) : c.orange(4));
       // Beine: nah (dunkler Fuss orange) und fern
       const leg = (xc, s, lf, tone) => {
         v.ell(xc, 18 + s * 0.3, 8.5 + bob, 2.5, 3.8, 3.8, body(tone));
@@ -7446,7 +7454,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       const s = bite ? 0 : 4.8 * Math.cos(ph), lf = bite ? 0 : Math.max(0, -Math.sin(ph)) * 3.2, lf2 = bite ? 0 : Math.max(0, Math.sin(ph)) * 3.2;
       leg(5, -s, lf2, 2); leg(9.5, s, lf, 3);
       // kleiner Arm
-      v.line(11, 26, 12 + bob, 11, 29.5 + hx * 0.3, 10 + bob, 1.1, body(3)); v.put(11, 30 + hx * 0.3, 9, c.cream(4));
+      if (variant === 6) { v.line(11, 26, 13 + bob, 11, 34 + hx * 0.3, 8 + bob, 2.0, body(3)); for (let i = 0; i < 3; i++) v.line(11, 34 + hx * 0.3 + i * 1.3, 8 + bob, 11, 37.5 + hx * 0.3 + i * 1.7, 5.5 - i * 0.7 + bob, 0.7, c.cream(5)); }   // Graeber: grosse Grabklauen
+      else { v.line(11, 26, 12 + bob, 11, 29.5 + hx * 0.3, 10 + bob, 1.1, body(3)); v.put(11, 30 + hx * 0.3, 9, c.cream(4)); }
   }
   D.raptorSprite = function (frame, variant, k) {
     frame = frame | 0; variant = variant | 0; k = k || 1;
@@ -7456,7 +7465,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   /* ---------- Wollnashorn (Tank) ---------- */
   function rhinoBuild(v, frame, variant) {
       const bite = frame === 4, ph = (frame & 3) * Math.PI / 2, bob = bite ? 0 : frame & 1, hz = bite ? -2 : 0, hy = bite ? 3 : 0;
-      const RHP = [[c.walnut, c.leather], [c.graphite, c.stone], [c.slate, c.steel], [c.sand, c.cream]][variant] || [c.walnut, c.leather], furR = RHP[0], fur2R = RHP[1];
+      const RHP = [[c.walnut, c.leather], [c.graphite, c.stone], [c.slate, c.steel], [c.sand, c.cream], [c.brick, c.leather]][variant] || [c.walnut, c.leather], furR = RHP[0], fur2R = RHP[1];
       const FUR = (x, y, z) => { const r = hs(x, y, z), lv = z > 26 ? 4 : z < 15 ? 2 : 3; return furR(lv + (r > 0.88 ? 1 : r < 0.1 ? -1 : 0)); };
       const FUR2 = (x, y, z) => { const r = hs(x + 3, y, z); return fur2R(3 + (r > 0.85 ? 1 : r < 0.12 ? -1 : 0)); };
       // Koerper
@@ -7473,7 +7482,11 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       v.ell(11, 65 + hy, 14.4 + bob + hz, 5, 6.4, 4.6, c.sand(3));
       v.put(14, 70 + hy, 15 + bob + hz, c.ink(2)); v.put(14, 70 + hy, 14 + bob + hz, c.ink(2));
       // Hoerner (gross + klein), hell; Mammut: gebogene Stosszaehne
-      if (variant === 3) { for (const xx of [6.5, 15.5]) { v.line(xx, 62 + hy, 17 + bob + hz, xx, 72 + hy, 9 + bob + hz, 2.2, c.cream(4)); v.line(xx, 72 + hy, 9 + bob + hz, xx, 80 + hy, 17 + bob + hz, 1.5, c.cream(5)); } }
+      if (variant === 4) {   // Rammbock: Knochenhelm mit Noppen, dicke Stossstange als Horn, rote Kriegsbemalung
+        v.ell(11, 61 + hy, 22 + bob + hz, 8.2, 8.4, 6.4, c.cream(3)); for (let i = 0; i < 4; i++) v.sph(15.5, 56 + i * 3.4 + hy, 25.6 + bob + hz - (i % 2) * 1.2, 1.2, c.cream(5));
+        v.line(11, 66 + hy, 19 + bob + hz, 11, 78 + hy, 23 + bob + hz, 3.6, c.cream(4)); v.sph(11, 79 + hy, 23.4 + bob + hz, 2.2, c.cream(6));
+        for (let i = 0; i < 4; i++) v.line(16.6, 20 + i * 6, 29 + bob, 16.6, 22 + i * 6, 17 + bob, 0.9, c.red(4));
+      } else if (variant === 3) { for (const xx of [6.5, 15.5]) { v.line(xx, 62 + hy, 17 + bob + hz, xx, 72 + hy, 9 + bob + hz, 2.2, c.cream(4)); v.line(xx, 72 + hy, 9 + bob + hz, xx, 80 + hy, 17 + bob + hz, 1.5, c.cream(5)); } }
       else {
       v.line(11, 66 + hy, 18 + bob + hz, 11, 71 + hy, 25 + bob + hz, 3, c.cream(3));
       v.line(11, 71 + hy, 25 + bob + hz, 11, 73 + hy, 33 + bob + hz, 1.6, c.cream(4));
@@ -8129,7 +8142,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   /* ---------- Flugsaurier: Fledermausfluegel (Bilder 0 bis 3 = Schlag), langer Schnabel und Kamm ---------- */
   function flyerBuild(v, frame, variant) {
-    const memb = variant ? c.red : c.purple, edge = variant ? c.orange : c.pink, bodyR = variant ? c.brick : c.indigo, crest = variant ? c.orange : c.rose;
+    const memb = variant === 2 ? c.leather : variant ? c.red : c.purple, edge = variant === 2 ? c.sand : variant ? c.orange : c.pink, bodyR = variant === 2 ? c.walnut : variant ? c.brick : c.indigo, crest = variant === 2 ? c.yellow : variant ? c.orange : c.rose;
     const tri = (x0, x1, p, q, r, col) => {
       const minY = Math.floor(Math.min(p[0], q[0], r[0])), maxY = Math.ceil(Math.max(p[0], q[0], r[0])), minZ = Math.floor(Math.min(p[1], q[1], r[1])), maxZ = Math.ceil(Math.max(p[1], q[1], r[1]));
       const sg = (a, b, c2) => (a[0] - c2[0]) * (b[1] - c2[1]) - (b[0] - c2[0]) * (a[1] - c2[1]);
@@ -8158,6 +8171,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     v.line(5.6, 21, 19, 5.6, 19.5, 12.5, 1.1, c.orange(3)); v.line(8.6, 21, 19, 8.6, 19.5, 12.5, 1.1, c.orange(4));
     v.line(5.6, 19.5, 12.5, 5.6, 22, 10.6, 0.6, c.cream(5)); v.line(8.6, 19.5, 12.5, 8.6, 22, 10.6, 0.6, c.cream(5));
     v.line(7, 17, 21, 7, 8, 17.4, 1.3, shade(bodyR, 19, 6)); v.ell(7, 6.4, 16.8, 1.3, 2.4, 1.3, crest(3));
+    if (variant === 2) { v.sph(7, 21, 9.6, 3.6, (x, y, z) => c.stone(3 + (hs(x, y, z) > 0.7 ? 1 : 0) + (z > 11 ? 1 : 0))); v.line(5.6, 20, 12, 7, 20.5, 11, 0.6, c.cream(5)); v.line(8.6, 20, 12, 7, 22, 11, 0.6, c.cream(5)); }   // Steinbomber traegt einen Felsbrocken
   }
   D.flyerSprite = (frame, variant, k) => { frame = frame | 0; variant = variant | 0; k = k || 1; return D.cached('flyer|' + frame + '|' + variant + '|' + k, () => D.vsprite(14, 58, 48, 28, k, (v) => flyerBuild(v, frame, variant))); };
 
@@ -8198,6 +8212,32 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   D.saberSprite = (frame) => { frame = frame | 0; return D.cached('saber|' + frame, () => D.vsprite(22, 80, 46, 40, 1, (v) => saberBuild(v, frame))); };
 
+  /* ---------- Mammut: hohe Stirn, Ruessel, lange gebogene Stosszaehne, zottiger Fellrock; Bilder 0 bis 3 laufen, 4 stampft (Vorderbein und Ruessel hoch) ---------- */
+  function mammothBuild(v, frame) {
+    const atk = frame === 4, ph = (frame & 3) * Math.PI / 2, bob = atk ? 0 : frame & 1, hz = atk ? -1.5 : 0, hy = atk ? 3 : 0;
+    const FUR = (x, y, z) => { const r = hs(x, y, z), lv = z > 36 ? 4 : z < 24 ? 2 : 3; return c.leather(Math.max(0, Math.min(7, lv + (r > 0.9 ? 1 : r < 0.1 ? -1 : 0)))); };
+    const FUR2 = (x, y, z) => c.walnut(2 + (hs(x + 3, y, z) > 0.85 ? 1 : 0));
+    const SKIN = (x, y, z) => c.walnut(3 + ((Math.floor(z / 3) & 1) ? 1 : 0));
+    v.ell(13, 27, 31 + bob, 10, 15, 12.5, FUR); v.ell(13, 49, 34 + bob, 11.5, 20, 15, FUR);
+    v.ell(13, 61, 44 + bob, 9, 11, 9.5, FUR);                         // Schulterhoecker, geht in die Stirn ueber
+    v.ell(13, 40, 21 + bob, 10.5, 27, 8, FUR2);                      // Fellrock
+    for (let i = 0; i < 15; i++) { const yy = 15 + i * 4.1; v.line(18.6, yy, 22 + bob, 18.6, yy + 0.7, 11 + bob - (i % 3), 1.3, c.leather(2 + (i % 2))); v.line(7.4, yy, 22 + bob, 7.4, yy + 0.7, 11 + bob - (i % 3), 1.3, c.leather(2)); }   // Zotteln
+    v.ell(13, 70 + hy, 38 + bob + hz, 8.2, 9.5, 11, FUR); v.ell(13, 71 + hy, 46 + bob + hz, 6.4, 6.4, 5.4, FUR);
+    v.ell(20, 65 + hy, 38 + bob + hz, 1.8, 5.5, 6.5, (x, y, z) => c.walnut(3 + (hs(x, y, z) > 0.8 ? 1 : 0)));   // Ohr
+    v.box(20.5, 75 + hy, 39 + bob + hz, 21.5, 78 + hy, 42 + bob + hz, c.white(6)); v.box(20.5, 76.4 + hy, 39 + bob + hz, 21.5, 78 + hy, 41 + bob + hz, c.ink(2)); v.box(20.5, 74 + hy, 42 + bob + hz, 21.5, 80 + hy, 43.2 + bob + hz, c.walnut(1));
+    const TR = atk ? [[78 + hy, 33, 5.2], [87 + hy, 38, 4.6], [95 + hy, 45, 3.8], [99 + hy, 53, 3.0]] : [[78, 33 + bob, 5.2], [82, 23 + bob, 4.6], [83, 13 + bob, 3.8], [86, 7 + bob, 3.0]];   // Ruessel
+    for (let i = 0; i < 3; i++) v.line(13, TR[i][0], TR[i][1] + hz, 13, TR[i + 1][0], TR[i + 1][1] + hz, (TR[i][2] + TR[i + 1][2]) / 2, SKIN);
+    v.sph(13, TR[3][0] + 1, TR[3][1] + hz, 2.3, c.walnut(4));
+    const tusk = (xx, tone) => { const P = atk ? [[76, 30], [84, 26], [92, 27], [98, 34]] : [[76, 30], [83, 22], [92, 18], [100, 22]]; for (let i = 0; i < 3; i++) v.line(xx, P[i][0] + hy * 0.4, P[i][1] + bob + hz * 0.3, xx, P[i + 1][0] + hy * 0.4, P[i + 1][1] + bob + hz * 0.3, 2.2 - i * 0.55, c.cream(tone + (i === 2 ? 1 : 0))); };
+    tusk(6.5, 3); tusk(19.5, 4);
+    const leg = (xc, y0, s, lf, tone) => { const fy = Math.round(y0 + s); v.box(xc - 3.6, fy - 4, Math.round(lf) + 3, xc + 3.6, fy + 4, 24, c.walnut(tone)); v.box(xc - 4, fy - 4.6, Math.round(lf), xc + 4, fy + 4.6, Math.round(lf) + 4, c.graphite(tone)); for (let q = -1; q <= 1; q++) v.put(xc + 3.4, fy + q * 2.6, Math.round(lf) + 1, c.cream(5)); };
+    const s = atk ? 0 : 6 * Math.cos(ph), lf = atk ? 0 : Math.max(0, -Math.sin(ph)) * 3.6, lf2 = atk ? 0 : Math.max(0, Math.sin(ph)) * 3.6;
+    leg(7, 64, -s, lf2, 2); leg(7, 26, s, lf, 2); leg(18, 26, -s, lf2, 3);
+    if (atk) leg(18, 66, 5, 8, 3); else leg(18, 64, s, lf, 3);
+    v.line(13, 13, 38 + bob, 13, 8, 26 + bob, 1.6, c.walnut(2)); v.sph(13, 7, 24 + bob, 2.6, c.walnut(3));   // Schwanz
+  }
+  D.mammothSprite = (frame, variant, k) => { frame = frame | 0; k = k || 1; return D.cached('mammoth|' + frame + '|' + k, () => D.vsprite(26, 106, 58, 52, k, (v) => mammothBuild(v, frame))); };
+
   /* ---------- Zuordnung: Monsterart + Bild -> Sprite ---------- */
   // Bilder: 0 bis 3 Laufen/Fliegen, 4 Angriff, 5 Sprung (Saebelzahn)
   D.monSprite = function (type, frame) {
@@ -8206,6 +8246,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if (base === 'rhino') return D.rhinoSprite(frame, v, k);
     if (base === 'spitter') return D.spitterSprite(frame, v, k);
     if (base === 'flyer') return D.flyerSprite(frame, v, k);
+    if (base === 'mammoth') return D.mammothSprite(frame, 0, k);
     if (base === 'saber') return D.saberSprite(frame);
     return D.raptorSprite(frame, 0, 1);
   };
@@ -9377,7 +9418,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const lv = Math.max(1, opts.heroLv | 0), HS = D.heroStats(lv), L = opts.loadout || D.loadout(), GB = (L.armor ? L.armor.hp : 0) + (L.head ? L.head.hp : 0), fhp = D.buildHp('fence', (L.build || {}).fence), hhp = D.buildHp('house', (L.build || {}).house);
     const S = {
       stage, diff, heroLv: lv, seed: opts.seed || ((Math.random() * 1e9) | 0), t: 0, phase: 'intro', timer: 1.6, wave: -1, waveT: 0, spawnQ: [], endT: 0,
-      hero: { x: clamp((L.fenceX != null ? L.fenceX : D.FENCE.x) - 20, 16, 400), band: 1, hp: HS.hp + GB, maxHp: HS.hp + GB, state: 'idle', face: 1, t: 0, walkT: 0, swingT: 0, swingHit: false, throwT: 0, thrown: false, cdMelee: 0, cdSling: 0.4, koT: 0, inv: 0, flash: 0, moving: false, stun: 0, castT: 0, hurtT: 0, stepN: 0, fight: false, stunImm: 0, poison: null },
+      hero: { x: clamp((L.fenceX != null ? L.fenceX : D.FENCE.x) - 20, 16, 400), band: 1, hp: HS.hp + GB, maxHp: HS.hp + GB, state: 'idle', face: 1, t: 0, walkT: 0, swingT: 0, swingHit: false, throwT: 0, thrown: false, cdMelee: 0, cdSling: 0.4, koT: 0, inv: 0, flash: 0, moving: false, stun: 0, castT: 0, hurtT: 0, stepN: 0, fight: false, stunImm: 0, poison: null, slow: null },
       mons: [], proj: [], eproj: [], pools: [], rocks: [], fx: [], texts: [], arcs: [], drops: [], pickQ: [], memo: {}, flames: [],
       fence: { x: L.fenceX != null ? L.fenceX : D.FENCE.x, w: D.FENCE.w, hp: fhp, maxHp: fhp, state: 0, flash: 0 },
       house: { x0: D.HOUSE.x0, x1: D.HOUSE.x1, hp: hhp, maxHp: hhp, state: 0, flash: 0 },
@@ -9431,7 +9472,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     S.phase = 'break'; S.timer = S.stage.pause;
     S.banner = { text: 'Geschafft!', sub: 'Zaun repariert, kurz durchatmen', t: 0, life: 2 };
     // Pause: Held voll geheilt, Zaun um ein Drittel repariert
-    S.hero.hp = S.hero.maxHp; S.hero.poison = null; S.hero.stun = 0; S.fence.burn = null; S.turrets.forEach((t) => { t.burn = null; }); S.fence.hp = Math.min(S.fence.maxHp, S.fence.hp + S.fence.maxHp * 0.34); S.fence.state = fenceState(S.fence);
+    S.hero.hp = S.hero.maxHp; S.hero.poison = null; S.hero.slow = null; S.hero.stun = 0; S.fence.burn = null; S.turrets.forEach((t) => { t.burn = null; }); S.fence.hp = Math.min(S.fence.maxHp, S.fence.hp + S.fence.maxHp * 0.34); S.fence.state = fenceState(S.fence);
     S.pools.length = 0; S.flames.length = 0; S.traps.forEach((t) => { t.charges = t.max; }); S.beams.length = 0;
     S.turrets.forEach((t) => { if (t.dead || t.hp < t.maxHp) { t.dead = false; t.hp = t.maxHp; t.flash = 0.3; } });
     sfx('waveEnd');
@@ -9637,14 +9678,15 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       return;
     }
     if (h.stun > 0) { h.stun -= dt; h.moving = false; if (h.stun <= 0) h.stunImm = 1.2; return; }   // benommen (Schrei): keine Bewegung, kein Angriff
-    h.cdMelee -= dt; h.cdSling -= dt;
+    const sl = h.slow ? h.slow.mul : 1; if (h.slow) { h.slow.t -= dt; if (h.slow.t <= 0) h.slow = null; }
+    h.cdMelee -= dt * (0.4 + 0.6 * sl); h.cdSling -= dt * (0.4 + 0.6 * sl);
     // Eingabe: Tastatur hat Vorrang, sonst das angetippte Ziel
     let dir = I.dir || 0;
     if (!dir && I.tx != null) { const d = I.tx - h.x; if (Math.abs(d) < 3) I.tx = null; else dir = Math.sign(d); }
     const busy = h.state === 'swing' || h.state === 'throw' || h.state === 'cast';
     h.moving = !!dir;
     if (dir) {
-      h.x = clamp(h.x + dir * HD.speed * (busy ? 0.4 : 1) * dt, 16, D.W - 14); h.walkT += dt;
+      h.x = clamp(h.x + dir * HD.speed * (busy ? 0.4 : 1) * sl * dt, 16, D.W - 14); h.walkT += dt;
       const stp = Math.floor(h.walkT * 6);   // Staubwoelkchen bei jedem Schritt
       if (stp !== h.stepN) { h.stepN = stp; if (!busy) burst(S, h.x - h.face * 5, footY(h.band) - 1, 2, ['#d8b87c', '#b08450', '#e8c890'], { speed: 0.3, up: 14, g: 120 }); }
     }
@@ -9685,6 +9727,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const h = S.hero; if (h.state === 'ko') return; const dps = P.dps * S.monDmg;
     if (!h.poison || dps >= h.poison.dps) h.poison = { t: P.dur, dps }; else h.poison.t = Math.max(h.poison.t, P.dur);
   }
+  // Frost: der Held wird langsamer (Gehen und Angriffstempo)
+  function chillHero(S, C) { const h = S.hero; if (h.state === 'ko') return; h.slow = { t: C.dur, mul: C.mul }; }
   function ignite(S, o, B) { if (o.dead || o.hp <= 0) return; o.burn = { t: B.dur, dps: B.dps * S.monDmg }; }
   // Brand: Zaun und Wehren verlieren Leben ueber Zeit; die Flammen erloeschen nach der Welle
   function updateBurn(S, dt) {
@@ -9694,7 +9738,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   function hitTarget(S, m, tgt, mul) {
     const dmg = m.dmg * (mul || 1);
-    if (tgt.kind === 'hero') { hurtHero(S, dmg, m.x); if (m.T.poison) poisonHero(S, m.T.poison); }
+    if (tgt.kind === 'hero') { hurtHero(S, dmg, m.x); if (m.T.poison) poisonHero(S, m.T.poison); if (m.T.chill) chillHero(S, m.T.chill); }
     else if (tgt.kind === 'fence') { hitFence(S, dmg * m.T.struct, m.type); if (m.T.burn && S.fence.hp > 0) ignite(S, S.fence, m.T.burn); }
     else if (tgt.kind === 'turret') { hitTurret(S, tgt.t, dmg * m.T.struct, m.type); if (m.T.burn) ignite(S, tgt.t, m.T.burn); }
     else hitHouse(S, dmg * m.T.struct, m.type);
@@ -9716,6 +9760,13 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         const h = S.hero, tx = h.state !== 'ko' && h.x < S.fence.x - 6 && h.x > S.house.x1 + 14 ? h.x + 10 : Math.max(S.house.x1 + 26, S.fence.x - 28);
         m.act = { kind: 'leap', t: 0, dur: 0.75, x0: m.x, tx, soft: true }; m.leapCd = T.leap.cd; return;
       }
+    }
+    // Waehler: gräbt sich kurz vor dem Zaun ein und taucht dahinter wieder auf
+    if (T.dig && !m.dug && S.fence.hp > 0 && m.x > S.fence.x + 4 && m.x - S.fence.x < 30) { m.dug = true; m.act = { kind: 'dig', t: 0, dur: 1.15, x0: m.x, tx: Math.max(S.house.x1 + 24, S.fence.x - 26) }; sfx('rock'); return; }
+    // Rammbock: nimmt Anlauf und rammt den Zaun
+    if (T.charge) {
+      m.chCd = (m.chCd == null ? T.charge.cd * (0.35 + S.rng() * 0.65) : m.chCd) - dt;
+      if (m.chCd <= 0 && S.fence.hp > 0 && m.x > S.fence.x + 46 && m.x - S.fence.x < T.charge.range) { m.act = { kind: 'dash', t: 0, dur: 1.3, mul: T.charge.mul, smash: true }; m.chCd = T.charge.cd; sfx('roar'); return; }
     }
     const tgt = pickTarget(S, m), gap = m.x - tgt.x;
     // Stampfer (Mammut): schlaegt auf den Boden, laehmt den Helden in der Naehe und beschaedigt Zaun und Wehren
@@ -9759,6 +9810,22 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     } else {
       m.alt += ((gap < 80 ? T.atkAlt : T.alt) - m.alt) * Math.min(1, dt * 2.4);
       m.x -= T.speed * m.spd * dt; m.walkT += dt * m.spd; m.state = 'walk';
+    }
+  }
+
+  // Steinbomber: fliegt hoch zum Zaun (oder Haus), kreist dort und laesst Steine auf alles darunter fallen
+  function bomberAI(S, m, dt) {
+    const T = m.T, h = S.hero, f = S.fence;
+    const tx = (f.hp > 0 ? f.x + 8 : S.house.x1 + 30) + (m.id % 3) * 26, gap = m.x - tx;   // immer vor dem Zaun: so ist er fuer Held und Wehren erreichbar
+    const want = T.alt - Math.max(0, Math.min(34, (m.t - 14) * 2.2));   // nach einer Weile sinkt er tiefer: so bleibt er nie dauerhaft ausser Reichweite
+    m.alt += (want - m.alt) * Math.min(1, dt * 2);
+    if (gap > 4) { m.x -= T.speed * m.spd * dt; m.walkT += dt * m.spd; m.state = 'walk'; }
+    else { m.state = 'attack'; m.walkT += dt * m.spd * 0.6; m.x += (tx - m.x) * Math.min(1, dt * 1.6) + Math.sin(m.t * 1.3 + m.id) * 6 * dt; }
+    m.cd -= dt;
+    if (m.cd <= 0 && gap < 46) {
+      m.cd = T.bomb.rate * m.rate; m.bite = 0.2;
+      const hx = h.state !== 'ko' && Math.abs(h.x - m.x) < 34 ? h.x : m.x;
+      S.eproj.push({ x: m.x, y: D.GY + m.dep - m.alt, vx: (hx - m.x) * 0.5, vy: 10, t: 0, dmg: T.bomb.dmg * S.monDmg, struct: 1.4, big: false, pool: false, src: m.type, stun: 0, rock: true });
     }
   }
 
@@ -9815,6 +9882,11 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       const k = Math.min(1, a.t / a.dur), e = k * k * (3 - 2 * k);
       m.x = a.x0 + (a.tx - a.x0) * e; m.alt = Math.sin(Math.PI * k) * (a.soft ? 44 : 76); m.state = 'leap'; m.walkT += dt;
       if (k >= 1) { m.alt = 0; if (a.soft) { if (h.state !== 'ko' && Math.abs(h.x - m.x) < 16) hurtHero(S, m.dmg * 1.3, m.x); } else slam(S, m, m.x, 40, 1.8); m.bite = 0.3; m.act = null; }
+    } else if (a.kind === 'dig') {
+      const k = Math.min(1, a.t / a.dur), e = k * k * (3 - 2 * k);
+      m.x = a.x0 + (a.tx - a.x0) * e; m.state = 'dig'; m.walkT += dt * 3; m.alt = 0;
+      if (((a.t * 14) | 0) !== a.pf) { a.pf = (a.t * 14) | 0; burst(S, m.x, D.GY + m.dep + 2, 1, ['#8a6a3c', '#b8935a'], { speed: 0.3, up: 18, g: 120 }); }
+      if (k >= 1) { burst(S, m.x, D.GY + m.dep, 9, ['#8a6a3c', '#b8935a', '#6b4a2a'], { speed: 0.7, up: 34 }); if (h.state !== 'ko' && Math.abs(h.x - m.x) < 16) hurtHero(S, m.dmg * 1.2, m.x); m.state = 'walk'; m.act = null; }
     } else if (a.kind === 'stomp') {
       m.state = 'attack';
       if (!a.hit && a.t >= 0.55) { a.hit = true; const sx = m.x - T.reach; slam(S, m, sx, T.stomp.r, 1.0); if (h.state !== 'ko' && Math.abs(h.x - sx) < T.stomp.r + 6) stunHero(S, T.stomp.stun); m.bite = 0.3; }
@@ -9842,7 +9914,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       if (m.stun > 0) { m.stun -= dt; m.state = 'stun'; if (m.T.fly && !m.act) m.alt = Math.max(0, m.alt - 20 * dt); continue; }
       if (m.T.boss) bossThink(S, m, dt);
       if (m.act) { updateAct(S, m, dt); continue; }
-      if (m.T.fly) flyerAI(S, m, dt);
+      if (m.T.bomb) bomberAI(S, m, dt);
+      else if (m.T.fly) flyerAI(S, m, dt);
       else if (m.T.ranged) rangedAI(S, m, dt);
       else meleeAI(S, m, dt);
     }
@@ -9872,7 +9945,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     }
   }
   function landAcid(S, p) {
-    burst(S, p.x, D.GY + 8, p.big ? 14 : 7, ['#8ed04a', '#d8f28a', '#5aa83a'], { speed: 0.9, up: 40 }); sfx('splat');
+    if (p.rock) { burst(S, p.x, D.GY + 8, 8, ['#b8b0a0', '#8a8498', '#d8d0c0'], { speed: 0.9, up: 40 }); sfx('rock'); } else { burst(S, p.x, D.GY + 8, p.big ? 14 : 7, ['#8ed04a', '#d8f28a', '#5aa83a'], { speed: 0.9, up: 40 }); sfx('splat'); }
     const f = S.fence, h = S.hero;
     const tt = S.turrets.find((t) => !t.dead && Math.abs(p.x - t.x) < D.TURRET[t.id].hw + 6);
     if (tt) hitTurret(S, tt, p.dmg * p.struct, p.src);
@@ -9888,7 +9961,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       p.vy += GRAV * dt; p.x += p.vx * dt; p.y += p.vy * dt;
       let gone = p.x < -20 || p.t > 4;
       const fy = footY(h.band);
-      if (!gone && h.state !== 'ko' && h.inv <= 0 && Math.abs(p.x - h.x) < 9 && p.y > fy - 52 && p.y < fy + 2) { burst(S, p.x, p.y, 6, ['#8ed04a', '#d8f28a'], { speed: 0.7 }); hurtHero(S, p.dmg, p.x + 6); if (p.stun) stunHero(S, p.stun); gone = true; }
+      if (!gone && h.state !== 'ko' && h.inv <= 0 && Math.abs(p.x - h.x) < 9 && p.y > fy - 52 && p.y < fy + 2) { burst(S, p.x, p.y, 6, p.rock ? ['#b8b0a0', '#8a8498'] : ['#8ed04a', '#d8f28a'], { speed: 0.7 }); hurtHero(S, p.dmg, p.x + 6); if (p.stun) stunHero(S, p.stun); gone = true; }
       if (!gone && p.y >= D.GY + 6) { landAcid(S, p); gone = true; }
       if (gone) S.eproj.splice(i, 1);
     }
@@ -10304,7 +10377,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         const spr = D.heroSprite(look, pose, fr, S.loadout ? S.loadout.gear : 'club', !hero.fight);
         const blink = hero.inv > 0 && Math.floor(tm * 14) % 2 === 0;
         if (blink) ctx.globalAlpha = 0.45;
-        drawSpr(ctx, spr, hero.x, e.y + jy, hero.face < 0, hero.flash > 0 ? ['hurt', 'rgba(255,60,60,0.6)'] : hero.poison ? ['poison', 'rgba(90,210,80,0.3)'] : null);
+        drawSpr(ctx, spr, hero.x, e.y + jy, hero.face < 0, hero.flash > 0 ? ['hurt', 'rgba(255,60,60,0.6)'] : hero.poison ? ['poison', 'rgba(90,210,80,0.3)'] : hero.slow ? ['chill', 'rgba(120,200,255,0.32)'] : null);
         ctx.globalAlpha = 1;
         if (hero.state !== 'ko' && hero.hp < hero.maxHp) bar(ctx, Math.round(hero.x - 11), e.y - 70, 22, hero.hp / hero.maxHp);
         if (hero.state === 'ko') drawText(ctx, String(Math.ceil(hero.koT)), hero.x - hero.face * 6, e.y - 30, '#ffffff', false);
@@ -10321,6 +10394,10 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
           ctx.globalAlpha = 1 - k * k;
           ctx.drawImage(m.deadT < 0.1 ? s.tint('white', '#ffffff') : s.cv, 0, 0, s.w, s.h, dx, Math.round(e.y - alt * (1 - k) - dh + (s.h - s.oy)), s.w, dh);
           ctx.globalAlpha = 1;
+        } else if (m.state === 'dig') {   // Graeber unter der Erde: Erdhaufen mit Staub
+          const mx = Math.round(m.x), my = Math.round(e.y), f2 = Math.floor(tm * 14) % 2;
+          ctx.fillStyle = '#6b4a2a'; ctx.fillRect(mx - 7, my - 3, 14, 3); ctx.fillStyle = '#8a6a3c'; ctx.fillRect(mx - 5, my - 5, 10, 2); ctx.fillStyle = '#b8935a'; ctx.fillRect(mx - 3 + f2, my - 6, 6, 1);
+          for (let i = 0; i < 4; i++) { ctx.fillStyle = '#c8a46a'; ctx.fillRect(mx - 8 + ((i * 5 + Math.floor(tm * 20)) % 17), my - 7 - ((i + f2) % 3), 1, 1); }
         } else {
           drawSpr(ctx, spr, m.x, e.y - alt, true, m.flash > 0 ? ['white', 'rgba(255,255,255,0.7)'] : T.elite ? ['elite', 'rgba(255,196,40,0.26)'] : null);
           if (!T.boss && (m.hp < m.maxHp || T.hp >= 100 || T.elite)) bar(ctx, Math.round(m.x - 10), e.y - alt - T.h - 11, 20, m.hp / m.maxHp);
@@ -10349,6 +10426,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     }
     // Saeure der Spuckechsen
     for (const p of S.eproj) {
+      if (p.rock) { const st = D.stoneSprite(2); ctx.drawImage(st.cv, Math.round(p.x - st.ox), Math.round(p.y - st.oy + st.h / 2)); continue; }
       const r = p.big ? 3 : 2;
       for (let i = 3; i >= 1; i--) { ctx.globalAlpha = 0.18 * (4 - i); ctx.fillStyle = '#8ed04a'; ctx.fillRect(Math.round(p.x - p.vx * 0.016 * i * 2) - 1, Math.round(p.y - p.vy * 0.016 * i * 2) - 1, 2, 2); }
       ctx.globalAlpha = 1;
@@ -10540,6 +10618,13 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     IMG.star = spr(['..X..', '.XXX.', 'XXXXX', '.XXX.', '.X.X.'], { X: '#ffffff' });
     IMG.arrow = spr(['XXXXX', '.XXX.', '..X..'], { X: '#ffffff' });
     IMG.fang = spr(['.XX', 'XXX', 'XX.', 'XX.', 'X..'], { X: '#f4efe0' });
+    IMG.menhir = spr(['.oo.', 'ohso', 'ohsS', 'ohsS', 'ohsS', 'ohSS', 'oSSS', 'oooo'], { o: '#3a3440', h: '#c4c0cc', s: '#a09cac', S: '#7a7688' });
+    IMG.tent = spr(['.....o.....', '....ohs....', '...ohhss...', '..ohhhsss..', '.ohhhkksss.', 'ohhhhkksssS', 'ooooooooooo'], { h: '#d8b078', s: '#b88a52', S: '#8a6636', k: '#2a1a10', o: '#3a2410' });
+    IMG.bones = spr(['.wwww....', 'wkwkw.w.w', 'wwwww.w.w', '.www.wwww'], { w: '#efe8d4', k: '#2a1018' });
+    IMG.nest = spr(['..ttttt..', '.tTtTtTt.', 'tTeTeTeTt', '.tTTTTTt.', '..ttttt..'], { t: '#8a6a3a', T: '#6a4a22', e: '#f4efe0' });
+    IMG.throne = spr(['w........w', 'ww......ww', '.ww....ww.', '.wwwwwwww.', '.wTTTTTTw.', '.wTTTTTTw.', '.wTTTTTTw.', '.wwwwwwww.', '.w......w.', '.w......w.', 'ww......ww'], { w: '#efe8d4', T: '#7a3a2a' });
+    IMG.bskull = spr(['w.....w', 'ww.w.ww', '.wwwww.', '.wkwkw.', '..www..'], { w: '#efe8d4', k: '#2a1018' });
+    IMG.sskull = spr(['..wwwwww..', '.wwwwwwww.', 'wwkwwwwkww', 'wwwwwwwwww', '.wwwwwwww.', '..wfwwfw..', '..f....f..'], { w: '#efe8d4', k: '#2a1018', f: '#fffbe8' });
     // Vulkan (24 x 26): Kegel mit Lavastrom und Krater
     { const cv = mkcv(26, 27), x = cv.getContext('2d'); for (let y = 0; y < 26; y++) { const hw = Math.round(2 + y * 0.46); for (let q = -hw; q <= hw; q++) { const edge = q === -hw || q === hw || y === 0; x.fillStyle = edge ? '#1e1418' : q < -hw * 0.3 ? '#6a5650' : q > hw * 0.45 ? '#3e302c' : '#52423c'; x.fillRect(13 + q, y + 1, 1, 1); } }
       x.fillStyle = '#ff8a2a'; x.fillRect(10, 1, 6, 2); x.fillStyle = '#ffd04a'; x.fillRect(11, 1, 4, 1);
@@ -10593,6 +10678,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         if (f + 0.5 * (noise(x, y, 11 + r, 4.2) - 0.5) + 0.2 * (noise(x, y, 31 + r, 1.9) - 0.5) > 0.04) isl[y * W + x] = r + 1;
       }
     });
+    // Fluss auf der ersten Insel (Level 2 „Am Flussufer“): quert den Pfad zwischen Level 2 und 3 und muendet im Meer; der Pfad bekommt dort von selbst eine Bruecke
+    { const rv = [[53, 82], [48, 91], [42, 99], [37, 106], [31, 113], [26, 122]].map((q) => [tx(q[0]), ty(q[1])]);
+      for (let i = 0; i < rv.length - 1; i++) { const a = rv[i], b = rv[i + 1], n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1])); for (let j = 0; j <= n; j++) { const x = a[0] + (b[0] - a[0]) * j / n, y = a[1] + (b[1] - a[1]) * j / n, r = 2.6 + 0.5 * Math.sin(j * 0.7 + i); for (let yy = -4; yy <= 4; yy++) for (let xx = -4; xx <= 4; xx++) if (xx * xx + yy * yy <= r * r) { const X = Math.round(x) + xx, Y = Math.round(y) + yy; if (X >= 0 && Y >= 0 && X < W && Y < H && isl[Y * W + X] === 1) isl[Y * W + X] = 0; } } } }
     // Abstand zum Wasser (Land) und zum Land (Wasser), Schachbrettabstand bis 9
     const dw = new Uint8Array(W * H).fill(9), dl = new Uint8Array(W * H).fill(9);
     for (let i = 0; i < W * H; i++) { if (!isl[i]) dw[i] = 0; else dl[i] = 0; }
@@ -10669,6 +10757,14 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     M.fire = { x: f1.x - 5, y: f1.y + 4 }; draw(IMG.hut, f1.x + 8, f1.y + 6, 6); draw(IMG.log, M.fire.x + 5, M.fire.y + 1, 3); draw(IMG.log, M.fire.x - 5, M.fire.y + 2, 3);
     M.vol = { x: f3.x, y: f3.y + 6 }; draw(IMG.volcano, f3.x, f3.y + 8, 12);
     draw(IMG.cave, f5.x, f5.y + 10, 12);
+    // Orte an den Knoten: Steinkreis (Level 4), Lager mit Zelt und Knochen (5), Stierschaedel (10), Nest (15), Knochenthron (20), Saebelzahn-Schaedel (25)
+    const near = (i, offs, bm, rad) => { for (const o of offs) { const x = P[i].x + o[0], y = P[i].y + o[1]; if (at(x, y) === P[i].r + 1 && dw[y * W + x] >= 2 && !pm[y * W + x] && !placed.some((q) => Math.hypot(q.x - x, q.y - y) < q.rad + rad)) { draw(bm, x, y, rad); return true; } } return false; };
+    near(3, [[10, 4], [-9, 6], [11, -5], [2, 12]], IMG.menhir, 3); near(3, [[-9, 6], [10, 4], [14, 2], [-3, 12]], IMG.menhir, 3); near(3, [[3, 13], [12, -5], [-10, 3], [15, 6]], IMG.menhir, 3);
+    near(4, [[-11, -5], [11, -6], [-9, 7], [10, 6]], IMG.tent, 6); near(4, [[-9, 7], [10, 7], [-12, 0], [12, 0]], IMG.bones, 4);
+    near(9, [[-11, 6], [11, 5], [-10, -6], [10, -6]], IMG.bskull, 3);
+    near(14, [[-10, -6], [10, 6], [-11, 5], [11, -5]], IMG.nest, 4);
+    near(19, [[-11, 6], [11, 6], [-10, -5], [10, -6]], IMG.throne, 5);
+    near(24, [[-10, -6], [-11, 6], [10, 7], [12, -4]], IMG.sskull, 5);
     { const q = M.ponds[0]; draw(IMG.reed, q[0] - 11, q[1] + 3, 2); draw(IMG.reed, q[0] + 10, q[1] + 4, 2); draw(IMG.reed, q[0] - 2, q[1] + 6, 2); draw(IMG.reed, M.ponds[1][0] + 9, M.ponds[1][1] + 2, 2); }
     const KINDS = [
       [['oak', 14, 8, 3], ['bush', 12, 5, 2], ['rock', 3, 5, 3]],
@@ -10695,6 +10791,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     // Schriftzug-Orte der Regionen und Funkelstellen im Wasser
     M.reg = ISL.map((q, r) => { const a = P[r * 5], b = P[r * 5 + 4]; return { x: Math.round((a.x + b.x) / 2), y: q.up ? ty(q.y0 + 29) : ty(q.y0 - 19) }; });
     M.spark = []; for (let i = 0; i < 46; i++) { const x = Math.floor(hash(i, 1, 55) * W), y = Math.floor(hash(i, 2, 55) * H); if (!at(x, y) && dl[y * W + x] > 3) M.spark.push({ x, y, ph: hash(i, 3, 55) * 6 }); }
+    M.sea = [{ k: 'serp', x: tx(268), y: ty(108) }, { k: 'raft', x: tx(128), y: ty(108) }, { k: 'whale', x: tx(206), y: ty(20) }];   // Meeresbewohner in den freien Buchten
     M.ready = true;
   };
 
@@ -10706,6 +10803,30 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     ctx.imageSmoothingEnabled = false;
     ctx.drawImage(M.terrain, 0, 0);
     for (const s of M.spark) { const u = (tm * 1.3 + s.ph) % 4; if (u < 0.5) { ctx.fillStyle = u < 0.25 ? '#ffffff' : '#bfe0f5'; ctx.fillRect(s.x, s.y, 2, 1); } }
+    for (const s of M.sea || []) {
+      if (s.k === 'serp') {   // Seeschlange: drei Buckel tauchen nacheinander auf, vorn der Kopf
+        const t = tm * 1.5;
+        for (let i = 0; i < 3; i++) {
+          const up = Math.max(0, Math.sin(t - i * 1.0)), hgt = Math.round(5 * up), cx = s.x + i * 12;
+          if (hgt > 0) { for (let dx = -5; dx <= 5; dx++) { const h = Math.round(hgt * Math.sqrt(Math.max(0, 1 - dx * dx / 30))); if (h > 0) { ctx.fillStyle = '#2b6a52'; ctx.fillRect(cx + dx, s.y - h, 1, h); ctx.fillStyle = '#4fa07a'; ctx.fillRect(cx + dx, s.y - h, 1, 1); } } ctx.fillStyle = '#e4f4fc'; ctx.fillRect(cx - 6, s.y, 13, 1); }
+          else { ctx.fillStyle = 'rgba(228,244,252,0.5)'; ctx.fillRect(cx - 3, s.y, 7, 1); }
+        }
+        const hy = Math.round(Math.sin(t + 1.5) * 2); ctx.fillStyle = '#2b6a52'; ctx.fillRect(s.x - 14, s.y - 9 + hy, 6, 5); ctx.fillRect(s.x - 10, s.y - 5 + hy, 3, 5); ctx.fillStyle = '#4fa07a'; ctx.fillRect(s.x - 14, s.y - 9 + hy, 6, 1); ctx.fillStyle = '#ffffff'; ctx.fillRect(s.x - 12, s.y - 8 + hy, 1, 1); ctx.fillStyle = '#e4f4fc'; ctx.fillRect(s.x - 16, s.y - 3, 14, 1);
+      } else if (s.k === 'raft') {   // Floss mit Segel aus Fell und einem kleinen Fischer
+        const bob = Math.round(Math.sin(tm * 1.6) * 1), y = s.y + bob;
+        ctx.fillStyle = 'rgba(20,40,90,0.35)'; ctx.fillRect(s.x - 8, y + 3, 16, 1);
+        ctx.fillStyle = '#6b4222'; ctx.fillRect(s.x - 8, y, 16, 3); ctx.fillStyle = '#a8743a'; ctx.fillRect(s.x - 8, y, 16, 1); ctx.fillStyle = '#4a2e16'; for (let i = 0; i < 4; i++) ctx.fillRect(s.x - 6 + i * 4, y + 1, 1, 2);
+        ctx.fillStyle = '#5a3a1c'; ctx.fillRect(s.x + 2, y - 11, 1, 11); ctx.fillStyle = '#e8d8b0'; for (let r2 = 0; r2 < 8; r2++) ctx.fillRect(s.x + 3, y - 10 + r2, 1 + (r2 < 3 ? r2 + 1 : 7 - r2), 1);
+        ctx.fillStyle = '#e8c9a0'; ctx.fillRect(s.x - 4, y - 5, 2, 2); ctx.fillStyle = '#d0463a'; ctx.fillRect(s.x - 4, y - 3, 2, 3); ctx.fillStyle = '#5a3a1c'; ctx.fillRect(s.x - 6, y - 4, 1, 5);
+      } else if (s.k === 'whale') {   // Wal mit Fontaene
+        const u = (tm * 0.35) % 1, dive = Math.sin(u * Math.PI);
+        if (dive > 0.15) {
+          ctx.fillStyle = '#1f3f72'; for (let dx = -11; dx <= 11; dx++) { const h = Math.round(4 * dive * Math.sqrt(1 - dx * dx / 130)); if (h > 0) ctx.fillRect(s.x + dx, s.y - h, 1, h); }
+          ctx.fillStyle = '#3a68a8'; ctx.fillRect(s.x - 6, s.y - Math.round(4 * dive), 8, 1); ctx.fillStyle = '#e4f4fc'; ctx.fillRect(s.x - 13, s.y, 27, 1); ctx.fillStyle = '#1f3f72'; ctx.fillRect(s.x + 12, s.y - 2, 3, 2); ctx.fillRect(s.x + 15, s.y - 4, 2, 2);
+          const sp = Math.max(0, Math.sin(u * Math.PI * 2 - 0.4)); for (let i = 0; i < 6; i++) { ctx.fillStyle = 'rgba(255,255,255,' + (0.85 * sp).toFixed(2) + ')'; ctx.fillRect(s.x - 5 + (i % 2), s.y - 5 - Math.round(sp * 9) + i * 2, 1, 2); }
+        }
+      }
+    }
     const reg = (r) => st.open[r * 5];
     // Bewegtes je Region (nur wo schon freigeschaltet): Lagerfeuer, Nebel, Rauch und Funken, Fackelglanz im Sumpf, Schnee
     if (reg(0)) { const f = Math.floor(tm * 8) % 3, x = M.fire.x, y = M.fire.y; ctx.fillStyle = '#6b4222'; ctx.fillRect(x - 2, y, 5, 1); ctx.fillStyle = '#ff8a2a'; ctx.fillRect(x - 1, y - 3 - (f & 1), 3, 3 + (f & 1)); ctx.fillStyle = '#ffd04a'; ctx.fillRect(x, y - 2 - (f & 1), 1, 2); ctx.fillStyle = 'rgba(255,220,120,0.18)'; ctx.fillRect(x - 5, y - 4, 11, 6); }
@@ -10956,7 +11077,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     return '<div class="ghint">Grundwerte; sie wachsen von Level zu Level. Elite-Gegner (Krone) haben mehr als das Doppelte an Leben und lassen mehr Beute fallen. Jede neue Art bringt eine Fähigkeit mit: es lohnt sich, passende Waffen und Wehren zu haben.</div>' + order.map((q) => {
       const T = D.MON[q.id];
       if (q.stage > top) return '<div class="grow new"><div class="gtx"><b>???</b><span class="gi">Noch nicht begegnet: erscheint ab Level ' + (q.stage + 1) + '.</span></div></div>';
-      const dm = T.shot ? T.shot.dmg : T.dmg;
+      const dm = T.shot ? T.shot.dmg : T.bomb ? T.bomb.dmg : T.dmg;
       return '<div class="grow">' + img('mon:' + q.id) + '<div class="gtx"><b>' + T.name + (T.tag ? ' <em>' + T.tag + '</em>' : '') + (q.boss ? ' <em>Boss</em>' : '') + '</b><span>Leben ' + T.hp + ' · Schaden ' + dm + ' · ab Level ' + (q.stage + 1) + '</span><span class="gi">' + (T.info || '') + '</span></div></div>';
     }).join('');
   }
