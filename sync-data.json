@@ -139,6 +139,12 @@
         "name": "Harzer Käse",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "22ac3f12-dc56-4cdc-9d6c-2a262cdc5ccd",
+        "name": "Kartoffeln",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {
@@ -275,7 +281,7 @@
         ]
       }
     ],
-    "updatedAt": 1792698239969
+    "updatedAt": 1792782202121
   },
   "timetracker": {
     "entries": [
