@@ -822,7 +822,9 @@
         "habit:b07e389a-dfc6-4ab9-830c-5daf53425daf@2026-10-23": 6,
         "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-23": 6,
         "habit:5f32178a-636b-448a-9c3e-0fb1708cebc7@2026-10-23": 6,
-        "todo:3119e6fe-841d-4a67-9ad9-159f11b6f8ee": 10
+        "todo:3119e6fe-841d-4a67-9ad9-159f11b6f8ee": 10,
+        "habit:9473d02d-64a6-4dab-8017-3e4a354c855b@2026-10-23": 6,
+        "habitweek:9473d02d-64a6-4dab-8017-3e4a354c855b@2026-10-19": 15
       }
     },
     "archive": {
@@ -830,7 +832,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792765350588
+    "updatedAt": 1792765365618
   },
   "msgSeen": {
     "ids": [
