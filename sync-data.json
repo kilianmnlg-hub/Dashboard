@@ -74,7 +74,13 @@
           "done": false
         }
       ],
-      "studium": [],
+      "studium": [
+        {
+          "id": "3119e6fe-841d-4a67-9ad9-159f11b6f8ee",
+          "text": "Herbstfarben Post",
+          "done": false
+        }
+      ],
       "privat": [
         {
           "id": "7d97aaba-d455-43fb-bbd6-ac287cd48bda",
@@ -83,7 +89,7 @@
         }
       ]
     },
-    "updatedAt": 1792735351787
+    "updatedAt": 1792735392042
   },
   "tasks": {
     "items": [
