@@ -818,7 +818,8 @@
       },
       "2026-10-23": {
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-23": 6,
-        "habitweek:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-19": 15
+        "habitweek:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-19": 15,
+        "habit:b07e389a-dfc6-4ab9-830c-5daf53425daf@2026-10-23": 6
       }
     },
     "archive": {
@@ -826,7 +827,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792735403637
+    "updatedAt": 1792735466849
   },
   "msgSeen": {
     "ids": [
