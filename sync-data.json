@@ -65,9 +65,15 @@
         }
       ],
       "studium": [],
-      "privat": []
+      "privat": [
+        {
+          "id": "7d97aaba-d455-43fb-bbd6-ac287cd48bda",
+          "text": "Wäsche waschen",
+          "done": false
+        }
+      ]
     },
-    "updatedAt": 1792735326029
+    "updatedAt": 1792735331866
   },
   "tasks": {
     "items": [
