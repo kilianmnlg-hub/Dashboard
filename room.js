@@ -11,7 +11,7 @@
   const SINCE = new Date(2026, 9, 1).getTime(); // 1. Oktober 2026, 0 Uhr (Ortszeit)
   const SINCE_TXT = "1. Oktober";
   const GAME_URL = "raumspiel/index.html";
-  const GAME_VER = "20261023c";
+  const GAME_VER = "20261023d";
   const KEY = "dashboard-room-v2", THUMB_KEY = "dashboard-room-thumb", NEXT_KEY = "dashboard-room-next";
   const MAX_STATE = 200000; // Zeichen; schuetzt die Cloud-Datei vor Ausreissern
   const SYNC_DELAY = 4000; // Aenderungen im Spiel werden gebuendelt in die Cloud geschickt
