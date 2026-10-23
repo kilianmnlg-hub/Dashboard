@@ -334,6 +334,13 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 .dbmsg { position: absolute; left: 50%; bottom: calc(100% + var(--u) * 1.4); transform: translateX(-50%); max-width: 92%; padding: calc(var(--u) * 1.2) calc(var(--u) * 3); background: var(--gold); color: #2a1a05; font-size: calc(var(--u) * 3); text-align: center; display: none; box-shadow: 0 calc(var(--u) * 1) 0 0 var(--line); }
 .dbmsg:not(:empty) { display: block; }
 .ghint { font-size: calc(var(--u) * 2.8); color: var(--dim); line-height: 1.3; padding: calc(var(--u) * 0.6) calc(var(--u) * 1); flex: none; }
+.hst .hmobs { display: flex; align-items: center; gap: calc(var(--u) * 0.8); }
+.hst .hmobs .pxi { width: calc(var(--u) * 6.4); height: calc(var(--u) * 6.4); }
+/* Auswahl: vier Knoepfe und die Schwierigkeit sollen in einer Zeile bleiben (sonst wird der Held-Kasten abgeschnitten) */
+.hfoot .btn { font-size: calc(var(--u) * 3.1); padding: calc(var(--u) * 1.6) calc(var(--u) * 3); min-height: calc(var(--u) * 9.5); margin: calc(var(--u) * 0.6); }
+.hfoot { flex-wrap: nowrap; }
+.hfoot .acts { flex-wrap: nowrap; }
+.hdiff button { padding: calc(var(--u) * 1.8) calc(var(--u) * 2.6); font-size: calc(var(--u) * 3); }
 
 </style>
 </head>
@@ -6842,18 +6849,25 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
    * loot: [Material, Chance, min, max]. Bosse haben boss = Art (Verhalten in def-core.js), base/scale = Modell (vergroesserte Fassung eines Grundmodells), phases = Lebensanteile der Phasenwechsel.
    */
   D.MON = {
-    raptor: { name: 'Raptorling', hp: 26, speed: 50, dmg: 5, rate: 0.9, reach: 8, struct: 1, kb: 1, hw: 15, h: 28, fps: 10, xp: 1, loot: [['fell', 0.22, 1, 1], ['knochen', 0.14, 1, 1]] },
-    rhino: { name: 'Wollnashorn', hp: 120, speed: 22, dmg: 17, rate: 1.7, reach: 14, struct: 2.2, kb: 0.22, hw: 32, h: 40, fps: 5, xp: 5, loot: [['fell', 0.9, 1, 3], ['stein', 0.4, 1, 2]] },
+    raptor: { name: 'Raptorling', info: 'Schnell und zahlreich.', hp: 26, speed: 50, dmg: 5, rate: 0.9, reach: 8, struct: 1, kb: 1, hw: 15, h: 28, fps: 10, xp: 1, loot: [['fell', 0.22, 1, 1], ['knochen', 0.14, 1, 1]] },
+    rhino: { name: 'Wollnashorn', info: 'Langsam und zäh, bricht Zäune.', hp: 120, speed: 22, dmg: 17, rate: 1.7, reach: 14, struct: 2.2, kb: 0.22, hw: 32, h: 40, fps: 5, xp: 5, loot: [['fell', 0.9, 1, 3], ['stein', 0.4, 1, 2]] },
     // Fernkaempfer: bleibt auf Abstand stehen und spuckt Saeure im Bogen auf Zaun, Haus oder Held
-    spitter: { name: 'Spuckechse', hp: 24, speed: 36, dmg: 0, rate: 2.4, reach: 0, range: 100, shot: { dmg: 4.5, speed: 150 }, struct: 1.1, kb: 1.2, hw: 16, h: 30, fps: 8, ranged: true, xp: 2, loot: [['knochen', 0.5, 1, 2], ['stein', 0.2, 1, 1]] },
+    spitter: { name: 'Dilophosaurus', tag: 'lähmt', info: 'Spuckt Säure aus der Ferne. Ein Treffer lähmt den Helden kurz.', hp: 24, speed: 36, dmg: 0, rate: 2.4, reach: 0, range: 100, shot: { dmg: 4.5, speed: 150, stun: 0.45 }, struct: 1.1, kb: 1.2, hw: 16, h: 30, fps: 8, ranged: true, xp: 2, loot: [['knochen', 0.5, 1, 2], ['stein', 0.2, 1, 1]] },
     // Flieger: fliegt ueber den Zaun zum Haus (oder zum Held) und beisst aus der Luft; trifft nur im Nahkampf (niedrig) oder mit Wurfwaffen
-    flyer: { name: 'Flugsaurier', hp: 16, speed: 60, dmg: 4, rate: 1.3, reach: 12, struct: 1, kb: 1.8, hw: 20, h: 22, fps: 10, fly: true, alt: 74, atkAlt: 40, xp: 2, loot: [['knochen', 0.35, 1, 1], ['fell', 0.2, 1, 1]] },
+    flyer: { name: 'Flugsaurier', info: 'Fliegt über den Zaun und beißt aus der Luft.', hp: 16, speed: 60, dmg: 4, rate: 1.3, reach: 12, struct: 1, kb: 1.8, hw: 20, h: 22, fps: 10, fly: true, alt: 74, atkAlt: 40, xp: 2, loot: [['knochen', 0.35, 1, 1], ['fell', 0.2, 1, 1]] },
+    // Neue Arten je Stufe (base = Koerper, variant = Farbe/Anbauten, scale = Groesse); Faehigkeiten: poison, burn, armor, leap, aura, stomp (def-core.js)
+    toxic: { name: 'Giftraptor', tag: 'vergiftet', info: 'Sein Biss vergiftet den Helden: Schaden über Zeit.', base: 'raptor', variant: 3, hp: 34, speed: 54, dmg: 4, rate: 0.9, reach: 8, struct: 1, kb: 1, hw: 15, h: 28, fps: 10, xp: 2, poison: { dps: 3, dur: 4 }, loot: [['knochen', 0.3, 1, 1], ['fell', 0.25, 1, 1]] },
+    ember: { name: 'Feuerraptor', tag: 'zündet an', info: 'Setzt Zaun und Wehren in Brand.', base: 'raptor', variant: 4, hp: 46, speed: 52, dmg: 6, rate: 0.9, reach: 8, struct: 1.1, kb: 0.8, hw: 15, h: 28, fps: 10, xp: 3, burn: { dps: 4, dur: 4 }, loot: [['fell', 0.3, 1, 1], ['stein', 0.2, 1, 1]] },
+    armored: { name: 'Panzernashorn', tag: 'gepanzert', info: 'Steine und Pfeile prallen ab. Nahkampf, Hagel, Katapult und Laser wirken voll.', base: 'rhino', variant: 2, hp: 210, speed: 22, dmg: 20, rate: 1.7, reach: 14, struct: 2.4, kb: 0.1, hw: 32, h: 40, fps: 5, xp: 9, armor: 0.55, loot: [['stein', 0.9, 1, 3], ['fell', 0.5, 1, 2]] },
+    hunter: { name: 'Jäger-Raptor', tag: 'springt', info: 'Springt über den Zaun und greift Held und Haus an.', base: 'raptor', variant: 5, scale: 1.12, hp: 56, speed: 64, dmg: 7, rate: 0.85, reach: 9, struct: 1.1, kb: 0.7, hw: 17, h: 31, fps: 12, xp: 4, leap: { cd: 6, range: 150 }, loot: [['knochen', 0.35, 1, 2], ['fell', 0.3, 1, 1]] },
+    shaman: { name: 'Schamane', tag: 'heilt', info: 'Heilt und beschleunigt Gegner um sich herum. Zuerst ausschalten!', base: 'spitter', variant: 2, hp: 70, speed: 30, dmg: 0, rate: 3, reach: 0, range: 150, shot: { dmg: 3, speed: 150 }, struct: 1, kb: 0.8, hw: 16, h: 32, fps: 8, ranged: true, xp: 8, aura: { r: 110, heal: 0.02, cap: 6, haste: 0.3 }, loot: [['knochen', 0.8, 1, 2], ['stein', 0.5, 1, 2]] },
+    mammoth: { name: 'Mammut', tag: 'stampft', info: 'Riesig: sein Stampfen lähmt den Helden und zerlegt den Zaun.', base: 'rhino', variant: 3, scale: 1.35, hp: 340, speed: 17, dmg: 26, rate: 2.0, reach: 20, struct: 2.8, kb: 0, hw: 44, h: 55, fps: 4, xp: 16, stomp: { cd: 4.5, r: 46, stun: 0.7 }, loot: [['fell', 1, 2, 4], ['stein', 0.7, 1, 3], ['knochen', 0.6, 1, 2]] },
     // Bosse: je Stufe einer, am Ende der letzten Welle (Verhalten und Phasen in def-core.js)
-    alpha: { name: 'Rudelführer', boss: 'alpha', base: 'raptor', scale: 1.8, hp: 190, speed: 46, dmg: 10, rate: 0.95, reach: 14, struct: 1.4, kb: 0.35, hw: 30, h: 52, fps: 9, xp: 40, phases: [0.66, 0.33], loot: [['fell', 1, 4, 6], ['knochen', 1, 3, 5]] },
-    bull: { name: 'Zottelbulle', boss: 'bull', base: 'rhino', scale: 1.5, hp: 300, speed: 21, dmg: 12, rate: 1.7, reach: 20, struct: 2, kb: 0.05, hw: 48, h: 60, fps: 5, xp: 60, phases: [0.66, 0.33], loot: [['fell', 1, 6, 9], ['stein', 1, 4, 6], ['knochen', 1, 2, 4]] },
-    queen: { name: 'Pterra-Königin', boss: 'queen', base: 'flyer', scale: 2.3, hp: 300, speed: 52, dmg: 9, rate: 1.1, reach: 18, struct: 1.6, kb: 0.3, hw: 46, h: 48, fps: 10, fly: true, alt: 80, atkAlt: 46, xp: 70, phases: [0.66, 0.33], loot: [['knochen', 1, 6, 9], ['fell', 1, 3, 5], ['stein', 1, 2, 4]] },
-    swamp: { name: 'Sumpfkönig', boss: 'swamp', base: 'spitter', scale: 2.1, hp: 300, speed: 24, dmg: 0, rate: 4, reach: 0, range: 150, shot: { dmg: 7, speed: 170 }, struct: 1.2, kb: 0.15, hw: 34, h: 62, fps: 6, ranged: true, xp: 80, phases: [0.66, 0.33], loot: [['knochen', 1, 7, 10], ['stein', 1, 5, 7], ['fell', 1, 2, 4]] },
-    saber: { name: 'Säbelzahn-König', boss: 'saber', hp: 400, speed: 36, dmg: 10, rate: 1.0, reach: 18, struct: 1.4, kb: 0.1, hw: 44, h: 56, fps: 9, xp: 160, phases: [0.66, 0.33], loot: [['fell', 1, 10, 14], ['knochen', 1, 8, 12], ['stein', 1, 8, 12]] }
+    alpha: { name: 'Rudelführer', info: 'Ruft in der Not Raptoren und wird schneller.', boss: 'alpha', base: 'raptor', scale: 1.8, hp: 190, speed: 46, dmg: 10, rate: 0.95, reach: 14, struct: 1.4, kb: 0.35, hw: 30, h: 52, fps: 9, xp: 40, phases: [0.66, 0.33], loot: [['fell', 1, 4, 6], ['knochen', 1, 3, 5]] },
+    bull: { name: 'Zottelbulle', info: 'Rennt mit Wucht gegen Zaun und Haus, ab der Hälfte schneller.', boss: 'bull', base: 'rhino', scale: 1.5, hp: 300, speed: 21, dmg: 12, rate: 1.7, reach: 20, struct: 2, kb: 0.05, hw: 48, h: 60, fps: 5, xp: 60, phases: [0.66, 0.33], loot: [['fell', 1, 6, 9], ['stein', 1, 4, 6], ['knochen', 1, 2, 4]] },
+    queen: { name: 'Pterra-Königin', info: 'Stürzt vom Himmel, ruft Flugsaurier und lähmt den Helden.', boss: 'queen', base: 'flyer', scale: 2.3, hp: 300, speed: 52, dmg: 9, rate: 1.1, reach: 18, struct: 1.6, kb: 0.3, hw: 46, h: 48, fps: 10, fly: true, alt: 80, atkAlt: 46, xp: 70, phases: [0.66, 0.33], loot: [['knochen', 1, 6, 9], ['fell', 1, 3, 5], ['stein', 1, 2, 4]] },
+    swamp: { name: 'Sumpfkönig', info: 'Spuckt Salven und Giftpfützen und ruft Dilophosaurier.', boss: 'swamp', base: 'spitter', scale: 2.1, hp: 300, speed: 24, dmg: 0, rate: 4, reach: 0, range: 150, shot: { dmg: 7, speed: 170 }, struct: 1.2, kb: 0.15, hw: 34, h: 62, fps: 6, ranged: true, xp: 80, phases: [0.66, 0.33], loot: [['knochen', 1, 7, 10], ['stein', 1, 5, 7], ['fell', 1, 2, 4]] },
+    saber: { name: 'Säbelzahn-König', info: 'Springt über den Zaun, brüllt sich in Rage und ruft Raptoren.', boss: 'saber', hp: 400, speed: 36, dmg: 10, rate: 1.0, reach: 18, struct: 1.4, kb: 0.1, hw: 44, h: 56, fps: 9, xp: 160, phases: [0.66, 0.33], loot: [['fell', 1, 10, 14], ['knochen', 1, 8, 12], ['stein', 1, 8, 12]] }
   };
   // Tempo: das Spielfeld ist breiter als frueher (640 statt 480), damit die Wege nicht ziehen, laufen Monster, Held und Gehbilder um den Faktor D.PACE schneller
   D.PACE = 1.25;
@@ -6924,7 +6938,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   D.STAGES = [
     {
-      id: 'stone1', era: 'stone', n: 1, name: 'Lagerfeuer-Tal', pause: 6.5, hp: 1, dmg: 1, xp: 15,
+      id: 'stone1', era: 'stone', n: 1, name: 'Lagerfeuer-Tal', pause: 6.5, hp: 1, dmg: 1, xp: 15, newMobs: ['raptor', 'rhino'],
       waves: [
         run('raptor', 5, 0.5, 1.3),
         cat(run('raptor', 8, 0.5, 1.0), run('rhino', 1, 4, 0)),
@@ -6933,44 +6947,44 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       ]
     },
     {
-      id: 'stone2', era: 'stone', world: 'mist', n: 2, name: 'Nebelwald', pause: 6.5, hp: 1.04, dmg: 1, xp: 30,
+      id: 'stone2', era: 'stone', world: 'mist', n: 2, name: 'Nebelwald', pause: 6.5, hp: 1.15, dmg: 1.05, xp: 30, newMobs: ['spitter', 'toxic'],
       waves: [
-        cat(run('raptor', 6, 0.5, 1.1), run('spitter', 2, 3, 5)),
-        cat(run('raptor', 8, 0.5, 1.0), run('spitter', 2, 2, 4), run('rhino', 1, 6, 0)),
-        cat(run('raptor', 10, 0.5, 0.9), run('spitter', 3, 2, 4), run('rhino', 1, 4, 6)),
-        cat(run('rhino', 2, 1, 6), run('spitter', 4, 2, 3), run('raptor', 6, 5, 1.2)),
-        cat(run('bull', 1, 1.5, 0), run('raptor', 6, 3, 1.1), run('spitter', 2, 6, 5))
+        cat(run('raptor', 6, 0.5, 1.1), run('toxic', 2, 2, 2.5), run('spitter', 2, 3, 5)),
+        cat(run('raptor', 8, 0.5, 1.0), run('toxic', 4, 2, 1.6), run('spitter', 3, 2, 4), run('rhino', 1, 6, 0)),
+        cat(run('raptor', 8, 0.5, 0.9), run('toxic', 6, 2, 1.3), run('spitter', 4, 2, 4), run('rhino', 1, 4, 6)),
+        cat(run('rhino', 2, 1, 6), run('toxic', 6, 2, 1.2), run('spitter', 5, 2, 3), run('raptor', 6, 5, 1.2)),
+        cat(run('bull', 1, 1.5, 0), run('raptor', 6, 3, 1.1), run('toxic', 6, 3, 1.4), run('spitter', 3, 6, 5))
       ]
     },
     {
-      id: 'stone3', era: 'stone', world: 'ash', n: 3, name: 'Aschefeld', pause: 6.5, hp: 1.06, dmg: 1.02, xp: 45,
+      id: 'stone3', era: 'stone', world: 'ash', n: 3, name: 'Aschefeld', pause: 6.5, hp: 1.25, dmg: 1.1, xp: 45, newMobs: ['flyer', 'ember'],
       waves: [
-        cat(run('flyer', 4, 0.5, 1.8), run('raptor', 6, 2, 1.2)),
-        cat(run('flyer', 5, 0.5, 1.5), run('spitter', 2, 3, 4), run('rhino', 1, 5, 6)),
-        cat(run('flyer', 6, 0.5, 1.3), run('raptor', 8, 2, 1.0), run('rhino', 1, 6, 6)),
-        cat(run('flyer', 7, 0.5, 1.2), run('spitter', 3, 2, 3.5), run('rhino', 2, 4, 6)),
-        cat(run('queen', 1, 1.5, 0), run('flyer', 4, 4, 1.8), run('raptor', 5, 3, 1.3))
+        cat(run('flyer', 5, 0.5, 1.7), run('ember', 3, 2, 2), run('raptor', 6, 3, 1.2)),
+        cat(run('flyer', 6, 0.5, 1.4), run('ember', 4, 2, 1.8), run('spitter', 3, 3, 4), run('rhino', 1, 5, 6)),
+        cat(run('flyer', 7, 0.5, 1.2), run('ember', 6, 2, 1.4), run('toxic', 4, 3, 1.6), run('rhino', 2, 6, 6)),
+        cat(run('flyer', 8, 0.5, 1.1), run('ember', 6, 2, 1.3), run('spitter', 4, 2, 3.5), run('rhino', 2, 4, 6)),
+        cat(run('queen', 1, 1.5, 0), run('flyer', 5, 4, 1.6), run('ember', 5, 3, 1.4), run('raptor', 5, 3, 1.3))
       ]
     },
     {
-      id: 'stone4', era: 'stone', world: 'swamp', n: 4, name: 'Echsensumpf', pause: 6.5, hp: 1.06, dmg: 1, xp: 60,
+      id: 'stone4', era: 'stone', world: 'swamp', n: 4, name: 'Echsensumpf', pause: 6.5, hp: 2.05, dmg: 1.45, xp: 60, newMobs: ['armored', 'hunter'],
       waves: [
-        cat(run('spitter', 5, 0.5, 1.6), run('raptor', 8, 2, 1.0)),
-        cat(run('spitter', 6, 0.5, 1.4), run('rhino', 1, 3, 6), run('flyer', 4, 5, 2)),
-        cat(run('rhino', 2, 0.5, 5), run('spitter', 6, 1, 1.4), run('raptor', 10, 3, 0.9)),
-        cat(run('flyer', 6, 0.5, 1.4), run('spitter', 6, 2, 1.4), run('rhino', 2, 4, 5)),
-        cat(run('swamp', 1, 1.5, 0), run('spitter', 4, 3, 2.5), run('rhino', 1, 6, 0), run('raptor', 6, 4, 1.2))
+        cat(run('spitter', 6, 0.5, 1.5), run('hunter', 3, 2, 2.2), run('toxic', 5, 3, 1.2)),
+        cat(run('spitter', 6, 0.5, 1.4), run('armored', 1, 3, 6), run('hunter', 4, 2, 1.8), run('flyer', 4, 5, 2)),
+        cat(run('armored', 2, 0.5, 5), run('spitter', 7, 1, 1.3), run('toxic', 6, 3, 1.0), run('hunter', 4, 4, 1.6)),
+        cat(run('flyer', 6, 0.5, 1.4), run('spitter', 7, 2, 1.3), run('armored', 2, 4, 5), run('ember', 5, 3, 1.3), run('hunter', 4, 5, 1.6)),
+        cat(run('swamp', 1, 1.5, 0), run('spitter', 5, 3, 2.2), run('armored', 1, 6, 0), run('hunter', 5, 4, 1.4), run('toxic', 6, 5, 1.1))
       ]
     },
     {
-      id: 'stone5', era: 'stone', world: 'cave', n: 5, name: 'Säbelzahn-Höhle', pause: 7, hp: 1.12, dmg: 1.06, xp: 90,
+      id: 'stone5', era: 'stone', world: 'cave', n: 5, name: 'Säbelzahn-Höhle', pause: 7, hp: 2.2, dmg: 1.55, xp: 90, newMobs: ['shaman', 'mammoth'],
       waves: [
-        cat(run('raptor', 10, 0.5, 0.9), run('flyer', 4, 3, 2), run('spitter', 3, 4, 4)),
-        cat(run('rhino', 2, 1, 5), run('raptor', 10, 2, 1.0), run('spitter', 4, 3, 3.5)),
-        cat(run('flyer', 8, 0.5, 1.2), run('spitter', 5, 2, 2.6), run('rhino', 2, 5, 5)),
-        cat(run('rhino', 3, 1, 5), run('flyer', 6, 2, 1.5), run('spitter', 5, 3, 2.6), run('raptor', 8, 4, 1.0)),
-        cat(run('rhino', 3, 1, 4.5), run('raptor', 12, 2, 0.85), run('spitter', 5, 3, 3), run('flyer', 5, 5, 1.9)),
-        cat(run('saber', 1, 1.5, 0), run('raptor', 8, 4, 1.2), run('flyer', 4, 6, 2))
+        cat(run('raptor', 10, 0.5, 0.9), run('hunter', 5, 3, 1.6), run('shaman', 1, 4, 0), run('spitter', 3, 4, 4)),
+        cat(run('mammoth', 1, 1, 0), run('armored', 1, 4, 0), run('ember', 8, 2, 1.1), run('shaman', 2, 3, 4), run('toxic', 6, 3, 1.2)),
+        cat(run('flyer', 8, 0.5, 1.2), run('spitter', 6, 2, 2.4), run('shaman', 2, 3, 4), run('armored', 2, 5, 5), run('hunter', 6, 4, 1.4)),
+        cat(run('mammoth', 2, 1, 6), run('hunter', 8, 2, 1.2), run('ember', 8, 3, 1.1), run('shaman', 2, 3, 5), run('flyer', 6, 5, 1.5)),
+        cat(run('mammoth', 2, 1, 5), run('armored', 2, 3, 5), run('toxic', 10, 2, 0.9), run('spitter', 6, 3, 2.4), run('shaman', 3, 4, 4), run('hunter', 6, 5, 1.3)),
+        cat(run('saber', 1, 1.5, 0), run('hunter', 8, 3, 1.1), run('shaman', 2, 4, 3), run('flyer', 6, 6, 1.6), run('ember', 6, 5, 1.2))
       ]
     }
   ];
@@ -6984,8 +6998,14 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       else {
         parts.push(run('raptor', 4 + Math.floor(k * 0.9), 0.5, Math.max(0.5, 1.2 - k * 0.012)));
         if (k >= 3) parts.push(run('rhino', Math.floor((k + 1) / 4), 3, 5));
+        if (k >= 4) parts.push(run('toxic', Math.floor(k / 4), 2, 2));
         if (k >= 5) parts.push(run('spitter', Math.floor(k / 4), 2, 3.5));
         if (k >= 8) parts.push(run('flyer', Math.floor(k / 4), 1, 1.6));
+        if (k >= 10) parts.push(run('ember', Math.floor(k / 5), 2, 1.8));
+        if (k >= 12) parts.push(run('armored', Math.floor(k / 8), 4, 5));
+        if (k >= 14) parts.push(run('hunter', Math.floor(k / 5), 2, 1.6));
+        if (k >= 16) parts.push(run('shaman', Math.floor(k / 8), 3, 4));
+        if (k >= 20) parts.push(run('mammoth', Math.floor(k / 10), 1, 6));
       }
       waves.push(cat(...parts));
     }
@@ -7323,13 +7343,15 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   function raptorBuild(v, frame, variant) {
       const bite = frame === 4, ph = (frame & 3) * Math.PI / 2, bob = bite ? 0 : frame & 1, hx = bite ? 3 : 0;
-      const body = variant === 2 ? c.red : variant ? c.teal : c.lime, belly = c.cream, stripeCol = variant === 2 ? c.graphite(2) : c.orange(3);
+      const RP = [[c.lime, c.orange(3), c.cream], [c.teal, c.orange(3), c.cream], [c.red, c.graphite(2), c.cream], [c.purple, c.lime(5), c.mint], [c.orange, c.graphite(2), c.yellow], [c.navy, c.sky(5), c.cream]][variant] || [c.lime, c.orange(3), c.cream];
+      const body = RP[0], stripeCol = RP[1], belly = RP[2];
       const BODY = (x, y, z) => { const stripe = z > 11 && ((y * 2 + z) % 12 < 2); return stripe ? stripeCol : shade(body, 13 + bob, 12)(x, y, z); };
       // Schwanz, Koerper, Bauch
       v.line(7, 13, 14 + bob, 7, 7, 13 + bob, 2.8, shade(body, 13, 8));
       v.line(7, 7, 13 + bob, 7, 1.5, 10 + bob, 1.6, body(2));
-      v.sph(7, 1.5, 10 + bob, 1.4, c.orange(3));
+      v.sph(7, 1.5, 10 + bob, 1.4, variant === 4 ? c.yellow(5) : c.orange(3));
       v.ell(7, 18, 13 + bob, 5.2, 8.8, 6.2, BODY);
+      if (variant === 3) for (let i = 0; i < 4; i++) v.sph(7, 14.5 + i * 3.2, 19.4 + bob + (i % 2) * 0.6, 1.25, c.lime(6));   // Giftdruesen auf dem Ruecken
       v.ell(8.6, 19, 10.2 + bob, 3.6, 6.8, 3.2, belly(4));
       // Hals und Kopf (gross)
       v.line(7, 25, 17 + bob, 7 + 0, 29 + hx, 20 + bob, 3.6, shade(body, 19, 8));
@@ -7344,7 +7366,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       v.box(12, 31 + hx, 26 + bob, 13, 37 + hx, 27 + bob, c.forest(2)); v.put(12, 37 + hx, 26 + bob, c.forest(2));
       v.put(11, 43 + hx, 21 + bob, c.ink(2));
       // Kamm
-      for (let i = 0; i < 3; i++) v.line(7, 30 + i * 2 + hx, 27 + bob, 7, 28 + i * 2 + hx, 30 + bob, 1, c.orange(4));
+      for (let i = 0; i < 3; i++) v.line(7, 30 + i * 2 + hx, 27 + bob, 7, 28 + i * 2 + hx, 30 + bob, 1, variant === 4 ? c.yellow(5) : variant === 3 ? c.lime(5) : c.orange(4));
       // Beine: nah (dunkler Fuss orange) und fern
       const leg = (xc, s, lf, tone) => {
         v.ell(xc, 18 + s * 0.3, 8.5 + bob, 2.5, 3.8, 3.8, body(tone));
@@ -7366,7 +7388,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   /* ---------- Wollnashorn (Tank) ---------- */
   function rhinoBuild(v, frame, variant) {
       const bite = frame === 4, ph = (frame & 3) * Math.PI / 2, bob = bite ? 0 : frame & 1, hz = bite ? -2 : 0, hy = bite ? 3 : 0;
-      const furR = variant ? c.graphite : c.walnut, fur2R = variant ? c.stone : c.leather;
+      const RHP = [[c.walnut, c.leather], [c.graphite, c.stone], [c.slate, c.steel], [c.sand, c.cream]][variant] || [c.walnut, c.leather], furR = RHP[0], fur2R = RHP[1];
       const FUR = (x, y, z) => { const r = hs(x, y, z), lv = z > 26 ? 4 : z < 15 ? 2 : 3; return furR(lv + (r > 0.88 ? 1 : r < 0.1 ? -1 : 0)); };
       const FUR2 = (x, y, z) => { const r = hs(x + 3, y, z); return fur2R(3 + (r > 0.85 ? 1 : r < 0.12 ? -1 : 0)); };
       // Koerper
@@ -7374,6 +7396,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       v.ell(11, 18, 20 + bob, 8, 9, 10, FUR);
       v.ell(11, 42, 27 + bob, 7.4, 9, 7.2, (x, y, z) => c.walnut(4 + (hs(x, y, z) > 0.8 ? 1 : 0)));     // Hoecker
       v.ell(11, 30, 12 + bob, 9, 17, 4, FUR2);                                                           // Fellrock
+      if (variant === 2) for (let i = 0; i < 5; i++) v.ell(11, 21 + i * 6.5, 31.5 + bob - Math.abs(i - 2) * 0.9, 6.6, 3.6, 3, (x, y, z) => c.steel(3 + (z > 33 ? 1 : 0)));   // Panzerplatten
       // Fell-Zotteln am Bauch
       for (let i = 0; i < 6; i++) v.line(11 + 4, 16 + i * 6, 11 + bob, 11 + 4, 16 + i * 6, 6 + bob, 1.2, c.leather(2));
       // Hals und Kopf: gross und tief
@@ -7381,10 +7404,14 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       v.ell(11, 58 + hy, 18 + bob + hz, 7.4, 10, 8, FUR2);
       v.ell(11, 65 + hy, 14.4 + bob + hz, 5, 6.4, 4.6, c.sand(3));
       v.put(14, 70 + hy, 15 + bob + hz, c.ink(2)); v.put(14, 70 + hy, 14 + bob + hz, c.ink(2));
-      // Hoerner (gross + klein), hell
+      // Hoerner (gross + klein), hell; Mammut: gebogene Stosszaehne
+      if (variant === 3) { for (const xx of [6.5, 15.5]) { v.line(xx, 62 + hy, 17 + bob + hz, xx, 72 + hy, 9 + bob + hz, 2.2, c.cream(4)); v.line(xx, 72 + hy, 9 + bob + hz, xx, 80 + hy, 17 + bob + hz, 1.5, c.cream(5)); } }
+      else {
       v.line(11, 66 + hy, 18 + bob + hz, 11, 71 + hy, 25 + bob + hz, 3, c.cream(3));
       v.line(11, 71 + hy, 25 + bob + hz, 11, 73 + hy, 33 + bob + hz, 1.6, c.cream(4));
       v.line(11, 60 + hy, 24 + bob + hz, 11, 62 + hy, 28 + bob + hz, 2, c.cream(3));
+      }
+      if (variant === 2) v.ell(11, 60 + hy, 25 + bob + hz, 7.7, 7.6, 3.2, c.steel(4));   // Stahlhelm
       // Auge (gross) + Augenbraue + Ohr
       v.box(17, 59 + hy, 19 + bob + hz, 18, 63 + hy, 22 + bob + hz, c.white(6));
       v.box(17, 61 + hy, 19 + bob + hz, 18, 63 + hy, 21 + bob + hz, c.ink(2));
@@ -7918,7 +7945,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   /* ---------- Spuckechse: kleiner Fernkaempfer mit Halskrause; Bild 4 = spuckt ---------- */
   function spitterBuild(v, frame, variant) {
     const spit = frame === 4, ph = (frame & 3) * Math.PI / 2, bob = spit ? 0 : frame & 1, hx = spit ? 3 : 0, up = spit ? 4 : 0;
-    const body = variant ? c.forest : c.teal, belly = c.cream, frillA = variant ? c.red : c.amber, frillB = variant ? c.brick : c.orange;
+    const SP = [[c.teal, c.amber, c.orange], [c.forest, c.red, c.brick], [c.indigo, c.cyan, c.mint]][variant] || [c.teal, c.amber, c.orange];
+    const body = SP[0], belly = c.cream, frillA = SP[1], frillB = SP[2];
     const BODY = (x, y, z) => { const dots = z > 9 && ((y + z * 2) % 11 === 0); return dots ? c.lime(4) : shade(body, 12 + bob, 11, 0.08)(x, y, z); };
     // Schwanz und Koerper (tief und gedrungen)
     v.line(7, 13, 11 + bob, 7, 5, 8 + bob, 2.6, shade(body, 11, 6)); v.sph(7, 4, 7.6 + bob, 1.5, c.lime(4));
@@ -7947,6 +7975,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const s = spit ? 0 : 4.4 * Math.cos(ph), lf = spit ? 0 : Math.max(0, -Math.sin(ph)) * 3, lf2 = spit ? 0 : Math.max(0, Math.sin(ph)) * 3;
     leg(5, -s, lf2, 2); leg(9.6, s, lf, 3);
     v.line(11, 25, 11 + bob, 11, 29 + hx * 0.3, 9 + bob, 1.1, body(3));
+    if (variant === 2) { v.line(12.5, 29 + hx * 0.3, 8 + bob, 12.5, 31 + hx, 33 + bob + up, 0.9, c.oak(3)); v.sph(12.5, 31 + hx, 35.4 + bob + up, 2.4, c.cyan(6)); v.sph(9.6, 25, 14 + bob, 1.1, c.cream(5)); v.sph(9.6, 27, 13.6 + bob, 1.1, c.cream(5)); }   // Stab mit Leuchtkugel, Knochenkette
   }
   D.spitterSprite = (frame, variant, k) => { frame = frame | 0; variant = variant | 0; k = k || 1; return D.cached('spitter|' + frame + '|' + variant + '|' + k, () => D.vsprite(14, 48, 34, 22, k, (v) => spitterBuild(v, frame, variant))); };
 
@@ -8024,7 +8053,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   /* ---------- Zuordnung: Monsterart + Bild -> Sprite ---------- */
   // Bilder: 0 bis 3 Laufen/Fliegen, 4 Angriff, 5 Sprung (Saebelzahn)
   D.monSprite = function (type, frame) {
-    const T = D.MON[type], base = T.base || type, k = T.scale || 1, v = T.boss ? (T.boss === 'alpha' ? 2 : 1) : 0;
+    const T = D.MON[type], base = T.base || type, k = T.scale || 1, v = T.variant != null ? T.variant : T.boss ? (T.boss === 'alpha' ? 2 : 1) : 0;
     if (base === 'raptor') return D.raptorSprite(frame, v, k);
     if (base === 'rhino') return D.rhinoSprite(frame, v, k);
     if (base === 'spitter') return D.spitterSprite(frame, v, k);
@@ -9169,7 +9198,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const lv = Math.max(1, opts.heroLv | 0), HS = D.heroStats(lv), L = opts.loadout || D.loadout(), GB = (L.armor ? L.armor.hp : 0) + (L.head ? L.head.hp : 0), fhp = D.buildHp('fence', (L.build || {}).fence), hhp = D.buildHp('house', (L.build || {}).house);
     const S = {
       stage, diff, heroLv: lv, seed: opts.seed || ((Math.random() * 1e9) | 0), t: 0, phase: 'intro', timer: 1.6, wave: -1, waveT: 0, spawnQ: [], endT: 0,
-      hero: { x: clamp((L.fenceX != null ? L.fenceX : D.FENCE.x) - 20, 16, 400), band: 1, hp: HS.hp + GB, maxHp: HS.hp + GB, state: 'idle', face: 1, t: 0, walkT: 0, swingT: 0, swingHit: false, throwT: 0, thrown: false, cdMelee: 0, cdSling: 0.4, koT: 0, inv: 0, flash: 0, moving: false, stun: 0, castT: 0, hurtT: 0, stepN: 0, fight: false },
+      hero: { x: clamp((L.fenceX != null ? L.fenceX : D.FENCE.x) - 20, 16, 400), band: 1, hp: HS.hp + GB, maxHp: HS.hp + GB, state: 'idle', face: 1, t: 0, walkT: 0, swingT: 0, swingHit: false, throwT: 0, thrown: false, cdMelee: 0, cdSling: 0.4, koT: 0, inv: 0, flash: 0, moving: false, stun: 0, castT: 0, hurtT: 0, stepN: 0, fight: false, stunImm: 0, poison: null },
       mons: [], proj: [], eproj: [], pools: [], rocks: [], fx: [], texts: [], arcs: [], drops: [], pickQ: [], memo: {}, flames: [],
       fence: { x: L.fenceX != null ? L.fenceX : D.FENCE.x, w: D.FENCE.w, hp: fhp, maxHp: fhp, state: 0, flash: 0 },
       house: { x0: D.HOUSE.x0, x1: D.HOUSE.x1, hp: hhp, maxHp: hhp, state: 0, flash: 0 },
@@ -9211,7 +9240,10 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     S.phase = 'wave'; S.waveT = 0;
     S.spawnQ = S.stage.waves[S.wave].map((e) => Object.assign({}, e)).sort((a, b) => a.at - b.at);
     const last = S.wave + 1 === S.stage.waves.length;
-    S.banner = { text: isBossWave(S, S.wave) ? 'BOSS-WELLE' : 'WELLE ' + (S.wave + 1), sub: last && !isBossWave(S, S.wave) ? 'Letzte Welle!' : '', t: 0, life: 2 };
+    let sub = last && !isBossWave(S, S.wave) ? 'Letzte Welle!' : '', text = isBossWave(S, S.wave) ? 'BOSS-WELLE' : 'WELLE ' + (S.wave + 1), life = 2;
+    if (!isBossWave(S, S.wave) && S.spawnQ.length >= 30) { text = 'GROSSE WELLE'; sub = 'Eine Horde kommt!'; life = 2.4; }
+    if (S.wave === 0 && !S.stage.endless && S.stage.newMobs && S.stage.newMobs.length) { sub = 'NEU: ' + S.stage.newMobs.map((id) => D.MON[id].name + (D.MON[id].tag ? ' (' + D.MON[id].tag + ')' : '')).join(' · '); life = 3.6; }
+    S.banner = { text, sub, t: 0, life };
     sfx('wave');
   }
   function endWave(S) {
@@ -9219,7 +9251,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     S.phase = 'break'; S.timer = S.stage.pause;
     S.banner = { text: 'Geschafft!', sub: 'Zaun repariert, kurz durchatmen', t: 0, life: 2 };
     // Pause: Held voll geheilt, Zaun um ein Drittel repariert
-    S.hero.hp = S.hero.maxHp; S.fence.hp = Math.min(S.fence.maxHp, S.fence.hp + S.fence.maxHp * 0.34); S.fence.state = fenceState(S.fence);
+    S.hero.hp = S.hero.maxHp; S.hero.poison = null; S.hero.stun = 0; S.fence.burn = null; S.turrets.forEach((t) => { t.burn = null; }); S.fence.hp = Math.min(S.fence.maxHp, S.fence.hp + S.fence.maxHp * 0.34); S.fence.state = fenceState(S.fence);
     S.pools.length = 0; S.flames.length = 0; S.traps.forEach((t) => { t.charges = t.max; }); S.beams.length = 0;
     S.turrets.forEach((t) => { if (t.dead || t.hp < t.maxHp) { t.dead = false; t.hp = t.maxHp; t.flash = 0.3; } });
     sfx('waveEnd');
@@ -9240,7 +9272,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   /* ---------- Monster erzeugen ---------- */
   function spawn(S, type, opt) {
     opt = opt || {};
-    const T = D.MON[type], band = Math.floor(S.rng() * 3), ws = S.stage.endless ? 1 + 0.06 * Math.max(0, S.wave) : 1, wd = S.stage.endless ? 1 + 0.02 * Math.max(0, S.wave) : 1;
+    const T = D.MON[type], band = Math.floor(S.rng() * 3), ws = S.stage.endless ? 1 + 0.08 * Math.max(0, S.wave) : 1, wd = S.stage.endless ? 1 + 0.03 * Math.max(0, S.wave) : 1;
     const m = {
       id: S.uid++, type, T, x: opt.x != null ? opt.x : D.W + 26 + S.rng() * 14, band, dep: D.BANDS[band],
       hp: T.hp * S.hpMul * ws, maxHp: T.hp * S.hpMul * ws, t: 0, walkT: S.rng() * 2, cd: 0.3 + S.rng() * 0.4, bite: 0, stun: 0, flash: 0, dead: false, deadT: 0, state: 'walk', slow: 0,
@@ -9283,7 +9315,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     o = o || {};
     const T = m.T;
     dmg = Math.max(1, Math.round(dmg));
-    m.hp -= dmg; m.flash = 0.12; m.stun = Math.max(m.stun, (o.stun != null ? o.stun : 0.08) * (T.boss ? 0.2 : 1));
+    if (o.proj && T.armor) { dmg = Math.max(1, Math.round(dmg * (1 - T.armor))); burst(S, m.x + 4, D.GY + m.dep - (m.alt || 0) - T.h * 0.55, 3, ['#dfe6f5', '#ffffff', '#9fb4e8'], { speed: 0.7 }); sfx('stone'); }   // Panzer: Stein und Pfeil prallen ab
+    m.hp -= dmg; m.flash = 0.12; m.stun = Math.max(m.stun, (o.stun != null ? o.stun : 0.08) * (T.boss ? 0.2 : (T.stunRes || 1)));
     if (o.kb && !m.act) m.x += o.kb * T.kb;
     const hy = D.GY + m.dep - (m.alt || 0) - T.h;
     addText(S, m.x, hy - 4, String(dmg), o.crit ? '#ffe45a' : '#ffffff', o.crit);
@@ -9309,7 +9342,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if (h.hp <= 0) { h.hp = 0; h.state = 'ko'; h.koT = D.HERO.ko; h.stun = 0; S.stats.kos++; S.in.tx = null; sfx('ko'); burst(S, h.x, D.GY + D.BANDS[h.band] - 20, 10, ['#ffffff', '#ffd24a'], { speed: 0.9 }); }
   }
   function stunHero(S, sec) {
-    const h = S.hero; if (h.state === 'ko') return;
+    const h = S.hero; if (h.state === 'ko' || h.stunImm > 0) return;   // nach einer Laehmung kurz geschuetzt (keine Dauerlaehmung)
     h.stun = Math.max(h.stun, sec); S.in.tx = null; sfx('hurt');
     burst(S, h.x, footY(h.band) - 50, 8, ['#ffe45a', '#ffffff'], { speed: 0.6, up: 60 });
   }
@@ -9408,20 +9441,22 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   // Heilfeuer: bleibt stehen und heilt Held (in der Naehe) und Zaun ueber die Dauer
   function castHeal(S, AA) {
-    const AB = D.ABIL.heal, h = S.hero; AA.cd = AA.max; sfx('revive');
+    const AB = D.ABIL.heal, h = S.hero; AA.cd = AA.max; sfx('revive'); h.poison = null;   // Heilfeuer nimmt auch das Gift
     S.fires.push({ x: h.x, t: 0, life: AB.dur, heal: AB.heal * AA.p, fence: AB.fence * AA.p, r: AB.radius });
     if (h.state === 'idle') { h.state = 'cast'; h.castT = 0; }
   }
 
   function updateHero(S, dt) {
     const h = S.hero, I = S.in, HD = D.HERO;
-    h.t += dt; if (h.inv > 0) h.inv -= dt; if (h.flash > 0) h.flash -= dt; if (h.hurtT > 0) h.hurtT -= dt;
+    h.t += dt; if (h.inv > 0) h.inv -= dt; if (h.flash > 0) h.flash -= dt; if (h.hurtT > 0) h.hurtT -= dt; if (h.stunImm > 0) h.stunImm -= dt;
+    // Gift: Schaden ueber Zeit, toetet nicht (bleibt bei 1 Leben); gruene Blasen
+    if (h.poison) { h.poison.t -= dt; if (h.state !== 'ko') { h.hp = Math.max(1, h.hp - h.poison.dps * S.red * dt); h.pTick = (h.pTick || 0) - dt; if (h.pTick <= 0) { h.pTick = 0.28; burst(S, h.x - 2, footY(h.band) - 38, 1, ['#7be08c', '#2f8a4f'], { speed: 0.25, up: 24, g: -10 }); } } if (h.poison.t <= 0) h.poison = null; }
     if (h.state === 'ko') {
       h.koT -= dt;
       if (h.koT <= 0) { h.state = 'idle'; h.hp = Math.ceil(h.maxHp * 0.5); h.inv = 1.8; sfx('revive'); burst(S, h.x, footY(h.band) - 20, 12, ['#ffffff', '#7be08c', '#ffd24a'], { speed: 0.9 }); }
       return;
     }
-    if (h.stun > 0) { h.stun -= dt; h.moving = false; return; }   // benommen (Schrei): keine Bewegung, kein Angriff
+    if (h.stun > 0) { h.stun -= dt; h.moving = false; if (h.stun <= 0) h.stunImm = 1.2; return; }   // benommen (Schrei): keine Bewegung, kein Angriff
     h.cdMelee -= dt; h.cdSling -= dt;
     // Eingabe: Tastatur hat Vorrang, sonst das angetippte Ziel
     let dir = I.dir || 0;
@@ -9466,11 +9501,22 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if (h.state !== 'ko' && h.inv <= 0 && m.x > h.x && (f.hp <= 0 || h.x > fenceFront(S) - 2)) { const hx = h.x + 9; if (hx > best.x) best = { kind: 'hero', x: hx }; }
     return best;
   }
+  function poisonHero(S, P) {
+    const h = S.hero; if (h.state === 'ko') return; const dps = P.dps * S.monDmg;
+    if (!h.poison || dps >= h.poison.dps) h.poison = { t: P.dur, dps }; else h.poison.t = Math.max(h.poison.t, P.dur);
+  }
+  function ignite(S, o, B) { if (o.dead || o.hp <= 0) return; o.burn = { t: B.dur, dps: B.dps * S.monDmg }; }
+  // Brand: Zaun und Wehren verlieren Leben ueber Zeit; die Flammen erloeschen nach der Welle
+  function updateBurn(S, dt) {
+    const f = S.fence;
+    if (f.burn) { f.burn.t -= dt; if (f.hp > 0) { const d = f.burn.dps * dt; if (f.hp - d <= 0) { f.burn = null; hitFence(S, f.hp, 'burn'); } else { f.hp -= d; S.stats.taken += d; const st = fenceState(f); if (st !== f.state) f.state = st; } } if (f.burn && f.burn.t <= 0) f.burn = null; }
+    for (const t of S.turrets) if (t.burn) { t.burn.t -= dt; if (!t.dead) { const d = t.burn.dps * dt; if (t.hp - d <= 0) { t.burn = null; hitTurret(S, t, t.hp + 1, 'burn'); } else { t.hp -= d; S.stats.taken += d; } } if (t.burn && t.burn.t <= 0) t.burn = null; }
+  }
   function hitTarget(S, m, tgt, mul) {
     const dmg = m.dmg * (mul || 1);
-    if (tgt.kind === 'hero') hurtHero(S, dmg, m.x);
-    else if (tgt.kind === 'fence') hitFence(S, dmg * m.T.struct, m.type);
-    else if (tgt.kind === 'turret') hitTurret(S, tgt.t, dmg * m.T.struct, m.type);
+    if (tgt.kind === 'hero') { hurtHero(S, dmg, m.x); if (m.T.poison) poisonHero(S, m.T.poison); }
+    else if (tgt.kind === 'fence') { hitFence(S, dmg * m.T.struct, m.type); if (m.T.burn && S.fence.hp > 0) ignite(S, S.fence, m.T.burn); }
+    else if (tgt.kind === 'turret') { hitTurret(S, tgt.t, dmg * m.T.struct, m.type); if (m.T.burn) ignite(S, tgt.t, m.T.burn); }
     else hitHouse(S, dmg * m.T.struct, m.type);
   }
   function queued(S, m) {
@@ -9479,10 +9525,24 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   function walk(S, m, dt) {
     if (queued(S, m)) { m.state = 'wait'; return; }
-    m.x -= m.T.speed * m.spd * dt; m.walkT += dt * m.spd; m.state = 'walk';
+    m.x -= m.T.speed * m.spd * (m.aura > 0 ? m.auraH : 1) * dt; m.walkT += dt * m.spd; m.state = 'walk';
   }
   function meleeAI(S, m, dt) {
+    const T = m.T;
+    // Springer (Jaeger-Raptor): springt vor dem Zaun ueber ihn hinweg, zum Held hinter dem Zaun oder zum Haus
+    if (T.leap) {
+      m.leapCd = (m.leapCd == null ? T.leap.cd * (0.3 + S.rng() * 0.7) : m.leapCd) - dt;
+      if (m.leapCd <= 0 && S.fence.hp > 0 && m.x > S.fence.x + 18 && m.x - S.fence.x < T.leap.range) {
+        const h = S.hero, tx = h.state !== 'ko' && h.x < S.fence.x - 6 && h.x > S.house.x1 + 14 ? h.x + 10 : Math.max(S.house.x1 + 26, S.fence.x - 28);
+        m.act = { kind: 'leap', t: 0, dur: 0.75, x0: m.x, tx, soft: true }; m.leapCd = T.leap.cd; return;
+      }
+    }
     const tgt = pickTarget(S, m), gap = m.x - tgt.x;
+    // Stampfer (Mammut): schlaegt auf den Boden, laehmt den Helden in der Naehe und beschaedigt Zaun und Wehren
+    if (T.stomp) {
+      m.stompT = (m.stompT == null ? T.stomp.cd * 0.5 : m.stompT) - dt;
+      if (m.stompT <= 0 && gap <= T.stomp.r) { m.act = { kind: 'stomp', t: 0, dur: 0.8, tx: m.x - T.reach }; m.stompT = T.stomp.cd; return; }
+    }
     if (gap <= m.T.reach) {
       m.state = 'attack'; m.cd -= dt;
       if (m.cd <= 0) { m.cd = m.T.rate * m.rate; m.bite = 0.24; hitTarget(S, m, tgt, 1); }
@@ -9496,7 +9556,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const ty = tgt.kind === 'hero' ? footY(h.band) - 22 : D.GY - 14;
     tx += spread || 0;
     const t2 = clamp(Math.abs(sx - tx) / T.shot.speed, 0.5, 1.7);
-    S.eproj.push({ x: sx, y: sy, vx: (tx - sx) / t2, vy: (ty - sy - 0.5 * GRAV * t2 * t2) / t2, t: 0, dmg: T.shot.dmg * S.monDmg, struct: T.struct, big: !!T.boss, pool: false, src: m.type });
+    S.eproj.push({ x: sx, y: sy, vx: (tx - sx) / t2, vy: (ty - sy - 0.5 * GRAV * t2 * t2) / t2, t: 0, dmg: T.shot.dmg * S.monDmg, struct: T.struct, big: !!T.boss, pool: false, src: m.type, stun: T.shot.stun || 0 });
     m.bite = 0.3; sfx('spit');
   }
   function rangedAI(S, m, dt) {
@@ -9573,8 +9633,12 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       if (k >= 1) m.act = null;
     } else if (a.kind === 'leap') {
       const k = Math.min(1, a.t / a.dur), e = k * k * (3 - 2 * k);
-      m.x = a.x0 + (a.tx - a.x0) * e; m.alt = Math.sin(Math.PI * k) * 76; m.state = 'leap'; m.walkT += dt;
-      if (k >= 1) { m.alt = 0; slam(S, m, m.x, 40, 1.8); m.bite = 0.3; m.act = null; }
+      m.x = a.x0 + (a.tx - a.x0) * e; m.alt = Math.sin(Math.PI * k) * (a.soft ? 44 : 76); m.state = 'leap'; m.walkT += dt;
+      if (k >= 1) { m.alt = 0; if (a.soft) { if (h.state !== 'ko' && Math.abs(h.x - m.x) < 16) hurtHero(S, m.dmg * 1.3, m.x); } else slam(S, m, m.x, 40, 1.8); m.bite = 0.3; m.act = null; }
+    } else if (a.kind === 'stomp') {
+      m.state = 'attack';
+      if (!a.hit && a.t >= 0.55) { a.hit = true; const sx = m.x - T.reach; slam(S, m, sx, T.stomp.r, 1.0); if (h.state !== 'ko' && Math.abs(h.x - sx) < T.stomp.r + 6) stunHero(S, T.stomp.stun); m.bite = 0.3; }
+      if (a.t >= a.dur) m.act = null;
     }
   }
   function bossThink(S, m, dt) {
@@ -9584,8 +9648,14 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
 
   function updateMons(S, dt) {
+    // Schamanen: heilen Gegner im Umkreis und machen sie schneller
+    for (const a of S.mons) {
+      if (a.dead || !a.T.aura) continue;
+      for (const m of S.mons) { if (m.dead || m === a || Math.abs(m.x - a.x) > a.T.aura.r) continue; m.aura = 0.3; m.auraH = 1 + a.T.aura.haste; if (m.hp < m.maxHp) m.hp = Math.min(m.maxHp, m.hp + Math.min(m.maxHp * a.T.aura.heal, a.T.aura.cap || 1e9) * dt); }
+    }
     for (const m of S.mons) {
       if (m.dead) { m.deadT += dt; continue; }
+      if (m.aura > 0) m.aura -= dt;
       m.t += dt;
       if (m.flash > 0) m.flash -= dt;
       if (m.bite > 0) m.bite -= dt;
@@ -9612,7 +9682,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
           if (Math.abs(p.x - m.x) < m.T.hw * 0.75 && p.y > top && p.y < bot) {
             if (p.kind === 'pot') explode(S, p.x, p.y, p.w);
             else if (p.turret) turretImpact(S, p, m);
-            else { const A = p.w || D.HERO.sling, crit = S.rng() < A.crit; damageMon(S, m, A.dmg * S.dmgMul * bd(S) * (crit ? 2 : 1) * (0.9 + S.rng() * 0.2), { kb: (p.kind === 'bow' ? 2 : 3) * Math.sign(p.vx), crit, stone: p.kind !== 'bow', stun: 0.1 }); }
+            else { const A = p.w || D.HERO.sling, crit = S.rng() < A.crit; damageMon(S, m, A.dmg * S.dmgMul * bd(S) * (crit ? 2 : 1) * (0.9 + S.rng() * 0.2), { kb: (p.kind === 'bow' ? 2 : 3) * Math.sign(p.vx), crit, stone: p.kind !== 'bow', stun: 0.1, proj: true }); }
             gone = true; break;
           }
         }
@@ -9628,7 +9698,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     if (tt) hitTurret(S, tt, p.dmg * p.struct, p.src);
     else if (f.hp > 0 && p.x > f.x - 8 && p.x < f.x + f.w + 8) hitFence(S, p.dmg * p.struct, p.src);
     else if (p.x <= S.house.x1 + 10) hitHouse(S, p.dmg * p.struct, p.src);
-    else if (h.state !== 'ko' && Math.abs(h.x - p.x) < 14) hurtHero(S, p.dmg, p.x + 4);
+    else if (h.state !== 'ko' && Math.abs(h.x - p.x) < 14) { hurtHero(S, p.dmg, p.x + 4); if (p.stun) stunHero(S, p.stun); }
     if (p.pool) S.pools.push({ x: p.x, t: 0, life: 7, r: 14 });
   }
   function updateEProj(S, dt) {
@@ -9638,7 +9708,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       p.vy += GRAV * dt; p.x += p.vx * dt; p.y += p.vy * dt;
       let gone = p.x < -20 || p.t > 4;
       const fy = footY(h.band);
-      if (!gone && h.state !== 'ko' && h.inv <= 0 && Math.abs(p.x - h.x) < 9 && p.y > fy - 52 && p.y < fy + 2) { burst(S, p.x, p.y, 6, ['#8ed04a', '#d8f28a'], { speed: 0.7 }); hurtHero(S, p.dmg, p.x + 6); gone = true; }
+      if (!gone && h.state !== 'ko' && h.inv <= 0 && Math.abs(p.x - h.x) < 9 && p.y > fy - 52 && p.y < fy + 2) { burst(S, p.x, p.y, 6, ['#8ed04a', '#d8f28a'], { speed: 0.7 }); hurtHero(S, p.dmg, p.x + 6); if (p.stun) stunHero(S, p.stun); gone = true; }
       if (!gone && p.y >= D.GY + 6) { landAcid(S, p); gone = true; }
       if (gone) S.eproj.splice(i, 1);
     }
@@ -9712,7 +9782,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   function turretImpact(S, p, m) {
     if (p.kind === 'boulder') { blast(S, p.x, p.y, p.radius, p.dmgT, p.kind); return; }
-    damageMon(S, m, p.dmgT * (0.9 + S.rng() * 0.2), { kb: (p.kind === 'ball' ? 4 : 2) * Math.sign(p.vx || 1), stone: p.kind === 'sling', stun: 0.08 });
+    damageMon(S, m, p.dmgT * (0.9 + S.rng() * 0.2), { kb: (p.kind === 'ball' ? 4 : 2) * Math.sign(p.vx || 1), stone: p.kind === 'sling', stun: 0.08, proj: p.kind !== 'ball' });
     if (p.kind === 'ball') blast(S, p.x, p.y, p.radius, p.dmgT * 0.35, p.kind, m);
   }
   function fireTurret(S, t, K, m) {
@@ -9827,6 +9897,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     updateTraps(S, dt);
     updateTurrets(S, dt);
     updateBeams(S, dt);
+    updateBurn(S, dt);
     updateMons(S, dt);
     updateProj(S, dt);
     updateEProj(S, dt);
@@ -9913,6 +9984,14 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     for (let i = 0; i < 18; i++) { const an = i / 18 * Math.PI * 2; ctx.fillRect(Math.round(x + Math.cos(an) * r), Math.round(y + Math.sin(an) * r * 0.32), 2, 1); }
   }
 
+  // Flammen auf Zaun/Wehr (Brand): flackernde Zungen entlang der Breite, in zwei Hoehen
+  function flame(ctx, x, y, hw, h, tm) {
+    for (let k = 0; k < 6; k++) {
+      const fx = Math.round(x - hw + k * (hw * 2) / 5), fl = Math.floor(tm * 9 + k * 1.7) % 3, up = (k % 2) * h * 0.45;
+      ctx.fillStyle = '#ff8a3a'; ctx.fillRect(fx - 2, Math.round(y - up - 7 - fl), 4, 7 + fl);
+      ctx.fillStyle = '#ffd24a'; ctx.fillRect(fx - 1, Math.round(y - up - 5 - fl), 2, 5 + fl);
+    }
+  }
   // Band aus 1-Pixel-Spalten entlang einer (fast waagerechten) Linie, Dicke th
   function band(ctx, x0, y0, x1, y1, th, col) {
     const n = Math.max(1, Math.abs(x1 - x0)); ctx.fillStyle = col;
@@ -9983,6 +10062,12 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       else { ctx.fillStyle = '#6f84c8'; ctx.fillRect(x0 - 2, y0 - 1, 4, 1); ctx.fillStyle = '#9fb4e8'; ctx.fillRect(x0 - 3, y0 - 3, 6, 2); ctx.fillRect(x0 - 2, y0 - 5, 4, 2); ctx.fillStyle = '#dbe6ff'; ctx.fillRect(x0 - 2, y0 - 4, 2, 1); }
       if (d.n > 1) { ctx.fillStyle = '#ffd84a'; ctx.fillRect(x0 + 3, y0 - 7, 3, 1); ctx.fillRect(x0 + 4, y0 - 8, 1, 3); }
     }
+    // Schamanen: gruener Kreis am Boden (Heilung und Tempo), Gegner darin tragen ein kleines Plus
+    for (const m of S.mons) {
+      if (m.dead) continue;
+      if (m.T.aura) { const rr = m.T.aura.r, a = 0.55 + 0.2 * Math.sin(tm * 4); ctx.fillStyle = 'rgba(120,230,150,0.07)'; for (let dy = -3; dy <= 3; dy++) { const w = Math.round(rr * Math.sqrt(1 - (dy / 3.6) * (dy / 3.6))); ctx.fillRect(Math.round(m.x - w), GY + 10 + dy, w * 2, 1); } ctx.fillStyle = 'rgba(150,240,170,' + a.toFixed(2) + ')'; for (let i = 0; i < 30; i++) { const an = i / 30 * Math.PI * 2 + tm * 0.4; ctx.fillRect(Math.round(m.x + Math.cos(an) * rr), GY + 10 + Math.round(Math.sin(an) * 3.2), 2, 1); } }
+      else if (m.aura > 0 && Math.floor(tm * 4 + m.id) % 2) { const by = GY + m.dep - (m.alt || 0) - m.T.h - 10; ctx.fillStyle = '#7be08c'; ctx.fillRect(Math.round(m.x) - 1, by, 3, 1); ctx.fillRect(Math.round(m.x), by - 1, 1, 3); }
+    }
     // Warnringe fuer Sprung und Sturzflug der Bosse
     for (const m of S.mons) if (m.act && m.act.tx != null && !m.dead) ring(ctx, m.act.tx, GY + 12, 26 + Math.sin(tm * 20) * 3, 0.5 + 0.3 * Math.sin(tm * 16));
 
@@ -10003,6 +10088,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       } else if (e.k === 'fence') {
         const f = S.fence, fs = D.fenceSprite(f.state);
         drawSpr(ctx, fs, f.x, GY + 9, false, f.flash > 0 ? ['hit', 'rgba(255,255,255,0.5)'] : null);
+        if (f.burn && f.hp > 0) flame(ctx, f.x, GY + 6, 8, 38, tm);
         if (f.hp > 0 && f.hp < f.maxHp) bar(ctx, Math.round(f.x - 10), GY - 66, 20, f.hp / f.maxHp);
       } else if (e.k === 'turret') {
         const t = e.t, K = D.TURRET[t.id], spr = D.turretSprite(t.id, t.fireT > 0 && !t.dead ? 1 : 0), fl = t.face < 0;
@@ -10012,6 +10098,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
           ctx.globalAlpha = 0.9; ctx.drawImage(s.tint('ruin', 'rgba(30,22,40,0.6)'), 0, 0, s.w, s.h, dx, Math.round(e.y - hh + (s.h - s.oy)), s.w, hh); ctx.globalAlpha = 1;
         } else {
           drawSpr(ctx, spr, t.x, e.y, fl, t.flash > 0 ? ['white', 'rgba(255,255,255,0.6)'] : null);
+          if (t.burn) flame(ctx, t.x, e.y - 3, K.hw, spr.h * 0.8, tm);
           if (t.hp < t.maxHp) bar(ctx, Math.round(t.x - 10), e.y - spr.h - 5, 20, t.hp / t.maxHp);
         }
       } else if (e.k === 'hero') {
@@ -10030,7 +10117,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         const spr = D.heroSprite(look, pose, fr, S.loadout ? S.loadout.gear : 'club', !hero.fight);
         const blink = hero.inv > 0 && Math.floor(tm * 14) % 2 === 0;
         if (blink) ctx.globalAlpha = 0.45;
-        drawSpr(ctx, spr, hero.x, e.y + jy, hero.face < 0, hero.flash > 0 ? ['hurt', 'rgba(255,60,60,0.6)'] : null);
+        drawSpr(ctx, spr, hero.x, e.y + jy, hero.face < 0, hero.flash > 0 ? ['hurt', 'rgba(255,60,60,0.6)'] : hero.poison ? ['poison', 'rgba(90,210,80,0.3)'] : null);
         ctx.globalAlpha = 1;
         if (hero.state !== 'ko' && hero.hp < hero.maxHp) bar(ctx, Math.round(hero.x - 11), e.y - 70, 22, hero.hp / hero.maxHp);
         if (hero.state === 'ko') drawText(ctx, String(Math.ceil(hero.koT)), hero.x - hero.face * 6, e.y - 30, '#ffffff', false);
@@ -10049,7 +10136,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
           ctx.globalAlpha = 1;
         } else {
           drawSpr(ctx, spr, m.x, e.y - alt, true, m.flash > 0 ? ['white', 'rgba(255,255,255,0.7)'] : null);
-          if (!T.boss && (m.hp < m.maxHp || m.type === 'rhino')) bar(ctx, Math.round(m.x - 10), e.y - alt - T.h - 11, 20, m.hp / m.maxHp);
+          if (!T.boss && (m.hp < m.maxHp || T.hp >= 100)) bar(ctx, Math.round(m.x - 10), e.y - alt - T.h - 11, 20, m.hp / m.maxHp);
         }
       }
     }
@@ -10296,7 +10383,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const mode = '<div class="hmode"><button data-m="camp" class="' + (H.mode === 'camp' ? 'on' : '') + '">Kampagne</button><button data-m="endless" class="' + (H.mode === 'endless' ? 'on' : '') + '">Endlos</button></div>';
     $('hStages').innerHTML = mode + D.STAGES.map((st, i) => {
       const open = D.stageOpen(s, i), n = D.stageStars(s, st.id), best = s.endless['endless_' + st.id] || 0;
-      return '<button class="hst' + (i === H.sel ? ' sel' : '') + (open ? '' : ' lock') + '" data-i="' + i + '"><span class="hn num">' + (i + 1) + '</span><span class="hnm">' + st.name + '</span>' +
+      return '<button class="hst' + (i === H.sel ? ' sel' : '') + (open ? '' : ' lock') + '" data-i="' + i + '"><span class="hn num">' + (i + 1) + '</span><span class="hnm">' + st.name + '</span>' + (open ? '<span class="hmobs">' + (st.newMobs || []).map((id) => img('mon:' + id)).join('') + '</span>' : '') +
         '<span class="hsr">' + (!open ? '<em>gesperrt</em>' : H.mode === 'endless' ? '<em>' + (best ? 'Rekord: Welle ' + best : 'noch kein Rekord') + '</em>' : stars(n, false)) + '</span></button>';
     }).join('');
     $('hDiff').innerHTML = D.DIFF.map((q) => '<button data-d="' + q.id + '" class="' + (q.id === H.diff ? 'on' : '') + '">' + q.name + '</button>').join('');
@@ -10325,7 +10412,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   /* ---------- Ausruestung ---------- */
   const G = (H.g = {});
-  const CATS = [['main', 'Hauptwaffe'], ['second', 'Zweitwaffe'], ['armor', 'Rüstung'], ['head', 'Kopf'], ['abil', 'Fähigkeiten'], ['pets', 'Begleiter'], ['traps', 'Fallen'], ['turrets', 'Wehren'], ['build', 'Haus & Zaun']];
+  const CATS = [['main', 'Hauptwaffe'], ['second', 'Zweitwaffe'], ['armor', 'Rüstung'], ['head', 'Kopf'], ['abil', 'Fähigkeiten'], ['pets', 'Begleiter'], ['traps', 'Fallen'], ['turrets', 'Wehren'], ['build', 'Haus & Zaun'], ['foes', 'Gegner']];
   let gcat = 'main', gconf = null, gtimer = 0, mtimer = 0;
   const idsOf = (cat) => (cat === 'turrets' ? Object.keys(D.TURRET) : cat === 'traps' ? Object.keys(D.TRAP) : cat === 'build' ? Object.keys(D.BUILD) : cat === 'abil' ? Object.keys(D.ABIL) : Object.keys(D.GEAR).filter((id) => D.GEAR[id].slot === cat));
   const iconOf = (id) => (D.itemInfo(id).icon || id);
@@ -10348,6 +10435,21 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const stat = K.guard ? 'Flickt den Zaun: ' + Math.round(K.heal * 1000) / 10 + ' % je Sekunde' : 'Schaden ' + fmt(K.dmg * pw) + ' · Tempo ' + fmt(K.rate) + ' s · Reichweite ' + K.range + (K.stun ? ' · betäubt' : '');
     let src = ''; try { src = D.petSprite(p.id, p.v, 0).cv.toDataURL(); } catch (e) { /* Bild nicht bereit */ }
     return '<div class="grow' + (on ? ' eq' : '') + '"><img class="pxi" alt="" draggable="false" src="' + src + '"><div class="gtx"><b>' + p.name + ' <em>' + p.vname + '</em></b><span>' + stat + ' · wächst mit dem Held-Level</span><span class="gi">' + K.info + '</span></div><div class="gbt"><button data-a="pet" data-id="' + p.id + '|' + p.v + '">' + (on ? 'Zurücklassen' : 'Mitnehmen') + '</button></div></div>';
+  }
+  // Gegner-Uebersicht: alle Arten in der Reihenfolge ihres ersten Auftritts; bekannt sind die Arten bis zur hoechsten freien Stufe
+  function foeHtml(s) {
+    const order = [];
+    D.STAGES.forEach((st, i) => {
+      (st.newMobs || []).forEach((id) => { if (!order.some((q) => q.id === id)) order.push({ id, stage: i }); });
+      const b = st.waves[st.waves.length - 1].find((e) => D.MON[e.type].boss); if (b && !order.some((q) => q.id === b.type)) order.push({ id: b.type, stage: i, boss: true });
+    });
+    const top = D.STAGES.reduce((a, st, i) => (D.stageOpen(s, i) ? i : a), 0);
+    return '<div class="ghint">Grundwerte; sie wachsen mit der Stufe. Jede neue Art bringt eine Fähigkeit mit: es lohnt sich, passende Waffen und Wehren zu haben.</div>' + order.map((q) => {
+      const T = D.MON[q.id];
+      if (q.stage > top) return '<div class="grow new"><div class="gtx"><b>???</b><span class="gi">Noch nicht begegnet: erscheint in Stufe ' + (q.stage + 1) + '.</span></div></div>';
+      const dm = T.shot ? T.shot.dmg : T.dmg;
+      return '<div class="grow">' + img('mon:' + q.id) + '<div class="gtx"><b>' + T.name + (T.tag ? ' <em>' + T.tag + '</em>' : '') + (q.boss ? ' <em>Boss</em>' : '') + '</b><span>Leben ' + T.hp + ' · Schaden ' + dm + ' · ab Stufe ' + (q.stage + 1) + '</span><span class="gi">' + (T.info || '') + '</span></div></div>';
+    }).join('');
   }
   function row(id, s) {
     const it = D.itemInfo(id), lv = s.own[id], own = lv != null, on = eqd(id, s), bal = D.balance(), weapon = D.GEAR[id] && (D.GEAR[id].slot === 'main' || D.GEAR[id].slot === 'second');
@@ -10377,6 +10479,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       grp('Wehren', Array.from({ length: 6 }, (_, i) => (i < D.turretSlots(s.lv) ? slot(s.layout.t[i] && s.layout.t[i].id) : lock(1 + 2 * i)))) +
       grp('Begleiter', [0, 1, 2].map((i) => petSlot(s.pets[i])));
     if (gcat === 'pets') { const own = D.ownedPets(); $('gList').innerHTML = own.length ? own.map((p) => petRow(p, s)).join('') : '<div class="gi" style="padding:8px">Du hast noch keine Haustiere. Im Raum unter „Haustiere“ kannst du welche kaufen; sie kämpfen dann an deiner Seite (bis zu drei).</div>'; }
+    else if (gcat === 'foes') $('gList').innerHTML = foeHtml(s);
     else $('gList').innerHTML = (gcat === 'turrets' ? '<div class="ghint">Plätze: ' + s.layout.t.length + ' von ' + D.turretSlots(s.lv) + ' (mehr mit dem Held-Level). Verschieben und Aufstellen von Hand: Hammer-Knopf im Kampf oder „Bauen“ im Hauptmenü.</div>' : '') + idsOf(gcat).map((id) => row(id, s)).join('');
     H.drawHero(performance.now() / 1000);   // im Kampf laeuft die Menue-Schleife nicht: Held einmal zeichnen
   };
@@ -10489,6 +10592,12 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   ART.hammer = ['............', '..kkkkkkk...', '.kSsssssSk..', '.kSsssssSk..', '..kkkbkkk...', '.....kbk....', '.....kbk....', '.....kbk....', '.....kbk....', '.....kBk....', '.....kBk....', '......k.....'];
   D.icon = function (name) {
     if (iconCache[name]) return iconCache[name];
+    if (name.indexOf('mon:') === 0 && D.monSprite) {   // Gegner: Symbol aus dem Bild des Gegners (28 x 28)
+      const sp = D.monSprite(name.slice(4), 0), cv4 = document.createElement('canvas'); cv4.width = cv4.height = 28; const x4 = cv4.getContext('2d');
+      const k = Math.min(26 / sp.w, 26 / sp.h); x4.imageSmoothingEnabled = true; x4.imageSmoothingQuality = 'high';
+      x4.drawImage(sp.cv, 0, 0, sp.w, sp.h, Math.round((28 - sp.w * k) / 2), Math.round(27 - sp.h * k), Math.max(1, Math.round(sp.w * k)), Math.max(1, Math.round(sp.h * k)));
+      return (iconCache[name] = cv4.toDataURL());
+    }
     if (D.TURRET && D.TURRET[name] && D.turretSprite) {   // Wehren: Symbol aus dem Bild der Wehr (24 x 24, passend eingepasst)
       const sp = D.turretSprite(name, 0), cv3 = document.createElement('canvas'); cv3.width = cv3.height = 24; const x3 = cv3.getContext('2d');
       const k = Math.min(22 / sp.w, 22 / sp.h); x3.imageSmoothingEnabled = true; x3.imageSmoothingQuality = 'high';
