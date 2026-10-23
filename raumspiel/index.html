@@ -6910,6 +6910,9 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   /* Ausruestung (Steinzeit). slot: main (Nahkampf), second (Fern/Wurf), armor (Ruestung), head (Kopf). price = Stunden aus dem gemeinsamen Topf (0 = von Anfang an da),
    * up = Material je Verbesserung (Grundmenge, waechst mit 1,35^Stufe), Wirkung +8 % je Stufe (D.power). kind steuert Verhalten (def-core.js) und Optik (def-hero.js). */
   D.MAXUP = 10;
+  // Ausruestung gehoert zu einem Zeitalter (ohne Angabe: Steinzeit) und steht erst dort bereit; Katapult, Kanone und Laser warten auf spaetere Zeitalter
+  D.ERA = 'stone';
+  D.eraOk = (it) => !it || !it.era || it.era === D.ERA;
   D.power = (lv) => 1 + 0.08 * lv;
   D.SLOT_LV = [1, 3, 6];   // ab welchem Held-Level der 1., 2. und 3. Faehigkeiten-Platz offen ist
   D.GEAR = {
@@ -6960,9 +6963,12 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   D.TURRET = {
     thrower: { name: 'Steinewerfer', price: 1.5, hp: 55, hw: 9, range: [20, 175], rate: 1.0, dmg: 9, speed: 200, kind: 'sling', air: true, mx: 10, my: 41, anim: 0.25, up: { fell: 3, stein: 2 }, icon: 'thrower', info: 'Schleudert Steine auf Gegner in der Nähe. Billig und schnell.' },
     archer: { name: 'Bogenturm', price: 2.5, hp: 65, hw: 10, range: [20, 250], rate: 0.85, dmg: 10, speed: 360, kind: 'bow', air: true, mx: 15, my: 40, anim: 0.2, up: { fell: 3, knochen: 2 }, icon: 'archer', info: 'Schießt Pfeile weit, trifft auch Flieger.' },
-    catapult: { name: 'Katapult', price: 4, hp: 85, hw: 14, range: [70, 300], rate: 3.2, dmg: 30, radius: 26, speed: 190, kind: 'boulder', air: false, mx: 13, my: 37, anim: 0.6, up: { stein: 4, fell: 3 }, icon: 'catapult', info: 'Wirft schwere Felsen im Bogen: Flächenschaden, aber langsam.' },
-    cannon: { name: 'Kanone', price: 6, hp: 105, hw: 14, range: [40, 290], rate: 2.6, dmg: 38, radius: 14, speed: 380, kind: 'ball', air: false, mx: 18, my: 17, anim: 0.22, up: { stein: 4, knochen: 3 }, icon: 'cannon', info: 'Donnert Kugeln auf harte Gegner: viel Schaden, Splitter in der Nähe.' },
-    laser: { name: 'Laser', price: 9, hp: 70, hw: 9, range: [20, 330], rate: 1.6, dmg: 22, kind: 'beam', beam: 0.5, pierce: 3, air: true, mx: 12, my: 39, anim: 0.5, up: { stein: 5, knochen: 4 }, icon: 'laser', info: 'Strahl durchschlägt bis zu drei Gegner, trifft auch Flieger, große Reichweite.' }
+    slingtree: { name: 'Schleuderbaum', price: 4, hp: 85, hw: 12, range: [70, 300], rate: 3.2, dmg: 30, radius: 26, speed: 190, kind: 'boulder', air: false, mx: 12, my: 38, anim: 0.6, up: { stein: 4, fell: 3 }, icon: 'slingtree', info: 'Ein gebogener Baum schleudert Felsbrocken im Bogen: Flächenschaden, aber langsam.' },
+    spearthrower: { name: 'Speerwerfer', price: 6, hp: 105, hw: 13, range: [40, 290], rate: 2.4, dmg: 42, speed: 380, kind: 'spear', air: false, mx: 18, my: 28, anim: 0.25, up: { stein: 4, knochen: 3 }, icon: 'spearthrower', info: 'Schleudert schwere Speere flach auf einen Gegner: viel Schaden, durchbohrt Panzer.' },
+    firebowl: { name: 'Feuerschale', price: 7, hp: 70, hw: 9, range: [10, 130], rate: 1.5, dmg: 26, kind: 'beam', fire: true, beam: 0.5, pierce: 4, air: true, mx: 11, my: 40, anim: 0.5, up: { stein: 5, knochen: 4 }, icon: 'firebowl', info: 'Eine Schale mit Glut speit Flammen auf nahe Gegner: trifft bis zu vier, auch tiefe Flieger.' },
+    catapult: { era: 'antike', name: 'Katapult', price: 4, hp: 85, hw: 14, range: [70, 300], rate: 3.2, dmg: 30, radius: 26, speed: 190, kind: 'boulder', air: false, mx: 13, my: 37, anim: 0.6, up: { stein: 4, fell: 3 }, icon: 'catapult', info: 'Wirft schwere Felsen im Bogen: Flächenschaden, aber langsam.' },
+    cannon: { era: 'renaissance', name: 'Kanone', price: 6, hp: 105, hw: 14, range: [40, 290], rate: 2.6, dmg: 38, radius: 14, speed: 380, kind: 'ball', air: false, mx: 18, my: 17, anim: 0.22, up: { stein: 4, knochen: 3 }, icon: 'cannon', info: 'Donnert Kugeln auf harte Gegner: viel Schaden, Splitter in der Nähe.' },
+    laser: { era: 'zukunft', name: 'Laser', price: 9, hp: 70, hw: 9, range: [20, 330], rate: 1.6, dmg: 22, kind: 'beam', beam: 0.5, pierce: 3, air: true, mx: 12, my: 39, anim: 0.5, up: { stein: 5, knochen: 4 }, icon: 'laser', info: 'Strahl durchschlägt bis zu drei Gegner, trifft auch Flieger, große Reichweite.' }
   };
   D.turretSlots = (lv) => Math.min(6, 1 + Math.floor((Math.max(1, lv | 0) - 1) / 2));
   D.turretHp = (id, lv) => Math.round(D.TURRET[id].hp * (1 + 0.1 * (lv | 0)));
@@ -7092,7 +7098,16 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     o.diff = ['easy', 'normal', 'hard'].includes(d.diff) ? d.diff : 'normal';
     o.paid = Math.max(0, Math.round(num(d.paid, 0) * 100) / 100);
     // Besitz (Stufe 0 bis 10) und Ausruestung
-    if (d.own && typeof d.own === 'object') for (const id of Object.keys(d.own)) if (D.GEAR[id] || D.ABIL[id] || D.BUILD[id] || D.TRAP[id] || D.TURRET[id]) o.own[id] = Math.max(0, Math.min(D.MAXUP, Math.round(num(d.own[id], 0))));
+    const gone = [];
+    if (d.own && typeof d.own === 'object') for (const id of Object.keys(d.own)) if (D.GEAR[id] || D.ABIL[id] || D.BUILD[id] || D.TRAP[id] || D.TURRET[id]) {
+      const lv = Math.max(0, Math.min(D.MAXUP, Math.round(num(d.own[id], 0))));
+      if (D.eraOk(D.itemInfo(id))) o.own[id] = lv; else gone.push([id, lv]);   // gehoert in ein spaeteres Zeitalter
+    }
+    if (gone.length) {   // gekaufte Stunden und Verbesserungsmaterial zurueckgeben, einmalige Meldung beim naechsten Oeffnen
+      let hrs = 0; gone.forEach((q) => { hrs += D.itemInfo(q[0]).price || 0; for (let l = 0; l < q[1]; l++) { const cst = D.upCost(q[0], l); for (const m of Object.keys(cst)) o.mats[m] = (o.mats[m] || 0) + cst[m]; } });
+      o.paid = Math.max(0, Math.round((o.paid - hrs) * 100) / 100);
+      o.notice = gone.map((q) => D.itemInfo(q[0]).name).join(', ') + ' gehören in spätere Zeitalter. Stunden und Material hast du zurück.';
+    }
     const e = d.eq && typeof d.eq === 'object' ? d.eq : {}, ok = (id, slot) => (id && o.own[id] != null && D.GEAR[id] && D.GEAR[id].slot === slot ? id : null);
     o.eq = { main: ok(e.main, 'main') || 'club', second: ok(e.second, 'second') || 'sling', armor: ok(e.armor, 'armor'), head: ok(e.head, 'head'), a: [null, null, null] };
     const seen = {}; [0, 1, 2].forEach((i) => { const id = Array.isArray(e.a) ? e.a[i] : null; if (id && D.ABIL[id] && o.own[id] != null && !seen[id]) { seen[id] = 1; o.eq.a[i] = id; } });
@@ -7490,8 +7505,46 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   /* ---------- Haus (Vorderansicht mit Giebel) ----------
    * Fassade bei x = W-1 (Kamera), 120 breit, 118 hoch: Holzwand, Fenster links, Tuer rechts, Ziegeldach, Schornstein.
    */
-  D.houseSprite = function (state) {
+  /* Steinzeit-Huette: Kuppel aus Staemmen mit Fellflicken, Tuer mit Knochenrahmen und Stosszaehnen, Schaedel darueber, Steinring am Fuss, gekreuzte Stangen oben.
+   * Das Haus steht halb ausserhalb des Bildes (Mitte am linken Rand): sichtbar ist die rechte Haelfte mit der Tuer. state 1 = Felle zerrissen, Gerippe sichtbar. */
+  function stoneHut(state) {
+    const W = 26, Dd = 124, Hh = 124, v = RS.V(W, Dd, Hh), YC = 62, RX = 22, RY = 58, RZ = 92, Z0 = 6, wd = (l) => (x, y, z) => c.oak(Math.max(0, Math.min(7, l + (hs(x, y, z) > 0.8 ? 1 : 0))));
+    const sf = (y, z) => { const e = 1 - Math.pow((y - YC) / RY, 2) - Math.pow((z - Z0) / RZ, 2); return e > 0 ? Math.round(2 + RX * Math.sqrt(e)) : 2; };
+    const inDoor = (y, z) => { const dy = (y - 96) / 11; if (Math.abs(dy) > 1 || z < 6) return false; return z <= 38 || dy * dy + Math.pow((z - 38) / 11, 2) <= 1; };
+    const inFrame = (y, z) => { const dy = (y - 96) / 13.4; if (Math.abs(dy) > 1 || z < 6) return false; return z <= 38 || dy * dy + Math.pow((z - 38) / 13.4, 2) <= 1; };
+    // Fellflicken als unregelmaessige Zellen (naechster Zellenmittelpunkt auf gestoertem Raster), Naehte dort, wo zwei Zellen aneinanderstossen
+    const cell = (y, z) => {
+      const cy0 = Math.floor(y / 19), cz0 = Math.floor(z / 17); let d1 = 1e9, d2 = 1e9, id = 0;
+      for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) { const gy = cy0 + a, gz = cz0 + b, py = (gy + 0.2 + 0.6 * hs(gy, gz, 21)) * 19, pz = (gz + 0.2 + 0.6 * hs(gy, gz, 22)) * 17, d = Math.hypot(y - py, z - pz); if (d < d1) { d2 = d1; d1 = d; id = hs(gy, gz, 23); } else if (d < d2) d2 = d; }
+      return { id, edge: d2 - d1 < 1.5 };
+    };
+    const skin = (x, y, z) => {
+      if (inDoor(y, z)) return c.ink(x > 17 ? 1 : 2);
+      if (inFrame(y, z)) return c.cream(hs(x, y, z) > 0.6 ? 4 : 5);
+      const q = cell(y, z);
+      if (state >= 1 && z > 12 && q.id > 0.8) return q.edge ? c.oak(2) : (hs(y >> 2, z >> 2, 5) > 0.7 ? c.oak(1) : c.ink(2));   // zerrissen: Gerippe und dunkles Inneres
+      if (q.edge) return c.walnut(2);
+      if (hs(x, y, z) > 0.95) return c.walnut(3);
+      return q.id > 0.7 ? c.sand(3) : q.id > 0.35 ? c.leather(4) : c.leather(3);
+    };
+    v.ell(2, YC, Z0, RX, RY, RZ, skin);
+    // Steinring am Fuss
+    for (let y = 4; y <= 120; y += 6) v.sph(sf(y, 3) + 1, y, 4, 4.4 + hs(y, 1, 2) * 1.8, (x, yy, z) => c.stone(2 + (hs(x, yy, z) > 0.6 ? 1 : 0) + (z > 5 ? 1 : 0)));
+    // zwei Stosszaehne um die Tuer
+    for (let k = 0; k <= 20; k++) { const t = k / 20, z = 6 + 44 * t; [[83 + 8 * t, 1], [109 - 8 * t, -1]].forEach((p) => v.sph(sf(p[0], z) + 2, p[0], z, 2.4 - 1.2 * t, c.cream(5 - (k % 5 === 0 ? 1 : 0)))); }
+    // Tierschaedel mit Hoernern ueber der Tuer
+    v.sph(sf(96, 58) + 2, 96, 58, 4.8, c.cream(5)); v.sph(sf(96, 58) + 5, 93.4, 59.5, 1.4, c.ink(1)); v.sph(sf(96, 58) + 5, 98.6, 59.5, 1.4, c.ink(1)); v.box(sf(96, 58) + 4, 95, 54, sf(96, 58) + 6, 97, 56.5, c.ink(2));
+    v.line(sf(96, 58) + 2, 92, 61, sf(96, 58) + 2, 85, 69, 1.1, c.cream(4)); v.line(sf(96, 58) + 2, 100, 61, sf(96, 58) + 2, 107, 69, 1.1, c.cream(4));
+    // gekreuzte Stangen ueber der Spitze
+    v.line(11, 30, 80, 9, 76, 122, 1.7, wd(3)); v.line(11, 94, 80, 9, 48, 122, 1.7, wd(2));
+    // Fellstreifen und Knochen an der Wand: rote Handabdruecke wie in Hoehlenmalereien
+    for (let i = 0; i < 5; i++) v.sph(sf(76 + (i % 2) * 2, 40 + i * 2.4) + 1, 76 + (i % 2) * 2 + (i === 4 ? 1 : 0), 40 + i * 2.4, 1.3, c.red(4));
+    v.sph(sf(77, 36) + 1, 77, 36, 2.1, c.red(4));
+    return RS.sideSprite(v, { ay: 62 });
+  }
+  D.houseSprite = function (state, era) {
     state = state | 0;
+    if (!era || era === 'stone') return D.cached('house|stone|' + state, () => stoneHut(state));
     return D.cached('house|' + state, () => {
       const W = 26, Dd = 124, Hh = 124, v = RS.V(W, Dd, Hh), FX = W - 1;
       const yc = 62, wall0 = 4, wall1 = 68, roofTop = 120, half0 = 62;
@@ -8124,7 +8177,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 </script>
 <script>
 /* src/def-turret.js */
-/* Raumspiel – Verteidigung: Wehren in Seitenansicht (Steinewerfer, Bogenturm, Katapult, Kanone, Laser), je zwei Bilder: 0 = bereit, 1 = Schuss
+/* Raumspiel – Verteidigung: Wehren in Seitenansicht (Steinzeit: Steinewerfer, Bogenturm, Schleuderbaum, Speerwerfer, Feuerschale; spaeter: Katapult, Kanone, Laser), je zwei Bilder: 0 = bereit, 1 = Schuss
  * Voxelmodelle wie Zaun und Haus (RS.V -> RS.sideSprite): x = Tiefe, y = nach rechts (Schussrichtung), z = hoch; Anker = Mitte (y) und Boden.
  */
 (function (g) {
@@ -8166,6 +8219,36 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       if (!f) { v.line(7, 26, 49, 7, 19, 40, 0.5, c.cream(5)); v.line(7, 19, 40, 7, 26, 31, 0.5, c.cream(5)); v.line(7, 18, 40, 7, 33, 40, 0.6, c.birch(4)); v.sph(7, 33.5, 40, 1.3, c.stone(5)); v.sph(7, 18, 40, 1.0, c.cream(5)); }
       else v.line(7, 26, 49, 7, 26, 31, 0.5, c.cream(5));
     },
+    // gebogener Baum: bereit nach hinten gespannt (Seil zum Pflock, Felsbrocken im Lederbeutel), Schuss: Baum schnellt nach vorn
+    slingtree(v, f) {
+      v.ell(8, 22, 2, 7, 15, 3, rock(2)); v.ell(8, 30, 1.5, 5, 7, 2, rock(3)); v.ell(8, 12, 1.5, 5, 6, 2, rock(3));
+      const tip = f ? [34, 46] : [9, 42], mid = f ? [28, 30] : [15, 31];
+      v.line(8, 22, 3, 8, 22, 14, 3.2, wood(3)); v.line(8, 22, 14, 8, mid[0], mid[1], 2.6, wood(3)); v.line(8, mid[0], mid[1], 8, tip[0], tip[1], 1.8, wood(4));
+      [[22, 9], [22, 18], [mid[0], mid[1] - 2]].forEach((p) => v.box(7, p[0] - 4.2, p[1], 9, p[0] + 4.2, p[1] + 1.4, c.leather(3)));   // Seilwicklungen
+      for (let i = 0; i < 5; i++) v.sph(8 + (i % 2 ? 2 : -2), tip[0] + (i - 2) * 1.6, tip[1] + 1 + (i % 3), 2.2, (x, y, z) => c.lime(3 + (hs(x, y, z) > 0.6 ? 1 : 0)));   // Laub am Ende
+      v.line(8, tip[0], tip[1] - 1, 8, f ? 38 : 12, f ? 24 : 4, 0.55, c.cream(5));                                 // Seil
+      v.cyl(8, 12, 1.2, 0, 8, wood(2));                                                                              // Pflock
+      v.ell(8, tip[0] + 1, tip[1] - 4, 2.8, 2.6, 1.9, c.leather(3));
+      if (!f) v.sph(8, tip[0] + 1.5, tip[1] - 2.6, 3.3, rock(4));
+    },
+    // Rahmen aus Staemmen mit langer Wurfrinne, grosser Speer mit Steinspitze, Sehnenbuendel; Schuss: Speer fort, Rinne schnellt nach oben
+    spearthrower(v, f) {
+      [4, 11].forEach((x) => { v.line(x, 9, 2, x, 19, 19, 1.4, wood(2)); v.line(x, 37, 2, x, 27, 19, 1.4, wood(2)); });
+      v.box(3, 17, 17, 12, 29, 21, wood(3)); v.box(2, 6, 3, 13, 40, 5, wood(2));
+      const up = f ? 5 : 0;
+      v.line(7.5, 4, 23 + up * 0.2, 7.5, 40, 26 + up, 1.5, wood(4)); v.line(5.5, 4, 23 + up * 0.2, 5.5, 40, 26 + up, 0.8, wood(2)); v.line(9.5, 4, 23 + up * 0.2, 9.5, 40, 26 + up, 0.8, wood(2));
+      v.sph(7.5, 24, 22, 3.2, c.leather(3)); v.sph(7.5, 24, 22, 2.2, c.leather(4)); v.sph(7.5, 7, 21, 3.4, wood(2)); v.line(7.5, 7, 21, 7.5, 5, 25, 0.6, c.cream(5));
+      if (!f) { v.line(7.5, 5, 28, 7.5, 38, 28, 1.0, wood(4)); v.line(7.5, 36, 28, 7.5, 43, 28, 0.9, c.stone(5)); v.sph(7.5, 43, 28, 1.7, c.stone(6)); v.box(7, 4, 27, 8, 8, 31, c.cream(5)); v.box(7, 4, 25, 8, 8, 27, c.cream(4)); }
+    },
+    // Dreibein aus Staemmen, Steinschale mit Glut und Flammen, Blasrohr nach vorn; Schuss: Flammenzunge am Rohr
+    firebowl(v, f) {
+      v.ell(7, 14, 2, 6, 11, 2.6, rock(2));
+      v.line(7, 5, 3, 7, 12, 30, 1.3, wood(3)); v.line(7, 23, 3, 7, 16, 30, 1.3, wood(3)); v.line(2, 14, 3, 7, 14, 30, 1.3, wood(2)); v.line(12, 14, 3, 7, 14, 30, 1.3, wood(2));
+      v.ell(7, 14, 33, 7.5, 7.8, 4.2, rock(3)); v.ell(7, 14, 35.5, 6, 6.2, 1.8, c.red(f ? 5 : 4));
+      [[-2.6, 0, 7], [2.4, 0.4, 9], [0, -1.6, 12], [0.6, 2.2, 5]].forEach((q, i) => { const hgt = (q[2] + (f ? 6 : 0)) * (i === 2 ? 1.2 : 1); v.cyl(7 + q[1], 14 + q[0], 2.0 - (i === 2 ? 0.2 : 0.5), 35, 35 + hgt, c.red(4)); v.cyl(7 + q[1], 14 + q[0], 1.3, 35, 35 + hgt * 0.8, c.orange(4)); v.sph(7 + q[1], 14 + q[0], 35 + hgt * 0.62, 1.0, c.yellow(5)); });
+      v.line(7, 19, 37, 7, 27, 41, 1.5, wood(2)); v.sph(7, 27, 41, 1.8, c.leather(3));
+      if (f) { v.line(7, 27, 41, 7, 29, 42, 2.2, c.orange(6)); v.sph(7, 29.5, 42, 2.4, c.yellow(6)); }
+    },
     // Rahmen mit Raedern, Wurfarm mit Loeffel: bereit: Arm zurueckgezogen mit Felsbrocken, Schuss: Arm vorn oben
     catapult(v, f) {
       [3, 13].forEach((x) => v.box(x - 1, 5, 5, x + 1, 41, 8, wood(3)));
@@ -8201,7 +8284,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       v.line(7, 14, 34, 7, 12, 47, 0.5, c.steel(4)); v.sph(7, 12, 47.5, 1.1, f ? c.red(6) : c.red(4));
     }
   };
-  const DIM = { thrower: [12, 30, 52], archer: [14, 34, 58], catapult: [16, 44, 42], cannon: [16, 46, 30], laser: [14, 28, 56] };
+  const DIM = { thrower: [12, 30, 52], archer: [14, 34, 58], slingtree: [16, 44, 56], spearthrower: [14, 46, 38], firebowl: [14, 30, 58], catapult: [16, 44, 42], cannon: [16, 46, 30], laser: [14, 28, 56] };
   // frame 0 = bereit, 1 = Schuss
   D.turretSprite = function (id, frame) {
     frame = frame ? 1 : 0;
@@ -9837,17 +9920,18 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   }
   function turretImpact(S, p, m) {
     if (p.kind === 'boulder') { blast(S, p.x, p.y, p.radius, p.dmgT, p.kind); return; }
-    damageMon(S, m, p.dmgT * (0.9 + S.rng() * 0.2), { kb: (p.kind === 'ball' ? 4 : 2) * Math.sign(p.vx || 1), stone: p.kind === 'sling', stun: 0.08, proj: p.kind !== 'ball' });
+    damageMon(S, m, p.dmgT * (0.9 + S.rng() * 0.2), { kb: (p.kind === 'ball' || p.kind === 'spear' ? 4 : 2) * Math.sign(p.vx || 1), stone: p.kind === 'sling', stun: 0.08, proj: p.kind !== 'ball' && p.kind !== 'spear' });
     if (p.kind === 'ball') blast(S, p.x, p.y, p.radius, p.dmgT * 0.35, p.kind, m);
   }
   function fireTurret(S, t, K, m) {
     const dir = m.x >= t.x ? 1 : -1, gy = D.GY + 4, sx = t.x + dir * K.mx, sy = gy - K.my, dmg = K.dmg * t.p;
     t.face = dir; t.fireT = K.anim;
-    if (K.kind === 'beam') { S.beams.push({ ti: t.i, t: 0, life: K.beam, tick: 0, dir, sx, sy, ex: m.x, ey: D.GY + m.dep - (m.alt || 0) - m.T.h * 0.5, dmg: dmg / Math.max(1, Math.round(K.beam / 0.1)) }); sfx('laser'); return; }
-    const g = K.kind === 'bow' ? 40 : K.kind === 'ball' ? 60 : GRAV, v = aimShot(sx, sy, m, K.speed, g);
+    if (K.kind === 'beam') { S.beams.push({ ti: t.i, t: 0, life: K.beam, tick: 0, dir, sx, sy, ex: m.x, ey: D.GY + m.dep - (m.alt || 0) - m.T.h * 0.5, dmg: dmg / Math.max(1, Math.round(K.beam / 0.1)), fire: !!K.fire }); sfx(K.fire ? 'flame' : 'laser'); return; }
+    const g = K.kind === 'bow' ? 40 : K.kind === 'spear' ? 45 : K.kind === 'ball' ? 60 : GRAV, v = aimShot(sx, sy, m, K.speed, g);
     S.proj.push({ x: sx, y: sy, vx: v.vx, vy: v.vy, t: 0, g, kind: K.kind, turret: true, dmgT: dmg, radius: K.radius, w: null });
     if (K.kind === 'ball') { burst(S, sx + dir * 3, sy, 8, ['#ffffff', '#ffd24a', '#8a8a98', '#6a6a78'], { speed: 0.9, vx: dir * 40, up: 10 }); S.shake = Math.max(S.shake, 0.8); sfx('cannon'); }
     else if (K.kind === 'boulder') sfx('catapult');
+    else if (K.kind === 'spear') sfx('spear');
     else sfx('sling');
   }
   function updateTurrets(S, dt) {
@@ -9865,7 +9949,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   // Laser: kurzer Strahl, der alle 0,1 s trifft: das naechste Ziel und bis zu zwei weitere dahinter (bis 70 Pixel)
   function updateBeams(S, dt) {
     for (let i = S.beams.length - 1; i >= 0; i--) {
-      const b = S.beams[i], t = S.turrets[b.ti], K = D.TURRET.laser;
+      const b = S.beams[i], t = S.turrets[b.ti], K = t ? D.TURRET[t.id] : D.TURRET.laser;
       b.t += dt; b.tick -= dt;
       if (!t || t.dead || b.t > b.life) { S.beams.splice(i, 1); continue; }
       if (b.tick > 0) continue;
@@ -9877,7 +9961,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       let far = m0;
       for (const m of hits) { damageMon(S, m, b.dmg * (0.9 + S.rng() * 0.2), { kb: 0, stun: 0 }); if (Math.abs(m.x - t.x) > Math.abs(far.x - t.x)) far = m; }
       b.ex = far.x; b.ey = D.GY + far.dep - (far.alt || 0) - far.T.h * 0.5;
-      burst(S, b.ex, b.ey, 2, ['#a8f0ff', '#ffffff'], { speed: 0.5 });
+      burst(S, b.ex, b.ey, 2, b.fire ? ['#ffb040', '#ff6a1a', '#ffe070'] : ['#a8f0ff', '#ffffff'], { speed: 0.5 });
     }
   }
   // Begleiter: folgen dem Helden, greifen Gegner in der Naehe an (Hund, Katze, Hase), werfen aus der Ferne (Ente) oder halten beim Zaun Wache (Schildkroete)
@@ -10089,7 +10173,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     ctx.save(); ctx.translate(sx, sy);
 
     // Haus
-    const hs = D.houseSprite(S.house.state), hx = (S.house.x0 + S.house.x1) / 2 + (S.house.flash > 0 ? (Math.random() < 0.5 ? -1 : 1) : 0);
+    const hs = D.houseSprite(S.house.state, S.stage.era), hx = (S.house.x0 + S.house.x1) / 2 + (S.house.flash > 0 ? (Math.random() < 0.5 ? -1 : 1) : 0);
     drawSpr(ctx, hs, hx, GY + 3, false, S.house.flash > 0 ? ['hit', 'rgba(255,90,60,0.4)'] : null);
     if (world.mid) world.mid(ctx, S, tm);
     // Telegraph des Steinhagels (Schatten am Boden)
@@ -10206,6 +10290,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     // Geschosse
     for (const p of S.proj) {
       if (p.kind === 'bow') { const a = Math.atan2(p.vy, p.vx), ca = Math.cos(a), sa = Math.sin(a); for (let i = 0; i < 7; i++) { ctx.fillStyle = i === 6 ? '#e8e0d0' : i < 2 ? '#c8a878' : '#8a5a30'; ctx.fillRect(Math.round(p.x - ca * (6 - i)), Math.round(p.y - sa * (6 - i)), 1, 1); } }
+      else if (p.kind === 'spear') { const a = Math.atan2(p.vy, p.vx), ca = Math.cos(a), sa = Math.sin(a); for (let i = 0; i < 14; i++) { ctx.fillStyle = i >= 12 ? '#d4d8e4' : i === 11 ? '#9aa0b4' : i < 2 ? '#efe6d0' : '#8a5a30'; const q = i > 9 ? 2 : 1; ctx.fillRect(Math.round(p.x - ca * (12 - i)), Math.round(p.y - sa * (12 - i)), q, q); } }
       else if (p.kind === 'pot') { const x0 = Math.round(p.x), y0 = Math.round(p.y), fl = Math.floor(tm * 18) % 2; ctx.fillStyle = '#6b4222'; ctx.fillRect(x0 - 2, y0 - 1, 5, 4); ctx.fillStyle = '#a8683a'; ctx.fillRect(x0 - 2, y0 - 1, 4, 3); ctx.fillStyle = '#c98a5a'; ctx.fillRect(x0 - 1, y0 - 1, 1, 1); ctx.fillStyle = '#ff9a3a'; ctx.fillRect(x0 - 1, y0 - 4 - fl, 3, 3); ctx.fillStyle = '#ffe070'; ctx.fillRect(x0, y0 - 3 - fl, 1, 2); }
       else if (p.kind === 'boulder') { const st = D.stoneSprite(4); ctx.drawImage(st.cv, Math.round(p.x - st.ox), Math.round(p.y - st.oy + st.h / 2)); }
       else if (p.kind === 'ball') { const x0 = Math.round(p.x), y0 = Math.round(p.y); ctx.globalAlpha = 0.28; ctx.fillStyle = '#c8c8d8'; ctx.fillRect(x0 - Math.round(p.vx * 0.03), y0 - 1, Math.round(Math.abs(p.vx) * 0.03), 2); ctx.globalAlpha = 1; ctx.fillStyle = '#16161e'; ctx.fillRect(x0 - 2, y0 - 1, 5, 3); ctx.fillRect(x0 - 1, y0 - 2, 3, 5); ctx.fillStyle = '#8a8a9a'; ctx.fillRect(x0 - 1, y0 - 1, 1, 1); }
@@ -10214,10 +10299,11 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     // Laserstrahlen
     for (const b of S.beams) {
       const k = Math.min(1, b.t / b.life), a = 1 - k * 0.55, fz = Math.floor(tm * 30) % 2, x0 = Math.round(b.sx), y0 = Math.round(b.sy), x1 = Math.round(b.ex), y1 = Math.round(b.ey);
-      band(ctx, x0, y0, x1, y1, 7 + fz, 'rgba(90,220,255,' + (0.22 * a).toFixed(2) + ')');
-      band(ctx, x0, y0, x1, y1, 4, 'rgba(160,245,255,' + (0.6 * a).toFixed(2) + ')');
-      band(ctx, x0, y0, x1, y1, 2, 'rgba(255,255,255,' + a.toFixed(2) + ')');
-      ctx.fillStyle = 'rgba(200,250,255,' + a.toFixed(2) + ')'; ctx.fillRect(x1 - 2, y1 - 2, 5, 5); ctx.fillStyle = 'rgba(255,255,255,' + a.toFixed(2) + ')'; ctx.fillRect(x1 - 1, y1 - 1, 3, 3);
+      const BC = b.fire ? ['255,100,30', '255,180,60', '255,245,170', '255,190,80'] : ['90,220,255', '160,245,255', '255,255,255', '200,250,255'];
+      band(ctx, x0, y0, x1, y1, 7 + fz, 'rgba(' + BC[0] + ',' + (0.22 * a).toFixed(2) + ')');
+      band(ctx, x0, y0, x1, y1, 4, 'rgba(' + BC[1] + ',' + (0.6 * a).toFixed(2) + ')');
+      band(ctx, x0, y0, x1, y1, 2, 'rgba(' + BC[2] + ',' + a.toFixed(2) + ')');
+      ctx.fillStyle = 'rgba(' + BC[3] + ',' + a.toFixed(2) + ')'; ctx.fillRect(x1 - 2, y1 - 2, 5, 5); ctx.fillStyle = 'rgba(255,255,255,' + a.toFixed(2) + ')'; ctx.fillRect(x1 - 1, y1 - 1, 3, 3);
     }
     // Saeure der Spuckechsen
     for (const p of S.eproj) {
@@ -10294,12 +10380,14 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     cannon() { n(0.2, 0.3, 360, 0.6); t('sine', 115, 38, 0.26, 0.42); t('square', 90, 50, 0.1, 0.16); },
     laser() { t('sawtooth', 1500, 380, 0.24, 0.11); t('square', 700, 1600, 0.2, 0.05, 0.02); },
     catapult() { n(0.14, 0.18, 700, 1); t('triangle', 260, 120, 0.16, 0.2); t('sine', 90, 55, 0.2, 0.2, 0.05); },
+    spear() { n(0.1, 0.14, 2200, 1); t('triangle', 520, 200, 0.12, 0.14); },
+    flame() { n(0.34, 0.2, 1400, 0.5); t('sawtooth', 240, 110, 0.08, 0.32); },
     build() { t('square', 520, 520, 0.06, 0.1); t('square', 700, 700, 0.07, 0.1, 0.07); },
     levelUp() { [392, 523, 659, 784, 1047].forEach((f, i) => t('square', f, f, 0.14, 0.13, i * 0.08)); }
   };
   Object.assign(A.SFX, E);
   // Wiederholte Treffer nicht zu einem Knattern verschmelzen lassen
-  const MIN = { hit: 0.045, crit: 0.045, stone: 0.045, swing: 0.1, fenceHit: 0.06, die: 0.05, rock: 0.04, houseHit: 0.1, hurt: 0.08, splat: 0.06, spit: 0.08, laser: 0.12, cannon: 0.08, catapult: 0.1 }, last = {};
+  const MIN = { hit: 0.045, crit: 0.045, stone: 0.045, swing: 0.1, fenceHit: 0.06, die: 0.05, rock: 0.04, houseHit: 0.1, hurt: 0.08, splat: 0.06, spit: 0.08, laser: 0.12, cannon: 0.08, catapult: 0.1, spear: 0.1, flame: 0.12 }, last = {};
   D.sfx = function (name) {
     const now = performance.now() / 1000, gap = MIN[name] || 0;
     if (gap && last[name] && now - last[name] < gap) return;
@@ -10773,6 +10861,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     let i = 0; for (let k = 0; k < D.STAGES.length; k++) { if (D.stageOpen(s, k)) { i = k; if (D.stageStars(s, D.STAGES[k].id) < 1) break; } }
     if (H.fresh || H.sel > i || !D.stageOpen(s, H.sel)) H.sel = i;
     H.fresh = false;
+    if (s.notice) { const nt = s.notice; s.notice = null; D.commit(); try { if (RS.ui && RS.ui.toast) RS.ui.toast(nt); } catch (er) { /* Anzeige nicht bereit */ } }
     $('dhub').classList.add('show'); H.busy = false; H.fitMap(); H.select(H.sel); H.scrollToSel(false); H.warmHero(); H.drawHero(0);
   };
   H.hide = function () { const e = $('dhub'); if (e) e.classList.remove('show'); clearTimeout(H.timer); H.busy = false; };
@@ -10792,7 +10881,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   const G = (H.g = {});
   const CATS = [['main', 'Hauptwaffe'], ['second', 'Zweitwaffe'], ['armor', 'Rüstung'], ['head', 'Kopf'], ['abil', 'Fähigkeiten'], ['pets', 'Begleiter'], ['traps', 'Fallen'], ['turrets', 'Wehren'], ['build', 'Haus & Zaun'], ['foes', 'Gegner']];
   let gcat = 'main', gconf = null, gtimer = 0, mtimer = 0;
-  const idsOf = (cat) => (cat === 'turrets' ? Object.keys(D.TURRET) : cat === 'traps' ? Object.keys(D.TRAP) : cat === 'build' ? Object.keys(D.BUILD) : cat === 'abil' ? Object.keys(D.ABIL) : Object.keys(D.GEAR).filter((id) => D.GEAR[id].slot === cat));
+  const idsOf = (cat) => (cat === 'turrets' ? Object.keys(D.TURRET) : cat === 'traps' ? Object.keys(D.TRAP) : cat === 'build' ? Object.keys(D.BUILD) : cat === 'abil' ? Object.keys(D.ABIL) : Object.keys(D.GEAR).filter((id) => D.GEAR[id].slot === cat)).filter((id) => D.eraOk(D.itemInfo(id)));
   const iconOf = (id) => (D.itemInfo(id).icon || id);
   const eqd = (id, s) => (D.TURRET[id] ? s.layout.t.some((q) => q.id === id) : D.GEAR[id] ? s.eq[D.GEAR[id].slot] === id : D.TRAP[id] ? s.eq.t.includes(id) : s.eq.a.includes(id));
   function statLine(id, lv) {
@@ -10930,7 +11019,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   const PAL = { k: '#150f24', w: '#f4ead7', y: '#ffd84a', Y: '#c98a1c', o: '#ff9a3a', r: '#e8493a', R: '#a02a32', b: '#a8683a', B: '#6b4222', t: '#e8c890', T: '#b89058', s: '#c5cbe0', S: '#7a82a0', g: '#7be08c', G: '#2f8a4f', n: '#7ec8ff', N: '#3f6fd6', p: '#a99bc7', d: '#3a2d5c' };
   const ART = {
     heart: ['............', '..kkk..kkk..', '.krrrkkrrrk.', 'krrwrrrrrrRk', 'krwrrrrrrrRk', 'krrrrrrrrrRk', '.krrrrrrrRk.', '..krrrrrRk..', '...krrrRk...', '....krRk....', '.....kk.....', '............'],
-    house: ['............', '.....kk.....', '....kRRk....', '...kRrrRk...', '..kRrrrrRk..', '.kRrrrrrrRk.', 'kkkkkkkkkkkk', '.ktttttttTk.', '.ktyyttbbtk.', '.ktyyttbbtk.', '.kttttttbbtk', '.kkkkkkkkkk.'],
+    house: ['............', '.....kk.....', '....kTTk....', '...kTttTk...', '..kTttttTk..', '.kTttttttTk.', '.kTtkkkkttk.', '.kTtkBBkttk.', '.kTtkBBkttk.', 'kSSSSSSSSSSk', 'kssSssSsSssk', '.kkkkkkkkkk.'],
     fence: ['............', '.kk..kk..kk.', 'kbbkkbbkkbbk', 'kbtkkbtkkbtk', 'kbbkkbbkkbbk', 'kTTTTTTTTTTk', 'kbtkkbtkkbtk', 'kbbkkbbkkbbk', 'kbtkkbtkkbtk', 'kTTTTTTTTTTk', 'kbbkkbbkkbbk', 'kkkkkkkkkkkk'],
     rock: ['..y....y....', '...y..y.....', '....kkkk....', '...kwwssk...', '..kwsssssk..', '..kssssSSk..', '..ksssSSSk..', '..kSssSSSk..', '...kSSSSk...', '....kkkk....', '............', '............'],
     pause: ['............', '............', '.kkkk..kkkk.', '.kwwk..kwwk.', '.kwwk..kwwk.', '.kwwk..kwwk.', '.kwwk..kwwk.', '.kwwk..kwwk.', '.kwwk..kwwk.', '.kkkk..kkkk.', '............', '............'],
