@@ -7518,10 +7518,17 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
       for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) { const gy = cy0 + a, gz = cz0 + b, py = (gy + 0.2 + 0.6 * hs(gy, gz, 21)) * 19, pz = (gz + 0.2 + 0.6 * hs(gy, gz, 22)) * 17, d = Math.hypot(y - py, z - pz); if (d < d1) { d2 = d1; d1 = d; id = hs(gy, gz, 23); } else if (d < d2) d2 = d; }
       return { id, edge: d2 - d1 < 1.5 };
     };
+    // Hoehlenmalerei in Ochsenrot (Mammut, Handabdruck), Tuerklappe aus Leder
+    const MAM = ['....11111.........', '..1111111111......', '.111111111111.....', '11111111111111.11.', '11111111111111..11', '11111111111111..1.', '.11.11...11.11.1..', '.11.11...11.11....', '.11.11...11.11....'], HND = ['.1.1.1.', '.1.1.1.', '.11111.', '1111111', '.11111.', '.11111.', '..111..', '..111..'];
+    const paint = (y, z) => { let r = 55 - z, k = y - 66; if (r >= 0 && r < 9 && k >= 0 && k < 18 && MAM[r][k] === '1') return true; r = 36 - z; k = y - 112; return r >= 0 && r < 8 && k >= 0 && k < 7 && HND[r][k] === '1'; };
+    const flap = (y, z) => y >= 108 && y <= 119 && z >= 8 && z <= 40 - (y - 108) * 1.4;
     const skin = (x, y, z) => {
       if (inDoor(y, z)) return c.ink(x > 17 ? 1 : 2);
       if (inFrame(y, z)) return c.cream(hs(x, y, z) > 0.6 ? 4 : 5);
+      if (flap(y, z)) return z < 10 || y > 117 ? c.walnut(2) : c.leather(hs(x, y, z) > 0.7 ? 5 : 4);
       const q = cell(y, z);
+      if ((z === 30 || z === 31 || z === 66 || z === 67) && !(state >= 1 && q.id > 0.8)) return y % 17 < 3 && z === 30 ? c.sand(6) : c.sand(hs(y >> 1, z, 9) > 0.5 ? 5 : 4);   // Seilreifen mit Knoten
+      if (paint(y, z)) return c.red(hs(x, y, z) > 0.8 ? 3 : 4);
       if (state >= 1 && z > 12 && q.id > 0.8) return q.edge ? c.oak(2) : (hs(y >> 2, z >> 2, 5) > 0.7 ? c.oak(1) : c.ink(2));   // zerrissen: Gerippe und dunkles Inneres
       if (q.edge) return c.walnut(2);
       if (hs(x, y, z) > 0.95) return c.walnut(3);
@@ -7537,9 +7544,17 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     v.line(sf(96, 58) + 2, 92, 61, sf(96, 58) + 2, 85, 69, 1.1, c.cream(4)); v.line(sf(96, 58) + 2, 100, 61, sf(96, 58) + 2, 107, 69, 1.1, c.cream(4));
     // gekreuzte Stangen ueber der Spitze
     v.line(11, 30, 80, 9, 76, 122, 1.7, wd(3)); v.line(11, 94, 80, 9, 48, 122, 1.7, wd(2));
-    // Fellstreifen und Knochen an der Wand: rote Handabdruecke wie in Hoehlenmalereien
-    for (let i = 0; i < 5; i++) v.sph(sf(76 + (i % 2) * 2, 40 + i * 2.4) + 1, 76 + (i % 2) * 2 + (i === 4 ? 1 : 0), 40 + i * 2.4, 1.3, c.red(4));
-    v.sph(sf(77, 36) + 1, 77, 36, 2.1, c.red(4));
+    // Trockengestell links der Tuer mit aufgespanntem Fell
+    { const xs = (y, z) => sf(y, z) + 2;
+      v.line(xs(65, 6), 65, 6, xs(65, 44), 65, 44, 1.2, wd(2)); v.line(xs(79, 6), 79, 6, xs(79, 44), 79, 44, 1.2, wd(2)); v.line(xs(72, 44), 64, 44, xs(72, 44), 80, 44, 1.1, wd(3));
+      for (let y = 67; y <= 77; y++) for (let z = 16 + ((y * 7) % 4); z <= 42; z++) v.put(xs(72, 30), y, z, hs(y, z, 4) > 0.8 ? c.sand(5) : c.sand(z < 22 ? 3 : 4));
+      for (let y = 67; y <= 77; y += 2) v.line(xs(72, 30), y, 16, xs(72, 30), y, 12 + ((y * 5) % 4), 0.4, c.sand(3)); }
+    // Zahnkette um den Schaedel
+    for (let k = 0; k <= 10; k++) { const t = k / 10, y = 84 + 24 * t, z = 66 - 6 * Math.sin(Math.PI * t); v.sph(sf(y, z) + 2, y, z, k % 2 ? 1.5 : 1.0, c.cream(5)); }
+    // Knochen an den Stangenenden
+    v.sph(9, 76, 122, 1.8, c.cream(5)); v.sph(9, 48, 122, 1.8, c.cream(4)); v.line(9, 76, 122, 9, 80, 124, 0.9, c.cream(5));
+    // Schaden: Pfeile stecken in der Wand
+    if (state >= 1) [[72, 26], [100, 72], [88, 78], [112, 44]].forEach((p) => { const x0 = sf(p[0], p[1]) + 1; v.line(x0, p[0], p[1], x0 + 9, p[0] + 5, p[1] + 4, 0.5, wd(3)); v.sph(x0 + 9, p[0] + 5, p[1] + 4, 0.9, c.cream(5)); });
     return RS.sideSprite(v, { ay: 62 });
   }
   D.houseSprite = function (state, era) {
@@ -7594,8 +7609,35 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
   /* ---------- Zaun / Palisade (Zustand 0 heil .. 3 zerstoert) ----------
    * Vier angespitzte Staemme mit Luecken, Seilbaendern und Stein-Fuss. Zerbrochene Staemme sind kuerzer mit schiefer Bruchkante.
    */
-  D.fenceSprite = function (state) {
+  /* Steinzeit-Palisade: Staemme mit Rindenrillen und Astloechern, Seilreifen mit Wickelmuster, Schaedel und Fellstreifen als Trophaeen, Felsen und Knochen am Fuss. */
+  function stoneFence(state) {
+    const v = RS.V(10, 26, 56), HT = [[48, 54, 50, 52], [38, 54, 26, 46], [20, 36, 12, 42], [5, 7, 4, 8]][state];
+    for (let i = 0; i < 4; i++) {
+      const y0 = i * 6 + 1, h = HT[i];
+      for (let z = 0; z < h; z++) {
+        const taper = state < 3 && z > h - 8 ? Math.floor((z - (h - 8)) / 2.6) : 0, ya = y0 + taper, yb = y0 + 5 - taper;
+        const jag = state > 0 && state < 3 && z > h - 3 ? ((z + i) & 1 ? 1 : -1) : 0;
+        for (let y = ya; y < yb; y++) for (let x = 2; x < 9; x++) {
+          const grain = hs(x, y, z >> 1) > 0.78 ? 4 : (hs(x, y, z) < 0.1 ? 2 : 3), groove = y - ya === 2 && z % 5 !== 0;
+          v.put(x, y + jag, z, c.oak(x > 6 || y === yb - 1 ? 2 : (y === ya ? 4 : (groove ? 2 : grain))));
+        }
+      }
+      if (h > 24) v.sph(8.6, y0 + 2.5, 18 + ((i * 7) % 11), 1.3, c.walnut(2));   // Astloch
+    }
+    const rope = (x, y, z) => (((y + z) % 4 < 2) ? c.cream(4) : c.leather(3));
+    if (state < 3) { v.box(0, 0, 12, 10, 26, 16, rope); if (state < 2) v.box(0, 0, 30, 10, 26, 34, rope); }
+    v.box(0, 0, 0, 10, 26, 3, (x, y, z) => c.stone(2 + (hs(x, y, z) > 0.6 ? 1 : 0) + (z > 1 ? 1 : 0)));
+    [[3, 3.4], [11, 4.2], [19, 3.4], [24, 3]].forEach((p) => v.sph(7, p[0], 2, p[1], (x, y, z) => c.stone(2 + (hs(x, y, z) > 0.7 ? 1 : 0) + (z > 3 ? 1 : 0))));
+    v.line(9, 4, 2.6, 9, 15, 2.6, 0.9, c.cream(5)); v.sph(9, 3.6, 2.6, 1.4, c.cream(5)); v.sph(9, 15.4, 2.6, 1.4, c.cream(5));   // Knochen
+    if (state < 2) {   // Trophaeen: Tierschaedel und Fellstreifen
+      v.sph(9.6, 3.5, 41, 2.8, c.cream(5)); v.sph(10.6, 2.4, 42, 0.9, c.ink(1)); v.sph(10.6, 4.9, 42, 0.9, c.ink(1)); v.box(9, 2.6, 37.5, 10.2, 4.4, 39.2, c.cream(4));
+      v.box(9, 13.5, 22, 10.5, 17, 29, (x, y, z) => c.sand(z < 24 ? 3 : 4)); v.box(9, 14, 20.5, 10.5, 15, 22, c.sand(3)); v.box(9, 16, 21, 10.5, 17, 22, c.sand(3));
+    }
+    return RS.sideSprite(v, { ay: 13 });
+  }
+  D.fenceSprite = function (state, era) {
     state = Math.max(0, Math.min(3, state | 0));
+    if (!era || era === 'stone') return D.cached('fence|stone|' + state, () => stoneFence(state));
     return D.cached('fence|' + state, () => {
       const v = RS.V(10, 26, 56), HT = [[48, 54, 50, 52], [38, 54, 26, 46], [20, 36, 12, 42], [5, 7, 4, 8]][state];
       for (let i = 0; i < 4; i++) {
@@ -10231,7 +10273,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
         const p = e.p; shadow(ctx, p.x, e.y + 1, 6);
         drawSpr(ctx, D.petSprite(p.id, p.v, p.moving ? [3, 4, 5, 6][Math.floor(p.walkT * 8) % 4] : 0), p.x, e.y + (p.atk > 0 ? -3 : 0), p.face < 0, null);
       } else if (e.k === 'fence') {
-        const f = S.fence, fs = D.fenceSprite(f.state);
+        const f = S.fence, fs = D.fenceSprite(f.state, S.stage.era);
         drawSpr(ctx, fs, f.x, GY + 9, false, f.flash > 0 ? ['hit', 'rgba(255,255,255,0.5)'] : null);
         if (f.burn && f.hp > 0) flame(ctx, f.x, GY + 6, 8, 38, tm);
         if (f.hp > 0 && f.hp < f.maxHp) bar(ctx, Math.round(f.x - 10), GY - 66, 20, f.hp / f.maxHp);
