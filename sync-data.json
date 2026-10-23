@@ -57,11 +57,17 @@
   "todos": {
     "date": "2026-10-23",
     "items": {
-      "business": [],
+      "business": [
+        {
+          "id": "db5f3357-a80a-4a61-9163-62d65b76d00f",
+          "text": "Bluebrixx anschreiben",
+          "done": false
+        }
+      ],
       "studium": [],
       "privat": []
     },
-    "updatedAt": 0
+    "updatedAt": 1792735326029
   },
   "tasks": {
     "items": [
@@ -94,14 +100,9 @@
         "id": "5608e33d-339d-4c3f-af24-65ca25658f90",
         "text": "Brainwalkers Video Idee",
         "done": false
-      },
-      {
-        "id": "24651ac9-f004-4821-9257-a5129bbca41f",
-        "text": "Bluebrixx anschreiben",
-        "done": false
       }
     ],
-    "updatedAt": 1792699372834
+    "updatedAt": 1792735326028
   },
   "shopping": {
     "items": [
