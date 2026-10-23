@@ -7437,7 +7437,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   function build(look, pose, frame, G) {
     const main = G.main, second = G.second, armor = G.armor, headG = G.head;
-    const stow = !!G.sheathed && !!D.HERO_STOW[pose];   // nicht im Kampf: Waffen am Ruecken bzw. Guertel, Haende frei
+    const stow = (!!G.sheathed || pose === 'throw') && !!D.HERO_STOW[pose];   // nicht im Nahkampf: Waffen am Ruecken bzw. Guertel; beim Wurf bleibt die Hauptwaffe am Ruecken, die Zweitwaffe ist in der Hand
     let v = RS.V(28, 74, 88); const V0 = v;
     // Zeichner, der alles um die Kopfmitte verkleinert (Haare und Zubehoer behalten ihre Form); Farbfunktionen bekommen die urspruenglichen Koordinaten
     const headProxy = (k, cx, cy, cz) => {
@@ -7526,7 +7526,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     }
 
     // weggesteckt: nichts in der Hand; im Stehen haengen die Arme locker (Gehen, Rennen und Sprung behalten ihre Armbewegung)
-    if (stow) { K.club = null; K.sling = null; if (pose === 'stand') { const sb = [0, 0.5, 1, 0.5][f & 3]; K.armN = [0.16 + sb * 0.02, 0.3]; K.armF = [-0.14 - sb * 0.03, 0.3]; } }
+    if (stow) { K.club = null; if (pose !== 'throw') K.sling = null; if (pose === 'stand') { const sb = [0, 0.5, 1, 0.5][f & 3]; K.armN = [0.16 + sb * 0.02, 0.3]; K.armF = [-0.14 - sb * 0.03, 0.3]; } }
 
     /* ---------- Niedergeschlagen: liegt auf dem Ruecken, Kopf nach hinten ---------- */
     if (pose === 'ko') {
@@ -7674,7 +7674,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     function drawStowed() {
       const bp = (t, d) => [hip[0] + ls * t - lc * d, hip[1] + lc * t + ls * d];   // t = Weg an der Wirbelsaeule entlang, d = Abstand nach hinten
       const xs = XB + 1.6;
-      if (second === 'bow') {
+      if (pose === 'throw') { /* Zweitwaffe ist in der Hand */ }
+      else if (second === 'bow') {
         let prev = bp(1.5, 6.2);
         for (let i = 1; i <= 8; i++) { const cur = bp(1.5 + i * 2.2, 6.2 + 5.2 * Math.sin(Math.PI * i / 8)); seg(xs - 1.4, prev, cur, 0.9, 0.9, c.oak(3)); prev = cur; }
         seg(xs - 1.4, bp(1.5, 6.2), bp(19.1, 6.2), 0.4, 0.4, c.cream(5));
@@ -7791,7 +7792,7 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
 
   /* ---------- Sprites mit Zwischenspeicher ---------- */
   D.HERO_FRAMES = { stand: 4, walk: 4, run: 6, swing: 5, jump: 4, throw: 4, cast: 2, hurt: 1, ko: 1 };
-  D.HERO_STOW = { stand: 1, walk: 1, run: 1, jump: 1 };   // Posen, in denen die Waffe weggesteckt sein kann (nicht im Kampf)
+  D.HERO_STOW = { stand: 1, walk: 1, run: 1, jump: 1, throw: 1 };   // Posen, in denen die Waffe weggesteckt sein kann (nicht im Kampf)
   // gear: Name der Hauptwaffe (Kurzform) oder { main, second, armor, head }; die Hauptwaffe sieht man in allen Posen ausser Wurf, die Zweitwaffe nur im Wurf;
   // sheathed (nicht im Kampf): Stehen, Gehen, Rennen und Sprung ohne Waffe in der Hand, die Waffen stecken am Ruecken bzw. Guertel
   D.heroSprite = function (look, pose, frame, gear, sheathed) {
@@ -7799,8 +7800,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     const G = typeof gear === 'string' ? { main: gear } : (gear || {}), main = G.main === undefined ? 'club' : G.main, second = G.second || 'sling', armor = G.armor || '', head = G.head || '';
     if (!D.HERO_FRAMES[pose]) pose = 'stand';
     frame = frame % D.HERO_FRAMES[pose];
-    const stow = !!sheathed && !!D.HERO_STOW[pose];
-    const key = ['hero3', look.skin, look.hair, look.hairC, look.top, look.topC, look.bottom, look.botC, look.shoe, look.shoeC, look.acc, look.accC, pose, frame, pose === 'throw' ? second : main, armor, head, stow ? 'w' + second : ''].join('|');
+    const stow = (!!sheathed || pose === 'throw') && !!D.HERO_STOW[pose];
+    const key = ['hero3', look.skin, look.hair, look.hairC, look.top, look.topC, look.bottom, look.botC, look.shoe, look.shoeC, look.acc, look.accC, pose, frame, pose === 'throw' ? second : main, armor, head, stow ? 'w' + second + '|' + main : ''].join('|');
     return D.cached(key, () => RS.sideSprite(build(look, pose, frame, { main, second, armor, head, sheathed: stow }), { ay: Y0 + 1, depthT: 3 }));
   };
 })(window);
@@ -9243,7 +9244,8 @@ button { font: inherit; color: inherit; border: 0; background: none; padding: 0;
     }
     // Blick: zum naechsten Gegner in der Naehe, sonst in Laufrichtung
     const foe = nearestMon(S, h.x, 240);
-    h.fight = !!foe || busy || h.hurtT > 0;   // im Kampf = Gegner in der Naehe oder gerade Angriff/Treffer; sonst steckt der Held die Waffe weg (def-render.js)
+    // Waffe in der Hand nur im Nahkampf: Gegner nah (Reichweite der Hauptwaffe + 34), Schlag, Faehigkeit oder Treffer; beim Steinewerfen und sonst steckt der Held sie weg (def-render.js)
+    h.fight = h.state === 'swing' || h.state === 'cast' || h.hurtT > 0 || !!nearestMon(S, h.x, S.W.main.reach + 34);
     if (foe) h.face = foe.x >= h.x ? 1 : -1; else if (dir) h.face = dir;
     // Aktionen
     if (h.state === 'swing') {
