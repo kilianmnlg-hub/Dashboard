@@ -43,7 +43,7 @@
     {
       "id": "9473d02d-64a6-4dab-8017-3e4a354c855b",
       "label": "Journal",
-      "targetPerWeek": 7
+      "targetPerWeek": 3
     }
   ],
   "log": {
@@ -367,5 +367,5 @@
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true
     }
   },
-  "updatedAt": 1792735403595
+  "updatedAt": 1792735461941
 }
