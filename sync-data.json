@@ -1263,8 +1263,8 @@
             "hair:curly": true
           },
           "paid": 4,
-          "x": 149,
-          "y": 297,
+          "x": 242,
+          "y": 226,
           "face": 0
         },
         "def": {
@@ -1277,23 +1277,103 @@
             "stein": 2
           },
           "prog": {
-            "stone1": {
+            "stone01": {
               "stars": 1,
               "best": 0
             },
-            "stone2": {
+            "stone02": {
+              "stars": 1,
+              "best": 0
+            },
+            "stone03": {
+              "stars": 1,
+              "best": 0
+            },
+            "stone04": {
+              "stars": 1,
+              "best": 0
+            },
+            "stone05": {
+              "stars": 1,
+              "best": 0
+            },
+            "stone06": {
               "stars": 2,
               "best": 0
             },
-            "stone3": {
+            "stone07": {
               "stars": 2,
               "best": 0
             },
-            "stone4": {
+            "stone08": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone09": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone10": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone11": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone12": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone13": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone14": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone15": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone16": {
               "stars": 3,
               "best": 0
             },
-            "stone5": {
+            "stone17": {
+              "stars": 3,
+              "best": 0
+            },
+            "stone18": {
+              "stars": 3,
+              "best": 0
+            },
+            "stone19": {
+              "stars": 3,
+              "best": 0
+            },
+            "stone20": {
+              "stars": 3,
+              "best": 0
+            },
+            "stone21": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone22": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone23": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone24": {
+              "stars": 2,
+              "best": 0
+            },
+            "stone25": {
               "stars": 2,
               "best": 0
             }
@@ -1309,6 +1389,10 @@
             "house": 3,
             "vest": 0,
             "cap": 0
+          },
+          "layout": {
+            "fence": 100,
+            "t": []
           },
           "eq": {
             "main": "club",
@@ -1338,7 +1422,7 @@
           }
         },
         "next": 15,
-        "at": 1792736181925,
+        "at": 1792740566603,
         "items": [
           {
             "u": 1,
@@ -1548,6 +1632,6 @@
       }
     },
     "spent": 74.9,
-    "updatedAt": 1792736320904
+    "updatedAt": 1792740567020
   }
 }
