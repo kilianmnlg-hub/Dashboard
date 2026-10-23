@@ -1291,7 +1291,7 @@
             }
           },
           "diff": "normal",
-          "paid": 1.5,
+          "paid": 2.5,
           "endless": {},
           "own": {
             "club": 6,
@@ -1299,13 +1299,14 @@
             "hail": 0,
             "fence": 3,
             "house": 0,
-            "vest": 0
+            "vest": 0,
+            "cap": 0
           },
           "eq": {
             "main": "club",
             "second": "sling",
             "armor": "vest",
-            "head": null,
+            "head": "cap",
             "a": [
               "hail",
               null,
@@ -1329,7 +1330,7 @@
           }
         },
         "next": 15,
-        "at": 1792735730403,
+        "at": 1792735743113,
         "items": [
           {
             "u": 1,
@@ -1538,7 +1539,7 @@
         "zoom": 0
       }
     },
-    "spent": 73.9,
-    "updatedAt": 1792735730771
+    "spent": 74.9,
+    "updatedAt": 1792735743513
   }
 }
