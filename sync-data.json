@@ -55,41 +55,13 @@
     "updatedAt": 1789022769040
   },
   "todos": {
-    "date": "2026-10-23",
+    "date": "2026-10-24",
     "items": {
-      "business": [
-        {
-          "id": "db5f3357-a80a-4a61-9163-62d65b76d00f",
-          "text": "Bluebrixx anschreiben",
-          "done": false
-        },
-        {
-          "id": "b710168b-41c1-439b-9e44-7944d012c4c1",
-          "text": "Shorts aufnehmen",
-          "done": false
-        },
-        {
-          "id": "c9a28637-81c7-4eb6-a026-aca37eafb923",
-          "text": "jw KI Sets Audio",
-          "done": false
-        }
-      ],
-      "studium": [
-        {
-          "id": "3119e6fe-841d-4a67-9ad9-159f11b6f8ee",
-          "text": "Herbstfarben Post",
-          "done": true
-        }
-      ],
-      "privat": [
-        {
-          "id": "7d97aaba-d455-43fb-bbd6-ac287cd48bda",
-          "text": "Wäsche waschen",
-          "done": false
-        }
-      ]
+      "business": [],
+      "studium": [],
+      "privat": []
     },
-    "updatedAt": 1792765350677
+    "updatedAt": 0
   },
   "tasks": {
     "items": [
@@ -107,9 +79,29 @@
         "id": "71d95361-f2c9-4e06-b88c-90beb6735638",
         "text": "clips",
         "done": false
+      },
+      {
+        "id": "32826cf4-ad85-4f1e-ba4a-7a5c729b165c",
+        "text": "Bluebrixx anschreiben",
+        "done": false
+      },
+      {
+        "id": "a933f6c1-51f1-411b-ad96-e08520718bfc",
+        "text": "Shorts aufnehmen",
+        "done": false
+      },
+      {
+        "id": "f156c613-ce73-4628-99b0-185c3463f75f",
+        "text": "jw KI Sets Audio",
+        "done": false
+      },
+      {
+        "id": "3c3bc3b0-6928-4b95-ae54-a6b112e5daf5",
+        "text": "Wäsche waschen",
+        "done": false
       }
     ],
-    "updatedAt": 1792647914905
+    "updatedAt": 1792825106640
   },
   "remoteTasks": {
     "items": [
@@ -649,10 +641,9 @@
   "fold": {
     "collapsed": [
       "notizen",
-      "afterupload",
       "brain"
     ],
-    "updatedAt": 1792782416878,
+    "updatedAt": 1792825106706,
     "lvl": 5
   },
   "xp": {
