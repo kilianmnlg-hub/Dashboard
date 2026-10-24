@@ -373,8 +373,9 @@
     },
     "2026-10-24": {
       "1d8f6548-bdad-4bab-a63c-167a8563b147": true,
-      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true
+      "ba0ab60c-5b39-4842-8060-c464b6e9242b": true,
+      "gym": true
     }
   },
-  "updatedAt": 1792825200408
+  "updatedAt": 1792837433688
 }
