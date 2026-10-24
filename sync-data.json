@@ -187,6 +187,12 @@
         "name": "Passierte Tomaten",
         "qty": "",
         "aisle": "obst"
+      },
+      {
+        "id": "f794f84d-7a3b-481a-9981-5acc5742c87a",
+        "name": "Sahne",
+        "qty": "",
+        "aisle": "kuehl"
       }
     ],
     "history": {
@@ -326,7 +332,7 @@
         ]
       }
     ],
-    "updatedAt": 1792830422881
+    "updatedAt": 1792830442162
   },
   "timetracker": {
     "entries": [
