@@ -175,6 +175,12 @@
         "name": "Nudelplatten",
         "qty": "",
         "aisle": "vorrat"
+      },
+      {
+        "id": "8b69aff9-351d-4b44-b3e9-b9f0c74df6f8",
+        "name": "Gehackte Tomaten",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {
@@ -312,7 +318,7 @@
         ]
       }
     ],
-    "updatedAt": 1792830391424
+    "updatedAt": 1792830399392
   },
   "timetracker": {
     "entries": [
