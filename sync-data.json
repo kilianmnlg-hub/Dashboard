@@ -181,6 +181,12 @@
         "name": "Gehackte Tomaten",
         "qty": "",
         "aisle": "obst"
+      },
+      {
+        "id": "914d4c56-46a0-426d-aad7-6cf41687317a",
+        "name": "Passierte Tomaten",
+        "qty": "",
+        "aisle": "obst"
       }
     ],
     "history": {
@@ -319,7 +325,7 @@
         ]
       }
     ],
-    "updatedAt": 1792830406882
+    "updatedAt": 1792830419393
   },
   "timetracker": {
     "entries": [
