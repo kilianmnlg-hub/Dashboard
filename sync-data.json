@@ -139,6 +139,12 @@
         "name": "Kartoffeln",
         "qty": "",
         "aisle": "obst"
+      },
+      {
+        "id": "806de62e-45e4-47b6-af21-de2c21946e67",
+        "name": "Magerquark",
+        "qty": "",
+        "aisle": "kuehl"
       }
     ],
     "history": {
@@ -275,7 +281,7 @@
         ]
       }
     ],
-    "updatedAt": 1792782202121
+    "updatedAt": 1792830349694
   },
   "timetracker": {
     "entries": [
