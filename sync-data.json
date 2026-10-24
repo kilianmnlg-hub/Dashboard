@@ -289,7 +289,8 @@
       "Magerquark": 2,
       "Beeren": 2,
       "Nudelplatten": 2,
-      "Gehackte Tomaten": 1
+      "Gehackte Tomaten": 1,
+      "Passierte Tomaten": 1
     },
     "learned": {},
     "dishes": [
@@ -325,7 +326,7 @@
         ]
       }
     ],
-    "updatedAt": 1792830419393
+    "updatedAt": 1792830422881
   },
   "timetracker": {
     "entries": [
