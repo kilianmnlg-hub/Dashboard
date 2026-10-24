@@ -922,7 +922,12 @@
       },
       "2026-10-24": {
         "habit:1d8f6548-bdad-4bab-a63c-167a8563b147@2026-10-24": 6,
-        "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-24": 6
+        "habit:ba0ab60c-5b39-4842-8060-c464b6e9242b@2026-10-24": 6,
+        "habit:gym@2026-10-24": 6,
+        "train:pr:mvm6nhecrzprh:bankdruecken-multipresse": 10,
+        "train:pr:mvm6nhecrzprh:schraegbankdruecken-kh": 10,
+        "train:pr:mvm6nhecrzprh:t-bar-rudern": 10,
+        "train:pr:mvm6nhecrzprh:latzug-maschine": 10
       }
     },
     "archive": {
@@ -930,7 +935,7 @@
       "sum": 0
     },
     "goals": {},
-    "updatedAt": 1792825200419
+    "updatedAt": 1792837434149
   },
   "msgSeen": {
     "ids": [
