@@ -157,6 +157,18 @@
         "name": "Light Käse",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "27f0699e-1622-467b-b4e9-fb5c56173f47",
+        "name": "Tiefkühl-Obst",
+        "qty": "",
+        "aisle": "tk"
+      },
+      {
+        "id": "d8ae5b6e-4dea-4c13-b2c1-bced814952b7",
+        "name": "Tiefkühlgemüse",
+        "qty": "",
+        "aisle": "tk"
       }
     ],
     "history": {
@@ -293,7 +305,7 @@
         ]
       }
     ],
-    "updatedAt": 1792830351798
+    "updatedAt": 1792830355645
   },
   "timetracker": {
     "entries": [
