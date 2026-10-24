@@ -169,6 +169,12 @@
         "name": "Tiefkühlgemüse",
         "qty": "",
         "aisle": "tk"
+      },
+      {
+        "id": "fcd24bcb-ef14-4ef6-a8ef-c675c459347a",
+        "name": "Nudelplatten",
+        "qty": "",
+        "aisle": "vorrat"
       }
     ],
     "history": {
@@ -305,7 +311,7 @@
         ]
       }
     ],
-    "updatedAt": 1792830355645
+    "updatedAt": 1792830387424
   },
   "timetracker": {
     "entries": [
