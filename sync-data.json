@@ -145,6 +145,18 @@
         "name": "Magerquark",
         "qty": "",
         "aisle": "kuehl"
+      },
+      {
+        "id": "1603253f-5547-4a7a-8720-39145482e733",
+        "name": "Skyr",
+        "qty": "",
+        "aisle": "kuehl"
+      },
+      {
+        "id": "207041e4-7448-471d-965a-259af3274ec2",
+        "name": "Light Käse",
+        "qty": "",
+        "aisle": "kuehl"
       }
     ],
     "history": {
@@ -281,7 +293,7 @@
         ]
       }
     ],
-    "updatedAt": 1792830349694
+    "updatedAt": 1792830351798
   },
   "timetracker": {
     "entries": [
