@@ -65,9 +65,15 @@
         }
       ],
       "studium": [],
-      "privat": []
+      "privat": [
+        {
+          "id": "03feb682-dc6e-4f10-ae23-ff4453b23e5c",
+          "text": "Wäsche waschen",
+          "done": false
+        }
+      ]
     },
-    "updatedAt": 1792825151257
+    "updatedAt": 1792825155281
   },
   "tasks": {
     "items": [
@@ -95,14 +101,9 @@
         "id": "a933f6c1-51f1-411b-ad96-e08520718bfc",
         "text": "Shorts aufnehmen",
         "done": false
-      },
-      {
-        "id": "3c3bc3b0-6928-4b95-ae54-a6b112e5daf5",
-        "text": "Wäsche waschen",
-        "done": false
       }
     ],
-    "updatedAt": 1792825151256
+    "updatedAt": 1792825155280
   },
   "remoteTasks": {
     "items": [
