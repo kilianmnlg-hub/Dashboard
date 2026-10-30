@@ -1,0 +1,3 @@
+Diese Datei liegt seit dem 30.10.2026 im PRIVATEN Repo dashboard-privat, nicht mehr hier.
+Dieser Ordner verhindert, dass ein Geraet mit altem Dashboard-Code sie hier wieder oeffentlich anlegt
+(das Speichern scheitert dann, statt Daten zu veroeffentlichen). Bitte das Dashboard neu laden.

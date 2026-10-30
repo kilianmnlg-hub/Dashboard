@@ -1,0 +1,31 @@
+# Schutz gegen ueberschreibende Geraete: die Daten-Dateien liegen im PRIVATEN Repo dashboard-privat. Alle 10 Minuten wird dort geprueft, ob
+# bei den letzten Schreibzugriffen auf sync-data.json / habits-data.json Bereiche verloren gingen (z.B. weil ein Geraet mit altem
+# Dashboard-Code die ganze Datei neu geschrieben hat). Verlorene Bereiche werden aus dem Stand davor zurueckgeholt, siehe
+# scripts/protect-sync-data.py. Laeuft hier im oeffentlichen Repo (dort kosten Laeufe nichts); das Secret PRIVATE_DATA_TOKEN gibt den Zugriff.
+name: Protect private data
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# Ein Lauf nach dem anderen, damit sich zwei Wiederherstellungen nicht ins Gehege kommen
+concurrency:
+  group: protect-private
+  cancel-in-progress: false
+
+jobs:
+  protect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/dashboard-privat
+          token: ${{ secrets.PRIVATE_DATA_TOKEN }}
+          path: private
+          fetch-depth: 80
+      - run: python3 scripts/protect-sync-data.py private 45

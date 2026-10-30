@@ -1,0 +1,93 @@
+# Automatischer Sync: zieht täglich um 08:00 Uhr deutscher Zeit frische Daten aus
+# Notion (Zeittracker), YouTube (Abonnenten) und Bricklink (offene Bestellungen /
+# Versand-Alarm) und committet sie in data.js im PRIVATEN Repo dashboard-privat. Zwei Cron-Einträge, weil GitHub Actions
+# nur UTC kennt und Deutschland zwischen Sommer- (UTC+2) und Winterzeit (UTC+1)
+# wechselt — dadurch trifft's ganzjährig um 08:00 Uhr lokal (rund um die
+# Zeitumstellung im Frühjahr/Herbst maximal einmal doppelt, harmlos da idempotent).
+#
+# Jede Datenquelle ist optional: fehlt ein Secret, wird nur diese Quelle übersprungen
+# (siehe README für Einrichtung von NOTION_TOKEN, YOUTUBE_API_KEY, BRICKLINK_*).
+#
+# Manuell anstoßen: Tab "Actions" -> "Sync all dashboard data" -> "Run workflow",
+# oder per Klick auf den "Jetzt synchronisieren"-Button im Dashboard selbst.
+name: Sync all dashboard data
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 08:00 Uhr Sommerzeit (UTC+2)
+    - cron: "0 7 * * *" # 08:00 Uhr Winterzeit (UTC+1)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Die Daten liegen im PRIVATEN Repo (dashboard-privat), nicht hier. Der Zugriff kommt aus dem Secret PRIVATE_DATA_TOKEN
+      # (fine-grained Token, nur dieses eine Repo, Contents: Read and write). Die Skripte arbeiten dort ueber DATA_DIR.
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/dashboard-privat
+          token: ${{ secrets.PRIVATE_DATA_TOKEN }}
+          path: private
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      # Zeittracker: im Dashboard erfasste Zeiten nach Notion schreiben (und dort geloeschte in den Papierkorb), BEVOR
+      # der Daten-Sync unten alles wieder einliest. Scheitert das (z.B. fehlende Schreibrechte der Notion-Integration),
+      # laeuft der normale Sync trotzdem weiter.
+      - name: Zeittracker nach Notion schreiben
+        run: node scripts/push-timetracker.mjs
+        continue-on-error: true
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          DATA_DIR: private
+      - run: node scripts/sync-all.mjs
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          DATA_DIR: private
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          BRICKLINK_CONSUMER_KEY: ${{ secrets.BRICKLINK_CONSUMER_KEY }}
+          BRICKLINK_CONSUMER_SECRET: ${{ secrets.BRICKLINK_CONSUMER_SECRET }}
+          BRICKLINK_TOKEN_VALUE: ${{ secrets.BRICKLINK_TOKEN_VALUE }}
+          BRICKLINK_TOKEN_SECRET: ${{ secrets.BRICKLINK_TOKEN_SECRET }}
+      # LEGO-Sammlung: aktuelle Bricklink-Werte der eingetragenen Sets (lego-data.json im privaten Repo) nach lego-prices.json.
+      # Ein Fehler hier stoppt den Sync nicht.
+      - name: LEGO-Werte
+        run: node scripts/lego-prices.mjs
+        continue-on-error: true
+        env:
+          DATA_DIR: private
+          BRICKLINK_CONSUMER_KEY: ${{ secrets.BRICKLINK_CONSUMER_KEY }}
+          BRICKLINK_CONSUMER_SECRET: ${{ secrets.BRICKLINK_CONSUMER_SECRET }}
+          BRICKLINK_TOKEN_VALUE: ${{ secrets.BRICKLINK_TOKEN_VALUE }}
+          BRICKLINK_TOKEN_SECRET: ${{ secrets.BRICKLINK_TOKEN_SECRET }}
+      - working-directory: private
+        run: |
+          git config user.name "dashboard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          # Ausgaben still (-q): das Protokoll dieses oeffentlichen Repos soll keine Zeilenzahlen aus den privaten Daten zeigen
+          git add data.js
+          if [ -f lego-prices.json ]; then git add lego-prices.json; fi
+          git diff --quiet --cached || git commit -q -m "Automatischer Daten-Sync"
+          # Rebase gegen den aktuellen Stand, falls in der Zwischenzeit jemand anderes
+          # main aktualisiert hat (z.B. ein manueller Push, oder der lokale Brain-Map-Sync,
+          # der zufällig zur selben Zeit läuft) - sonst schlägt der Push fehl. Mit
+          # Wiederholung: bei einem echten Konflikt (beide ändern dieselbe Stelle in
+          # data.js) bricht der Rebase ab, dann kurz warten und mit frischem Stand erneut
+          # versuchen, statt den ganzen Lauf sofort scheitern zu lassen.
+          n=0
+          until [ $n -ge 5 ]; do
+            git pull -q --rebase origin main && git push -q && break
+            n=$((n+1))
+            echo "Push fehlgeschlagen (Versuch $n/5), vermutlich zeitgleicher anderer Push - erneut versuchen..."
+            git rebase --abort 2>/dev/null || true
+            sleep $((RANDOM % 8 + 3))
+          done
+          if [ $n -ge 5 ]; then
+            echo "Push nach 5 Versuchen weiterhin fehlgeschlagen."
+            exit 1
+          fi

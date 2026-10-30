@@ -1,0 +1,58 @@
+# LEGO-Werte sofort aktualisieren: holt die aktuellen Bricklink-Preise der Sets aus lego-data.json (privates Repo dashboard-privat)
+# und schreibt sie nach lego-prices.json. Das Dashboard startet diesen Lauf selbst, sobald du ein Set hinzufuegst (dauert etwa eine Minute);
+# sonst laeuft die Abfrage einmal taeglich mit dem 08:00-Sync (sync-all.yml). Manuell: Tab "Actions" -> "LEGO-Werte" -> "Run workflow".
+#
+# Die Daten liegen im PRIVATEN Repo; der Zugriff kommt aus dem Secret PRIVATE_DATA_TOKEN (siehe sync-all.yml).
+name: LEGO-Werte
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+# Zwei Laeufe gleichzeitig (z.B. zwei Sets kurz hintereinander) wuerden sich nur gegenseitig beim Push stoeren: nacheinander statt parallel
+concurrency:
+  group: lego-prices
+  cancel-in-progress: false
+
+jobs:
+  prices:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/dashboard-privat
+          token: ${{ secrets.PRIVATE_DATA_TOKEN }}
+          path: private
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: node scripts/lego-prices.mjs
+        env:
+          DATA_DIR: private
+          BRICKLINK_CONSUMER_KEY: ${{ secrets.BRICKLINK_CONSUMER_KEY }}
+          BRICKLINK_CONSUMER_SECRET: ${{ secrets.BRICKLINK_CONSUMER_SECRET }}
+          BRICKLINK_TOKEN_VALUE: ${{ secrets.BRICKLINK_TOKEN_VALUE }}
+          BRICKLINK_TOKEN_SECRET: ${{ secrets.BRICKLINK_TOKEN_SECRET }}
+      - working-directory: private
+        run: |
+          git config user.name "dashboard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if [ -f lego-prices.json ]; then git add lego-prices.json; fi
+          git diff --quiet --cached || git commit -q -m "LEGO-Werte (automatisch)"
+          # Rebase gegen den aktuellen Stand, falls das Dashboard oder der Sync in der Zwischenzeit etwas ins Repo geschrieben hat; mit
+          # Wiederholung wie in sync-all.yml.
+          n=0
+          until [ $n -ge 5 ]; do
+            git pull -q --rebase origin main && git push -q && break
+            n=$((n+1))
+            echo "Push fehlgeschlagen (Versuch $n/5), vermutlich zeitgleicher anderer Push - erneut versuchen..."
+            git rebase --abort 2>/dev/null || true
+            sleep $((RANDOM % 8 + 3))
+          done
+          if [ $n -ge 5 ]; then
+            echo "Push nach 5 Versuchen weiterhin fehlgeschlagen."
+            exit 1
+          fi

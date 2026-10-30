@@ -1,0 +1,91 @@
+{
+  "name": "Kilian – Dashboard",
+  "id": "/Dashboard/brain",
+  "short_name": "Dashboard",
+  "description": "Bricklink, YouTube-Kanäle, Ziele, Zeittracker und Tages-To-Do auf einen Blick.",
+  "start_url": "/Dashboard?src=app",
+  "scope": "/Dashboard",
+  "display": "standalone",
+  "background_color": "#14120F",
+  "theme_color": "#14120F",
+  "orientation": "portrait-primary",
+  "shortcuts": [
+    {
+      "name": "Schnelle Notiz",
+      "short_name": "Notiz",
+      "description": "Neue Notiz erfassen",
+      "url": "./index.html?action=note",
+      "icons": [
+        {
+          "src": "icon-200.png",
+          "sizes": "200x200",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "YouTube-Timer starten",
+      "short_name": "YouTube-Timer",
+      "description": "Zeittracker für YouTube starten",
+      "url": "./index.html?action=timer-youtube",
+      "icons": [
+        {
+          "src": "icon-200.png",
+          "sizes": "200x200",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Einkaufsliste",
+      "short_name": "Einkauf",
+      "description": "Direkt zur Einkaufsliste",
+      "url": "./index.html?action=shopping",
+      "icons": [
+        {
+          "src": "icon-200.png",
+          "sizes": "200x200",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Training",
+      "short_name": "Training",
+      "description": "Direkt zum Training",
+      "url": "./index.html?action=training",
+      "icons": [
+        {
+          "src": "icon-200.png",
+          "sizes": "200x200",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "src": "icon-200.png",
+      "sizes": "200x200",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-640.png",
+      "sizes": "640x640",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-640.png",
+      "sizes": "640x640",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "lang": "de",
+  "categories": [
+    "productivity",
+    "lifestyle"
+  ]
+}

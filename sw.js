@@ -1,0 +1,84 @@
+// Minimaler Service Worker: macht das Dashboard installierbar ("Zum Homescreen
+// hinzufügen") und liefert eine Offline-Notlösung. Bewusst "network-first" für
+// ALLE Requests (auch data.js) — ein cache-first-Ansatz würde sonst nach jedem
+// Sync veraltete Zahlen ausliefern, bis der Cache irgendwann abläuft. Das Netzwerk
+// hat also immer Vorrang; der Cache greift nur, wenn gar keine Verbindung besteht.
+
+// Hochzaehlen bei jedem Deploy, der fuer alle Geraete ankommen MUSS (Bugfixes o.ae.):
+// beim Aktivieren der neuen Version werden alle Caches mit abweichendem Namen geloescht
+// (siehe "activate" unten) - sonst kann ein Geraet mit wackliger Verbindung (v.a. Handy im
+// Mobilfunknetz) nach einem fehlgeschlagenen Netzwerk-Request beliebig lange auf einer
+// alten, im Cache haengengebliebenen script.js/index.html sitzen bleiben.
+const CACHE_NAME = "dashboard-v107";
+// habits-data.json / sync-data.json / training-data.json bewusst NICHT im Cache (Cloud-only): Nutzdaten duerfen weder
+// lokal liegen bleiben noch bei einem Netzausfall als scheinbar aktueller Stand ausgeliefert werden.
+const APP_SHELL = [
+  "./", "index.html", "styles.css", "script.js", "quotes.js", "xp.js", "shopping.js", "timetracker.js", "inbox.js", "msgseen.js", "afterupload.js", "room.js", "raumspiel/index.html", "raumspiel/vorschau.png", "palette.js", "training.js", "fold.js", "totop.js", "outfit.css", "lego.css", "lego.js", "push.css", "push.js", "badge-96.png", "outfit-core.js", "outfit-photo.js", "outfit-collage.js", "outfit-inspo.js", "outfit-ui.js", "scenery.js", "guests-data.js", "guests.js", "private.js", "manifest.webmanifest", "icon-64.png", "icon-200.png",
+  "fonts/fraunces-var.woff2", "fonts/publicsans-var.woff2", "fonts/plexmono-500.woff2", "fonts/plexmono-600.woff2", "fonts/pressstart2p-400.woff2"
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))))
+  );
+  self.clients.claim();
+});
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+  // Fremde Hosts (GitHub-API, Google, Worker) und die Daten-Dateien gar nicht anfassen: immer
+  // direkt ans Netz, nie aus dem Cache - sonst koennte ein Ladefehler stillschweigend einen
+  // alten Cloud-Stand liefern.
+  const reqUrl = new URL(event.request.url);
+  if (reqUrl.origin !== self.location.origin) return;
+  if (/\/(habits-data|sync-data|training-data)\.json$/.test(reqUrl.pathname)) return;
+
+  event.respondWith(
+    // "no-cache" = beim Server nachfragen (kleine bedingte Anfrage, ETag), statt bis zu 10 Minuten eine
+    // alte Datei aus dem Browser-Zwischenspeicher zu nehmen (GitHub Pages erlaubt max-age=600).
+    fetch(event.request, { cache: "no-cache" })
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return res;
+      })
+      .catch(() => caches.match(event.request, { ignoreSearch: true }))
+  );
+});
+
+// ---------- Benachrichtigungen (Web-Push, Worker worker/push-worker.js) ----------
+// Der Worker schickt verschluesselte Meldungen (title, body, url, tag); hier werden sie angezeigt. Ein Tipp holt das Dashboard nach vorn und springt zum Bereich.
+self.addEventListener("push", (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch (e) { d = { body: event.data ? event.data.text() : "" }; }
+  event.waitUntil(self.registration.showNotification(d.title || "Dashboard", {
+    body: d.body || "",
+    tag: d.tag || undefined,
+    renotify: !!d.tag,
+    icon: "icon-200.png",
+    badge: "badge-96.png",
+    lang: "de",
+    timestamp: d.ts || Date.now(),
+    data: { url: d.url || "./" }
+  }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = new URL((event.notification.data && event.notification.data.url) || "./", self.registration.scope).href;
+  event.waitUntil((async () => {
+    const list = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    const open = list.find((c) => c.url.startsWith(self.registration.scope));
+    if (open) {
+      try { await open.focus(); } catch (e) { /* egal */ }
+      open.postMessage({ type: "push-open", url });
+      return;
+    }
+    await self.clients.openWindow(url);
+  })());
+});

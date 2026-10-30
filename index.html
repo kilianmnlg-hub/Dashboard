@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Kilian – Dashboard</title>
+<meta name="description" content="Persönliches Dashboard: Aufgaben, Gewohnheiten, Ziele, Business-Zahlen, Zeittracker, Einkauf und Training auf einen Blick." />
+<meta name="color-scheme" content="dark light" />
+<link rel="stylesheet" href="styles.css?v=20261030e" />
+<link rel="stylesheet" href="outfit.css?v=20261030e" />
+<link rel="stylesheet" href="lego.css?v=20261030e" />
+<link rel="stylesheet" href="push.css?v=20261030e" />
+<link rel="manifest" href="manifest.webmanifest?v=20261030e" />
+<link rel="icon" href="icon-64.png" type="image/png" sizes="64x64" />
+<link rel="apple-touch-icon" href="icon-200.png" />
+<meta name="theme-color" content="#14120F" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Dashboard" />
+</head>
+<body>
+
+<div id="shipAlert" class="ship-alert top-alert yellow" hidden>
+  <div class="ship-alert-inner">
+    <span class="ship-alert-icon">📦</span>
+    <span id="shipAlertText" class="ship-alert-text"></span>
+    <button type="button" class="ship-alert-dismiss" id="shipAlertDismiss" aria-label="Ausblenden">×</button>
+  </div>
+</div>
+
+<div id="topAlerts" aria-live="polite"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">KM</span>
+      <div>
+        <p class="brand-title">Dashboard</p>
+        <p class="brand-sub" id="todayLabel"></p>
+      </div>
+    </div>
+    <div class="lvl" id="lvlBox" hidden>
+      <b class="lvl-n">LVL 0</b><span class="lvl-rank"></span><div class="xp" aria-hidden="true"></div><span class="lvl-avg"></span>
+    </div>
+    <div class="top-timers" id="topTimers" aria-live="off"></div>
+    <nav class="nav" id="mainNav" aria-label="Bereiche">
+      <a href="#kalender">Kalender</a>
+      <a href="#todo">To-Do</a>
+      <a href="#aufgaben">Aufgaben</a>
+      <a href="#habits">Habits</a>
+      <a href="#ziele">Ziele</a>
+      <a href="#business">Business</a>
+      <a href="#zeit">Zeittracker</a>
+      <a href="#einkauf">Einkauf</a>
+      <a href="#training">Training</a>
+      <a href="#lego">LEGO</a>
+      <a href="#raum">Raum</a>
+      <a href="#outfit">Outfits</a>
+      <a href="#notizen">Notizen</a>
+    </nav>
+    <span class="auto-sync-status" id="autoSyncStatus" hidden></span>
+    <button class="sync-button" id="syncButton" type="button" title="Alle Daten jetzt synchronisieren">
+      <span id="syncButtonIcon" aria-hidden="true"></span><span class="sync-check" id="syncButtonCheck" hidden>✓</span> <span id="syncButtonLabel">Sync</span>
+    </button>
+    <button class="sync-caret" id="syncMenuBtn" type="button" aria-label="Mehr: Status und Benachrichtigungen" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 12 8" aria-hidden="true"><path d="M0 0h12L6 8z"/></svg></button>
+    <button class="theme-toggle search-btn" id="paletteBtn" type="button" aria-label="Suche und Befehle öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M16 16l5 5"/></svg></button>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Theme wechseln"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z"/></svg></button>
+  </div>
+</header>
+
+<div class="cloud-load" id="cloudLoad" role="status" aria-live="polite">
+  <span class="cl-txt" id="cloudLoadTxt">LADE DEINE DATEN …</span>
+  <div class="cl-bar" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="cl-skel" aria-hidden="true"><div></div><div></div></div>
+</div>
+
+<main>
+  <section id="afterupload" class="section au" aria-labelledby="afterupload-h" hidden>
+    <div class="section-head">
+      <h2 id="afterupload-h"><span class="section-marker"></span>After Upload</h2>
+    </div>
+    <div class="au-host" id="auHost"></div>
+  </section>
+
+  <section class="brain-card" aria-label="Brain">
+    <div class="scn-banner" id="scnBanner" role="button" tabindex="0" aria-label="Pixel-Dschungel und Easter Eggs ansehen">
+      <canvas aria-hidden="true"></canvas>
+      <span class="scn-chip scn-eggs" id="scnEggChip">EASTER EGGS 0/20</span>
+      <span class="scn-chip scn-phase" id="scnPhaseChip"></span>
+    </div>
+    <div class="brain-copy">
+      <h1 id="greeting">Willkommen zurück</h1>
+      <figure class="hero-quote">
+        <blockquote id="dailyQuote"></blockquote>
+      </figure>
+    </div>
+    <div class="brain-scene-wrap" id="brainSceneWrap">
+      <div class="brain-scene">
+        <div class="brain-tilt" id="brainTilt">
+          <svg class="links" id="brainLinks"></svg>
+          <div id="brainNodes"></div>
+        </div>
+      </div>
+      <div class="brain-fade left"></div>
+      <div class="brain-hits" id="brainHits"></div>
+    </div>
+    <div class="area-pop" id="brainAreaPop"></div>
+    <button type="button" class="brain-map-btn" id="brainMapBtn" aria-expanded="false" aria-controls="brainSceneWrap">KARTE ▾</button>
+  </section>
+
+  <div class="overlay" id="noteOverlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Schnelle Notiz">
+      <div id="noteFormState">
+        <div class="modal-head">
+          <h2>Schnelle Notiz</h2>
+          <button class="modal-close" id="noteCloseBtn" type="button" aria-label="Schließen">×</button>
+        </div>
+        <p class="modal-sub" id="noteModalSub">Landet automatisch an der richtigen Stelle in deinem Vault.</p>
+        <p class="modal-status" id="noteConnectionStatus"></p>
+        <textarea id="noteText" placeholder="Idee, Gedanke, Aufgabe…"></textarea>
+        <div class="chip-row" id="noteChipRow"></div>
+        <p class="modal-guess" id="noteGuessLabel">Kategorie wird beim Tippen erkannt — oder wähl selbst.</p>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" id="noteCancelBtn" type="button">Abbrechen</button>
+          <button class="btn btn-primary" id="noteSaveBtn" type="button">Speichern</button>
+        </div>
+      </div>
+      <div class="saved-state" id="noteSavedState">
+        <div class="saved-check">✓</div>
+        <p>Gespeichert in <span class="file" id="noteSavedFile"></span></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="calendarOverlay">
+    <div class="modal modal-wide" role="dialog" aria-modal="true" aria-label="Kalender">
+      <div class="modal-head">
+        <h2>Kalender</h2>
+        <button class="modal-close" id="calendarModalCloseBtn" type="button" aria-label="Schließen">×</button>
+      </div>
+      <p class="modal-sub">Dein voller Google-Kalender — dafür musst du in diesem Browser bei Google eingeloggt sein.</p>
+      <div class="calendar-embed-wrap">
+        <iframe id="calendarEmbedFrame" title="Google Kalender" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="eggOverlay">
+    <div class="modal modal-wide egg-modal" role="dialog" aria-modal="true" aria-labelledby="eggTitle">
+      <div class="modal-head">
+        <h2 id="eggTitle">Pixel-Dschungel</h2>
+        <button class="modal-close" id="eggClose" type="button" aria-label="Schließen">×</button>
+      </div>
+      <p class="modal-sub" id="eggSub"></p>
+      <div class="egg-view"><canvas id="eggCanvas" aria-label="Das ganze Bild; Klick auf ein gefundenes Easter Egg zeigt es in der Liste"></canvas></div>
+      <ol class="egg-list" id="eggList"></ol>
+    </div>
+  </div>
+
+  <section id="kalender" class="section" aria-labelledby="kalender-h">
+    <div class="section-head">
+      <h2 id="kalender-h"><span class="section-marker"></span>Kalender</h2>
+    </div>
+    <div class="panel">
+      <div id="calendarConnectState">
+        <p class="habit-empty" id="calendarConnectHint">Google Kalender noch nicht verbunden.</p>
+        <button type="button" class="btn btn-primary" id="calendarConnectBtn">Kalender verbinden</button>
+      </div>
+      <div id="calendarConnectedState" hidden>
+        <div class="todo-add" id="calendarAdd">
+          <input type="text" id="calendarQuickAddInput" placeholder="Termin hinzufügen… (z.B. „Zahnarzt morgen 10 Uhr“)" maxlength="200" />
+          <button type="button" id="calendarQuickAddBtn" aria-label="Hinzufügen">+</button>
+        </div>
+        <ul class="todo-list" id="calendarEventList"></ul>
+        <p class="sync-note">
+          <span id="calendarSyncStatus">–</span>
+          · <button type="button" class="link-button-inline" id="calendarOpenFullBtn">Ganzen Kalender ansehen</button>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="todo" class="section" aria-labelledby="todo-h">
+    <div class="section-head">
+      <h2 id="todo-h"><span class="section-marker"></span>Tages-To-Do</h2>
+    </div>
+    <div class="grid todo-grid" id="todoGrid"></div>
+  </section>
+
+  <section id="aufgaben" class="section" aria-labelledby="aufgaben-h">
+    <div class="section-head">
+      <h2 id="aufgaben-h"><span class="section-marker"></span>Aufgaben</h2>
+    </div>
+    <div class="panel">
+      <div class="task-seg" id="taskSeg" role="tablist" aria-label="Aufgaben oder Remote Tasks">
+        <button type="button" role="tab" class="on" id="taskTabA" data-t="a" aria-selected="true" aria-controls="taskPaneA">AUFGABEN <i id="taskCntA"></i></button>
+        <button type="button" role="tab" id="taskTabR" data-t="r" aria-selected="false" aria-controls="taskPaneR">REMOTE <i id="taskCntR"></i></button>
+      </div>
+      <div id="taskPaneA" role="tabpanel" aria-labelledby="taskTabA">
+        <div class="todo-add" id="taskAdd">
+          <input type="text" id="taskInput" placeholder="Aufgabe hinzufügen…" maxlength="120" />
+          <button type="button" id="taskAddBtn" aria-label="Hinzufügen">+</button>
+        </div>
+        <ul class="todo-list" id="taskList"></ul>
+      </div>
+      <div id="taskPaneR" role="tabpanel" aria-labelledby="taskTabR" hidden>
+        <div class="todo-add" id="remoteTaskAdd">
+          <input type="text" id="remoteTaskInput" placeholder="Remote Task hinzufügen…" maxlength="120" />
+          <button type="button" id="remoteTaskAddBtn" aria-label="Hinzufügen">+</button>
+        </div>
+        <ul class="todo-list" id="remoteTaskList"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="habits" class="section" aria-labelledby="habits-h">
+    <div class="section-head">
+      <h2 id="habits-h"><span class="section-marker"></span>Habit-Tracker<span class="habit-tools"><button type="button" class="habit-tool" id="habitAddToggle" aria-label="Gewohnheit hinzufügen" aria-expanded="false" aria-controls="habitAddRow">+</button><button type="button" class="habit-tool" id="habitEditToggle" aria-label="Gewohnheiten bearbeiten" aria-pressed="false"><svg viewBox="0 0 8 8" width="14" height="14" shape-rendering="crispEdges" fill="currentColor" aria-hidden="true"><rect x="6" y="0" width="1" height="1"/><rect x="7" y="0" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="7" y="1" width="1" height="1"/><rect x="4" y="2" width="1" height="1"/><rect x="5" y="2" width="1" height="1"/><rect x="6" y="2" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="4" y="3" width="1" height="1"/><rect x="5" y="3" width="1" height="1"/><rect x="1" y="4" width="1" height="1"/><rect x="2" y="4" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/><rect x="0" y="5" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="2" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/><rect x="1" y="6" width="1" height="1"/></svg></button></span></h2>
+      <div class="habit-view-toggle" id="habitViewToggle">
+        <button type="button" data-view="week" class="active">Woche</button>
+        <button type="button" data-view="month">Monat</button>
+        <button type="button" data-view="year">Jahr</button>
+      </div>
+    </div>
+    <div class="panel habit-panel">
+      <div class="habit-add" id="habitAddRow">
+        <input type="text" id="habitNewInput" placeholder="Neue Gewohnheit…" maxlength="60" />
+        <button type="button" id="habitAddBtn" aria-label="Hinzufügen">+</button>
+      </div>
+      <div id="habitViewWeek" class="habit-view"></div>
+      <div id="habitViewMonth" class="habit-view" hidden></div>
+      <div id="habitViewYear" class="habit-view" hidden></div>
+      <p class="sync-note"><span id="habitSyncStatus">–</span></p>
+    </div>
+  </section>
+
+  <section id="ziele" class="section" aria-labelledby="ziele-h">
+    <div class="section-head">
+      <h2 id="ziele-h"><span class="section-marker"></span>Ziele bis Ende 2026</h2>
+    </div>
+    <div class="grid goals-grid" id="goalsGrid"></div>
+  </section>
+
+  <section id="business" class="section" aria-labelledby="business-h">
+    <div class="section-head">
+      <h2 id="business-h"><span class="section-marker"></span>Business-KPIs</h2>
+    </div>
+    <div class="grid business-grid" id="businessGrid"></div>
+
+    <button type="button" class="rv-toggle" id="revenueToggle" aria-expanded="false" aria-controls="revenuePanel"><span>UMSATZ-TREND (BRICKLINK)</span><span class="rv-arr" aria-hidden="true">▸</span></button>
+    <div class="revenue-panel" id="revenuePanel" hidden>
+      <div class="section-head" style="margin-bottom:16px">
+        <h3 class="panel-title"><span class="section-marker"></span>Umsatz-Trend (Bricklink)</h3>
+      </div>
+      <div class="bento">
+        <div class="card span-12" id="revenueWeeklyBlock" hidden>
+          <p class="revenue-sub-title">Wöchentlich</p>
+          <p class="section-sub" id="revenueWeeklyRangeLabel"></p>
+          <div class="iso-chart" id="revenueChartWeekly"></div>
+        </div>
+        <div class="card span-12" id="revenueMonthlyBlock" hidden>
+          <p class="revenue-sub-title">Monatlich</p>
+          <p class="section-sub" id="revenueMonthlyRangeLabel"></p>
+          <div class="iso-chart" id="revenueChartMonthly"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="zeit" class="section tt" aria-label="Zeittracker">
+    <div class="section-head">
+      <h2><span class="section-marker"></span>Zeittracker</h2>
+      <div class="tt-sync" id="ttSync"><i class="tt-led"></i><span class="tt-px" id="ttSyncT">NOTION …</span><button class="tt-btn tt-sm tt-px" id="ttRefresh" type="button" aria-label="Neu laden">↻</button></div>
+    </div>
+    <div class="tt-main">
+      <div class="tt-timers" id="ttTimers"></div>
+      <div class="tt-stats" id="ttStats"></div>
+
+      <details class="tt-card tt-fold tt-more" id="ttMore">
+        <summary><span class="tt-ft tt-px">DETAILS</span><span class="tt-fs">WOCHENZIEL · ÜBERSICHT · VERLAUF</span></summary>
+        <div class="tt-fold-body">
+
+      <div class="tt-sync tt-sync2" id="ttSync2"><i class="tt-led"></i><span class="tt-px" id="ttSyncT2">NOTION …</span><button class="tt-btn tt-sm tt-px" id="ttRefresh2" type="button" aria-label="Neu laden">↻</button></div>
+
+      <details class="tt-card tt-fold" id="ttGoalCard">
+        <summary><span class="tt-ft tt-px">WOCHENZIEL</span><span class="tt-fs" id="ttGoalSum"></span></summary>
+        <div class="tt-fold-body">
+          <div class="tt-goal">
+            <div class="tt-goalrows" id="ttGoalRows"></div>
+            <div><div class="tt-lb tt-px" style="margin-bottom:6px">LETZTE 9 WOCHEN · STUNDEN</div><div class="tt-hist" id="ttHist"></div><p class="tt-hint">Gestrichelte Linie = dein Wochen-Soll gesamt. Das Soll pro Bereich stellst du links mit − und + ein.</p></div>
+          </div>
+        </div>
+      </details>
+
+      <details class="tt-card tt-fold" id="ttChartCard">
+        <summary><span class="tt-ft tt-px">ÜBERSICHT</span><span class="tt-fs" id="ttChartSum"></span></summary>
+        <div class="tt-fold-body">
+        <div class="tt-ch">
+          <div class="tt-seg" id="ttSeg" role="tablist"></div>
+          <div class="tt-nav"><button id="ttPrev" type="button" aria-label="Zurück">‹</button><span class="tt-range tt-px" id="ttRange"></span><button id="ttNext" type="button" aria-label="Weiter">›</button></div>
+        </div>
+        <div class="tt-cscroll" id="ttCscroll"><div class="tt-bars" id="ttBars"></div></div>
+        <div class="tt-year" id="ttYear"></div>
+        <div class="tt-legend"><span><i style="background:var(--tt-yt)"></i>YouTube</span><span><i style="background:var(--tt-bl)"></i>Bricklink</span></div>
+        </div>
+      </details>
+
+      <details class="tt-card tt-fold" id="ttLogCard">
+        <summary><span class="tt-ft tt-px">VERLAUF</span><span class="tt-fs" id="ttLogSum"></span></summary>
+        <div class="tt-fold-body">
+        <div class="tt-lh"><button class="tt-btn tt-sm tt-px" id="ttToggleForm" type="button">+ EINTRAG</button></div>
+        <div class="tt-form" id="ttForm">
+          <label class="tt-px">PROJEKT<select id="ttMCat"><option value="youtube">YouTube</option><option value="bricklink">Bricklink</option></select></label>
+          <label class="tt-px">DATUM<input type="date" id="ttMDate"></label>
+          <label class="tt-px">STUNDEN<input type="number" id="ttMH" min="0" max="23" value="0"></label>
+          <label class="tt-px">MINUTEN<input type="number" id="ttMM" min="0" max="59" value="30"></label>
+          <div class="tt-ra"><button class="tt-btn tt-sm tt-px" id="ttMCancel" type="button">ABBRECHEN</button><button class="tt-btn tt-sm tt-px tt-go" id="ttMSave" type="button">SPEICHERN</button></div>
+        </div>
+        <div class="tt-entries" id="ttEntries"></div>
+        </div>
+      </details>
+
+        </div>
+      </details>
+    </div>
+
+    <div class="tt-ov" id="ttDayOv"><div class="tt-modal" role="dialog" aria-modal="true" aria-labelledby="ttDayTitle">
+      <div class="tt-mh"><h3 id="ttDayTitle"></h3><button class="tt-mx" id="ttDayClose" type="button" aria-label="Schließen">✕</button></div>
+      <div class="tt-ms" id="ttDayStats"></div><p class="tt-mt tt-px">EINTRÄGE</p><div id="ttDayEntries"></div>
+    </div></div>
+  </section>
+
+  <section id="einkauf" class="section shop" aria-label="Einkaufsliste">
+    <div class="section-head">
+      <h2><span class="section-marker"></span>Einkaufsliste</h2>
+      <div class="shop-head-right">
+        <span class="shop-coins px" title="Geschätzter Preis der offenen Liste"><span id="shopCoinSpr"></span><span class="lbl">≈</span><span id="shopCoinN">0 €</span></span>
+        <button class="pbtn px" id="shopStoreBtn" type="button">SHOP-MODUS</button>
+      </div>
+    </div>
+    <div id="shopRoot">
+      <div class="shop-card" id="shopCard">
+        <div class="shop-title"><span id="shopCartSpr"></span></div>
+        <div class="shop-add">
+          <div class="addwrap"><input id="shopInp" type="text" placeholder="Neues Item (2x Milch 1,15)" maxlength="80" autocomplete="off" aria-label="Artikel hinzufügen"></div>
+          <button class="pbtn go" id="shopAddBtn" type="button" aria-label="Hinzufügen">+</button>
+        </div>
+        <div class="shop-ac" id="shopAc"></div>
+
+        <div class="tabs" role="tablist" id="shopTabs"></div>
+
+        <div class="pane" id="shopPaneList"></div>
+
+        <div class="pane" id="shopPaneHist" hidden>
+          <p class="hint">Dein Inventar: alles, was du schon gekauft hast. Antippen legt es zurück auf die Liste, die Zahl zeigt wie oft.</p>
+          <div class="inv" id="shopHist"></div>
+          <div class="shop-pad-top"><button class="pbtn px small" id="shopReadd" type="button">STAMMARTIKEL (3×+) ALLE HINZUFÜGEN</button></div>
+        </div>
+
+        <div class="pane" id="shopPaneDue" hidden>
+          <p class="hint">Vorrats-Leisten aus deinen Kaufabständen. Ist die Leiste leer, wird es Zeit.</p>
+          <div id="shopDue"></div>
+        </div>
+
+        <div class="pane" id="shopPaneTpl" hidden>
+          <p class="hint">Rezepte: CRAFT legt alle Zutaten auf die Liste, Vorhandenes wird nicht doppelt eingetragen.</p>
+          <div id="shopTpl"></div>
+          <div class="mini">
+            <input id="shopDName" type="text" placeholder="Neues Rezept, z.B. Chili" aria-label="Name des Rezepts" maxlength="40">
+            <input id="shopDIng" type="text" placeholder="Zutaten, mit Komma getrennt" aria-label="Zutaten" class="wide" maxlength="200">
+            <button class="pbtn px small" id="shopDAdd" type="button">SPEICHERN</button>
+          </div>
+          <div class="mini flat">
+            <button class="pbtn px small" id="shopDFromList" type="button">AKTUELLE LISTE ALS REZEPT SPEICHERN</button>
+          </div>
+        </div>
+      </div>
+      <details class="catalog">
+        <summary class="px">SYMBOL-KATALOG <span id="shopCatN"></span></summary>
+        <div class="cat-grid" id="shopCatGrid"></div>
+      </details>
+    </div>
+  </section>
+
+  <section id="training" class="section tr" aria-label="Training">
+    <div class="section-head">
+      <h2><span class="section-marker"></span>Training</h2>
+      <div class="tr-sync" id="trSync" data-s="load" aria-live="polite"><i></i><span class="tr-sync-t">LADE …</span></div>
+    </div>
+    <div class="tr-main" id="trMain"></div>
+  </section>
+
+  <section id="lego" class="section lg" aria-labelledby="lego-h">
+    <div class="section-head">
+      <h2 id="lego-h"><span class="section-marker"></span>LEGO-Sammlung</h2>
+      <div class="lg-head-r">
+        <div class="lg-sync" id="lgSync" data-s="load" aria-live="polite"><i></i><span class="lg-sync-t">LADE …</span></div>
+        <button class="lg-btn lg-go lg-sm" id="lgAdd" type="button">+ SET</button>
+      </div>
+    </div>
+    <div class="lg-main" id="lgMain"></div>
+  </section>
+
+  <section id="raum" class="section rm-sec" aria-labelledby="raum-h">
+    <div class="section-head">
+      <h2 id="raum-h"><span class="section-marker"></span>Mein Raum</h2>
+    </div>
+    <div class="rm-host" id="rmHost"></div>
+  </section>
+
+  <section id="outfit" class="section of" aria-labelledby="outfit-h">
+    <div class="section-head">
+      <h2 id="outfit-h"><span class="section-marker"></span>Outfits</h2>
+      <div class="of-sync" id="ofSync" data-s="load" aria-live="polite"><i></i><span class="of-sync-t">LADE …</span></div>
+    </div>
+    <div class="of-main" id="ofMain"></div>
+  </section>
+
+  <section id="notizen" class="section" aria-labelledby="notizen-h">
+    <div class="section-head">
+      <h2 id="notizen-h"><span class="section-marker"></span>Notizen</h2>
+    </div>
+    <div class="panel">
+      <div class="ib-box" id="inboxBox" hidden>
+        <div class="ib-head"><span class="ib-title">VOM HANDY</span><span class="ib-count" id="inboxCount"></span></div>
+        <ul class="ib-list" id="inboxList"></ul>
+      </div>
+      <ul class="notes-list" id="notesList"></ul>
+    </div>
+  </section>
+</main>
+
+<button type="button" class="ib-fab" id="inboxFab" aria-label="Schnelle Notiz erfassen">+</button>
+<button type="button" class="to-top" id="toTop" aria-label="Nach oben" title="Nach oben"><svg viewBox="0 0 9 7" width="18" height="14" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M4 0h1v1H4zM3 1h3v1H3zM2 2h5v1H2zM1 3h7v1H1zM3 4h3v1H3zM3 5h3v1H3zM3 6h3v1H3z"/></svg></button>
+<div class="ib-ov" id="inboxOv">
+  <div class="ib-sheet" role="dialog" aria-modal="true" aria-labelledby="inboxTitle">
+    <div class="ib-sh"><span class="ib-title" id="inboxTitle">SCHNELLE NOTIZ</span></div>
+    <textarea id="inboxTxt" rows="4" maxlength="2000" placeholder="Idee, Gedanke, Aufgabe…" aria-label="Notiz"></textarea>
+    <div class="ib-chips" id="inboxChips"></div>
+    <p class="ib-msg" id="inboxMsg" role="status"></p>
+    <div class="ib-actions"><button type="button" class="ib-btn" id="inboxCancel">ABBRECHEN</button><button type="button" class="ib-btn ib-go" id="inboxSave">SPEICHERN</button></div>
+  </div>
+</div>
+
+<footer class="footer">
+  <p>Stand: <span id="footerUpdated"></span></p>
+</footer>
+
+<script src="private.js?v=20261030e"></script>
+<script src="quotes.js?v=20261030e"></script>
+<script src="xp.js?v=20261030e"></script>
+<script src="shopping.js?v=20261030e"></script>
+<script src="timetracker.js?v=20261030e"></script>
+<script src="inbox.js?v=20261030e"></script>
+<script src="msgseen.js?v=20261030e"></script>
+<script src="afterupload.js?v=20261030e"></script>
+<script src="room.js?v=20261030e"></script>
+<script src="palette.js?v=20261030e"></script>
+<script src="training.js?v=20261030e"></script>
+<script src="scenery.js?v=20261030e"></script>
+<script src="guests-data.js?v=20261030e"></script>
+<script src="guests.js?v=20261030e"></script>
+<script src="outfit-core.js?v=20261030e"></script>
+<script src="outfit-photo.js?v=20261030e"></script>
+<script src="outfit-collage.js?v=20261030e"></script>
+<script src="outfit-inspo.js?v=20261030e"></script>
+<script src="outfit-ui.js?v=20261030e"></script>
+<script src="lego.js?v=20261030e"></script>
+<script src="push.js?v=20261030e"></script>
+<script src="fold.js?v=20261030e"></script>
+<script src="totop.js?v=20261030e"></script>
+<script>
+/* script.js startet erst, wenn die privaten Daten (data.js aus dem privaten Repo) geladen sind, siehe private.js */
+(function () {
+  var P = window.PrivateData;
+  function go() { var s = document.createElement("script"); s.src = "script.js?v=20261030e"; document.body.appendChild(s); }
+  if (P && P.ready) P.ready.then(function () { if (P.ok) go(); }); else go();
+})();
+</script>
+</body>
+</html>
