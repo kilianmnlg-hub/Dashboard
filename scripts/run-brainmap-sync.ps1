@@ -18,6 +18,7 @@ Log ("[{0}] Start auf {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $env:COM
 $sync = Join-Path $PSScriptRoot "sync-brainmap.ps1"
 $lines = & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $sync *>&1 | ForEach-Object { "$_" }
 $code = $LASTEXITCODE
-foreach ($l in $lines) { if ($l.Trim()) { Log ("    " + $l) } }
+# PowerShell 5.1 haengt bei Fehlerausgaben von Git Zeilen "System.Management.Automation.RemoteException" an: fuers Protokoll weglassen
+foreach ($l in $lines) { if ($l.Trim() -and ($l.Trim() -ne "System.Management.Automation.RemoteException")) { Log ("    " + $l) } }
 Log ("[{0}] Ende: {1}" -f (Get-Date -Format "yyyy-MM-dd HH:mm:ss"), $(if ($code -eq 0) { "ok" } else { "FEHLER (Code $code)" }))
 exit $code

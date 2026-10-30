@@ -40,9 +40,14 @@ if (-not (Test-Path (Join-Path $privateRoot ".git"))) {
   git clone $privateUrl $privateRoot
   if ($LASTEXITCODE -ne 0) { Write-Error "Privates Repo konnte nicht geholt werden: $privateUrl"; exit 1 }
 } else {
+  # Reste eines abgebrochenen Laufs (z.B. vorgemerkte, nie committete data.js) verwerfen: die Kopie ist nur Zwischenablage, alles wird unten neu erzeugt
+  git -C $privateRoot reset -q --hard HEAD
   git -C $privateRoot pull --rebase origin main
   if ($LASTEXITCODE -ne 0) { Write-Error "Privates Repo konnte nicht aktualisiert werden."; exit 1 }
 }
+# Git-Name und -Mail nur fuer diese Kopie setzen: auf einem frischen PC gibt es keine globale Einstellung, und ohne sie scheitert der Commit unten
+git -C $privateRoot config user.name "dashboard-brainmap"
+git -C $privateRoot config user.email "308374706+kilianmnlg-hub@users.noreply.github.com"
 
 function Slugify($name) {
   $s = $name.ToLowerInvariant() -replace "[^a-z0-9]+", "-"
@@ -205,6 +210,7 @@ if (-not $diff) {
   exit 0
 }
 git commit -m "Brain-Map Sync (automatisch)" | Out-Null
+if ($LASTEXITCODE -ne 0) { Write-Error "Commit in der Kopie von dashboard-privat fehlgeschlagen."; exit 1 }
 
 # Wiederholung mit Wartezeit: dieses Skript und der GitHub-Actions-Sync laufen beide um
 # 08:00 Uhr und pushen gelegentlich zeitgleich - dann schlaegt der Rebase mit einem
