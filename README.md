@@ -70,6 +70,8 @@ danach alle Cloud-Dateien (Habits, Sync, Training); `private.js` trägt dafür `
 **Workflows:** laufen weiter im öffentlichen Repo (private Repos haben nur 2.000 Gratis-Minuten pro Monat). Sie checken `dashboard-privat` zusätzlich nach `private/` aus, lesen und schreiben dort
 (`DATA_DIR=private`, siehe `scripts/sync-all.mjs`, `scripts/push-timetracker.mjs`) und pushen dorthin. Dafür gibt es das Secret **`PRIVATE_DATA_TOKEN`**: ein eigener fine-grained Token, nur für
 `dashboard-privat`, Permission *Contents: Read and write*. Die Workflows selbst haben im öffentlichen Repo nur `contents: read`.
+Die geplanten Workflows (`sync-all`, `check-uploads`, `protect-private`) prüfen zuerst, ob dieses Secret gesetzt ist. Fehlt es (zum Beispiel nach dem Neuanlegen des Repos),
+überspringen sie ihren Lauf mit einer Warnung im Protokoll, statt jedes Mal mit einer Fehlermail zu scheitern. Ein abgelaufener oder falscher Token scheitert weiterhin laut.
 
 **Cloudflare-Worker (Web-Push):** liest die Daten über die GitHub-API aus dem privaten Repo. Dafür im Worker die Variable `DATA_REPO` (`besitzer/dashboard-privat`) und das Secret `DATA_TOKEN`
 (Token mit *Contents: Read* auf `dashboard-privat`) setzen; ohne beide versucht er noch die alte öffentliche Seite (`DATA_BASE`), die nach der Umstellung keine Daten mehr hat.

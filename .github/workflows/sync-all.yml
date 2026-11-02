@@ -22,7 +22,26 @@ permissions:
   contents: read
 
 jobs:
+  gate:
+    # Fehlt das Secret PRIVATE_DATA_TOKEN (z.B. nach dem Neuanlegen des Repos), wird der Lauf mit einer Warnung uebersprungen,
+    # statt jedes Mal mit einer Fehlermail zu scheitern. Ein abgelaufener oder falscher Token scheitert weiterhin laut.
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.chk.outputs.ok }}
+    steps:
+      - id: chk
+        env:
+          PRIVATE_DATA_TOKEN: ${{ secrets.PRIVATE_DATA_TOKEN }}
+        run: |
+          if [ -n "$PRIVATE_DATA_TOKEN" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Secret PRIVATE_DATA_TOKEN fehlt, Lauf uebersprungen (Settings > Secrets and variables > Actions)"
+          fi
   sync:
+    needs: gate
+    if: needs.gate.outputs.ok == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
