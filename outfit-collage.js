@@ -108,11 +108,17 @@
         '<div class="of-co-h"><button type="button" class="of-x" data-a="close" aria-label="Schließen">×</button><input class="of-co-name" maxlength="60" placeholder="Name" aria-label="Name des Outfits">' +
         '<button type="button" class="of-btn of-sm" data-a="more" aria-label="Mehr">' + ic("more", 16) + '</button><button type="button" class="of-btn of-go of-sm" data-a="save">SPEICHERN</button></div>' +
         '<div class="of-co-stage"><div class="of-co-fr"><div class="of-co-cv" data-bg="' + o.bg + '"></div></div></div><div class="of-co-bar" id="coBar"></div>' +
-        '<div class="of-co-tray"><div class="of-chips" id="coChips" role="group" aria-label="Filter"></div><div class="of-strip" id="coStrip"></div></div>';
+        '<div class="of-co-tray"><button type="button" class="of-co-tt" id="coTT" aria-expanded="false" aria-controls="coTB">' + ic("shirt", 14) + '<span>SCHRANK</span><i id="coTN"></i><span class="of-chev">' + ic("chev", 12) + "</span></button>" +
+        '<div class="of-co-tb" id="coTB" hidden><div class="of-chips" id="coChips" role="group" aria-label="Filter"></div><div class="of-strip" id="coStrip"></div></div></div>';
       document.body.appendChild(ov); document.body.classList.add("of-lock");
       const $ = (s) => ov.querySelector(s), cv = $(".of-co-cv"), nameInp = $(".of-co-name"), bar = $("#coBar"), strip = $("#coStrip");
       nameInp.value = o.name;
       nameInp.addEventListener("input", () => { dirty = true; });
+      /* Teile-Leiste: zu ist der Standard, ein neues leeres Outfit startet offen (es gibt noch nichts anderes zu tun) */
+      const tt = $("#coTT"), tb = $("#coTB");
+      const setTray = (open) => { tb.hidden = !open; tt.setAttribute("aria-expanded", String(open)); tt.classList.toggle("open", open); };
+      $("#coTN").textContent = store.items().length; setTray(!o.items.length);
+      tt.addEventListener("click", () => setTray(tb.hidden));
 
       const pieceItem = (p) => (p.id ? store.byId(p.id) : null);
       const slotOfPiece = (p) => (p.id ? store.slotOf((pieceItem(p) || {}).cat) : p.cat ? store.slotOf(p.cat) : "acc");

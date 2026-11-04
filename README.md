@@ -35,7 +35,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `raumspiel/index.html` — das Minigame selbst: ein eigenständiges isometrisches Pixelspiel in einer einzigen Datei (gebaut aus dem Spiele-Projekt, Quellcode liegt dort); `raumspiel/vorschau.png` ist das Kachelbild, bis dein eigener Raum gespeichert ist
 - `training.js` — Training: Trainingsplan, Workout-Modus und Verlauf mit Statistiken, mit selbst gezeichneten Pixel-Symbolen (siehe Abschnitt "Training")
 - `training-data.json` (im privaten Repo) — Cloud-Datei des Trainings (Pläne, Einheiten, eigene Übungen); entsteht beim ersten Speichern und wird direkt aus dem Browser aktualisiert
-- `outfit-core.js`, `outfit-photo.js`, `outfit-ui.js`, `outfit.css` — Outfits: Kleiderschrank mit freigestellten Fotos (siehe Abschnitt "Outfits"); die Daten liegen in einem **privaten** zweiten Repo, nicht hier
+- `outfit-core.js`, `outfit-photo.js`, `outfit-collage.js`, `outfit-inspo.js`, `outfit-gen.js`, `outfit-genui.js`, `outfit-ui.js`, `outfit.css` — Outfits: Kleiderschrank mit freigestellten Fotos, Collage-Editor, Nach Foto nachbauen und der Generator (siehe Abschnitt "Outfits"); die Daten liegen in einem **privaten** zweiten Repo, nicht hier
 - `lego.js`, `lego.css` — LEGO-Sammlung: Sets mit Einkaufspreisen, Bricklink-Wert, Rendite und Verlauf (siehe Abschnitt "LEGO-Sammlung"); die Daten liegen im **privaten** Repo
 - `scripts/lego-prices.mjs`, `scripts/lib/lego.mjs`, `.github/workflows/lego-prices.yml` — holen die Bricklink-Werte der Sets (täglich im 08:00-Sync, sofort nach "+ SET")
 - `worker/outfit-worker.js` — Cloudflare-Worker für die KI-Erkennung der Outfits (kostenlos mit der Cloudflare-KI oder mit Claude, Einrichtung steht im Kopf der Datei)
@@ -1018,7 +1018,7 @@ Seitenränder); Fenster und Vollbild liegen über ihnen.
 
 ## Outfits (Kleiderschrank)
 
-Eigener Bereich ganz unten, direkt über den Notizen (Code in `outfit-core.js`, `outfit-photo.js`, `outfit-ui.js`, Stil in `outfit.css`, Menüpunkt "Outfits"). Das Vorbild ist die App Fits; gebaut
+Eigener Bereich ganz unten, direkt über den Notizen (Code in `outfit-core.js`, `outfit-photo.js`, `outfit-collage.js`, `outfit-inspo.js`, `outfit-gen.js`, `outfit-genui.js`, `outfit-ui.js`, Stil in `outfit.css`, Menüpunkt "Outfits"). Das Vorbild ist die App Fits; gebaut
 wird in Etappen. **Etappe 1 ist der Schrank:**
 
 - **Teil hinzufügen** (Knopf **+ TEIL**): Kamera (ein Foto) oder Galerie (mehrere Fotos auf einmal). Die Fotos laufen nacheinander durch eine Warteschlange (sie bleibt auch nach einem
@@ -1033,14 +1033,16 @@ wird in Etappen. **Etappe 1 ist der Schrank:**
   auf dem du das Foto aufgenommen hast; auf einem anderen Gerät kann man nur radieren. **Neues Foto** ersetzt das Bild eines Teils und behält alle Angaben.
 - **Schrank:** Raster mit Vorschaubildern (laden erst beim Hinscrollen), Suche (Marke, Farbe, Notiz …), Filter nach Kategorie, Favoriten, Schmutzig und Prüfen, Sortierung (neueste, Kategorie,
   Farbe, meist oder wenigst getragen, Preis). **Kategorien** und **Anlässe** legst du in den Einstellungen selbst an, benennst sie um oder löschst nicht benötigte (nur leere Kategorien).
-  Jede Kategorie hat einen Platz (Oberteil, Pullover/Layer, Jacke/Mantel, Hose/Rock, Schuhe, Accessoire, Kleid/Overall), den der Generator später braucht.
+  Jede Kategorie hat einen Platz (Oberteil, Pullover/Layer, Jacke/Mantel, Hose/Rock, Schuhe, Accessoire, Kleid/Overall), den der Generator braucht.
+  *Seit 04.11.2026 ist der Schrank kein Reiter mehr:* er klappt im Fenster auf und zu (Knopf **SCHRANK n** in der Leiste, `aria-expanded`; **ZUKLAPPEN** unten im Feld), zu ist der Standard, der Zustand wird nicht gemerkt.
+  **+ TEIL** steht im aufgeklappten Feld; die Foto-Warteschlange und ihre Hinweise stehen weiter oben im Fenster.
 - **Einstellungen (Zahnrad, seit 29.10.2026 aufgeräumt):** oben zwei Statuszeilen **SPEICHER** (Besitzer/Repo, Stand, **JETZT ABGLEICHEN**) und **KI-ERKENNUNG** (Status, **TESTEN**); die Eingabefelder
   (Besitzer, Repo, Abgleich ein/aus, Worker-Adresse, Geheimes Wort) stecken hinter **ÄNDERN**. Darunter zum Aufklappen **FREISTELLEN** (Modus, Qualität, Grafikchip; speichert sofort beim Ändern),
   **KATEGORIEN · n**, **ANLÄSSE · n** (merken sich beim Hinzufügen/Löschen, ob sie offen sind) und **LISTE ALS DATEI SICHERN**. Die früheren Erklärtexte und die zwei Einrichtungs-Anleitungen
   stehen jetzt nur noch hier im README und im Kopf von `worker/outfit-worker.js`.
-- **Reiter SCHRANK / OUTFITS und Collage (Etappe 2, seit 29.10.2026, `outfit-collage.js`):** Im Reiter OUTFITS liegen die gespeicherten Outfits als kleine Collagen (Name, Anlass, Zahl der Teile,
-  Herz bei Lieblingsoutfits); der Knopf **+ OUTFIT** öffnet den Collage-Editor (Vollbild, Fläche im Format 4:5). Unten der Schrank als Streifen (Filter nach Platz am Körper): ein Teil antippen legt es auf die
-  Fläche, ein bereits benutztes antippen wählt es aus. Ein gewähltes Teil bekommt einen gestrichelten Rahmen: mit dem Finger ziehen, **Ecke** unten rechts = Größe, **Punkt** oben = drehen (rastet bei 0°/90° ein),
+- **Reiter OUTFITS / GENERATOR und Collage (Etappe 2, seit 29.10.2026, `outfit-collage.js`):** Im Reiter OUTFITS liegen die gespeicherten Outfits als kleine Collagen (Name, Anlass, Zahl der Teile,
+  Herz bei Lieblingsoutfits); der Knopf **+ OUTFIT** öffnet den Collage-Editor (Vollbild, Fläche im Format 4:5). Unten die Teile-Leiste (Knopf **SCHRANK n**, *seit 04.11.2026 zu als Standard*, bei einem neuen leeren Outfit
+  offen; Filter nach Platz am Körper): ein Teil antippen legt es auf die Fläche, ein bereits benutztes antippen wählt es aus. Ein gewähltes Teil bekommt einen gestrichelten Rahmen: mit dem Finger ziehen, **Ecke** unten rechts = Größe, **Punkt** oben = drehen (rastet bei 0°/90° ein),
   mit zwei Fingern Größe und Drehung zugleich; die Leiste darunter hat nach vorn, nach hinten, drehen, spiegeln, kleiner, größer und entfernen. Ohne Auswahl zeigt dieselbe Leiste die sechs Hintergrundfarben und
   **ORDNEN** (legt Oberteile oben nebeneinander in der Reihenfolge Base, Mid, Outer, die Hose in die Mitte, Schuhe unten und Kleinteile in die Ecken). Hinter **⋯** stecken Anlässe, Lieblingsoutfit,
   **ALS BILD** (1080 × 1350 PNG, am Handy über das Teilen-Menü, sonst Download) und Löschen (zweimal tippen). Am PC gehen auch Pfeiltasten (Umschalt = 5 %), Entf, Esc und das Mausrad (Umschalt = drehen).
@@ -1051,6 +1053,21 @@ wird in Etappen. **Etappe 1 ist der Schrank:**
   gestrichelter Platzhalter. **TAUSCHEN** und **WÄHLEN** zeigen alle Teile derselben Gruppe (Oberteile und Pullover, Jacken, Hosen, Schuhe, Accessoires), nach Passung sortiert. **ALS COLLAGE ÖFFNEN** legt das Ergebnis
   ungespeichert im Editor ab (einen Platzhalter ersetzt du, indem du ihn antippst und dann ein Teil im Streifen), **SPEICHERN** legt es direkt ab (Name „Nach Foto TT.MM.“, im Outfit steht `inspo` mit den erkannten Teilen).
   Voraussetzung: KI-Erkennung eingerichtet **und der Worker auf dem neuen Stand** (`worker/outfit-worker.js` neu in Cloudflare einfügen); die Einstellungen melden beim Testen „Nach Foto geht erst nach einem Worker-Update“.
+- **Generator (seit 04.11.2026; `outfit-gen.js` rechnet, `outfit-genui.js` zeigt):** Reiter **GENERATOR**: **Anlass** wählen (die Anlässe aus den Einstellungen), **Wetter** (**AUTO** oder von Hand KALT bis HEISS) und optional ein
+  **Startteil**; sofort kommen bis zu 4 Vorschläge aus dem Schrank. Unter jedem steht das stärkste Farbpaar, ob es Ton in Ton oder Kontrast ist und in wie vielen der drei Farbvorlagen es steht. Antippen öffnet den Vorschlag im
+  Collage-Editor, **SPEICHERN** legt ihn direkt unter OUTFITS ab (Name „Anlass · Wetter“, bei Doppelten mit Nummer), **NEU MISCHEN** zeigt andere (nichts doppelt; wird es knapp, kommt ein Hinweis und es geht von vorn los). Ist ein Teil
+  sehr hell, bekommt die Karte den grauen statt des Papier-Hintergrunds. Bei strengen Anlässen mit wenig Auswahl zeigt er weniger Vorschläge und sagt es („Mehr passende Kombinationen gibt es für Formell mit deinem Schrank nicht“).
+  **Die Rechnung** (kein Zufall; nur bei Gleichstand wird ein wenig gewürfelt): Stapel aus **Base, Mid, Outer mit höchstens einem Teil je Schicht** (ein einzeln getragenes Hemd zählt als Mid; Hemd + Pullover, beide Mid, gibt es nicht;
+  nie zwei dicke Strickteile), dazu Hose (oder Kleid), Schuhe und ein Kleinteil (nicht immer). Bewertet wird die **Farbe** (Farbfamilien aus den drei Vorlagen: „84 Kombinationen, komplementär und tonal“, „A Pair & A Spare, tonal und Kontrast“
+  und „Männer-Kombis“; ein Paar in n von 3 Vorlagen zählt 0,55 + 0,15 · n; dieselbe Familie zählt 0,72 bei Neutralen und 0,5 bei Farben; zwei Neutrale ohne Eintrag 0,5, alles andere ohne Eintrag 0,15; mehr als ein Farbtupfer oder mehr als ein Muster gibt Abzug), der **Stil** (Abstand der Formalität der sichtbaren Teile; ein verdecktes
+  Basisteil zählt nicht), der **Anlass** (Markierung 25 %, Nähe zur Ziel-Formalität 75 %; bei Formell, Arbeit und Date strenger, zu legere Teile werden stark abgewertet, ein Vorschlag unter der Mindestpassung kommt nicht), das **Wetter** (Wärmewert der
+  Schichten und der Hose gegen die Stufe) und die **Abwechslung** (Lieblinge etwas bevorzugt, gerade gezeigte Teile abgewertet). Teile ohne Sinn bei dem Wetter scheiden aus: Shorts und Sandalen nur warm/heiß, Schal und Handschuhe nur kalt/kühl,
+  kein Mantel bei Wärme, keine Jacke bei Hitze (außer Regenjacke), keine Stiefel bei Hitze. Ein selbst gewähltes Startteil ist immer erlaubt (ein Kleinteil als Startteil trägt jeder Vorschlag). Schmutzige Teile nimmt er nie. Geprüft mit
+  1651 Zufallsläufen (alle Anlässe und Stufen, jedes Teil als Startteil): 0 Verstöße gegen diese Regeln (vor der Schicht-Regel 302 von 1672 mit zwei Teilen in einer Schicht).
+- **Wetter im Generator:** Open-Meteo (frei, ohne Schlüssel, `api.open-meteo.com`), Ort **fest Berlin** (`CITY` oben in `outfit-genui.js`, dort ändern). Gerechnet wird mit der **gefühlten Temperatur** tagsüber (8 bis 20 Uhr, ab 20 Uhr für
+  morgen): bis 5° KALT, 6 bis 12° KÜHL, 13 bis 19° MILD, 20 bis 26° WARM, ab 27° HEISS. Regen (Wahrscheinlichkeit ab 50 % oder mindestens 1 mm) steht dabei und bevorzugt eine Jacke, eine Regenjacke am meisten. Der Stand wird 30 Minuten im Browser
+  gemerkt (`localStorage` `dashboard-outfit-weather`); geht das Netz nicht, springt ein Stand bis 12 Stunden alt ein („Stand HH:MM“), sonst gilt die zuletzt von Hand gewählte Stufe. Ein Tipp auf **AUTO** holt das Wetter neu; ein Tipp auf KALT bis HEISS
+  schaltet auf Handwahl. Gemerkt werden Anlass, Handstufe und Modus in `dashboard-outfit-settings` (`genOcc`, `genTemp`, `genWMode`). Das Wetter geht nur als Koordinaten von Berlin an Open-Meteo, nichts aus deinen Daten.
 
 **Wo die Daten liegen:** Dieses Dashboard-Repo ist öffentlich, deshalb liegen Fotos und Liste in einem **privaten** Repo (Standard `<Besitzer>/outfit-daten`, in den Einstellungen änderbar). Verwendet wird der
 gleiche Token wie im Rest des Dashboards (`dashboard-gh-token`); er braucht dort **Contents: Read and write**. Im Daten-Repo: `items.json` (alle Teile, Kategorien, Anlässe), `outfits.json` (Collagen, eigene Datei mit eigenem Abgleich), `photos/<id>.webp`

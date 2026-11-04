@@ -1795,7 +1795,7 @@ body[data-cloud="failed"] .cl-txt { color: var(--status-warning); }
 @media (prefers-reduced-motion: reduce) { .mm-panel { animation: none; } }
 
 /* ---------- Hinweise (Toast), kleine Eingabefenster, Bedienbarkeit (script.js) ---------- */
-#toastHost { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(max(20px, env(safe-area-inset-bottom)) + 78px); z-index: 80; display: grid; gap: 8px; width: min(92vw, 460px); pointer-events: none; }
+#toastHost { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(max(20px, env(safe-area-inset-bottom)) + 78px); z-index: 120; display: grid; gap: 8px; width: min(92vw, 460px); pointer-events: none; }
 .dash-toast { pointer-events: auto; cursor: pointer; background: var(--text); color: var(--bg); border: 2px solid var(--text); border-left-width: 8px; border-radius: var(--r); padding: 10px 14px; font-family: var(--px); font-size: var(--fs-8); line-height: 1.8; box-shadow: var(--sh-m) var(--pxs); animation: dtIn .24s steps(4) both; }
 .dash-toast.ok { border-left-color: var(--status-good); }
 .dash-toast.warn { border-left-color: var(--status-warning); }

@@ -20,7 +20,9 @@
     check: ["........", ".......g", "......gg", "g....gg.", "gg..gg..", ".gggg...", "..gg....", "........"],
     brush: ["......gg", ".....ggg", "....ggg.", "...ggg..", ".ggg....", "ggg.....", "gg......", "........"],
     more: ["........", "........", "........", "gg.gg.gg", "gg.gg.gg", "........", "........", "........"],
-    grid: ["gggg.ggg", "gggg.ggg", "gggg.ggg", "........", "ggg.gggg", "ggg.gggg", "ggg.gggg", "........"]
+    grid: ["gggg.ggg", "gggg.ggg", "gggg.ggg", "........", "ggg.gggg", "ggg.gggg", "ggg.gggg", "........"],
+    chev: ["........", "........", "gg....gg", ".gg..gg.", "..gggg..", "...gg...", "........", "........"],
+    shirt: ["gg....gg", "ggg..ggg", "gggggggg", "gggggggg", ".gggggg.", ".gggggg.", ".gggggg.", ".gggggg."]
   };
   const ic = (name, size) => {
     const rows = ICONS[name] || ICONS.plus; let r = "";
@@ -39,7 +41,7 @@
     const toast = deps.toast || function () {};
     const syncEl = deps.syncEl || null;
     const SORTS = { new: "Neueste zuerst", cat: "Nach Kategorie", layer: "Nach Schicht (Base, Mid, Outer)", color: "Nach Farbe", wears: "Am meisten getragen", least: "Am wenigsten getragen", price: "Teuerste zuerst" };
-    const ui = { tab: "wardrobe", q: "", cat: "all", layer: "", sort: "new", fav: false, dirty: false, review: false };
+    const ui = { tab: "wardrobe", wd: false, q: "", cat: "all", layer: "", sort: "new", fav: false, dirty: false, review: false };
     const qInfo = { on: false, total: 0, done: 0, step: "", pct: 0, errors: 0, aiErr: "" };
     let working = false;
 
@@ -52,7 +54,7 @@
     const money = (v) => (v == null ? "" : new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(v));
     const CO = O.collage ? O.collage({ store, toast, ic, itemTitle, layerOf }) : null; /* Collage-Editor (outfit-collage.js) */
     let INSPO = null; /* "Nach Foto nachbauen" (outfit-inspo.js), wird nach sheet() angelegt */
-    ui.tab = store.settings.get("tab") === "outfits" && CO ? "outfits" : "wardrobe";
+    ui.tab = !CO ? "wardrobe" : store.settings.get("tab") === "gen" && O.genui ? "gen" : "outfits"; /* der Schrank ist kein Reiter: er oeffnet sich separat (SCHRANK) */
 
     /* ==========================================================================
        Grundgeruest
@@ -60,8 +62,13 @@
     root.innerHTML =
       '<div class="of-notice" id="ofNotice" hidden></div>' +
       '<div class="of-bar"><div class="of-tabs" id="ofTabs" role="tablist" aria-label="Bereich"></div><div class="of-bar-r">' +
-      '<button type="button" class="of-btn of-go" id="ofAdd">' + ic("plus", 14) + '<span>TEIL</span></button>' +
+      '<button type="button" class="of-btn of-wdb" id="ofWd" aria-expanded="false" aria-controls="ofWdp">' + ic("shirt", 14) + '<span>SCHRANK</span><i id="ofWdN"></i><span class="of-chev">' + ic("chev", 12) + "</span></button>" +
+      '<button type="button" class="of-btn of-go" id="ofAdd">' + ic("plus", 14) + '<span>OUTFIT</span></button>' +
       '<button type="button" class="of-btn" id="ofSet" aria-label="Einstellungen">' + ic("gear", 16) + "</button></div></div>" +
+      '<div class="of-wdp" id="ofWdp" hidden><div class="of-wdp-h"><b class="of-px">SCHRANK</b><span class="of-wdp-n" id="ofWdPn"></span>' +
+      '<button type="button" class="of-btn of-go of-sm" id="ofAddTeil">' + ic("plus", 12) + "<span>TEIL</span></button></div>" +
+      '<div class="of-wdp-v" id="ofWdV"></div>' +
+      '<div class="of-wdp-f"><button type="button" class="of-btn of-sm" id="ofWdX"><span class="of-chev up">' + ic("chev", 10) + "</span> ZUKLAPPEN</button></div></div>" +
       '<div class="of-view" id="ofView"></div>';
     const $ = (sel, el) => (el || root).querySelector(sel);
     const view = $("#ofView"), notice = $("#ofNotice");
@@ -130,10 +137,11 @@
           '<button type="button" class="of-tile' + (it.review ? " rev" : "") + '" data-id="' + esc(it.id) + '"><span class="of-img"><img alt="' + esc(itemTitle(it)) + '" data-id="' + esc(it.id) + '"></span><span class="of-tn">' + esc(itemTitle(it)) + "</span>" +
           '<span class="of-bd">' + (it.fav ? '<i class="of-b fav">' + ic("heart", 12) + "</i>" : "") + (it.dirty ? '<i class="of-b dirty">' + ic("drop", 12) + "</i>" : "") + (it.review ? '<i class="of-b rev">PRÜFEN</i>' : "") + "</span>" + (layerOf(it) ? '<i class="of-ly ly-' + layerOf(it) + '" title="' + esc(D.LAYERS[layerOf(it)].name) + '">' + D.LAYERS[layerOf(it)].label[0] + "</i>" : "") + "</button>").join("") + "</div>";
       }
-      const keepFocus = document.activeElement && document.activeElement.id === "ofQ";
-      view.innerHTML = h;
-      if (keepFocus) { const q = $("#ofQ"); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } }
-      view.querySelectorAll(".of-img img").forEach((im, i) => { if (i < 24 || !io) loadThumb(im); else io.observe(im); }); /* die ersten sofort, der Rest beim Hinscrollen */
+      const tv = CO ? wdv : view, keepFocus = document.activeElement && document.activeElement.id === "ofQ";
+      tv.innerHTML = h;
+      const pn = $("#ofWdPn"); if (pn) pn.textContent = all.length + (all.length === 1 ? " TEIL" : " TEILE");
+      if (keepFocus) { const q = $("#ofQ", tv); if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); } }
+      tv.querySelectorAll(".of-img img").forEach((im, i) => { if (i < 24 || !io) loadThumb(im); else io.observe(im); }); /* die ersten sofort, der Rest beim Hinscrollen */
       renderSync();
     }
     /* ==========================================================================
@@ -141,15 +149,19 @@
        ========================================================================== */
     function renderTabs() {
       const tabs = $("#ofTabs"); if (!tabs) return;
-      tabs.innerHTML = CO ? [["wardrobe", "SCHRANK"], ["outfits", "OUTFITS"]].map((t) => '<button type="button" role="tab" class="of-tab' + (ui.tab === t[0] ? " on" : "") + '" data-tab="' + t[0] + '" aria-selected="' + (ui.tab === t[0]) + '">' + t[1] + "</button>").join("") : "";
-      const lab = $("#ofAdd span"); if (lab) lab.textContent = ui.tab === "outfits" ? "OUTFIT" : "TEIL";
+      const list = CO && GEN ? [["outfits", "OUTFITS"], ["gen", "GENERATOR"]] : [];
+      tabs.innerHTML = list.map((t) => '<button type="button" role="tab" class="of-tab' + (ui.tab === t[0] ? " on" : "") + '" data-tab="' + t[0] + '" aria-selected="' + (ui.tab === t[0]) + '">' + t[1] + "</button>").join("");
+      const lab = $("#ofAdd span"); if (lab) lab.textContent = ui.tab === "wardrobe" ? "TEIL" : "OUTFIT";
+      $("#ofAdd").hidden = ui.tab === "gen"; $("#ofWd").hidden = !CO;
+      const n = $("#ofWdN"); if (n) n.textContent = store.items().length;
     }
     INSPO = O.inspo && CO ? O.inspo({ store, toast, ic, sheet, CO, itemTitle, layerOf }) : null;
+    const GEN = O.genui && CO ? O.genui({ store, toast, ic, sheet, CO, itemTitle, layerOf }) : null; /* Generator (outfit-genui.js) */
     const ioO = "IntersectionObserver" in window ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { ioO.unobserve(e.target); paintCard(e.target); } }), { rootMargin: "240px" }) : null;
     function paintCard(cv) { const o = store.outfitById(cv.closest(".of-ocard").dataset.oid); if (o) CO.paint(cv, o); }
     function renderOutfits() {
       const list = store.outfits().slice().sort((a, b) => b.upd - a.upd); let h;
-      if (!list.length) h = '<div class="of-empty"><div class="of-empty-i">' + ic("image", 40) + '</div><p><b>Noch keine Outfits.</b> Tippe auf <b>+ OUTFIT</b>.</p></div>';
+      if (!list.length) h = '<div class="of-empty"><div class="of-empty-i">' + ic("image", 40) + '</div><p><b>Noch keine Outfits.</b> ' + (store.items().length ? "Tippe auf <b>+ OUTFIT</b> oder lass den <b>GENERATOR</b> welche bauen." : "Lege zuerst Teile im <b>SCHRANK</b> an.") + "</p></div>";
       else h = '<div class="of-ogrid">' + list.map((o) => {
         const n = o.items.filter((p) => p.id && store.byId(p.id)).length, miss = o.items.filter((p) => p.ghost).length;
         const meta = [o.occ[0] ? esc(o.occ[0].toUpperCase()) : "", n + (n === 1 ? " TEIL" : " TEILE")].filter(Boolean).join(" · ") + (miss ? " · <b>" + miss + " FEHLT</b>" : "");
@@ -159,10 +171,16 @@
       view.querySelectorAll(".of-ocard .of-co-cv").forEach((cv, i) => { if (i < 12 || !ioO) paintCard(cv); else ioO.observe(cv); });
       renderSync();
     }
-    function renderCurrent() { renderTabs(); if (ui.tab === "outfits" && CO) renderOutfits(); else renderWardrobe(); }
-    function setTab(t) { ui.tab = t === "outfits" && CO ? "outfits" : "wardrobe"; store.settings.set({ tab: ui.tab }); renderCurrent(); }
+    function renderCurrent() {
+      renderTabs();
+      if (CO && ui.wd) renderWardrobe();
+      if (ui.tab === "gen" && GEN) { if (view.firstElementChild && view.firstElementChild.classList.contains("of-gen")) GEN.refresh(); else GEN.render(view); }
+      else if (ui.tab === "outfits" && CO) renderOutfits();
+      else if (!CO) renderWardrobe();
+    }
+    function setTab(t) { ui.tab = !CO ? "wardrobe" : t === "gen" && GEN ? "gen" : "outfits"; store.settings.set({ tab: ui.tab }); view.innerHTML = ""; renderCurrent(); }
     function newOutfit() {
-      if (!store.items().length) { toast("Lege zuerst Teile im Schrank an", "warn", 3500); return setTab("wardrobe"); }
+      if (!store.items().length) { toast("Lege zuerst Teile im Schrank an", "warn", 3500); return openWardrobe(); }
       if (!INSPO) return CO.edit(null);
       const on = O.ai.configured(store);
       const s = sheet("OUTFIT ERSTELLEN", '<div class="of-big of-big2"><button type="button" class="of-bigb" data-n="collage">' + ic("grid", 32) + "<b>COLLAGE</b><small>Teile selbst legen</small></button>" +
@@ -177,17 +195,36 @@
     let rwTimer = 0; const scheduleRender = () => { clearTimeout(rwTimer); rwTimer = setTimeout(renderCurrent, 40); };
     $("#ofTabs").addEventListener("click", (e) => { const t = e.target.closest("[data-tab]"); if (t && t.dataset.tab !== ui.tab) setTab(t.dataset.tab); });
 
-    view.addEventListener("click", (e) => {
-      const oc = e.target.closest(".of-ocard"); if (oc) return CO.edit(oc.dataset.oid);
+    const wardClick = (e) => {
       const t = e.target.closest(".of-tile"); if (t) return openItem(t.dataset.id);
       const ly = e.target.closest("[data-ly]"); if (ly) { ui.layer = ui.layer === ly.dataset.ly ? "" : ly.dataset.ly; return renderWardrobe(); }
       const c = e.target.closest("[data-cat]"); if (c) { ui.cat = ui.cat === c.dataset.cat ? "all" : c.dataset.cat; return renderWardrobe(); }
       const f = e.target.closest("[data-f]");
       if (f) { const k = f.dataset.f; if (k === "all") { ui.cat = "all"; ui.layer = ""; ui.fav = ui.dirty = ui.review = false; ui.q = ""; } else ui[k] = !ui[k]; renderWardrobe(); }
-    });
+    };
     let qTimer = 0;
-    view.addEventListener("input", (e) => { if (e.target.id === "ofQ") { clearTimeout(qTimer); ui.q = e.target.value; qTimer = setTimeout(renderWardrobe, 180); } });
-    view.addEventListener("change", (e) => { if (e.target.id === "ofSort") { ui.sort = e.target.value; renderWardrobe(); } });
+    const wardInput = (e) => { if (e.target.id === "ofQ") { clearTimeout(qTimer); ui.q = e.target.value; qTimer = setTimeout(renderWardrobe, 180); } };
+    const wardChange = (e) => { if (e.target.id === "ofSort") { ui.sort = e.target.value; renderWardrobe(); } };
+    view.addEventListener("click", (e) => {
+      const oc = e.target.closest(".of-ocard"); if (oc) return CO.edit(oc.dataset.oid);
+      if (!CO) wardClick(e);
+    });
+    if (!CO) { view.addEventListener("input", wardInput); view.addEventListener("change", wardChange); }
+
+    /* ==========================================================================
+       Schrank: klappt im Fenster auf und zu (SCHRANK), zu ist der Standard
+       ========================================================================== */
+    function setWd(open) {
+      if (!CO) return;
+      ui.wd = !!open;
+      const p = $("#ofWdp"), b = $("#ofWd"); p.hidden = !ui.wd; b.setAttribute("aria-expanded", String(ui.wd)); b.classList.toggle("open", ui.wd);
+      if (ui.wd) renderWardrobe();
+    }
+    function openWardrobe() { setWd(true); const p = $("#ofWdp"); if (p && p.scrollIntoView) p.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
+    const wdv = $("#ofWdV");
+    wdv.addEventListener("click", wardClick); wdv.addEventListener("input", wardInput); wdv.addEventListener("change", wardChange);
+    $("#ofAddTeil").addEventListener("click", openAdd);
+    $("#ofWdX").addEventListener("click", () => { setWd(false); const b = $("#ofWd"); if (b && b.scrollIntoView) b.scrollIntoView({ block: "nearest" }); });
 
     /* ==========================================================================
        Hinweiszeile oben: Warteschlange, Einrichtungs-Hinweis
@@ -200,14 +237,15 @@
       else if (st.s === "error") h += '<div class="of-nt bad"><span class="of-nt-t"><b>Nicht gesichert:</b> ' + esc(st.msg || "unbekannter Fehler") + '</span><button type="button" class="of-btn of-sm" data-act="retry">NOCHMAL</button><button type="button" class="of-btn of-sm" data-act="settings">EINSTELLUNGEN</button></div>';
       notice.hidden = !h; notice.innerHTML = h;
     }
-    notice.addEventListener("click", (e) => {
+    function noticeClick(e) {
       const a = e.target.closest("[data-act]"); if (!a) return;
       if (a.dataset.act === "settings") openSettings();
       else if (a.dataset.act === "retry") store.sync();
-      else if (a.dataset.act === "qreview") { qInfo.total = qInfo.done = 0; ui.review = true; ui.cat = "all"; ui.tab = "wardrobe"; renderNotice(); renderCurrent(); }
+      else if (a.dataset.act === "qreview") { qInfo.total = qInfo.done = 0; openWardrobe(); ui.review = true; ui.cat = "all"; renderNotice(); renderWardrobe(); }
       else if (a.dataset.act === "qclose") { qInfo.total = qInfo.done = qInfo.errors = 0; qInfo.aiErr = ""; renderNotice(); }
       else if (a.dataset.act === "qcancel") { cancelQueue = true; a.disabled = true; }
-    });
+    }
+    notice.addEventListener("click", noticeClick);
 
     /* ==========================================================================
        Hinzufuegen: Kamera / Galerie -> Warteschlange -> freistellen -> Entwurf zum Pruefen
@@ -432,7 +470,8 @@
     /* ==========================================================================
        Verdrahtung
        ========================================================================== */
-    $("#ofAdd").addEventListener("click", () => (ui.tab === "outfits" ? newOutfit() : openAdd()));
+    $("#ofAdd").addEventListener("click", () => (ui.tab === "wardrobe" ? openAdd() : newOutfit()));
+    $("#ofWd").addEventListener("click", () => setWd(!ui.wd));
     $("#ofSet").addEventListener("click", openSettings);
     store.on("change", scheduleRender);
     store.on("status", () => { renderNotice(); renderSync(); });
@@ -444,7 +483,7 @@
       const left = await store.queue.list(); if (left.length) { qInfo.total = left.length; runQueue(); }
     })();
 
-    const api = { store, collage: CO, inspo: INSPO, refresh: () => { scheduleRender(); }, sync: () => store.sync(), metric: () => store.items().length + " TEILE" + (store.outfits().length ? " · " + store.outfits().length + (store.outfits().length === 1 ? " OUTFIT" : " OUTFITS") : "") };
+    const api = { store, collage: CO, inspo: INSPO, gen: GEN, wardrobe: openWardrobe, refresh: () => { scheduleRender(); }, sync: () => store.sync(), metric: () => store.items().length + " TEILE" + (store.outfits().length ? " · " + store.outfits().length + (store.outfits().length === 1 ? " OUTFIT" : " OUTFITS") : "") };
     O.board = api; /* fuer die Fehlersuche in der Browser-Konsole: Outfit.board.store */
     return api;
   };
