@@ -242,9 +242,11 @@
     let prices = null;
     if (m.prices && (Array.isArray(m.prices.over) || Array.isArray(m.prices.under))) {
       const ok = (r) => r && typeof r.no === "string" && isNum(r.price) && isNum(r.avg) && isNum(r.dev) && isNum(r.diff);
+      // groesste Abweichung in Prozent zuerst (bei gleichem Prozentsatz der groessere Unterschied fuer das Lot)
+      const byPercent = (a, b) => Math.abs(b.dev) - Math.abs(a.dev) || Math.abs(b.diff) - Math.abs(a.diff);
       const P = m.prices;
       prices = {
-        over: (Array.isArray(P.over) ? P.over : []).filter(ok), under: (Array.isArray(P.under) ? P.under : []).filter(ok),
+        over: (Array.isArray(P.over) ? P.over : []).filter(ok).sort(byPercent), under: (Array.isArray(P.under) ? P.under : []).filter(ok).sort(byPercent),
         eligible: Number(P.eligible) || 0, cycleDays: Math.max(1, Number(P.cycleDays) || 1), checked: Number(P.checked) || 0,
         minDev: Number(P.minDev) || 30, minSales: Number(P.minSales) || 3, minValue: Number(P.minValue) || 1, region: String(P.region || ""), day: String(P.day || "")
       };
@@ -428,7 +430,7 @@
       <p class="sr-note">Vorschlag nach Alter: ab 1 Jahr 10 %, ab 2 Jahren 15 %, ab 3 Jahren 20 % auf den Listenpreis. Den Rabatt stellst du in Bricklink beim Lot ein (Sale in Prozent). Bricklink verrät nicht, wie oft ein Lot verkauft wurde: „schlecht verkauft“ heißt hier lange da und noch viel Wert.</p>`;
   }
 
-  // Preis-Check: Reiter "Zu teuer" / "Zu billig", darunter die Lots mit der groessten Wirkung (Unterschied fuer das ganze Lot); zehn, auf Wunsch alle gespeicherten
+  // Preis-Check: Reiter "Zu teuer" / "Zu billig", darunter die Lots mit der groessten Abweichung in Prozent zuerst; zehn, auf Wunsch alle gespeicherten
   function priceHtml(model, ui) {
     const P = model.prices;
     if (!P) return `<p class="sr-note">Die Liste kommt mit dem nächsten Sync.</p>`;
@@ -441,7 +443,7 @@
       }).join("")}</ol>${rows.length > shown.length ? `<button type="button" class="sr-more" data-sr-act="pcmore">Alle ${rows.length} anzeigen</button>` : ""}`
       : `<p class="sr-note">${tab === "over" ? "Bisher kein Lot gefunden, das deutlich über dem Durchschnitt liegt." : "Bisher kein Lot gefunden, das deutlich unter dem Durchschnitt liegt."}</p>`;
     const cover = `Geprüft wird in Etappen, weil Bricklink nur begrenzt viele Abfragen am Tag erlaubt: heute ${de(P.checked, 0)} von ${de(P.eligible, 0)} Lots, ein voller Durchlauf dauert ${P.cycleDays} ${P.cycleDays === 1 ? "Tag" : "Tage"}. Die Listen füllen sich in dieser Zeit.`;
-    return `${tabs}${list}<p class="sr-note">Verglichen wird dein Preis mit dem Durchschnitt der Verkäufe der letzten 6 Monate (${P.region === "europe" ? "Europa" : esc(P.region || "weltweit")}, ohne MwSt., nach Stückzahl gewichtet), nur Teile und Minifiguren ab ${de(P.minValue, 0)} € Warenwert, mindestens ${P.minSales} Verkäufe, Abweichung ab ${P.minDev} %. „Im Lot“ ist der Unterschied für die ganze Menge. ${cover}</p>`;
+    return `${tabs}${list}<p class="sr-note">Verglichen wird dein Preis mit dem Durchschnitt der Verkäufe der letzten 6 Monate (${P.region === "europe" ? "Europa" : esc(P.region || "weltweit")}, ohne MwSt., nach Stückzahl gewichtet), nur Teile und Minifiguren ab ${de(P.minValue, 0)} € Warenwert, mindestens ${P.minSales} Verkäufe, Abweichung ab ${P.minDev} %. Sortiert ist nach der Abweichung in Prozent, die größte zuerst; „Im Lot“ ist der Unterschied für die ganze Menge. ${cover}</p>`;
   }
 
   function panelHtml(model, ui) {

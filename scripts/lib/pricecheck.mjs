@@ -8,7 +8,7 @@
 // Lot-Nummer (inventory_id) zum Tag passt. So ist der Plan ohne gespeicherten Stand eindeutig. Ergebnisse vorheriger Tage bleiben stehen, solange das Lot noch da ist und
 // seinen Preis nicht geaendert hat (mergeRows).
 
-export const MAX_ROWS = 30;
+export const MAX_ROWS = 50;
 export const DEFAULTS = { minValue: 1, cap: 1500, minDev: 30, minSales: 3, minDiff: 0.5 };
 
 const num = (v) => {
@@ -67,6 +67,7 @@ export function mergeRows({ previous = [], fresh = [], eligible = [], checkedIds
     kept.push({ ...r, qty: c.qty, diff: round2(c.qty * (c.price - r.avg)) });
   }
   const all = fresh.concat(kept);
-  const byImpact = (a, b) => Math.abs(b.diff) - Math.abs(a.diff);
-  return { over: all.filter((r) => r.dev > 0).sort(byImpact).slice(0, max), under: all.filter((r) => r.dev < 0).sort(byImpact).slice(0, max) };
+  // Die größte Abweichung in Prozent zuerst (bei gleichem Prozentsatz der größere Unterschied für das Lot); so wird auch ausgewählt, was bei max Zeilen übrig bleibt
+  const byPercent = (a, b) => Math.abs(b.dev) - Math.abs(a.dev) || Math.abs(b.diff) - Math.abs(a.diff);
+  return { over: all.filter((r) => r.dev > 0).sort(byPercent).slice(0, max), under: all.filter((r) => r.dev < 0).sort(byPercent).slice(0, max) };
 }

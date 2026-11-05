@@ -314,7 +314,7 @@ Karte am Rechner die ganze Reihe, am Handy die ganze Breite. Es beantwortet "War
   auf den Listenpreis); Lots, die schon so stark rabattiert sind, fehlen. Angezeigt werden alter Preis, neuer Preis, Stückzahl, gebundener Wert und Alter. Den Rabatt stellst du in Bricklink beim Lot ein (Sale in Prozent).
 - **Preis-Check:** Teile und Minifiguren aus deinem Inventar, deren Preis **stark vom Durchschnitt der Verkäufe der letzten 6 Monate abweicht** (Bricklink Price Guide "sold", Europa, ohne MwSt., nach Stückzahl gewichtet,
   wie beim Wert der LEGO-Sammlung). Zwei Reiter: **Zu teuer** (dein Preis liegt darüber, das Lot verkauft sich womöglich nicht) und **Zu billig** (darunter, du verschenkst Geld). Jede Zeile mit Rang, Bild, Teilenummer,
-  Name, Farbe, deinem Preis, dem Durchschnitt, der Abweichung in Prozent, der Zahl der Verkäufe und dem Unterschied für das ganze Lot; sortiert nach diesem Unterschied, zehn Zeilen, "Alle anzeigen" zeigt bis zu 30.
+  Name, Farbe, deinem Preis, dem Durchschnitt, der Abweichung in Prozent, der Zahl der Verkäufe und dem Unterschied für das ganze Lot; **sortiert nach der Abweichung in Prozent, die größte zuerst** (bei gleichem Prozentsatz der größere Unterschied), zehn Zeilen, "Alle anzeigen" zeigt bis zu 50.
   Es zählen nur Lots mit mindestens 3 Verkäufen in den 6 Monaten, ab 30 % Abweichung und ab 0,50 € Unterschied.
 
 **Bilder:** die kleinen Vorschaubilder von Bricklink, direkt eingebunden (`https://img.bricklink.com/ItemImage/<P|S|M…>T/<Farbe>/<Nummer>.t1.png`, rund 5 KB), nichts wird gespeichert; fehlt ein Bild, bleibt der leere Rahmen.
@@ -332,7 +332,7 @@ Einstellbar über Umgebungsvariablen im Workflow: `BRICKLINK_PRICECHECK=off` (ab
 `BRICKLINK_PRICE_REGION` (europe), `BRICKLINK_PRICE_MINUTES` (Zeitbudget, 10). Die Rechnung ist ohne MwSt., damit sie zu deinem Listenpreis passt. Eine leere Inventar-Antwort wird als Aussetzer der API behandelt und überschreibt nichts, bei zu vielen fehlgeschlagenen
 Positionen-Abfragen bleiben die alten Bestseller stehen. Im Protokoll steht keine Zahl und kein Artikel (das Repo ist öffentlich).
 **Daten und Datenschutz:** Gespeichert (privates Repo, `data.js`) werden Zahlen und zwei kurze Artikellisten: `bricklinkInventory.slow` und `.slowMini` (je zehn Lots: Typ, Nummer, Name, Farbe, Menge, Preis, Alter) und
-`bricklinkSales.months[].top` (zehn Artikel je Monat) und `bricklinkPrices.over/under` (bis zu 30 Lots je Richtung). Das sind Artikeldaten, **keine Kundendaten**: von Käufern wird nichts gespeichert (keine Namen, Adressen, Nachrichten, Bestellnummern in diesen Listen).
+`bricklinkSales.months[].top` (zehn Artikel je Monat) und `bricklinkPrices.over/under` (bis zu 50 Lots je Richtung, die mit der größten Abweichung). Das sind Artikeldaten, **keine Kundendaten**: von Käufern wird nichts gespeichert (keine Namen, Adressen, Nachrichten, Bestellnummern in diesen Listen).
 **Grenzen:** Der Lagerwert ist der **Verkaufs**wert, kein Einkaufswert. "Neu eingestellt" und die Teile je Woche zählen nur Lots, die noch im Bestand sind; eine vergangene Woche kann deshalb nur schrumpfen, der höchste je
 gesehene Wert bleibt stehen (`weekly`, 12 Wochen). Wer Lots per Upload ersetzt statt zu aktualisieren, setzt womöglich das Erstelldatum zurück; dann stimmen Alter, "neu eingestellt" und die Ladenhüter an dem Tag nicht.
 Stunden kommen aus dem Zeittracker (`timeTrackerBoard.weekHours`). Das Radar speichert selbst nichts; auf/zu und das **i** merkt sich nur dieser Browser (der Monat der Bestseller nur bis zum Neuladen).
