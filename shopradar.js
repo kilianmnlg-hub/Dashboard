@@ -4,7 +4,7 @@
    (Teile und Minifiguren mit starker Abweichung vom 6-Monats-Schnitt), jeweils mit Bild und Teilenummer. Alles kommt aus Zahlen, die der Sync ohnehin holt (data.bricklinkRevenue, data.bricklinkInventory, data.bricklinkSales und data.bricklinkPrices,
    siehe scripts/fetchers/bricklink.mjs und scripts/lib/inventory.mjs, sales.mjs, pricecheck.mjs) und aus dem Zeittracker. Von Kaeufern wird nichts gespeichert; die
    drei Artikellisten enthalten nur Artikeldaten. Bilder: die kleinen Vorschaubilder von Bricklink (img.bricklink.com), direkt eingebunden.
-   Gespeichert wird hier nichts; auf/zu und die Erklaerung merkt sich nur dieser Browser, die Auswahl der Monate und Reiter gilt bis zum Neuladen.
+   Gespeichert wird hier nichts; auf/zu, die Erklaerung und die Wahl Teile/Minifiguren beim Rabattvorschlag merkt sich nur dieser Browser, die Auswahl der Monate und der anderen Reiter gilt bis zum Neuladen.
    compute() ist eine reine Funktion (ohne Seite), damit sie sich separat pruefen laesst: window.ShopRadarCalc.compute. */
 (function () {
   const DAY = 86400000, WEEKS = 9, XP_WEEK = 15;
@@ -37,6 +37,17 @@
   const pageUrl = (t, no, color) => { const k = TYPE_KEY[t]; return k && no ? `https://www.bricklink.com/v2/catalog/catalogitem.page?${k}=${encodeURIComponent(no)}${t === "PART" && color ? `&C=${color}` : ""}` : ""; };
   // Alter in Tagen als "2 J. 4 Mon."
   const ageText = (days) => { const y = Math.floor(days / 365), m = Math.floor((days % 365) / 30); return y > 0 ? `${y} J.${m ? ` ${m} Mon.` : ""}` : `${Math.max(1, m)} Mon.`; };
+
+  // Ladenhueter: neue Daten haben zwei Listen (slow = alles ausser Minifiguren, slowMini = Minifiguren); aeltere hatten eine gemischte Liste (slow), die hier geteilt wird.
+  // slowParts: Array = Liste, null = ohne Erstelldatum nicht moeglich, undefined = aeltere Daten ohne Liste (kommt mit dem naechsten Sync)
+  function slowLists(inv) {
+    const good = (list) => list.filter((r) => r && typeof r.no === "string" && isNum(r.price) && isNum(r.newPrice));
+    if (inv.slow === null) return { slowParts: null, slowMinis: null };
+    if (!Array.isArray(inv.slow)) return { slowParts: undefined, slowMinis: undefined };
+    const all = good(inv.slow);
+    if (Array.isArray(inv.slowMini)) return { slowParts: all, slowMinis: good(inv.slowMini) };
+    return { slowParts: all.filter((r) => r.t !== "MINIFIG"), slowMinis: all.filter((r) => r.t === "MINIFIG") };
+  }
 
   /* ---------- Jahresziel Teile und Wochenziel ---------- */
   // Das Jahresziel ("Bricklink-Teile": Gesamtzahl der Teile im Shop bis zum Stichtag) wird auf die Wochen verteilt: Wochenziel = was bis zum Jahresende noch fehlt
@@ -203,6 +214,7 @@
       const ageRows = inv.age && ageN > 0
         ? [["unter 30 Tage", inv.age.d30], ["30 bis 90 Tage", inv.age.d90], ["90 bis 365 Tage", inv.age.d365], ["über 1 Jahr", inv.age.older]].map(([label, n]) => ({ label, n, p: Math.round((n / ageN) * 100) }))
         : null;
+      const sl = slowLists(inv);
       lager = {
         lots: inv.lots, parts: isNum(inv.parts) ? inv.parts : null, value: isNum(inv.value) ? inv.value : null,
         newLots: isNum(inv.newLots) ? inv.newLots : null, usedLots: isNum(inv.usedLots) ? inv.usedLots : null,
@@ -210,8 +222,7 @@
         newLots30: isNum(inv.newLots30) ? inv.newLots30 : null,
         lastListed: inv.lastListed || null, daysSince, listedNow, ageRows,
         olderShare: ageRows ? ageRows[3].p : null, olderN: inv.age ? inv.age.older : null, oldValue: isNum(inv.oldValue) ? inv.oldValue : null,
-        // Array = Liste, null = ohne Erstelldatum nicht moeglich, undefined = aeltere Daten (kommt mit dem naechsten Sync)
-        slow: Array.isArray(inv.slow) ? inv.slow.filter((r) => r && typeof r.no === "string" && isNum(r.price) && isNum(r.newPrice)) : inv.slow === null ? null : undefined,
+        slowParts: sl.slowParts, slowMinis: sl.slowMinis,
         plan: buildPlan(inv, m.yearGoal, now, curKey)
       };
     }
@@ -279,7 +290,7 @@
         });
       }
       if (lager.olderShare !== null && lager.olderShare >= 40) {
-        hints.push({ level: "warn", title: `${lager.olderShare} % der Lots sind älter als ein Jahr`, text: `Ladenhüter binden Geld${lager.oldValue !== null ? ` (ca. ${eur0(lager.oldValue)})` : ""}${lager.slow && lager.slow.length ? ", siehe Rabattvorschlag." : "."}` });
+        hints.push({ level: "warn", title: `${lager.olderShare} % der Lots sind älter als ein Jahr`, text: `Ladenhüter binden Geld${lager.oldValue !== null ? ` (ca. ${eur0(lager.oldValue)})` : ""}${(lager.slowParts && lager.slowParts.length) || (lager.slowMinis && lager.slowMinis.length) ? ", siehe Rabattvorschlag." : "."}` });
       }
     } else {
       hints.push({ level: "info", title: "Lager noch nicht geladen", text: "Die Lager-Zahlen kommen mit dem nächsten Sync." });
@@ -403,15 +414,17 @@
       <p class="sr-msum"><b>${MONTHS[sel.mi]} ${sel.year}${sel.running ? " (läuft noch)" : ""}:</b> ${sel.orders} ${sel.orders === 1 ? "Bestellung" : "Bestellungen"}, ${de(sel.units, 0)} Teile, ${eur0(sel.revenue)}</p>${list}`;
   }
 
-  // Rabattvorschlag: die zehn Ladenhueter (Warenwert mal Alter), mit Vorschlag nach Alter
-  function slowHtml(model) {
+  // Rabattvorschlag: die zehn Ladenhueter (Warenwert mal Alter), mit Vorschlag nach Alter; Reiter fuer Teile und Minifiguren (die Wahl merkt sich der Browser)
+  function slowHtml(model, ui) {
     const L = model.lager;
-    if (!L || L.slow === undefined) return `<p class="sr-note">Die Liste kommt mit dem nächsten Sync.</p>`;
-    if (L.slow === null) return `<p class="sr-note">Ohne Erstelldatum der Lots gibt es keine Liste.</p>`;
-    if (!L.slow.length) return `<p class="sr-note">Keine Lots über ein Jahr gefunden, für die ein Rabatt nötig wäre.</p>`;
-    const sumTxt = L.olderN !== null ? `<p class="sr-msum">Lots über 1 Jahr: <b>${de(L.olderN, 0)}</b>${L.oldValue !== null ? `, gebunden ca. <b>${eur0(L.oldValue)}</b> zum Verkaufspreis` : ""}. Hier die zehn mit dem meisten Geld, das am längsten liegt:</p>` : "";
-    const rows = L.slow.map((r, i) => itemRow(i + 1, r, `<span class="sr-pr"><s>${price(r.price)}</s> → <b>${price(r.newPrice)}</b> <span class="sr-pc">−${r.pct} %</span></span><span class="sr-m"><span class="sr-nb">${de(r.qty, 0)} Stück ·</span> <span class="sr-nb">${eur2(r.value)} gebunden</span></span><span class="sr-m"><span class="sr-nb">seit ${ageText(r.age)}</span>${r.sale > 0 ? ` <span class="sr-nb">· schon −${r.sale} %</span>` : ""}</span>`)).join("");
-    return `${sumTxt}<ol class="sr-items">${rows}</ol>
+    if (!L || L.slowParts === undefined) return `<p class="sr-note">Die Liste kommt mit dem nächsten Sync.</p>`;
+    if (L.slowParts === null) return `<p class="sr-note">Ohne Erstelldatum der Lots gibt es keine Liste.</p>`;
+    const tab = ui.slow === "minis" ? "minis" : "parts", list = tab === "minis" ? L.slowMinis : L.slowParts, what = tab === "minis" ? "Minifiguren" : "Teile";
+    const tabs = `<div class="sr-tabs" role="group" aria-label="Teile oder Minifiguren wählen"><button type="button" class="sr-tab" data-sr-act="slow:parts" aria-pressed="${tab === "parts"}">Teile (${L.slowParts.length})</button><button type="button" class="sr-tab" data-sr-act="slow:minis" aria-pressed="${tab === "minis"}">Minifiguren (${L.slowMinis.length})</button></div>`;
+    const sumTxt = L.olderN !== null ? `<p class="sr-msum">Lots über 1 Jahr (alle zusammen): <b>${de(L.olderN, 0)}</b>${L.oldValue !== null ? `, gebunden ca. <b>${eur0(L.oldValue)}</b> zum Verkaufspreis` : ""}.${list.length ? ` Hier die ${list.length === 10 ? "zehn" : list.length} ${what} mit dem meisten Geld, das am längsten liegt:` : ""}</p>` : "";
+    if (!list.length) return `${tabs}${sumTxt}<p class="sr-note">Keine ${what} über ein Jahr gefunden, für die ein Rabatt nötig wäre.</p>`;
+    const rows = list.map((r, i) => itemRow(i + 1, r, `<span class="sr-pr"><s>${price(r.price)}</s> → <b>${price(r.newPrice)}</b> <span class="sr-pc">−${r.pct} %</span></span><span class="sr-m"><span class="sr-nb">${de(r.qty, 0)} Stück ·</span> <span class="sr-nb">${eur2(r.value)} gebunden</span></span><span class="sr-m"><span class="sr-nb">seit ${ageText(r.age)}</span>${r.sale > 0 ? ` <span class="sr-nb">· schon −${r.sale} %</span>` : ""}</span>`)).join("");
+    return `${tabs}${sumTxt}<ol class="sr-items">${rows}</ol>
       <p class="sr-note">Vorschlag nach Alter: ab 1 Jahr 10 %, ab 2 Jahren 15 %, ab 3 Jahren 20 % auf den Listenpreis. Den Rabatt stellst du in Bricklink beim Lot ein (Sale in Prozent). Bricklink verrät nicht, wie oft ein Lot verkauft wurde: „schlecht verkauft“ heißt hier lange da und noch viel Wert.</p>`;
   }
 
@@ -449,7 +462,7 @@
       </div>` : ""}
       <section class="sr-box"><h4>Lager</h4><p class="sr-sub">Dein Angebot: Wie viel liegt im Shop, und wie frisch ist es?</p>${lagerHtml(model)}</section>
       <section class="sr-box"><h4>Bestseller pro Monat</h4><p class="sr-sub">Die zehn meistverkauften Artikel nach Stückzahl. Bei der Zahl vorn ist es die Teilenummer aus Bricklink.</p>${salesHtml(model, ui)}</section>
-      <section class="sr-box"><h4>Rabattvorschlag</h4><p class="sr-sub">Die zehn Ladenhüter, die du am ehesten im Preis senken könntest.</p>${slowHtml(model)}</section>
+      <section class="sr-box"><h4>Rabattvorschlag</h4><p class="sr-sub">Die zehn Ladenhüter, die du am ehesten im Preis senken könntest, getrennt nach Teilen und Minifiguren.</p>${slowHtml(model, ui)}</section>
       <section class="sr-box"><h4>Preis-Check</h4><p class="sr-sub">Teile und Minifiguren, deren Preis stark vom Durchschnitt der letzten 6 Monate abweicht.</p>${priceHtml(model, ui)}</section>
       <p class="sr-foot">Keine Kundendaten: keine Namen, Adressen oder Nachrichten von Käufern. Gespeichert sind Zahlen und die drei Artikellisten. Quellen: Bricklink-API und Zeittracker.</p>`;
   }
@@ -466,9 +479,9 @@
     const { data } = deps;
     const UI_KEY = "dashboard-shopradar-ui";
     // Auf/zu und Erklaerung: nur dieser Browser, standardmaessig zu; der gewaehlte Monat gilt nur bis zum Neuladen
-    const ui = { open: false, info: false, month: null, pc: "over", pcMore: false };
-    try { const u = JSON.parse(localStorage.getItem(UI_KEY) || "{}"); ui.open = u.open === true; ui.info = u.info === true; } catch (e) { /* egal */ }
-    const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify({ open: ui.open, info: ui.info })); } catch (e) { /* egal */ } };
+    const ui = { open: false, info: false, month: null, pc: "over", pcMore: false, slow: "parts" };
+    try { const u = JSON.parse(localStorage.getItem(UI_KEY) || "{}"); ui.open = u.open === true; ui.info = u.info === true; ui.slow = u.slow === "minis" ? "minis" : "parts"; } catch (e) { /* egal */ }
+    const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify({ open: ui.open, info: ui.info, slow: ui.slow })); } catch (e) { /* egal */ } };
 
     const hosts = new Set();
     const goalXp = (model) => {
@@ -524,6 +537,7 @@
       else if (act.startsWith("month:")) { ui.month = act.slice(6); refresh(); }
       else if (act === "pc:over" || act === "pc:under") { ui.pc = act.slice(3); ui.pcMore = false; refresh(); }
       else if (act === "pcmore") { ui.pcMore = true; refresh(); }
+      else if (act === "slow:parts" || act === "slow:minis") { ui.slow = act.slice(5); saveUi(); refresh(); }
     }
     // Fehlt ein Bild bei Bricklink, bleibt nur der leere Rahmen (error steigt nicht auf, darum in der Einfangphase)
     function onImgError(e) {

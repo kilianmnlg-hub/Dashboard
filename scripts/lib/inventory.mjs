@@ -10,7 +10,7 @@
 //
 // Ladenhüter: Bricklink verrät nicht, wie oft ein einzelnes Lot verkauft wurde. "Schlecht verkauft" heißt hier: lange im Shop (ab 1 Jahr) und noch viel Geld
 // gebunden. Sortiert wird nach Warenwert mal Alter in Tagen; der Rabattvorschlag richtet sich nach dem Alter (DISCOUNT_TIERS). Lots, die schon so stark
-// oder stärker rabattiert sind, fehlen in der Liste.
+// oder stärker rabattiert sind, fehlen in der Liste. Es gibt zwei Listen zu je zehn: slow (alles außer Minifiguren) und slowMini (Minifiguren).
 
 const DAY_MS = 86400000;
 export const INVENTORY_WEEKS = 12;
@@ -53,6 +53,7 @@ export function summarizeInventory(lots, { now = new Date(), currency = "EUR", p
     age: { d30: 0, d90: 0, d365: 0, older: 0, unknown: 0 },
     oldValue: 0,
     slow: [],
+    slowMini: [],
     weekly: []
   };
   let sawPrice = false, sawDate = false, latest = 0;
@@ -110,10 +111,11 @@ export function summarizeInventory(lots, { now = new Date(), currency = "EUR", p
     out.oldValue = null;
     out.newLots30 = null;
     out.slow = null;
+    out.slowMini = null;
   } else {
     out.oldValue = sawPrice ? round2(out.oldValue) : null;
     out.lastListed = new Date(latest).toISOString().slice(0, 10);
-    out.slow = candidates.sort((a, b) => b.score - a.score).slice(0, SLOW_COUNT).map((c) => {
+    const rowOf = (c) => {
       const cond = String(c.lot.new_or_used || "").toUpperCase();
       return {
         t: String((c.lot.item && c.lot.item.type) || "").toUpperCase(),
@@ -125,7 +127,12 @@ export function summarizeInventory(lots, { now = new Date(), currency = "EUR", p
         created: new Date(c.created).toISOString().slice(0, 10), age: c.age,
         value: round2(c.value), pct: c.pct, newPrice: round4(c.price * (1 - c.pct / 100))
       };
-    });
+    };
+    // Zwei Listen, damit man im Radar zwischen Teilen und Minifiguren wählen kann: slow = alles außer Minifiguren (Teile, Sets ...), slowMini = Minifiguren
+    const sorted = candidates.sort((a, b) => b.score - a.score);
+    const isMini = (c) => String((c.lot.item && c.lot.item.type) || "").toUpperCase() === "MINIFIG";
+    out.slow = sorted.filter((c) => !isMini(c)).slice(0, SLOW_COUNT).map(rowOf);
+    out.slowMini = sorted.filter(isMini).slice(0, SLOW_COUNT).map(rowOf);
     // "Neu eingestellt" zählt nur Lots, die noch im Bestand sind; was sofort wieder verkauft wurde, fehlt später. Eine Woche kann deshalb nur
     // schrumpfen: der höchste je gesehene Wert bleibt stehen (Lots wie Teile).
     const prev = Object.fromEntries((Array.isArray(previousWeekly) ? previousWeekly : []).map((w) => [w && w.weekStart, w || {}]));
