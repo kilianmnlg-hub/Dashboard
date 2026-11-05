@@ -2460,10 +2460,9 @@
     : null;
   let remoteTimeTrackerRaw = null;
 
-  // Shop-Radar (shopradar.js): Ausklappmenue in der Karte "Bricklink Store". Zahlen aus data.bricklinkRevenue und data.bricklinkInventory (Sync),
-  // Stunden aus dem Zeittracker; in der Cloud liegt nur das Wochenziel "Lots einstellen" (Feld shopradar in sync-data.json).
-  const shopRadar = window.createShopRadar ? window.createShopRadar({ dataStore, scheduleAutoSync, data, hours: timeTrackerBoard, getXp: () => xpBoard }) : null;
-  let remoteShopRadarRaw = null;
+  // Shop-Radar (shopradar.js): Ausklappmenue in der Karte "Bricklink Store". Zahlen aus data.bricklinkRevenue, data.bricklinkInventory und data.bricklinkSales (Sync),
+  // das Jahresziel "bricklink-parts" aus data.goals, Stunden aus dem Zeittracker. Es speichert nichts (auch nicht in der Cloud); nur XP fuer das Wochenziel.
+  const shopRadar = window.createShopRadar ? window.createShopRadar({ data, hours: timeTrackerBoard, getXp: () => xpBoard }) : null;
   if (shopRadar) document.querySelectorAll("[data-sr]").forEach((el) => shopRadar.mount(el));
 
   // Handy-Notiz (inbox.js): Notizen von jedem Geraet in eine Cloud-Inbox; das lokale Skript sync-brainmap.ps1 uebernimmt
@@ -3306,11 +3305,9 @@
       msgSeen: msgSeenBoard ? msgSeenBoard.payload() : remoteMsgSeenRaw,
       afterUpload: afterUploadBoard ? afterUploadBoard.payload() : remoteAfterUploadRaw,
       community: communityBoard ? communityBoard.payload() : remoteCommunityRaw,
-      shopradar: shopRadar ? shopRadar.payload() : remoteShopRadarRaw,
       room: roomBoard ? roomBoard.payload() : remoteRoomRaw
     };
     if (payload.room == null) delete payload.room;
-    if (payload.shopradar == null) delete payload.shopradar;
     if (payload.afterUpload == null) delete payload.afterUpload;
     if (payload.community == null) delete payload.community;
     if (payload.msgSeen == null) delete payload.msgSeen;
@@ -3468,8 +3465,6 @@
         if (afterUploadBoard) afterUploadBoard.applyRemote(remote.afterUpload);
         remoteCommunityRaw = remote.community ?? null;
         if (communityBoard) communityBoard.applyRemote(remote.community);
-        remoteShopRadarRaw = remote.shopradar ?? null;
-        if (shopRadar) shopRadar.applyRemote(remote.shopradar);
         remoteRoomRaw = remote.room ?? null;
         if (roomBoard) roomBoard.applyRemote(remote.room);
         applyRemoteTodos(remote.todos);

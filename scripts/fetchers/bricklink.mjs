@@ -17,11 +17,14 @@
 // subject und to, die Bestellungen gar kein Lese-Feld). Deshalb liefert dieser Abruf die OFFENEN
 // Käufer-Nachrichten einzeln: alle Nachrichten des Käufers nach der letzten Nachricht des Shops
 // (data.bricklinkMessages.items: Bestellnummer, Nachrichten-ID, Zeitpunkt). Welche davon schon
-// geöffnet wurden, merkt sich das Dashboard selbst (msgseen.js). Aus dem Shop werden nur Zahlen,
+// geöffnet wurden, merkt sich das Dashboard selbst (msgseen.js). Von Käufern werden nur Zahlen,
 // Nummern und Zeitpunkte gespeichert, nie Inhalte, Namen oder Adressen (auch nicht im privaten Repo).
+// Artikeldaten (keine Kundendaten) stehen nur in zwei kurzen Listen fürs Shop-Radar: die zehn Ladenhüter (data.bricklinkInventory.slow) und die
+// meistverkauften Artikel je Monat (data.bricklinkSales). Das Protokoll (öffentliches Repo) bleibt frei davon.
 
 import { buildAuthHeader } from "../lib/oauth1.mjs";
 import { summarizeInventory } from "../lib/inventory.mjs";
+import { summarizeSales } from "../lib/sales.mjs";
 
 const BASE_URL = "https://api.bricklink.com/api/store/v1";
 const REVENUE_WEEKS = Number(process.env.BRICKLINK_REVENUE_WEEKS || 8);
@@ -46,6 +49,10 @@ const DEFAULT_SHIP_STATUSES = ["PAID", "PACKED", "READY"];
 
 // Storniert/nicht bezahlt — zählt nicht als echter Umsatz.
 const NON_REVENUE_STATUSES = ["CANCELLED", "NPB", "NPX", "NRS", "NSS"];
+
+// Bestseller pro Monat (Shop-Radar): je Bestellung seit Beginn der Monatsliste ein Aufruf GET /orders/{id}/items (rund 100 pro Lauf, das Tageslimit liegt bei 5.000).
+// BRICKLINK_SALES=off schaltet das ab.
+const SALES_ENABLED = String(process.env.BRICKLINK_SALES || "on").toLowerCase() !== "off";
 
 async function bricklinkGet(path, queryParams, creds) {
   const url = `${BASE_URL}${path}`;
@@ -98,6 +105,32 @@ function aggregateBy(orders, keyFn) {
 async function fetchInventory(creds) {
   const inventory = await bricklinkGet("/inventories", {}, creds);
   return Array.isArray(inventory) ? inventory : [];
+}
+
+// Positionen der Bestellungen: orderList = [{ id, month }]. Die API liefert je Bestellung Gruppen von Positionen (Array von Arrays); hier flach.
+// Kleine Gruppen nacheinander; wenn mehr als jede zehnte Abfrage (mindestens 3) fehlschlägt, gilt der Lauf als misslungen und der letzte Stand bleibt stehen.
+async function fetchOrderItems(orderList, creds) {
+  const out = [];
+  let failed = 0, lastError = "";
+  const BATCH = 4;
+  for (let i = 0; i < orderList.length; i += BATCH) {
+    const results = await Promise.all(
+      orderList.slice(i, i + BATCH).map(async (o) => {
+        try {
+          const data = await bricklinkGet(`/orders/${o.id}/items`, {}, creds);
+          return { month: o.month, items: (Array.isArray(data) ? data : []).flatMap((g) => (Array.isArray(g) ? g : [g])) };
+        } catch (err) {
+          failed += 1;
+          lastError = String(err.message || err).slice(0, 160);
+          return null;
+        }
+      })
+    );
+    results.forEach((r) => { if (r) out.push(r); });
+    if (failed > Math.max(3, Math.floor(orderList.length * 0.1))) break;
+  }
+  if (failed > Math.max(3, Math.floor(orderList.length * 0.1))) throw new Error(`${failed} von ${orderList.length} Abfragen fehlgeschlagen: ${lastError}`);
+  return out;
 }
 
 const lower = (v) => String(v ?? "").trim().toLowerCase();
@@ -212,6 +245,9 @@ export async function fetchBricklink(currentData) {
     }
   }
 
+  // Bestellungen, deren Positionen für die Bestseller gebraucht werden (gleiche Auswahl wie die Monatsliste: nicht storniert, seit Beginn der Monatsliste)
+  const salesOrders = [];
+
   // Filed = archivierte/abgeschlossene Bestellungen. Für die Umsatz-Trends brauchen wir
   // auch die, sonst würden abgeschlossene Wochen/Monate als 0€ erscheinen. Eigener
   // try/catch, falls "filed" als Filter in deinem API-Zugang anders/nicht unterstützt wird —
@@ -239,7 +275,10 @@ export async function fetchBricklink(currentData) {
 
       const amount = Number(o.cost?.grand_total ?? 0);
       if (orderedAt >= weeksCutoff) weeklyOrders.push({ key: isoWeekStart(orderedAt), amount });
-      if (orderedAt >= monthsCutoff) monthlyOrders.push({ key: o.date_ordered.slice(0, 7), amount });
+      if (orderedAt >= monthsCutoff) {
+        monthlyOrders.push({ key: o.date_ordered.slice(0, 7), amount });
+        salesOrders.push({ id: o.order_id, month: o.date_ordered.slice(0, 7) });
+      }
     });
 
     const weekly = aggregateBy(weeklyOrders, "weekStart");
@@ -275,6 +314,29 @@ export async function fetchBricklink(currentData) {
     });
   } catch (err) {
     console.error("[bricklink] Inventar übersprungen:", err.message);
+  }
+
+  // Farbnamen für die Rabattliste (die Inventar-Antwort kennt nur die Farbnummer): ein Aufruf, bei einem Fehler zeigt das Radar die Nummer
+  if (patch.bricklinkInventory && patch.bricklinkInventory.slow && patch.bricklinkInventory.slow.length) {
+    try {
+      const colors = await bricklinkGet("/colors", {}, creds);
+      const byId = new Map((Array.isArray(colors) ? colors : []).map((c) => [Number(c.color_id), String(c.color_name || "").slice(0, 40)]));
+      patch.bricklinkInventory.slow.forEach((s) => { s.colorName = byId.get(s.color) || ""; });
+      console.log("[bricklink] Farbnamen abgerufen.");
+    } catch (err) {
+      console.error("[bricklink] Farbnamen übersprungen:", err.message);
+    }
+  }
+
+  // Bestseller pro Monat (data.bricklinkSales, siehe lib/sales.mjs): eigener try/catch, bei einem Fehler bleibt der letzte Stand stehen
+  if (SALES_ENABLED && salesOrders.length) {
+    try {
+      const withItems = await fetchOrderItems(salesOrders, creds);
+      console.log("[bricklink] Positionen der Bestellungen abgerufen.");
+      patch.bricklinkSales = summarizeSales(withItems, { currency: patch.bricklinkRevenue?.currency });
+    } catch (err) {
+      console.error("[bricklink] Bestseller übersprungen:", err.message);
+    }
   }
 
   return patch;

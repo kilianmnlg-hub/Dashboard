@@ -31,7 +31,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `palette.js` — Schnellsuche und Befehle (siehe Abschnitt "Schnellsuche")
 - `msgseen.js` — merkt sich, welche Bricklink-Nachrichten du geöffnet hast (siehe Abschnitt "Ungelesene Nachrichten")
 - `community.js` — Community-Post-Rhythmus für Bricks On The Floor: Knopf GEPOSTET, Ampel, Zähler, Erinnerung (siehe Abschnitt "Community-Post-Rhythmus")
-- `shopradar.js` — Shop-Radar: Ausklappmenü in der Bricklink-Karte (Hinweise, Kennzahlen, Wochen-Diagramm mit Bricklink-Zeit, Ø Warenkorb, Lager, Wochenziel; siehe Abschnitt "Shop-Radar")
+- `shopradar.js` — Shop-Radar: Ausklappmenü in der Bricklink-Karte (Hinweise, Kennzahlen, Zeit und Umsatz, Lager, Wochenziel aus dem Jahresziel, Bestseller pro Monat und Rabattvorschlag mit Bildern; siehe Abschnitt "Shop-Radar")
 - `afterupload.js` — After-Upload-Checkliste: erscheint ganz oben, sobald ein neues Video erkannt wird (siehe Abschnitt "After-Upload-Checkliste")
 - `room.js` — Anbindung des Minigames "Mein Raum" (Kachel, Stunden und Level, Spielstand in der Cloud, Spiel als Vollbild-Overlay; siehe Abschnitt "Mein Raum")
 - `raumspiel/index.html` — das Minigame selbst: ein eigenständiges isometrisches Pixelspiel in einer einzigen Datei (gebaut aus dem Spiele-Projekt, Quellcode liegt dort); `raumspiel/vorschau.png` ist das Kachelbild, bis dein eigener Raum gespeichert ist
@@ -116,7 +116,8 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 | Letztes Longform-Upload-Datum (Upload-Rhythmus-Ampel, Shorts zählen nicht) | YouTube Data API | ✅ automatisch |
 | Offene Bricklink-Bestellungen / Versand-Alarm | Bricklink API | ✅ automatisch |
 | Umsatz-Trend pro Woche & pro Monat (Bricklink) | Bricklink API | ✅ automatisch |
-| Lager: Lots, Teile, Lagerwert, Alter, neu eingestellt (Shop-Radar) | Bricklink API (Inventar) | ✅ automatisch, nur Zahlen, siehe Abschnitt "Shop-Radar" |
+| Lager: Lots, Teile, Lagerwert, Alter, neu eingestellt, Ladenhüter-Liste (Shop-Radar) | Bricklink API (Inventar) | ✅ automatisch, siehe Abschnitt "Shop-Radar" |
+| Bestseller pro Monat (Shop-Radar) | Bricklink API (Positionen der Bestellungen) | ✅ automatisch, siehe Abschnitt "Shop-Radar" |
 | TikTok-Follower (@bricksonthefloor) | TikTok-Profilseite (Scrape) | ✅ automatisch, siehe Hinweis unten |
 | Wochenvergleich-Trendpfeile (Abos, Bricklink-Umsatz) | abgeleitet aus obigen Quellen | ✅ automatisch, siehe Hinweis unten |
 | Views/Wiedergabezeit/Umsatz (28 Tage) | — | ❌ manuell (siehe unten, warum) |
@@ -294,25 +295,37 @@ Ausklappmenü **SHOP-RADAR** in der Karte "Bricklink Store" (zu, bis du es öffn
 Karte am Rechner die ganze Reihe, am Handy die ganze Breite. Es beantwortet "Warum läuft der Shop (nicht)?" mit festen Regeln, keiner Schätzung:
 
 - **Hinweise** (rot, gelb, grün, die schlimmsten zuerst): Bestellungen pro Woche (letzte 4 volle Wochen gegen die 4 davor, gelb ab −25 %, rot ab −40 %), Ø Warenkorb (letzter voller
-  Monat gegen den Schnitt der Monate davor), Bricklink-Zeit gegen dein Wochen-Soll im Zeittracker, Lager (Tage seit dem letzten neuen Lot: gelb ab 7, rot ab 14; Anteil Lots über ein Jahr).
+  Monat gegen den Schnitt der Monate davor), Bricklink-Zeit gegen dein Wochen-Soll im Zeittracker, Lager (Tage seit dem letzten neuen Lot: gelb ab 7, rot ab 14; Anteil Lots über ein Jahr)
+  und das **Jahresziel Teile** (bei deinem Tempo: grün ab Ziel, gelb ab 90 %, sonst rot).
 - **Kennzahlen:** Umsatz im letzten vollen Monat (gegen den Vormonat und den besten Monat), Bestellungen pro Woche, Ø Warenkorb, Umsatz pro Bricklink-Stunde (Umsatz, nicht Gewinn; dazu YouTube
   als Vergleich: Ziel "Umsatz/Monat" geteilt durch die YouTube-Stunden derselben Wochen). Das **i** blendet zu jeder Kennzahl die Rechnung ein.
 - **Zeit und Umsatz pro Woche:** neun Wochen (die laufende gedimmt), Umsatz mit einem Quadrat je Bestellung, darunter die Bricklink-Stunden mit der Soll-Linie. Die drei Wochen mit den meisten
   Stunden sind hinterlegt, der Satz darunter vergleicht sie mit den drei Wochen mit den wenigsten ("ein Zusammenhang, kein Beweis"). **Ø Warenkorb pro Monat:** die letzten sechs vollen Monate.
-- **Lager** (aus `bricklinkInventory`): Lots im Shop (mit Teilen, neu/gebraucht und Stockroom), neu eingestellt in 30 Tagen, **Lagerwert**, zuletzt eingestellt, Alter der Lots in vier Stufen und
-  ein **Wochenziel "Lots einstellen"** (Schalter − / + am Ziel; zählt wie ein Habit: Wochenserie und 15 XP pro erreichter Woche, einmal je Woche). Solange es noch keine Lager-Zahlen gibt, stehen dort Platzhalter.
+- **Lager** (aus `bricklinkInventory`): Lots im Shop (mit Teilen, neu/gebraucht und Stockroom), neu eingestellt in 30 Tagen, **Lagerwert**, zuletzt eingestellt, Alter der Lots in vier Stufen.
+- **Wochenziel "Neue Teile einstellen":** wird aus dem Jahresziel "Bricklink-Teile" (Ziel `bricklink-parts`, Stichtag `due`, sonst 31.12.) abgeleitet: Was bis zum Jahresende noch fehlt, **ohne die Teile, die
+  diese Woche schon eingestellt wurden**, geteilt durch die Wochen ab dieser Woche. Das Ziel bleibt so die ganze Woche stehen und passt sich von Woche zu Woche an. Dazu der Schnitt der letzten 4 vollen Wochen und
+  was das zum Jahresende ergäbe (Verkäufe nicht eingerechnet). Wie ein Habit: Wochenserie und **15 XP** je erreichter Woche (einmal je Woche, Schlüssel `partsweek@<Montag>`; die Vorwoche zählt mit).
+  Vergangene Wochen werden mit demselben Verfahren zurückgerechnet. Es gibt keinen Schalter mehr, das Ziel folgt dem Jahresziel.
+- **Bestseller pro Monat:** Reiter für die Monate der Umsatzliste (der laufende mit `*`), darunter die zehn meistverkauften Artikel nach Stückzahl (neu und gebraucht zusammen, bei gleicher Stückzahl nach Umsatz),
+  jeweils mit **Rang, Bild, Teilenummer** (Link zur Katalogseite in Bricklink), Name, Farbe, Stückzahl, Umsatz und Zahl der Bestellungen.
+- **Rabattvorschlag:** die **zehn Ladenhüter**, ebenfalls mit Rang, Bild und Teilenummer. Bricklink verrät nicht, wie oft ein einzelnes Lot verkauft wurde; "schlecht verkauft" heißt deshalb: Lot über 1 Jahr alt
+  und viel Wert gebunden. Sortiert wird nach Warenwert mal Alter in Tagen. Der Vorschlag richtet sich nach dem Alter (`DISCOUNT_TIERS` in `scripts/lib/inventory.mjs`: ab 1 Jahr 10 %, ab 2 Jahren 15 %, ab 3 Jahren 20 %
+  auf den Listenpreis); Lots, die schon so stark rabattiert sind, fehlen. Angezeigt werden alter Preis, neuer Preis, Stückzahl, gebundener Wert und Alter. Den Rabatt stellst du in Bricklink beim Lot ein (Sale in Prozent).
 
-**Herkunft:** Der tägliche Sync (`scripts/fetchers/bricklink.mjs`) ruft das Inventar (`GET /inventories`) mit **einem** Aufruf ab, der auch die Summe für das Ziel "Teile" liefert, und macht daraus nur Zahlen
-(`scripts/lib/inventory.mjs`, reine Funktionen ohne Node-Abhängigkeiten): Lots mit Stückzahl über 0, Stockroom getrennt, Wert = Stückzahl × Preis je Stück (bei `sale_rate` abzüglich Rabatt), Alter und
-"neu eingestellt" aus `date_created` (Erstelldatum des Lots). Fehlt ein Feld in der Antwort, bleibt die Zahl weg und das Radar zeigt "–". Artikelnummern, Namen und Einzelpreise werden nicht
-gespeichert, im Protokoll steht keine Zahl (das Repo ist öffentlich). Eine leere Inventar-Antwort wird als Aussetzer der API behandelt und überschreibt nichts.
-**Grenzen:** Der Lagerwert ist der **Verkaufs**wert, kein Einkaufswert. "Neu eingestellt" zählt nur Lots, die noch im Bestand sind; eine vergangene Woche kann deshalb nur schrumpfen, der höchste je gesehene Wert
-bleibt stehen (`weekly`, 12 Wochen). Wer Lots per Upload ersetzt statt zu aktualisieren, setzt womöglich das Erstelldatum zurück; dann stimmen Alter und "neu eingestellt" an dem Tag nicht.
-Stunden kommen aus dem Zeittracker (`timeTrackerBoard.weekHours`).
+**Bilder:** die kleinen Vorschaubilder von Bricklink, direkt eingebunden (`https://img.bricklink.com/ItemImage/<P|S|M…>T/<Farbe>/<Nummer>.t1.png`, rund 5 KB), nichts wird gespeichert; fehlt ein Bild, bleibt der leere Rahmen.
 
-**Daten:** Feld `shopradar` in `sync-data.json` (privates Repo): nur das Wochenziel `{ goal, updatedAt }` (der neuere Stand gewinnt; steht in der Schutzliste `STAMPED` von
-`scripts/protect-sync-data.py`). Auf/zu und das **i** merkt sich nur dieser Browser. Die Rechenregeln stehen in `ShopRadarCalc.compute` (`shopradar.js`) und lassen sich dort ohne Seite prüfen.
-Die Schnellsuche (Strg+K) hat den Befehl "Shop-Radar öffnen".
+**Herkunft:** Der tägliche Sync (`scripts/fetchers/bricklink.mjs`) ruft das Inventar (`GET /inventories`) mit **einem** Aufruf ab, der auch die Summe für das Ziel "Teile" liefert, und macht daraus Zahlen und die Rabattliste
+(`scripts/lib/inventory.mjs`, reine Funktionen ohne Node-Abhängigkeiten): Lots mit Stückzahl über 0, Stockroom getrennt, Wert = Stückzahl × Preis je Stück (bei `sale_rate` abzüglich Rabatt), Alter und "neu eingestellt"
+aus `date_created` (Erstelldatum des Lots), Teile je Woche aus `date_created` mal Stückzahl (alle Lots, damit es zur Gesamtzahl des Jahresziels passt). Fehlt ein Feld in der Antwort, bleibt die Zahl weg und das Radar zeigt "–".
+Die Bestseller kommen aus den Positionen der Bestellungen (`GET /orders/{id}/items`, rund 100 Aufrufe pro Lauf, nicht stornierte Bestellungen seit Beginn der Monatsliste; `scripts/lib/sales.mjs`;
+`BRICKLINK_SALES=off` schaltet es ab); die Farbnamen der Rabattliste kommen aus `GET /colors`. Eine leere Inventar-Antwort wird als Aussetzer der API behandelt und überschreibt nichts, bei zu vielen fehlgeschlagenen
+Positionen-Abfragen bleiben die alten Bestseller stehen. Im Protokoll steht keine Zahl und kein Artikel (das Repo ist öffentlich).
+**Daten und Datenschutz:** Gespeichert (privates Repo, `data.js`) werden Zahlen und zwei kurze Artikellisten: `bricklinkInventory.slow` (zehn Lots: Typ, Nummer, Name, Farbe, Menge, Preis, Alter) und
+`bricklinkSales.months[].top` (zehn Artikel je Monat). Das sind Artikeldaten, **keine Kundendaten**: von Käufern wird nichts gespeichert (keine Namen, Adressen, Nachrichten, Bestellnummern in diesen Listen).
+**Grenzen:** Der Lagerwert ist der **Verkaufs**wert, kein Einkaufswert. "Neu eingestellt" und die Teile je Woche zählen nur Lots, die noch im Bestand sind; eine vergangene Woche kann deshalb nur schrumpfen, der höchste je
+gesehene Wert bleibt stehen (`weekly`, 12 Wochen). Wer Lots per Upload ersetzt statt zu aktualisieren, setzt womöglich das Erstelldatum zurück; dann stimmen Alter, "neu eingestellt" und die Ladenhüter an dem Tag nicht.
+Stunden kommen aus dem Zeittracker (`timeTrackerBoard.weekHours`). Das Radar speichert selbst nichts; auf/zu und das **i** merkt sich nur dieser Browser (der Monat der Bestseller nur bis zum Neuladen).
+Die Rechenregeln stehen in `ShopRadarCalc.compute` (`shopradar.js`) und lassen sich dort ohne Seite prüfen. Die Schnellsuche (Strg+K) hat den Befehl "Shop-Radar öffnen".
 
 ## TikTok-Follower (@bricksonthefloor)
 

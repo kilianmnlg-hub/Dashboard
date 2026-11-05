@@ -1,15 +1,19 @@
 /* Shop-Radar (Bricklink): Ausklappmenue in der Karte "Bricklink Store". Zeigt, warum der Shop laeuft oder nicht: feste Regeln (keine Schaetzung) ueber
-   Umsatz, Bestellungen, Ø Warenkorb und die Bricklink-Zeit aus dem Zeittracker, dazu das Lager (Lots, Lagerwert, Alter, neu eingestellt) und ein
-   Wochenziel "Lots einstellen". Alles kommt aus Zahlen, die der Sync ohnehin holt (data.bricklinkRevenue und data.bricklinkInventory, siehe
-   scripts/fetchers/bricklink.mjs und scripts/lib/inventory.mjs) und aus dem Zeittracker; gespeichert werden nur Zahlen, nie Namen, Adressen oder Nachrichten.
-   Cloud (Feld "shopradar" in sync-data.json): nur das Wochenziel { goal, updatedAt }, Zeitstempel-Prinzip wie bei community.js (der neuere Stand gewinnt).
-   Auf/zu und die Erklaerung merkt sich nur dieser Browser. script.js uebergibt die Daten und ruft applyRemote()/payload() auf.
+   Umsatz, Bestellungen, Ø Warenkorb und die Bricklink-Zeit aus dem Zeittracker, dazu das Lager (Lots, Lagerwert, Alter, neu eingestellt), das Wochenziel
+   fuer neue Teile (aus dem Jahresziel "Bricklink-Teile" abgeleitet), die Bestseller je Monat und einen Rabattvorschlag mit den zehn Ladenhuetern, jeweils
+   mit Bild und Teilenummer. Alles kommt aus Zahlen, die der Sync ohnehin holt (data.bricklinkRevenue, data.bricklinkInventory und data.bricklinkSales, siehe
+   scripts/fetchers/bricklink.mjs, scripts/lib/inventory.mjs und scripts/lib/sales.mjs) und aus dem Zeittracker. Von Kaeufern wird nichts gespeichert; die
+   beiden Artikellisten enthalten nur Artikeldaten. Bilder: die kleinen Vorschaubilder von Bricklink (img.bricklink.com), direkt eingebunden.
+   Gespeichert wird hier nichts; auf/zu, die Erklaerung und der gewaehlte Monat gelten nur fuer diesen Browser (auf/zu und Erklaerung bleiben beim Neuladen).
    compute() ist eine reine Funktion (ohne Seite), damit sie sich separat pruefen laesst: window.ShopRadarCalc.compute. */
 (function () {
-  const DAY = 86400000, WEEKS = 9, MAX_GOAL = 500, XP_WEEK = 15;
+  const DAY = 86400000, WEEKS = 9, XP_WEEK = 15;
   const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
   const MON_SHORT = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
   const LEVEL_RANK = { bad: 0, warn: 1, info: 2, ok: 3 };
+  // Artikeltyp der Bricklink-API -> Buchstabe in den Adressen von Bild und Katalogseite; Beschriftung fuer alles ausser Teilen
+  const TYPE_KEY = { PART: "P", SET: "S", MINIFIG: "M", GEAR: "G", BOOK: "B", CATALOG: "C", INSTRUCTION: "I", ORIGINAL_BOX: "O" };
+  const TYPE_LABEL = { SET: "Set", MINIFIG: "Minifigur", GEAR: "Gear", BOOK: "Buch", CATALOG: "Katalog", INSTRUCTION: "Anleitung", ORIGINAL_BOX: "Originalbox", UNSORTED_LOT: "Gemischtes Lot" };
   const isNum = (v) => typeof v === "number" && isFinite(v);
   const pad = (n) => String(n).padStart(2, "0");
   const keyOf = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -19,27 +23,75 @@
   const de = (n, dec) => n.toLocaleString("de-DE", { minimumFractionDigits: dec, maximumFractionDigits: dec });
   const eur0 = (n) => `${de(Math.round(n), 0)} €`;
   const eur2 = (n) => `${de(n, 2)} €`;
+  // Preise von Teilen sind oft kleiner als ein Euro: bis zu drei Stellen
+  const price = (n) => `${n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: n < 1 ? 3 : 2 })} €`;
   const one = (n) => de(Math.round(n * 10) / 10, 1);
   const sum = (arr, f) => arr.reduce((s, x) => s + f(x), 0);
   // Veraenderung in Prozent mit echtem Minuszeichen: +12 %, −44 %
   const pct = (a, b) => { const p = Math.round((a / b - 1) * 100); return (p > 0 ? "+" : p < 0 ? "−" : "") + Math.abs(p) + " %"; };
   const dm = (key) => `${+key.slice(8, 10)}.${+key.slice(5, 7)}.`;
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  // Die API liefert Artikelnamen mit HTML-Zeichen (z.B. &#40; fuer eine Klammer): erst entschluesseln (als reiner Text), beim Ausgeben wieder maskieren
+  const decode = (s) => { const t = document.createElement("textarea"); t.innerHTML = String(s); return t.value; };
+  const imgUrl = (t, no, color) => { const k = TYPE_KEY[t]; return k && no ? `https://img.bricklink.com/ItemImage/${k}T/${t === "PART" ? color || 0 : 0}/${encodeURIComponent(no)}.t1.png` : ""; };
+  const pageUrl = (t, no, color) => { const k = TYPE_KEY[t]; return k && no ? `https://www.bricklink.com/v2/catalog/catalogitem.page?${k}=${encodeURIComponent(no)}${t === "PART" && color ? `&C=${color}` : ""}` : ""; };
+  // Alter in Tagen als "2 J. 4 Mon."
+  const ageText = (days) => { const y = Math.floor(days / 365), m = Math.floor((days % 365) / 30); return y > 0 ? `${y} J.${m ? ` ${m} Mon.` : ""}` : `${Math.max(1, m)} Mon.`; };
+
+  /* ---------- Jahresziel Teile und Wochenziel ---------- */
+  // Das Jahresziel ("Bricklink-Teile": Gesamtzahl der Teile im Shop bis zum Stichtag) wird auf die Wochen verteilt: Wochenziel = was bis zum Jahresende noch fehlt
+  // (ohne die Teile, die in dieser Woche schon eingestellt wurden), geteilt durch die Wochen ab dieser Woche. Das Ziel bleibt so waehrend der Woche stehen und
+  // passt sich von Woche zu Woche an. Verkaeufe sind nicht eingerechnet. Fuer vergangene Wochen wird derselbe Wert zurueckgerechnet (Serie).
+  function buildPlan(inv, yg, now, curKey) {
+    if (!inv || !yg || !isNum(yg.target) || !(yg.target > 0)) return null;
+    const wl = (Array.isArray(inv.weekly) ? inv.weekly : []).filter((w) => w && typeof w.weekStart === "string").sort((a, b) => (a.weekStart < b.weekStart ? -1 : 1));
+    if (!wl.length || !wl.every((w) => isNum(w.parts))) return null;   // aeltere Daten ohne Teile je Woche: kommen mit dem naechsten Sync
+    const total = isNum(inv.parts) ? inv.parts + (isNum(inv.stockroomParts) ? inv.stockroomParts : 0) : isNum(yg.current) ? yg.current : null;
+    if (total === null) return null;
+    const today = keyOf(now), T = yg.target;
+    const yearEnd = typeof yg.due === "string" && /^\d{4}-\d{2}-\d{2}$/.test(yg.due) && yg.due >= today ? yg.due : `${now.getFullYear()}-12-31`;
+    const weeksFrom = (key) => Math.max(1, Math.ceil(((utc(yearEnd) - utc(key)) / DAY + 1) / 7));
+    const rows = [];
+    let tail = 0;
+    for (let i = wl.length - 1; i >= 0; i--) {
+      tail += wl[i].parts;
+      const need = T - (total - tail);
+      rows[i] = { key: wl[i].weekStart, parts: wl[i].parts, lots: Number(wl[i].listed) || 0, target: need > 0 ? Math.ceil(need / weeksFrom(wl[i].weekStart)) : 0 };
+    }
+    const cur = rows.find((r) => r.key === curKey) || null;
+    const before = rows.filter((r) => r.key < curKey);
+    const prev = before.length ? before[before.length - 1] : null;
+    const weeksLeft = weeksFrom(curKey);
+    const weekTarget = cur ? cur.target : T - total > 0 ? Math.ceil((T - total) / weeksLeft) : 0;
+    let series = 0;
+    for (let i = before.length - 1; i >= 0 && before[i].target > 0 && before[i].parts >= before[i].target; i--) series++;
+    const last = before.slice(-4);
+    const avg4 = last.length >= 2 ? sum(last, (r) => r.parts) / last.length : null;
+    const daysLeft = (utc(yearEnd) - utc(today)) / DAY + 1;
+    return {
+      target: T, total, remaining: Math.max(0, T - total), yearEnd, weeksLeft, weekTarget, done: total >= T,
+      listedParts: cur ? cur.parts : null, listedLots: cur ? cur.lots : null,
+      reached: !!cur && weekTarget > 0 && cur.parts >= weekTarget,
+      prevReached: !!prev && prev.target > 0 && prev.parts >= prev.target,
+      series, avg4, projection: avg4 === null ? null : total + (avg4 * daysLeft) / 7,
+      curKey, prevKey: prev ? prev.key : null
+    };
+  }
 
   /* ---------- Rechnen (reine Funktion) ---------- */
-  // m: { now, revenue, inventory, hours, targetHours, ytMonthly, goal }
+  // m: { now, revenue, inventory, sales, hours, targetHours, ytMonthly, yearGoal }
   //   revenue    data.bricklinkRevenue ({ weekly, monthly, weeklyFrom, monthlyFrom, checkedAt }) oder null
   //   inventory  data.bricklinkInventory (siehe scripts/lib/inventory.mjs) oder null
+  //   sales      data.bricklinkSales ({ months: [{ month, orders, units, revenue, top }] }, siehe scripts/lib/sales.mjs) oder null
   //   hours      [{ start, youtube, bricklink }] ab der aeltesten Woche, die laufende zuletzt (Zeittracker.weekHours(9)), oder null
-  //   targetHours Wochen-Soll Bricklink in Stunden, ytMonthly YouTube-Umsatz je Monat (Ziel "bricks-umsatz"), goal Wochenziel Lots (0 = aus),
-  //   goalSince Montag der Woche, in der das Ziel zuletzt gesetzt wurde (JJJJ-MM-TT, optional)
+  //   targetHours Wochen-Soll Bricklink in Stunden, ytMonthly YouTube-Umsatz je Monat (Ziel "bricks-umsatz"),
+  //   yearGoal   das Ziel "bricklink-parts" ({ current, target, due }) oder null
   function compute(m) {
     const now = m.now || new Date();
     const rev = m.revenue && Array.isArray(m.revenue.weekly) ? m.revenue : null;
     const inv = m.inventory && isNum(m.inventory.lots) ? m.inventory : null;
     const hours = Array.isArray(m.hours) && m.hours.length ? m.hours : null;
     const target = isNum(m.targetHours) && m.targetHours > 0 ? m.targetHours : null;
-    const goal = Number.isInteger(m.goal) && m.goal > 0 ? m.goal : 0;
 
     /* Wochen: neun Spalten, die laufende zuletzt */
     const curMonday = mondayKey(now);
@@ -138,7 +190,7 @@
       }
     }
 
-    /* Lager */
+    /* Lager, Wochenziel und Rabattvorschlag */
     let lager = null;
     const curKey = keys[keys.length - 1];
     if (inv) {
@@ -150,20 +202,28 @@
       const ageRows = inv.age && ageN > 0
         ? [["unter 30 Tage", inv.age.d30], ["30 bis 90 Tage", inv.age.d90], ["90 bis 365 Tage", inv.age.d365], ["über 1 Jahr", inv.age.older]].map(([label, n]) => ({ label, n, p: Math.round((n / ageN) * 100) }))
         : null;
-      let series = 0;
-      if (goal && wk.size) for (let i = keys.length - 2; i >= 0 && (wk.get(keys[i]) || 0) >= goal; i--) series++;
       lager = {
         lots: inv.lots, parts: isNum(inv.parts) ? inv.parts : null, value: isNum(inv.value) ? inv.value : null,
         newLots: isNum(inv.newLots) ? inv.newLots : null, usedLots: isNum(inv.usedLots) ? inv.usedLots : null,
         stockroomLots: isNum(inv.stockroomLots) ? inv.stockroomLots : 0,
         newLots30: isNum(inv.newLots30) ? inv.newLots30 : null,
         lastListed: inv.lastListed || null, daysSince, listedNow, ageRows,
-        olderShare: ageRows ? ageRows[3].p : null,
-        goal, series, reached: goal > 0 && listedNow !== null && listedNow >= goal,
-        // die Vorwoche zaehlt nur, wenn das Ziel schon vor ihrem Ende galt (sonst gaebe es beim Setzen des Ziels sofort Punkte fuer vergangene Wochen)
-        prevReached: goal > 0 && wk.has(keys[keys.length - 2]) && (wk.get(keys[keys.length - 2]) || 0) >= goal && (!m.goalSince || m.goalSince <= keys[keys.length - 2]),
-        curKey, prevKey: keys[keys.length - 2]
+        olderShare: ageRows ? ageRows[3].p : null, olderN: inv.age ? inv.age.older : null, oldValue: isNum(inv.oldValue) ? inv.oldValue : null,
+        // Array = Liste, null = ohne Erstelldatum nicht moeglich, undefined = aeltere Daten (kommt mit dem naechsten Sync)
+        slow: Array.isArray(inv.slow) ? inv.slow.filter((r) => r && typeof r.no === "string" && isNum(r.price) && isNum(r.newPrice)) : inv.slow === null ? null : undefined,
+        plan: buildPlan(inv, m.yearGoal, now, curKey)
       };
+    }
+
+    /* Bestseller je Monat (aelteste zuerst; vorgewaehlt wird der letzte volle Monat mit Bestellungen) */
+    let sales = null;
+    if (m.sales && Array.isArray(m.sales.months) && m.sales.months.length) {
+      const list = m.sales.months.filter((x) => x && typeof x.month === "string" && /^\d{4}-\d{2}$/.test(x.month)).sort((a, b) => (a.month < b.month ? -1 : 1))
+        .map((x) => ({ key: x.month, mi: +x.month.slice(5) - 1, year: x.month.slice(0, 4), orders: Number(x.orders) || 0, units: Number(x.units) || 0, revenue: Number(x.revenue) || 0, top: Array.isArray(x.top) ? x.top : [], running: x.month === curMonth }));
+      if (list.length) {
+        const pick = list.filter((x) => !x.running && x.orders > 0).pop() || list.filter((x) => x.orders > 0).pop() || list[list.length - 1];
+        sales = { months: list, defaultKey: pick.key };
+      }
     }
 
     /* Hinweise: feste Regeln, die schlimmsten zuerst */
@@ -186,14 +246,28 @@
       else hints.push({ level: "ok", title: "Bricklink-Zeit im Ziel", text: `Ø ${one(Ah)} Std. pro Woche, Ziel ${one(target)}.` });
     }
     if (lager) {
-      const part = lager.listedNow !== null ? `Diese Woche ${lager.listedNow} ${lager.listedNow === 1 ? "neues Lot" : "neue Lots"}${goal ? `, Ziel ${goal}` : ""}.` : "";
+      const p = lager.plan;
+      const part = p && p.listedParts !== null
+        ? `Diese Woche ${de(p.listedParts, 0)} Teile${p.weekTarget ? `, Ziel ${de(p.weekTarget, 0)}` : ""}.`
+        : lager.listedNow !== null ? `Diese Woche ${lager.listedNow} ${lager.listedNow === 1 ? "neues Lot" : "neue Lots"}.` : "";
       const d = lager.daysSince;
       if (d !== null) {
         const level = d >= 14 ? "bad" : d >= 7 ? "warn" : "ok";
         const title = level !== "ok" ? `Seit ${d} Tagen nichts eingestellt` : d === 0 ? "Heute etwas eingestellt" : d === 1 ? "Gestern etwas eingestellt" : `Zuletzt vor ${d} Tagen etwas eingestellt`;
         hints.push({ level, title, text: part || `Das neueste Lot ist vom ${dm(lager.lastListed)}` });
       }
-      if (lager.olderShare !== null && lager.olderShare >= 40) hints.push({ level: "warn", title: `${lager.olderShare} % der Lots sind älter als ein Jahr`, text: "Ladenhüter binden Geld, ohne zu verkaufen." });
+      if (p && p.done) hints.push({ level: "ok", title: `Jahresziel ${de(p.target, 0)} Teile erreicht`, text: `Im Shop liegen ${de(p.total, 0)} Teile.` });
+      else if (p && p.avg4 !== null) {
+        const proj = Math.round(p.projection / 100) * 100, level = p.projection >= p.target ? "ok" : p.projection >= p.target * 0.9 ? "warn" : "bad";
+        hints.push({
+          level,
+          title: level === "ok" ? `Jahresziel ${de(p.target, 0)} Teile in Reichweite` : `Jahresziel ${de(p.target, 0)} Teile: bei diesem Tempo ca. ${de(proj, 0)}`,
+          text: `Nötig: ${de(p.weekTarget, 0)} Teile pro Woche, dein Schnitt: ${de(Math.round(p.avg4), 0)}.`
+        });
+      }
+      if (lager.olderShare !== null && lager.olderShare >= 40) {
+        hints.push({ level: "warn", title: `${lager.olderShare} % der Lots sind älter als ein Jahr`, text: `Ladenhüter binden Geld${lager.oldValue !== null ? ` (ca. ${eur0(lager.oldValue)})` : ""}${lager.slow && lager.slow.length ? ", siehe Rabattvorschlag." : "."}` });
+      }
     } else {
       hints.push({ level: "info", title: "Lager noch nicht geladen", text: "Die Lager-Zahlen kommen mit dem nächsten Sync." });
     }
@@ -204,9 +278,9 @@
     const stamp = [rev && rev.checkedAt, inv && inv.checkedAt].filter(Boolean).sort().pop();
     const sd = stamp ? new Date(stamp) : null;
     return {
-      weeks, hi, weekNote, months, monthNote, kpis, hints, lager, worst, issues,
+      weeks, hi, weekNote, months, monthNote, kpis, hints, lager, sales, worst, issues,
       stand: sd && !isNaN(sd) ? sd.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) : "",
-      hasRevenue: !!rev, hasHours: !!hours, target, goal
+      hasRevenue: !!rev, hasHours: !!hours, target
     };
   }
 
@@ -252,12 +326,23 @@
       return `<div class="sr-col sr-mcol${x.known ? "" : " sr-unk"}" title="${esc(t)}"><span class="sr-val">${x.aov !== null ? Math.round(x.aov) : "–"}</span><span class="sr-bar sr-bar-r" style="height:${x.aov !== null ? Math.max(4, Math.round((x.aov / aMax) * 120)) : 4}px"></span><span class="sr-mlab">${MON_SHORT[x.mi]}</span><span class="sr-mord">${x.known ? `${x.ord} Best.` : ""}</span></div>`;
     }).join("")}</div>`;
   }
+
+  // Eine Zeile mit Rang, Bild, Teilenummer (Link zur Bricklink-Katalogseite), Name und Farbe; rechts die Zahlen
+  function itemRow(n, r, right) {
+    const colorTxt = r.colorName || (r.color ? `Farbe ${r.color}` : "");
+    const sub = [colorTxt, r.cond === "N" ? "neu" : r.cond === "U" ? "gebraucht" : "", r.t !== "PART" ? TYPE_LABEL[r.t] || "" : ""].filter(Boolean).join(" · ");
+    const img = imgUrl(r.t, r.no, r.color), url = pageUrl(r.t, r.no, r.color);
+    return `<li class="sr-item"><span class="sr-rank" aria-label="Platz ${n}">${n}</span><span class="sr-img">${img ? `<img src="${esc(img)}" alt="" width="56" height="56" loading="lazy" referrerpolicy="no-referrer">` : ""}</span>
+      <div class="sr-im"><b class="sr-no">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="Katalogseite in Bricklink öffnen">${esc(r.no)}</a>` : esc(r.no)}</b><span class="sr-iname">${esc(decode(r.name))}</span>${sub ? `<span class="sr-isub">${esc(sub)}</span>` : ""}</div>
+      <div class="sr-iv">${right}</div></li>`;
+  }
+
   function lagerHtml(model) {
     const L = model.lager;
     const tile = (label, value, sub, off) => `<div class="sr-tile${off ? " sr-off" : ""}"><span class="sr-kl">${label}</span><b class="sr-kv">${value}</b><span class="sr-k2">${sub}</span></div>`;
     if (!L) {
       return `<div class="sr-tiles">${tile("LOTS IM SHOP", "–", "kommt mit dem nächsten Sync", true)}${tile("NEU EINGESTELLT", "–", "in 30 Tagen", true)}${tile("LAGERWERT", "–", "Menge mal Preis", true)}${tile("ZULETZT EINGESTELLT", "–", "Tage seit dem letzten Lot", true)}</div>
-        <p class="sr-note">Der tägliche Sync fragt bei Bricklink deine Lots ab (Anzahl, Menge, Preis, Einstelldatum) und speichert nur die Summen. Danach stehen hier echte Zahlen.</p>`;
+        <p class="sr-note">Der tägliche Sync fragt bei Bricklink deine Lots ab (Anzahl, Menge, Preis, Einstelldatum) und speichert die Summen. Danach stehen hier echte Zahlen.</p>`;
     }
     const parts = [L.parts !== null ? `${de(L.parts, 0)} Teile` : "", L.newLots !== null && L.usedLots !== null ? `${de(L.newLots, 0)} neu, ${de(L.usedLots, 0)} gebraucht` : ""].filter(Boolean).join(" · ");
     const tiles = [
@@ -269,23 +354,58 @@
     const ages = L.ageRows
       ? L.ageRows.map((a, i) => `<div class="sr-age"><span>${a.label}</span><span class="sr-track"><span class="sr-fill${i === 3 ? (a.p >= 40 ? " sr-fill-bad" : a.p >= 20 ? " sr-fill-warn" : "") : ""}" style="width:${a.p}%"></span></span><span class="sr-pct">${a.p} %</span></div>`).join("") + `<p class="sr-note">Lots, die älter als ein Jahr sind, nennt man Ladenhüter: Sie binden Geld, ohne zu verkaufen.</p>`
       : `<p class="sr-note">Bricklink liefert für die Lots kein Erstelldatum, deshalb gibt es hier kein Alter.</p>`;
-    const g = L.goal, n = L.listedNow;
-    const barP = g > 0 && n !== null ? Math.min(100, Math.round((n / g) * 100)) : 0;
-    const serie = g > 0 ? (L.reached ? `Serie: ${L.series + 1} ${L.series + 1 === 1 ? "Woche" : "Wochen"} in Folge (mit dieser)` : L.series > 0 ? `Serie: ${L.series} ${L.series === 1 ? "Woche" : "Wochen"} in Folge geschafft` : "Noch keine Serie: Ziel erreichen, dann zählt die Woche.") : "Setze ein Ziel: Es zählt wie ein Habit, mit Wochenserie und 15 XP pro erreichter Woche.";
-    const goalBox = `<div class="sr-goal"><span class="sr-kl">WOCHENZIEL: LOTS EINSTELLEN</span>
-        <div class="sr-gtrack"><span class="sr-gfill${L.reached ? " sr-gdone" : ""}" style="width:${barP}%"></span></div>
-        <b class="sr-gtext">${g > 0 ? (n !== null ? `Diese Woche: ${n} von ${g} Lots` : `Ziel: ${g} Lots pro Woche`) : "Kein Wochenziel gesetzt"}</b>
-        <span class="sr-k2">${serie}</span>
-        <span class="sr-step"><button type="button" data-sr-act="goal-" aria-label="Wochenziel verringern"${g <= 0 ? " disabled" : ""}>−</button><span>${g > 0 ? `${g} Lots` : "aus"}</span><button type="button" data-sr-act="goal+" aria-label="Wochenziel erhöhen">+</button></span></div>`;
+    const p = L.plan;
+    let goalBox;
+    if (!p) {
+      goalBox = `<div class="sr-goal"><span class="sr-kl">WOCHENZIEL: NEUE TEILE EINSTELLEN</span><p class="sr-note">Das Wochenziel richtet sich nach deinem Jahresziel „Bricklink-Teile“. Die Teile je Woche kommen mit dem nächsten Sync.</p></div>`;
+    } else if (p.done) {
+      goalBox = `<div class="sr-goal"><span class="sr-kl">WOCHENZIEL: NEUE TEILE EINSTELLEN</span><b class="sr-gtext">Jahresziel erreicht: ${de(p.total, 0)} von ${de(p.target, 0)} Teilen</b><span class="sr-k2">Ein Wochenziel ist nicht mehr nötig.</span></div>`;
+    } else {
+      const n = p.listedParts, barP = n !== null && p.weekTarget > 0 ? Math.min(100, Math.round((n / p.weekTarget) * 100)) : 0;
+      const proj = p.projection !== null ? Math.round(p.projection / 100) * 100 : null;
+      const serie = p.reached ? `Serie: ${p.series + 1} ${p.series + 1 === 1 ? "Woche" : "Wochen"} in Folge (mit dieser), +15 XP` : p.series > 0 ? `Serie: ${p.series} ${p.series === 1 ? "Woche" : "Wochen"} in Folge geschafft` : "Noch keine Serie: Ziel erreichen, dann zählt die Woche (15 XP).";
+      goalBox = `<div class="sr-goal"><span class="sr-kl">WOCHENZIEL: NEUE TEILE EINSTELLEN</span>
+        <div class="sr-gtrack"><span class="sr-gfill${p.reached ? " sr-gdone" : ""}" style="width:${barP}%"></span></div>
+        <b class="sr-gtext">${n !== null ? `Diese Woche: ${de(n, 0)} von ${de(p.weekTarget, 0)} Teilen` : `Ziel: ${de(p.weekTarget, 0)} neue Teile pro Woche`}</b>
+        <span class="sr-k2">Aus dem Jahresziel: ${de(p.target, 0)} Teile bis ${dm(p.yearEnd)} (jetzt ${de(p.total, 0)}, noch ${de(p.remaining, 0)} in ${p.weeksLeft} ${p.weeksLeft === 1 ? "Woche" : "Wochen"}).</span>
+        ${p.avg4 !== null ? `<span class="sr-k2">Dein Schnitt: Ø ${de(Math.round(p.avg4), 0)} Teile pro Woche. Bei diesem Tempo ergäbe das zum Jahresende ca. ${de(proj, 0)} Teile, ohne Verkäufe gerechnet.</span>` : ""}
+        <span class="sr-k2">${serie}</span></div>`;
+    }
     return `<div class="sr-tiles">${tiles}</div><div class="sr-lcols"><div class="sr-ages"><span class="sr-kl">ALTER DER LOTS</span>${ages}</div>${goalBox}</div>`;
+  }
+
+  // Bestseller: Reiter fuer die Monate (aelteste links, laufender Monat rechts), darunter die zehn meistverkauften Artikel des gewaehlten Monats
+  function salesHtml(model, ui) {
+    const S = model.sales;
+    if (!S) return `<p class="sr-note">Die Bestseller kommen mit dem nächsten Sync.</p>`;
+    const sel = S.months.find((x) => x.key === ui.month) || S.months.find((x) => x.key === S.defaultKey) || S.months[S.months.length - 1];
+    const tabs = S.months.map((x) => `<button type="button" class="sr-tab" data-sr-act="month:${x.key}" aria-pressed="${x.key === sel.key ? "true" : "false"}">${MON_SHORT[x.mi]}${x.running ? "*" : ""}</button>`).join("");
+    const list = sel.top.length
+      ? `<ol class="sr-items">${sel.top.map((r, i) => itemRow(i + 1, r, `<b>${de(r.qty, 0)} Stück</b><span class="sr-m">${eur2(r.revenue)}</span><span class="sr-m">in ${r.orders} ${r.orders === 1 ? "Bestellung" : "Bestellungen"}</span>`)).join("")}</ol>`
+      : `<p class="sr-note">In diesem Monat gab es keine Verkäufe.</p>`;
+    return `<div class="sr-tabs" role="group" aria-label="Monat wählen">${tabs}</div>
+      <p class="sr-msum"><b>${MONTHS[sel.mi]} ${sel.year}${sel.running ? " (läuft noch)" : ""}:</b> ${sel.orders} ${sel.orders === 1 ? "Bestellung" : "Bestellungen"}, ${de(sel.units, 0)} Teile, ${eur0(sel.revenue)}</p>${list}`;
+  }
+
+  // Rabattvorschlag: die zehn Ladenhueter (Warenwert mal Alter), mit Vorschlag nach Alter
+  function slowHtml(model) {
+    const L = model.lager;
+    if (!L || L.slow === undefined) return `<p class="sr-note">Die Liste kommt mit dem nächsten Sync.</p>`;
+    if (L.slow === null) return `<p class="sr-note">Ohne Erstelldatum der Lots gibt es keine Liste.</p>`;
+    if (!L.slow.length) return `<p class="sr-note">Keine Lots über ein Jahr gefunden, für die ein Rabatt nötig wäre.</p>`;
+    const sumTxt = L.olderN !== null ? `<p class="sr-msum">Lots über 1 Jahr: <b>${de(L.olderN, 0)}</b>${L.oldValue !== null ? `, gebunden ca. <b>${eur0(L.oldValue)}</b> zum Verkaufspreis` : ""}. Hier die zehn mit dem meisten Geld, das am längsten liegt:</p>` : "";
+    const rows = L.slow.map((r, i) => itemRow(i + 1, r, `<span class="sr-pr"><s>${price(r.price)}</s> → <b>${price(r.newPrice)}</b> <span class="sr-pc">−${r.pct} %</span></span><span class="sr-m"><span class="sr-nb">${de(r.qty, 0)} Stück ·</span> <span class="sr-nb">${eur2(r.value)} gebunden</span></span><span class="sr-m"><span class="sr-nb">seit ${ageText(r.age)}</span>${r.sale > 0 ? ` <span class="sr-nb">· schon −${r.sale} %</span>` : ""}</span>`)).join("");
+    return `${sumTxt}<ol class="sr-items">${rows}</ol>
+      <p class="sr-note">Vorschlag nach Alter: ab 1 Jahr 10 %, ab 2 Jahren 15 %, ab 3 Jahren 20 % auf den Listenpreis. Den Rabatt stellst du in Bricklink beim Lot ein (Sale in Prozent). Bricklink verrät nicht, wie oft ein Lot verkauft wurde: „schlecht verkauft“ heißt hier lange da und noch viel Wert.</p>`;
   }
 
   function panelHtml(model, ui) {
     const note = (t) => (t ? `<p class="sr-insight">${esc(t)}</p>` : "");
     const infoTxt = `<div class="sr-info" ${ui.info ? "" : "hidden"}><span class="sr-kl">SO LIEST DU DEN RADAR</span>
-      <p>Die Hinweise sind feste Regeln, keine Schätzung: Sie vergleichen die letzten 4 vollen Wochen mit den 4 Wochen davor, den letzten vollen Monat mit den Monaten davor und deine Bricklink-Zeit mit deinem Wochen-Soll.</p>
-      <p>Alle Zahlen kommen aus deinen Bestellungen, deinem Lager und dem Zeittracker. Gespeichert werden nur Zahlen, keine Namen und keine Adressen.</p>
-      <p>Das Lager holt der tägliche Sync bei Bricklink. Der Lagerwert ist der Verkaufswert (Menge mal Preis), nicht dein Einkaufspreis. „Neu eingestellt“ zählt nur Lots, die noch im Bestand sind.</p></div>`;
+      <p>Die Hinweise sind feste Regeln, keine Schätzung: Sie vergleichen die letzten 4 vollen Wochen mit den 4 Wochen davor, den letzten vollen Monat mit den Monaten davor, deine Bricklink-Zeit mit deinem Wochen-Soll und dein Tempo beim Einstellen mit dem Jahresziel.</p>
+      <p>Das Wochenziel für neue Teile folgt aus dem Jahresziel „Bricklink-Teile“: Was bis zum Jahresende fehlt, geteilt durch die Wochen, die noch bleiben. Es ändert sich also von Woche zu Woche, Verkäufe sind nicht eingerechnet.</p>
+      <p>Der Lagerwert ist der Verkaufswert (Menge mal Preis), nicht dein Einkaufspreis. „Neu eingestellt“ zählt nur Lots, die noch im Bestand sind. Bestseller zählen die Stückzahl je Monat (neu und gebraucht zusammen), die Bilder kommen direkt von Bricklink.</p>
+      <p>Gespeichert werden Zahlen und für die beiden Listen je Artikel Nummer, Name, Farbe, Menge und Preis, im privaten Repo. Von Käufern wird nichts gespeichert: keine Namen, keine Adressen, keine Nachrichten.</p></div>`;
     return `<div class="sr-head"><div><span class="sr-t1">SHOP-RADAR</span><span class="sr-t2">Bricklink: Warum läuft der Shop (nicht)?</span></div><div class="sr-meta">${model.stand ? `<span>Stand ${esc(model.stand)}</span>` : ""}<button type="button" class="sr-i" data-sr-act="info" aria-pressed="${ui.info ? "true" : "false"}" aria-label="Erklärungen ein- oder ausblenden">i</button></div></div>
       ${infoTxt}
       <div class="sr-hints">${hintsHtml(model)}</div>
@@ -295,7 +415,9 @@
         <section class="sr-box"><h4>Ø Warenkorb pro Monat</h4><p class="sr-sub">Umsatz geteilt durch Bestellungen, die letzten 6 vollen Monate.</p>${monthChartHtml(model)}${note(model.monthNote)}</section>
       </div>` : ""}
       <section class="sr-box"><h4>Lager</h4><p class="sr-sub">Dein Angebot: Wie viel liegt im Shop, und wie frisch ist es?</p>${lagerHtml(model)}</section>
-      <p class="sr-foot">Nur Zahlen: Bestellungen, Umsätze, Lots und Stunden. Keine Namen, keine Adressen, keine Nachrichten. Quellen: Bricklink-API und Zeittracker.</p>`;
+      <section class="sr-box"><h4>Bestseller pro Monat</h4><p class="sr-sub">Die zehn meistverkauften Artikel nach Stückzahl. Bei der Zahl vorn ist es die Teilenummer aus Bricklink.</p>${salesHtml(model, ui)}</section>
+      <section class="sr-box"><h4>Rabattvorschlag</h4><p class="sr-sub">Die zehn Ladenhüter, die du am ehesten im Preis senken könntest.</p>${slowHtml(model)}</section>
+      <p class="sr-foot">Keine Kundendaten: keine Namen, Adressen oder Nachrichten von Käufern. Gespeichert sind Zahlen und die beiden Artikellisten. Quellen: Bricklink-API und Zeittracker.</p>`;
   }
 
   function teaser(model) {
@@ -304,50 +426,35 @@
     return model.hints.length ? model.hints[0].title : "";
   }
 
-  // Schrittweite des Wochenziels: 5 bis 20 Lots in 5ern, darueber in 10ern (wenig Tippen bis 30 oder 50)
-  const stepFor = (g, dir) => ((dir > 0 ? g < 20 : g <= 20) ? 5 : 10);
-
-  function sanitize(raw) {
-    const out = { goal: 0, updatedAt: 0 };
-    if (!raw || typeof raw !== "object") return out;
-    if (isNum(raw.updatedAt)) out.updatedAt = raw.updatedAt;
-    if (Number.isInteger(raw.goal) && raw.goal >= 0 && raw.goal <= MAX_GOAL) out.goal = raw.goal;
-    return out;
-  }
-
   window.ShopRadarCalc = { compute };
 
   window.createShopRadar = function (deps) {
-    const { dataStore, scheduleAutoSync, data } = deps;
-    const KEY = "dashboard-shopradar-v1", UI_KEY = "dashboard-shopradar-ui";
-    let state = sanitize(null);
-    try {
-      const raw = dataStore.getItem(KEY);
-      if (raw) state = sanitize(JSON.parse(raw));
-    } catch (e) { /* kaputter Speicher: ohne Wochenziel starten */ }
-    // Auf/zu und Erklaerung: nur dieser Browser, standardmaessig zu
-    const ui = { open: false, info: false };
+    const { data } = deps;
+    const UI_KEY = "dashboard-shopradar-ui";
+    // Auf/zu und Erklaerung: nur dieser Browser, standardmaessig zu; der gewaehlte Monat gilt nur bis zum Neuladen
+    const ui = { open: false, info: false, month: null };
     try { const u = JSON.parse(localStorage.getItem(UI_KEY) || "{}"); ui.open = u.open === true; ui.info = u.info === true; } catch (e) { /* egal */ }
-    const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch (e) { /* egal */ } };
+    const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify({ open: ui.open, info: ui.info })); } catch (e) { /* egal */ } };
 
     const hosts = new Set();
     const goalXp = (model) => {
       // Wochenziel erreicht: 15 XP je Woche, aber erst wenn die Cloud geladen ist (sonst blitzt eine Belohnung auf, die schon gebucht ist)
       const xp = deps.getXp && deps.getXp();
-      const L = model.lager;
-      if (!xp || !L || !L.goal || document.body.dataset.cloud !== "ready" || !(xp.cloudHad && xp.cloudHad())) return;
-      if (L.reached) xp.award(`lotsweek@${L.curKey}`, XP_WEEK, null);
-      if (L.prevReached) xp.award(`lotsweek@${L.prevKey}`, XP_WEEK, null);
+      const p = model && model.lager && model.lager.plan;
+      if (!xp || !p || document.body.dataset.cloud !== "ready" || !(xp.cloudHad && xp.cloudHad())) return;
+      if (p.reached) xp.award(`partsweek@${p.curKey}`, XP_WEEK, null);
+      if (p.prevReached && p.prevKey) xp.award(`partsweek@${p.prevKey}`, XP_WEEK, null);
     };
     function model() {
       const tt = deps.hours;
       let hours = null, targets = null;
       try { hours = tt ? tt.weekHours(WEEKS) : null; targets = tt ? tt.targets() : null; } catch (e) { /* ohne Zeitdaten weiter */ }
-      const yt = data && Array.isArray(data.goals) ? data.goals.find((g) => g.id === "bricks-umsatz") : null;
+      const goals = data && Array.isArray(data.goals) ? data.goals : [];
+      const yt = goals.find((g) => g.id === "bricks-umsatz"), yg = goals.find((g) => g.id === "bricklink-parts");
       return compute({
-        now: new Date(), revenue: data && data.bricklinkRevenue, inventory: data && data.bricklinkInventory,
-        hours, targetHours: targets ? targets.bricklink : null, ytMonthly: yt && isNum(yt.current) ? yt.current : null, goal: state.goal,
-        goalSince: state.updatedAt > 0 ? mondayKey(new Date(state.updatedAt)) : null
+        now: new Date(), revenue: data && data.bricklinkRevenue, inventory: data && data.bricklinkInventory, sales: data && data.bricklinkSales,
+        hours, targetHours: targets ? targets.bricklink : null, ytMonthly: yt && isNum(yt.current) ? yt.current : null,
+        yearGoal: yg ? { current: yg.current, target: yg.target, due: yg.due } : null
       });
     }
     // Der Knopf wird nur einmal gebaut und danach nur umgeschrieben (sonst ginge der Tastaturfokus bei jedem Klick verloren);
@@ -374,20 +481,18 @@
       const mdl = hosts.size ? [...hosts][0]._srModel : null;
       if (mdl) goalXp(mdl);
     }
-    function touch() {
-      state.updatedAt = Math.max(Date.now(), state.updatedAt + 1);
-      try { dataStore.setItem(KEY, JSON.stringify(state)); } catch (e) { /* egal */ }
-      scheduleAutoSync("syncdata");
-      refresh();
-    }
     function onClick(e) {
       const b = e.target.closest("[data-sr-act]");
       if (!b) return;
       const act = b.dataset.srAct;
       if (act === "toggle") { ui.open = !ui.open; saveUi(); refresh(); }
       else if (act === "info") { ui.info = !ui.info; saveUi(); refresh(); }
-      else if (act === "goal+") { state.goal = Math.min(MAX_GOAL, state.goal + stepFor(state.goal, 1)); touch(); }
-      else if (act === "goal-" && state.goal > 0) { state.goal = Math.max(0, state.goal - stepFor(state.goal, -1)); touch(); }
+      else if (act.startsWith("month:")) { ui.month = act.slice(6); refresh(); }
+    }
+    // Fehlt ein Bild bei Bricklink, bleibt nur der leere Rahmen (error steigt nicht auf, darum in der Einfangphase)
+    function onImgError(e) {
+      const t = e.target;
+      if (t && t.tagName === "IMG" && t.parentElement && t.parentElement.classList.contains("sr-img")) t.parentElement.classList.add("sr-noimg");
     }
 
     return {
@@ -396,6 +501,7 @@
         if (!host || hosts.has(host)) return;
         hosts.add(host);
         host.addEventListener("click", onClick);
+        host.addEventListener("error", onImgError, true);
         render(host);
         if (document.body.dataset.cloud !== "ready") document.addEventListener("cloud-ready", refresh, { once: true });
         else goalXp(host._srModel);
@@ -406,21 +512,6 @@
         ui.open = true; saveUi(); refresh();
         const h = [...hosts][0];
         if (h) h.scrollIntoView({ block: "start", behavior: "smooth" });
-      },
-      // Stand aus der Cloud: der neuere Zeitstempel gewinnt; ist der lokale neuer, geht er beim naechsten Auto-Sync hoch
-      applyRemote(remote) {
-        if (!remote || typeof remote !== "object") return;
-        const r = sanitize(remote);
-        if (r.updatedAt > state.updatedAt) {
-          state = r;
-          try { dataStore.setItem(KEY, JSON.stringify(state)); } catch (e) { /* egal */ }
-          refresh();
-        } else if (state.updatedAt > r.updatedAt) scheduleAutoSync("syncdata");
-      },
-      // Solange nie ein Ziel gesetzt wurde, bleibt das Feld ganz weg (kein leerer Eintrag in sync-data.json)
-      payload() {
-        if (state.updatedAt <= 0) return null;
-        return { goal: state.goal, updatedAt: Math.max(0, state.updatedAt) };
       }
     };
   };
