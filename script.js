@@ -690,6 +690,71 @@
     else document.addEventListener("cloud-ready", () => afterUploadBoard.start(), { once: true });
   }
 
+  // ---------- Community-Posts (Bricks On The Floor) ----------
+  // YouTube verraet ueber die API nichts ueber Community-Posts: in der Karte "Bricks On The Floor" tippst du auf GEPOSTET (oder GESTERN / anderer Tag),
+  // das Dashboard rechnet "vor X Tagen" und die Ampel (Ziel: alle 3 Tage) daraus. Tage und Rhythmus liegen in der Cloud (Feld community in sync-data.json,
+  // Code in community.js); der Cloudflare-Worker liest dasselbe Feld und schickt die Handy-Erinnerung. Gezeigt wird alles erst, wenn die Cloud geladen ist.
+  const communityBoard = window.createCommunity ? window.createCommunity({ dataStore, scheduleAutoSync }) : null;
+  let remoteCommunityRaw = null;
+  const CM_LABEL = { green: "im Rhythmus", yellow: "heute fällig", red: "überfällig" };
+  const cmDay = (d) => (d === 0 ? "heute" : d === 1 ? "vor 1 Tag" : `vor ${d} Tagen`);
+  function communityHtml() {
+    if (!communityBoard) return "";
+    const today = communityBoard.today(), days = communityBoard.daysSince(today), every = communityBoard.days();
+    const btns = '<button type="button" class="cm-done" data-cm-act="today">GEPOSTET</button><button type="button" class="cm-done cm-alt" data-cm-act="yesterday">GESTERN</button>';
+    if (days === null) {
+      return `<div class="cm-row"><p class="rhythm-badge neutral">${pxSpr("speech", 14)} Community-Post: noch keiner eingetragen<span class="rb-goal"> (Ziel: alle ${every} Tage)</span></p>${btns}</div>` +
+        `<p class="cm-sub"><span>Tippe GEPOSTET, sobald du einen Post gemacht hast</span><button type="button" class="cm-link" data-cm-act="other">anderer Tag</button></p>`;
+    }
+    const status = communityBoard.status(today), n = communityBoard.count(30, today);
+    return `<div class="cm-row"><p class="rhythm-badge ${status}">${pxSpr("speech", 14)} Letzter Community-Post ${cmDay(days)} · ${CM_LABEL[status]}<span class="rb-goal"> (Ziel: alle ${every} Tage)</span></p>${btns}</div>` +
+      `<p class="cm-sub"><span>Letzte 30 Tage: ${n} ${n === 1 ? "Post" : "Posts"}</span><button type="button" class="cm-link" data-cm-act="other">anderer Tag</button><button type="button" class="cm-link" data-cm-act="undo">zurücknehmen</button></p>`;
+  }
+  // Achtung-Banner ganz oben, sobald ein Post faellig oder ueberfaellig ist (pro Sitzung wegklickbar, wie die anderen Hinweise)
+  function renderCommunityAlert() {
+    const host = document.getElementById("topAlerts");
+    if (!host || !communityBoard) return;
+    host.querySelector('[data-alert^="community-"]')?.remove();
+    const today = communityBoard.today(), status = communityBoard.status(today);
+    if (!status || status === "green") return;
+    const days = communityBoard.daysSince(today), id = `community-${communityBoard.last()}-${status}`;
+    try { if (sessionStorage.getItem(`dashboard-alert-dismissed-${id}`)) return; } catch (e) { /* egal */ }
+    const title = days === communityBoard.days() ? "Bricks On The Floor: Community-Post heute fällig" : `Bricks On The Floor: ${days} Tage ohne Community-Post`;
+    host.insertAdjacentHTML("beforeend", `<div class="ship-alert top-alert ${status}" data-alert="${escapeHtml(id)}"><div class="ship-alert-inner">${pxSpr("speech", 22)}<span class="ship-alert-text"><b>${escapeHtml(title)}</b></span><button type="button" class="ship-alert-dismiss" aria-label="Ausblenden">×</button></div></div>`);
+  }
+  function refreshCommunityViews() {
+    document.querySelectorAll("[data-cm]").forEach((el) => { el.innerHTML = communityHtml(); });
+    renderCommunityAlert();
+  }
+  // Eintragen: GEPOSTET (heute), GESTERN, anderer Tag (Datumsfeld) oder den letzten Eintrag zuruecknehmen
+  function communityMark(day, text) {
+    if (!communityBoard) return false;
+    if (document.body.dataset.cloud !== "ready") { toast("Die Cloud ist noch nicht geladen, gleich nochmal tippen."); return false; }
+    if (communityBoard.mark(day)) { toast(text, "ok"); return true; }
+    toast("Dieser Tag ist schon eingetragen.");
+    return false;
+  }
+  async function onCommunityClick(e) {
+    const b = e.target.closest("[data-cm-act]");
+    if (!b || !communityBoard) return;
+    const act = b.dataset.cmAct, today = communityBoard.today();
+    if (act === "today") communityMark(today, `Community-Post eingetragen. Der nächste ist in ${communityBoard.days()} Tagen fällig.`);
+    else if (act === "yesterday") communityMark(communityBoard.addDays(today, -1), "Community-Post von gestern eingetragen.");
+    else if (act === "other") {
+      const v = await askForm({ title: "Community-Post nachtragen", sub: "An welchem Tag hast du gepostet?", fields: [{ label: "Tag", type: "date", value: today, max: today }], okText: "Eintragen" });
+      if (v && v[0]) communityMark(v[0], "Community-Post nachgetragen.");
+    } else if (act === "undo") {
+      const gone = communityBoard.undo();
+      if (gone) toast(`Eintrag vom ${gone.slice(8)}.${gone.slice(5, 7)}. zurückgenommen.`, "ok");
+    }
+  }
+  if (communityBoard) {
+    communityBoard.onChange(refreshCommunityViews);
+    // Erst nach dem Laden der Cloud zeigen, sonst steht kurz "noch keiner eingetragen" da
+    if (document.body.dataset.cloud === "ready") refreshCommunityViews();
+    else document.addEventListener("cloud-ready", refreshCommunityViews, { once: true });
+  }
+
   // ---------- Mein Raum (Minigame) ----------
   // Die Stunden aus Zeittracker (Arbeit) und Training sind das Geld, damit wird ein isometrischer Pixelraum eingerichtet. Das Spiel liegt im Ordner raumspiel/ und laeuft als
   // Overlay; room.js ist nur die Anbindung (Kachel, Stunden seit 1. Oktober, Level, Spielstand in der Cloud im Feld room in sync-data.json). Gezeigt wird er erst, wenn die Cloud geladen ist.
@@ -1870,6 +1935,7 @@
       <div class="stat-list">${stats}</div>
       ${biz.note ? `<p class="card-note">${biz.note}</p>` : ""}
       ${renderRhythmBadge(biz)}
+      ${key === "bricksOnTheFloor" && communityBoard ? '<div class="cm-block" data-cm></div>' : ""}
       ${isYoutubeChannel && afterUploadBoard ? '<button type="button" class="au-open" data-au-open>After-Upload-Checkliste</button>' : ""}
       ${
         isYoutubeChannel
@@ -1891,6 +1957,11 @@
     businessGrid.appendChild(card);
     card.querySelectorAll(".stat-value-num").forEach((el) => animateStatValue(el));
     card.querySelector("[data-au-open]")?.addEventListener("click", () => afterUploadBoard && afterUploadBoard.open(key));
+    const cmHost = card.querySelector("[data-cm]");
+    if (cmHost) {
+      cmHost.addEventListener("click", onCommunityClick);
+      if (document.body.dataset.cloud === "ready") cmHost.innerHTML = communityHtml();
+    }
     // kleines i: Untertitel, Zusatzzeilen und Hinweise der Karte ein- und ausblenden (alles Weitere steht sonst nur im Quelltext der Daten)
     const infoBtn = card.querySelector(".card-i");
     if (infoBtn) infoBtn.addEventListener("click", () => { const on = card.classList.toggle("show-info"); infoBtn.setAttribute("aria-expanded", String(on)); });
@@ -2484,6 +2555,7 @@
         training: trainingBoard,
         openNote: inboxBoard ? () => inboxBoard.open() : null,
         openAfterUpload: afterUploadBoard ? () => afterUploadBoard.open() : null,
+        communityDone: communityBoard ? () => communityMark(communityBoard.today(), `Community-Post eingetragen. Der nächste ist in ${communityBoard.days()} Tagen fällig.`) : null,
         addNote: inboxBoard ? (text) => inboxBoard.addText(text) : null,
         todoCats: TODO_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
         addTodo: (catId, text) => {
@@ -3225,10 +3297,12 @@
       xp: xpBoard ? xpBoard.payload() : remoteXpRaw,
       msgSeen: msgSeenBoard ? msgSeenBoard.payload() : remoteMsgSeenRaw,
       afterUpload: afterUploadBoard ? afterUploadBoard.payload() : remoteAfterUploadRaw,
+      community: communityBoard ? communityBoard.payload() : remoteCommunityRaw,
       room: roomBoard ? roomBoard.payload() : remoteRoomRaw
     };
     if (payload.room == null) delete payload.room;
     if (payload.afterUpload == null) delete payload.afterUpload;
+    if (payload.community == null) delete payload.community;
     if (payload.msgSeen == null) delete payload.msgSeen;
     if (payload.xp == null) delete payload.xp;
     if (payload.inbox == null) delete payload.inbox;
@@ -3382,6 +3456,8 @@
         if (msgSeenBoard) msgSeenBoard.applyRemote(remote.msgSeen);
         remoteAfterUploadRaw = remote.afterUpload ?? null;
         if (afterUploadBoard) afterUploadBoard.applyRemote(remote.afterUpload);
+        remoteCommunityRaw = remote.community ?? null;
+        if (communityBoard) communityBoard.applyRemote(remote.community);
         remoteRoomRaw = remote.room ?? null;
         if (roomBoard) roomBoard.applyRemote(remote.room);
         applyRemoteTodos(remote.todos);

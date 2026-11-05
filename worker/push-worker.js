@@ -1,7 +1,7 @@
 /* Cloudflare Worker "dashboard-push": echte Handy-Benachrichtigungen (Web-Push) fuer das Dashboard.
 
    Was er tut: alle 10 Minuten (Cron) fragt er Bricklink nach neuen Bestellungen und Kaeufer-Nachrichten, liest die Daten-Dateien des Dashboards (privates Repo)
-   (Habits, Training, To-Dos, Upload-Rhythmus, After Upload, Timer) und schickt dir passende Meldungen aufs Handy, auch bei geschlossener App.
+   (Habits, Training, To-Dos, Upload-Rhythmus, Community-Posts, After Upload, Timer) und schickt dir passende Meldungen aufs Handy, auch bei geschlossener App.
    Er merkt sich, was schon gemeldet wurde (nichts kommt doppelt), haelt in den Ruhezeiten alles zurueck und fasst es danach zusammen.
    Die Schluessel fuer die Verschluesselung (VAPID) erzeugt er beim ersten Aufruf selbst und legt sie im KV-Speicher ab.
 
@@ -41,6 +41,7 @@ const DEFAULT_SETTINGS = {
     unshipped: { on: true, hours: 24 },
     message: { on: true },
     rhythm: { on: true, time: "09:00" },
+    community: { on: true, time: "12:00" },
     afterUpload: { on: true, delayMin: 60 },
     habits: { on: true, time: "19:00" },
     training: { on: true, time: "11:30" },
@@ -50,7 +51,7 @@ const DEFAULT_SETTINGS = {
   quiet: { on: true, from: "22:00", to: "07:00" }
 };
 
-/* Beispielmeldungen fuer "Alle Beispiele senden" im Dashboard (so sehen die echten aus; vor dem Titel steht "Beispiel:"; Aufruf: POST /test {kind:"sample", index:0..8}) */
+/* Beispielmeldungen fuer "Alle Beispiele senden" im Dashboard (so sehen die echten aus; vor dem Titel steht "Beispiel:"; Aufruf: POST /test {kind:"sample", index:0..9}) */
 const SAMPLES = [
   { title: "Beispiel: Neue Bricklink-Bestellung", body: "#32912345 · 3 Teile · 24,90 €", url: "#business", tag: "sample-order" },
   { title: "Beispiel: Bestellung wartet seit 26 Std.", body: "#32900634 ist noch nicht versendet", url: "#business", tag: "sample-unshipped" },
@@ -60,7 +61,8 @@ const SAMPLES = [
   { title: "Beispiel: Gym: 1 von 3 diese Woche", body: "Noch 3 Tage Zeit", url: "#habits", tag: "sample-habits" },
   { title: "Beispiel: Heute: Brust/Rücken", body: "Brust, Rücken · 6 Übungen · ca. 50 Min", url: "#training", tag: "sample-training" },
   { title: "Beispiel: YouTube-Timer läuft seit 3 Std.", body: "Vergessen zu stoppen?", url: "#zeit", tag: "sample-timer" },
-  { title: "Beispiel: Guten Morgen, Kilian", body: "Heute: 3 To-Dos · Brust/Rücken · 1 Bestellung zu versenden", url: "./", tag: "sample-summary" }
+  { title: "Beispiel: Guten Morgen, Kilian", body: "Heute: 3 To-Dos · Brust/Rücken · 1 Bestellung zu versenden", url: "./", tag: "sample-summary" },
+  { title: "Beispiel: Bricks On The Floor: 3 Tage ohne Community-Post", body: "Dein Rhythmus: alle 3 Tage", url: "#business", tag: "sample-community" }
 ];
 
 /* ---------------------------------------------------------------------------------------------------------------------------------- Helfer */
@@ -119,6 +121,10 @@ function weekKeys(dateStr) {
   const t = Date.UTC(y, m - 1, d), wd = (new Date(t).getUTCDay() + 6) % 7;
   return Array.from({ length: 7 }, (_, i) => new Date(t - wd * DAY + i * DAY).toISOString().slice(0, 10));
 }
+
+/* Tage zwischen zwei Datumstexten (JJJJ-MM-TT): b minus a */
+const dayNum = (s) => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d) / DAY; };
+const dayDiff = (a, b) => Math.round(dayNum(b) - dayNum(a));
 
 function cleanSettings(raw) {
   const out = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
@@ -376,9 +382,10 @@ async function checkData(ctx) {
   const wantHabits = f("habits") || (ev.habits.on && dueNow(ev.habits.time, nowB.min));
   const wantTraining = f("training") || (ev.training.on && dueNow(ev.training.time, nowB.min));
   const wantRhythm = f("rhythm") || (ev.rhythm.on && dueNow(ev.rhythm.time, nowB.min));
+  const wantCommunity = f("community") || (ev.community.on && dueNow(ev.community.time, nowB.min));
   const wantSummary = f("summary") || (ev.summary.on && dueNow(ev.summary.time, nowB.min));
   const wantAfter = ev.afterUpload.on, wantTimer = ev.timer.on;
-  if (!(wantHabits || wantTraining || wantRhythm || wantSummary || wantAfter || wantTimer)) return;
+  if (!(wantHabits || wantTraining || wantRhythm || wantCommunity || wantSummary || wantAfter || wantTimer)) return;
   const key = (k, force) => (force ? "" : k);
 
   try {
@@ -433,6 +440,17 @@ async function checkData(ctx) {
             if (open > 0) emit(ctx, { type: "afterUpload", key: "after:" + v.id, title: "After Upload: " + open + (open === 1 ? " Punkt" : " Punkte") + " offen", body: clip(v.title, 90), url: "#afterupload", tag: "after-" + v.id });
           });
         });
+      }
+    }
+
+    if (wantCommunity) {
+      /* Community-Posts auf Bricks On The Floor (Feld "community" in sync-data.json, siehe community.js): ab dem Zieltag (Standard 3 Tage nach dem letzten Post) einmal pro Tag
+         erinnern, solange kein neuer Post eingetragen ist. Ohne eingetragenen Post bleibt es still (der erste Eintrag kommt vom Knopf GEPOSTET im Dashboard). */
+      const c = (await loadData(ctx, "sync-data.json")).community || {}, posts = (Array.isArray(c.posts) ? c.posts : []).filter((p) => /^\d{4}-\d{2}-\d{2}$/.test(p)).sort();
+      const every = Number.isInteger(c.days) && c.days >= 1 && c.days <= 30 ? c.days : 3, lastPost = posts[posts.length - 1];
+      if (lastPost) {
+        const days = dayDiff(lastPost, nowB.date);
+        if (days >= every || f("community")) emit(ctx, { type: "community", force: f("community"), key: key("community:" + nowB.date, f("community")), title: "Bricks On The Floor: " + days + (days === 1 ? " Tag" : " Tage") + " ohne Community-Post", body: "Dein Rhythmus: alle " + every + " Tage", url: "#business", tag: "community" });
       }
     }
 
@@ -570,7 +588,7 @@ async function handle(req, env) {
     return json({ ok: rs.some((r) => r.ok), sent: rs.filter((r) => r.ok).length, failed: rs.filter((r) => !r.ok).length, status: rs.map((r) => r.status), title: n.title, index: idx, count: SAMPLES.length }, 200, cors.headers);
   }
   if (path === "/run" && req.method === "POST") {
-    const only = ["summary", "habits", "training", "rhythm"].indexOf(body.only) >= 0 ? body.only : "";
+    const only = ["summary", "habits", "training", "rhythm", "community"].indexOf(body.only) >= 0 ? body.only : "";
     return json(await run(env, { only }), 200, cors.headers);
   }
   if (path === "/status") {
@@ -594,4 +612,4 @@ export default {
 };
 
 /* Nur fuer Pruefungen ausserhalb von Cloudflare (die Pruefseite setzt __PUSH_TEST_MODE__ vor dem Laden) */
-if (typeof globalThis !== "undefined" && globalThis.__PUSH_TEST_MODE__) globalThis.__PUSH_TEST__ = { encryptPayload, vapidAuth, oauthHeader, run, handle, berlin, inQuiet, dueNow, weekKeys, cleanSettings, nextTrainingDay, b64u, unb64u, getVapid };
+if (typeof globalThis !== "undefined" && globalThis.__PUSH_TEST_MODE__) globalThis.__PUSH_TEST__ = { encryptPayload, vapidAuth, oauthHeader, run, handle, berlin, inQuiet, dueNow, weekKeys, dayDiff, cleanSettings, nextTrainingDay, b64u, unb64u, getVapid };

@@ -24,6 +24,7 @@
     { id: "unshipped", t: "Bestellung unversendet nach", s: "einmal pro Tag erinnern", sel: { k: "hours", opts: [12, 24, 36, 48], fmt: (v) => v + " Std." } },
     { id: "message", t: "Neue Käufer-Nachricht", s: "gebündelt, höchstens alle 30 Min." },
     { id: "rhythm", t: "Upload-Rhythmus überfällig", s: "einmal pro Tag um", time: true },
+    { id: "community", t: "Community-Post fällig", s: "wenn 3 Tage ohne Post, einmal pro Tag um", time: true },
     { id: "afterUpload", t: "After-Upload-Checkliste offen", s: "nach dem neuen Video", sel: { k: "delayMin", opts: [30, 60, 120, 240], fmt: (v) => (v >= 60 ? v / 60 + " Std." : v + " Min.") } },
     { id: "habits", t: "Habits abends offen", s: "nur bei Wochenziel in Gefahr, um", time: true },
     { id: "training", t: "Trainingstag", s: "wenn heute Training geplant ist, um", time: true },
@@ -133,7 +134,8 @@
       const s = settings;
       h += '<div class="pn-list">';
       EVENTS.forEach((e) => {
-        const v = s.events[e.id] || {};
+        if (!s.events[e.id]) return; // dem Worker noch nicht bekannt (alter Worker-Stand): nicht anzeigen
+        const v = s.events[e.id];
         let ctl = "";
         if (e.sel) ctl = ' <select class="pn-in" data-ev="' + e.id + '" data-k="' + e.sel.k + '">' + e.sel.opts.map((o) => '<option value="' + o + '"' + (+v[e.sel.k] === o ? " selected" : "") + ">" + e.sel.fmt(o) + "</option>").join("") + "</select>";
         if (e.time) ctl = ' <input class="pn-in" type="time" data-ev="' + e.id + '" data-k="time" value="' + esc(v.time || "") + '">';

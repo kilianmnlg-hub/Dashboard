@@ -2937,3 +2937,16 @@ body.priv-fail main, body.priv-fail .nav, body.priv-fail .top-timers, body.priv-
   .to-top:focus-visible { outline: var(--focus); outline-offset: var(--focus-off); }
 }
 @media (prefers-reduced-motion: reduce) { .to-top { transition: none !important; } }
+
+/* Community-Post-Rhythmus (community.js): Zeile unter dem Upload-Rhythmus der Karte Bricks On The Floor */
+.cm-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.cm-row .rhythm-badge { margin: 0; }
+.cm-done { font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--text); background: var(--surface); border: 2px solid var(--text); border-radius: var(--r); padding: 6px 10px; min-height: 34px; box-shadow: var(--sh-s) var(--pxs); cursor: pointer; transition: transform .08s steps(2), box-shadow .08s steps(2); }
+.cm-done:hover { background: var(--card-accent, var(--accent)); color: var(--accent-ink); }
+.cm-done:active { transform: translate(2px, 2px); box-shadow: none; }
+.cm-alt { box-shadow: none; border-color: var(--text-faint); color: var(--text-muted); }
+.cm-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 14px; margin: 6px 0 0; font-size: var(--fs-12); color: var(--text-faint); }
+.cm-link { font: inherit; color: var(--text-muted); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+.cm-link:hover { color: var(--text); }
+.cm-done:focus-visible, .cm-link:focus-visible { outline: var(--focus); outline-offset: var(--focus-off); }
+@media (pointer: coarse) { .cm-done { min-height: var(--tap); } .cm-link { padding: 8px 2px; } }
