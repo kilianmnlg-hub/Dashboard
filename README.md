@@ -31,7 +31,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `palette.js` — Schnellsuche und Befehle (siehe Abschnitt "Schnellsuche")
 - `msgseen.js` — merkt sich, welche Bricklink-Nachrichten du geöffnet hast (siehe Abschnitt "Ungelesene Nachrichten")
 - `community.js` — Community-Post-Rhythmus für Bricks On The Floor: Knopf GEPOSTET, Ampel, Zähler, Erinnerung (siehe Abschnitt "Community-Post-Rhythmus")
-- `shopradar.js` — Shop-Radar: Ausklappmenü in der Bricklink-Karte (Hinweise, Kennzahlen, Zeit und Umsatz, Lager, Wochenziel aus dem Jahresziel, Bestseller pro Monat und Rabattvorschlag mit Bildern; siehe Abschnitt "Shop-Radar")
+- `shopradar.js` — Shop-Radar: Ausklappmenü in der Bricklink-Karte (Hinweise, Kennzahlen, Zeit und Umsatz, Lager, Wochenziel aus dem Jahresziel, Bestseller pro Monat, Rabattvorschlag und Preis-Check mit Bildern; siehe Abschnitt "Shop-Radar")
 - `afterupload.js` — After-Upload-Checkliste: erscheint ganz oben, sobald ein neues Video erkannt wird (siehe Abschnitt "After-Upload-Checkliste")
 - `room.js` — Anbindung des Minigames "Mein Raum" (Kachel, Stunden und Level, Spielstand in der Cloud, Spiel als Vollbild-Overlay; siehe Abschnitt "Mein Raum")
 - `raumspiel/index.html` — das Minigame selbst: ein eigenständiges isometrisches Pixelspiel in einer einzigen Datei (gebaut aus dem Spiele-Projekt, Quellcode liegt dort); `raumspiel/vorschau.png` ist das Kachelbild, bis dein eigener Raum gespeichert ist
@@ -118,6 +118,7 @@ das startet einen lokalen Server auf `http://localhost:8934/`.
 | Umsatz-Trend pro Woche & pro Monat (Bricklink) | Bricklink API | ✅ automatisch |
 | Lager: Lots, Teile, Lagerwert, Alter, neu eingestellt, Ladenhüter-Liste (Shop-Radar) | Bricklink API (Inventar) | ✅ automatisch, siehe Abschnitt "Shop-Radar" |
 | Bestseller pro Monat (Shop-Radar) | Bricklink API (Positionen der Bestellungen) | ✅ automatisch, siehe Abschnitt "Shop-Radar" |
+| Preis-Check: Teile und Minifiguren mit starker Abweichung vom 6-Monats-Schnitt (Shop-Radar) | Bricklink API (Price Guide) | ✅ automatisch in Etappen, siehe Abschnitt "Shop-Radar" |
 | TikTok-Follower (@bricksonthefloor) | TikTok-Profilseite (Scrape) | ✅ automatisch, siehe Hinweis unten |
 | Wochenvergleich-Trendpfeile (Abos, Bricklink-Umsatz) | abgeleitet aus obigen Quellen | ✅ automatisch, siehe Hinweis unten |
 | Views/Wiedergabezeit/Umsatz (28 Tage) | — | ❌ manuell (siehe unten, warum) |
@@ -311,6 +312,10 @@ Karte am Rechner die ganze Reihe, am Handy die ganze Breite. Es beantwortet "War
 - **Rabattvorschlag:** die **zehn Ladenhüter**, ebenfalls mit Rang, Bild und Teilenummer. Bricklink verrät nicht, wie oft ein einzelnes Lot verkauft wurde; "schlecht verkauft" heißt deshalb: Lot über 1 Jahr alt
   und viel Wert gebunden. Sortiert wird nach Warenwert mal Alter in Tagen. Der Vorschlag richtet sich nach dem Alter (`DISCOUNT_TIERS` in `scripts/lib/inventory.mjs`: ab 1 Jahr 10 %, ab 2 Jahren 15 %, ab 3 Jahren 20 %
   auf den Listenpreis); Lots, die schon so stark rabattiert sind, fehlen. Angezeigt werden alter Preis, neuer Preis, Stückzahl, gebundener Wert und Alter. Den Rabatt stellst du in Bricklink beim Lot ein (Sale in Prozent).
+- **Preis-Check:** Teile und Minifiguren aus deinem Inventar, deren Preis **stark vom Durchschnitt der Verkäufe der letzten 6 Monate abweicht** (Bricklink Price Guide "sold", Europa, ohne MwSt., nach Stückzahl gewichtet,
+  wie beim Wert der LEGO-Sammlung). Zwei Reiter: **Zu teuer** (dein Preis liegt darüber, das Lot verkauft sich womöglich nicht) und **Zu billig** (darunter, du verschenkst Geld). Jede Zeile mit Rang, Bild, Teilenummer,
+  Name, Farbe, deinem Preis, dem Durchschnitt, der Abweichung in Prozent, der Zahl der Verkäufe und dem Unterschied für das ganze Lot; sortiert nach diesem Unterschied, zehn Zeilen, "Alle anzeigen" zeigt bis zu 30.
+  Es zählen nur Lots mit mindestens 3 Verkäufen in den 6 Monaten, ab 30 % Abweichung und ab 0,50 € Unterschied.
 
 **Bilder:** die kleinen Vorschaubilder von Bricklink, direkt eingebunden (`https://img.bricklink.com/ItemImage/<P|S|M…>T/<Farbe>/<Nummer>.t1.png`, rund 5 KB), nichts wird gespeichert; fehlt ein Bild, bleibt der leere Rahmen.
 
@@ -318,10 +323,16 @@ Karte am Rechner die ganze Reihe, am Handy die ganze Breite. Es beantwortet "War
 (`scripts/lib/inventory.mjs`, reine Funktionen ohne Node-Abhängigkeiten): Lots mit Stückzahl über 0, Stockroom getrennt, Wert = Stückzahl × Preis je Stück (bei `sale_rate` abzüglich Rabatt), Alter und "neu eingestellt"
 aus `date_created` (Erstelldatum des Lots), Teile je Woche aus `date_created` mal Stückzahl (alle Lots, damit es zur Gesamtzahl des Jahresziels passt). Fehlt ein Feld in der Antwort, bleibt die Zahl weg und das Radar zeigt "–".
 Die Bestseller kommen aus den Positionen der Bestellungen (`GET /orders/{id}/items`, rund 100 Aufrufe pro Lauf, nicht stornierte Bestellungen seit Beginn der Monatsliste; `scripts/lib/sales.mjs`;
-`BRICKLINK_SALES=off` schaltet es ab); die Farbnamen der Rabattliste kommen aus `GET /colors`. Eine leere Inventar-Antwort wird als Aussetzer der API behandelt und überschreibt nichts, bei zu vielen fehlgeschlagenen
+`BRICKLINK_SALES=off` schaltet es ab); die Farbnamen der Listen kommen aus `GET /colors`.
+Der **Preis-Check** braucht je Lot eine Abfrage `GET /items/{PART|MINIFIG}/{Nr}/price` (Price Guide, `guide_type=sold`, Region `europe`, EUR; bei Teilen mit `color_id`). Bricklink erlaubt nur 5.000 Aufrufe am Tag, deshalb
+läuft er **in Etappen und höchstens einmal am Tag** (auch wenn der Sync öfter läuft): `scripts/lib/pricecheck.mjs` wählt die Teile und Minifiguren im Shop (nicht Stockroom, Zustand neu/gebraucht, ab 1 € Warenwert), ein
+voller Durchlauf dauert `ceil(Lots / 1500)` Tage, und heute kommt der Teil an die Reihe, dessen Lot-Nummer (`inventory_id`) zum Tag passt, ohne gespeicherten Stand. Die Zeilen früherer Tage bleiben stehen, solange das Lot noch
+da ist und seinen Preis nicht geändert hat. Ein Lot ohne Preisdaten bei Bricklink (404) zählt als geprüft; bei vielen Fehlern (429, 5xx, Zeit) bricht die Etappe ab und darf am selben Tag noch einmal laufen.
+Einstellbar über Umgebungsvariablen im Workflow: `BRICKLINK_PRICECHECK=off` (abschalten), `BRICKLINK_PRICE_CAP` (Abfragen am Tag, Standard 1500), `BRICKLINK_PRICE_MIN_VALUE` (Warenwert in €, 1), `BRICKLINK_PRICE_DEV` (Abweichung in %, 30),
+`BRICKLINK_PRICE_REGION` (europe), `BRICKLINK_PRICE_MINUTES` (Zeitbudget, 10). Die Rechnung ist ohne MwSt., damit sie zu deinem Listenpreis passt. Eine leere Inventar-Antwort wird als Aussetzer der API behandelt und überschreibt nichts, bei zu vielen fehlgeschlagenen
 Positionen-Abfragen bleiben die alten Bestseller stehen. Im Protokoll steht keine Zahl und kein Artikel (das Repo ist öffentlich).
 **Daten und Datenschutz:** Gespeichert (privates Repo, `data.js`) werden Zahlen und zwei kurze Artikellisten: `bricklinkInventory.slow` (zehn Lots: Typ, Nummer, Name, Farbe, Menge, Preis, Alter) und
-`bricklinkSales.months[].top` (zehn Artikel je Monat). Das sind Artikeldaten, **keine Kundendaten**: von Käufern wird nichts gespeichert (keine Namen, Adressen, Nachrichten, Bestellnummern in diesen Listen).
+`bricklinkSales.months[].top` (zehn Artikel je Monat) und `bricklinkPrices.over/under` (bis zu 30 Lots je Richtung). Das sind Artikeldaten, **keine Kundendaten**: von Käufern wird nichts gespeichert (keine Namen, Adressen, Nachrichten, Bestellnummern in diesen Listen).
 **Grenzen:** Der Lagerwert ist der **Verkaufs**wert, kein Einkaufswert. "Neu eingestellt" und die Teile je Woche zählen nur Lots, die noch im Bestand sind; eine vergangene Woche kann deshalb nur schrumpfen, der höchste je
 gesehene Wert bleibt stehen (`weekly`, 12 Wochen). Wer Lots per Upload ersetzt statt zu aktualisieren, setzt womöglich das Erstelldatum zurück; dann stimmen Alter, "neu eingestellt" und die Ladenhüter an dem Tag nicht.
 Stunden kommen aus dem Zeittracker (`timeTrackerBoard.weekHours`). Das Radar speichert selbst nichts; auf/zu und das **i** merkt sich nur dieser Browser (der Monat der Bestseller nur bis zum Neuladen).

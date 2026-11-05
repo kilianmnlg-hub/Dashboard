@@ -1,10 +1,10 @@
 /* Shop-Radar (Bricklink): Ausklappmenue in der Karte "Bricklink Store". Zeigt, warum der Shop laeuft oder nicht: feste Regeln (keine Schaetzung) ueber
    Umsatz, Bestellungen, Ø Warenkorb und die Bricklink-Zeit aus dem Zeittracker, dazu das Lager (Lots, Lagerwert, Alter, neu eingestellt), das Wochenziel
-   fuer neue Teile (aus dem Jahresziel "Bricklink-Teile" abgeleitet), die Bestseller je Monat und einen Rabattvorschlag mit den zehn Ladenhuetern, jeweils
-   mit Bild und Teilenummer. Alles kommt aus Zahlen, die der Sync ohnehin holt (data.bricklinkRevenue, data.bricklinkInventory und data.bricklinkSales, siehe
-   scripts/fetchers/bricklink.mjs, scripts/lib/inventory.mjs und scripts/lib/sales.mjs) und aus dem Zeittracker. Von Kaeufern wird nichts gespeichert; die
-   beiden Artikellisten enthalten nur Artikeldaten. Bilder: die kleinen Vorschaubilder von Bricklink (img.bricklink.com), direkt eingebunden.
-   Gespeichert wird hier nichts; auf/zu, die Erklaerung und der gewaehlte Monat gelten nur fuer diesen Browser (auf/zu und Erklaerung bleiben beim Neuladen).
+   fuer neue Teile (aus dem Jahresziel "Bricklink-Teile" abgeleitet), die Bestseller je Monat, einen Rabattvorschlag mit den zehn Ladenhuetern und den Preis-Check
+   (Teile und Minifiguren mit starker Abweichung vom 6-Monats-Schnitt), jeweils mit Bild und Teilenummer. Alles kommt aus Zahlen, die der Sync ohnehin holt (data.bricklinkRevenue, data.bricklinkInventory, data.bricklinkSales und data.bricklinkPrices,
+   siehe scripts/fetchers/bricklink.mjs und scripts/lib/inventory.mjs, sales.mjs, pricecheck.mjs) und aus dem Zeittracker. Von Kaeufern wird nichts gespeichert; die
+   drei Artikellisten enthalten nur Artikeldaten. Bilder: die kleinen Vorschaubilder von Bricklink (img.bricklink.com), direkt eingebunden.
+   Gespeichert wird hier nichts; auf/zu und die Erklaerung merkt sich nur dieser Browser, die Auswahl der Monate und Reiter gilt bis zum Neuladen.
    compute() ist eine reine Funktion (ohne Seite), damit sie sich separat pruefen laesst: window.ShopRadarCalc.compute. */
 (function () {
   const DAY = 86400000, WEEKS = 9, XP_WEEK = 15;
@@ -79,10 +79,11 @@
   }
 
   /* ---------- Rechnen (reine Funktion) ---------- */
-  // m: { now, revenue, inventory, sales, hours, targetHours, ytMonthly, yearGoal }
+  // m: { now, revenue, inventory, sales, prices, hours, targetHours, ytMonthly, yearGoal }
   //   revenue    data.bricklinkRevenue ({ weekly, monthly, weeklyFrom, monthlyFrom, checkedAt }) oder null
   //   inventory  data.bricklinkInventory (siehe scripts/lib/inventory.mjs) oder null
   //   sales      data.bricklinkSales ({ months: [{ month, orders, units, revenue, top }] }, siehe scripts/lib/sales.mjs) oder null
+  //   prices     data.bricklinkPrices ({ over, under, eligible, cycleDays, checked, minDev, minSales, minValue, region, day }, siehe scripts/lib/pricecheck.mjs) oder null
   //   hours      [{ start, youtube, bricklink }] ab der aeltesten Woche, die laufende zuletzt (Zeittracker.weekHours(9)), oder null
   //   targetHours Wochen-Soll Bricklink in Stunden, ytMonthly YouTube-Umsatz je Monat (Ziel "bricks-umsatz"),
   //   yearGoal   das Ziel "bricklink-parts" ({ current, target, due }) oder null
@@ -226,6 +227,18 @@
       }
     }
 
+    /* Preis-Check: nur Zeilen mit allen Zahlen */
+    let prices = null;
+    if (m.prices && (Array.isArray(m.prices.over) || Array.isArray(m.prices.under))) {
+      const ok = (r) => r && typeof r.no === "string" && isNum(r.price) && isNum(r.avg) && isNum(r.dev) && isNum(r.diff);
+      const P = m.prices;
+      prices = {
+        over: (Array.isArray(P.over) ? P.over : []).filter(ok), under: (Array.isArray(P.under) ? P.under : []).filter(ok),
+        eligible: Number(P.eligible) || 0, cycleDays: Math.max(1, Number(P.cycleDays) || 1), checked: Number(P.checked) || 0,
+        minDev: Number(P.minDev) || 30, minSales: Number(P.minSales) || 3, minValue: Number(P.minValue) || 1, region: String(P.region || ""), day: String(P.day || "")
+      };
+    }
+
     /* Hinweise: feste Regeln, die schlimmsten zuerst */
     const hints = [];
     if (A !== null && B !== null && B > 0) {
@@ -271,6 +284,9 @@
     } else {
       hints.push({ level: "info", title: "Lager noch nicht geladen", text: "Die Lager-Zahlen kommen mit dem nächsten Sync." });
     }
+    if (prices && (prices.over.length || prices.under.length)) {
+      hints.push({ level: "info", title: `Preis-Check: ${prices.over.length} Lots deutlich über, ${prices.under.length} deutlich unter dem 6-Monats-Schnitt`, text: "Die Listen stehen weiter unten." });
+    }
     hints.sort((a, b) => LEVEL_RANK[a.level] - LEVEL_RANK[b.level]);
 
     const issues = hints.filter((h) => h.level === "bad" || h.level === "warn").length;
@@ -278,7 +294,7 @@
     const stamp = [rev && rev.checkedAt, inv && inv.checkedAt].filter(Boolean).sort().pop();
     const sd = stamp ? new Date(stamp) : null;
     return {
-      weeks, hi, weekNote, months, monthNote, kpis, hints, lager, sales, worst, issues,
+      weeks, hi, weekNote, months, monthNote, kpis, hints, lager, sales, prices, worst, issues,
       stand: sd && !isNaN(sd) ? sd.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) : "",
       hasRevenue: !!rev, hasHours: !!hours, target
     };
@@ -399,13 +415,30 @@
       <p class="sr-note">Vorschlag nach Alter: ab 1 Jahr 10 %, ab 2 Jahren 15 %, ab 3 Jahren 20 % auf den Listenpreis. Den Rabatt stellst du in Bricklink beim Lot ein (Sale in Prozent). Bricklink verrät nicht, wie oft ein Lot verkauft wurde: „schlecht verkauft“ heißt hier lange da und noch viel Wert.</p>`;
   }
 
+  // Preis-Check: Reiter "Zu teuer" / "Zu billig", darunter die Lots mit der groessten Wirkung (Unterschied fuer das ganze Lot); zehn, auf Wunsch alle gespeicherten
+  function priceHtml(model, ui) {
+    const P = model.prices;
+    if (!P) return `<p class="sr-note">Die Liste kommt mit dem nächsten Sync.</p>`;
+    const tab = ui.pc === "under" ? "under" : "over", rows = P[tab], shown = ui.pcMore ? rows : rows.slice(0, 10);
+    const tabs = `<div class="sr-tabs" role="group" aria-label="Richtung wählen"><button type="button" class="sr-tab" data-sr-act="pc:over" aria-pressed="${tab === "over"}">Zu teuer (${P.over.length})</button><button type="button" class="sr-tab" data-sr-act="pc:under" aria-pressed="${tab === "under"}">Zu billig (${P.under.length})</button></div>`;
+    const list = shown.length
+      ? `<ol class="sr-items">${shown.map((r, i) => {
+        const up = r.dev > 0, sign = up ? "+" : "−";
+        return itemRow(i + 1, r, `<span class="sr-pr"><b>${price(r.price)}</b> <span class="sr-vs">statt Ø ${price(r.avg)}</span></span><span class="sr-m"><b class="sr-dev ${up ? "sr-dev-up" : "sr-dev-down"}">${sign}${Math.abs(r.dev)} %</b> <span class="sr-nb">bei ${de(r.n, 0)} Verkäufen</span></span><span class="sr-m"><span class="sr-nb">${de(r.qty, 0)} Stück ·</span> <span class="sr-nb">${sign}${eur2(Math.abs(r.diff))} im Lot</span></span>`);
+      }).join("")}</ol>${rows.length > shown.length ? `<button type="button" class="sr-more" data-sr-act="pcmore">Alle ${rows.length} anzeigen</button>` : ""}`
+      : `<p class="sr-note">${tab === "over" ? "Bisher kein Lot gefunden, das deutlich über dem Durchschnitt liegt." : "Bisher kein Lot gefunden, das deutlich unter dem Durchschnitt liegt."}</p>`;
+    const cover = `Geprüft wird in Etappen, weil Bricklink nur begrenzt viele Abfragen am Tag erlaubt: heute ${de(P.checked, 0)} von ${de(P.eligible, 0)} Lots, ein voller Durchlauf dauert ${P.cycleDays} ${P.cycleDays === 1 ? "Tag" : "Tage"}. Die Listen füllen sich in dieser Zeit.`;
+    return `${tabs}${list}<p class="sr-note">Verglichen wird dein Preis mit dem Durchschnitt der Verkäufe der letzten 6 Monate (${P.region === "europe" ? "Europa" : esc(P.region || "weltweit")}, ohne MwSt., nach Stückzahl gewichtet), nur Teile und Minifiguren ab ${de(P.minValue, 0)} € Warenwert, mindestens ${P.minSales} Verkäufe, Abweichung ab ${P.minDev} %. „Im Lot“ ist der Unterschied für die ganze Menge. ${cover}</p>`;
+  }
+
   function panelHtml(model, ui) {
     const note = (t) => (t ? `<p class="sr-insight">${esc(t)}</p>` : "");
     const infoTxt = `<div class="sr-info" ${ui.info ? "" : "hidden"}><span class="sr-kl">SO LIEST DU DEN RADAR</span>
       <p>Die Hinweise sind feste Regeln, keine Schätzung: Sie vergleichen die letzten 4 vollen Wochen mit den 4 Wochen davor, den letzten vollen Monat mit den Monaten davor, deine Bricklink-Zeit mit deinem Wochen-Soll und dein Tempo beim Einstellen mit dem Jahresziel.</p>
       <p>Das Wochenziel für neue Teile folgt aus dem Jahresziel „Bricklink-Teile“: Was bis zum Jahresende fehlt, geteilt durch die Wochen, die noch bleiben. Es ändert sich also von Woche zu Woche, Verkäufe sind nicht eingerechnet.</p>
       <p>Der Lagerwert ist der Verkaufswert (Menge mal Preis), nicht dein Einkaufspreis. „Neu eingestellt“ zählt nur Lots, die noch im Bestand sind. Bestseller zählen die Stückzahl je Monat (neu und gebraucht zusammen), die Bilder kommen direkt von Bricklink.</p>
-      <p>Gespeichert werden Zahlen und für die beiden Listen je Artikel Nummer, Name, Farbe, Menge und Preis, im privaten Repo. Von Käufern wird nichts gespeichert: keine Namen, keine Adressen, keine Nachrichten.</p></div>`;
+      <p>Der Preis-Check vergleicht deine Preise mit den Verkaufspreisen der letzten 6 Monate bei Bricklink. Weil dafür je Lot eine Abfrage nötig ist und Bricklink nur begrenzt viele am Tag erlaubt, wird täglich ein Teil deiner Lots geprüft.</p>
+      <p>Gespeichert werden Zahlen und für die drei Listen je Artikel Nummer, Name, Farbe, Menge und Preis, im privaten Repo. Von Käufern wird nichts gespeichert: keine Namen, keine Adressen, keine Nachrichten.</p></div>`;
     return `<div class="sr-head"><div><span class="sr-t1">SHOP-RADAR</span><span class="sr-t2">Bricklink: Warum läuft der Shop (nicht)?</span></div><div class="sr-meta">${model.stand ? `<span>Stand ${esc(model.stand)}</span>` : ""}<button type="button" class="sr-i" data-sr-act="info" aria-pressed="${ui.info ? "true" : "false"}" aria-label="Erklärungen ein- oder ausblenden">i</button></div></div>
       ${infoTxt}
       <div class="sr-hints">${hintsHtml(model)}</div>
@@ -417,7 +450,8 @@
       <section class="sr-box"><h4>Lager</h4><p class="sr-sub">Dein Angebot: Wie viel liegt im Shop, und wie frisch ist es?</p>${lagerHtml(model)}</section>
       <section class="sr-box"><h4>Bestseller pro Monat</h4><p class="sr-sub">Die zehn meistverkauften Artikel nach Stückzahl. Bei der Zahl vorn ist es die Teilenummer aus Bricklink.</p>${salesHtml(model, ui)}</section>
       <section class="sr-box"><h4>Rabattvorschlag</h4><p class="sr-sub">Die zehn Ladenhüter, die du am ehesten im Preis senken könntest.</p>${slowHtml(model)}</section>
-      <p class="sr-foot">Keine Kundendaten: keine Namen, Adressen oder Nachrichten von Käufern. Gespeichert sind Zahlen und die beiden Artikellisten. Quellen: Bricklink-API und Zeittracker.</p>`;
+      <section class="sr-box"><h4>Preis-Check</h4><p class="sr-sub">Teile und Minifiguren, deren Preis stark vom Durchschnitt der letzten 6 Monate abweicht.</p>${priceHtml(model, ui)}</section>
+      <p class="sr-foot">Keine Kundendaten: keine Namen, Adressen oder Nachrichten von Käufern. Gespeichert sind Zahlen und die drei Artikellisten. Quellen: Bricklink-API und Zeittracker.</p>`;
   }
 
   function teaser(model) {
@@ -432,7 +466,7 @@
     const { data } = deps;
     const UI_KEY = "dashboard-shopradar-ui";
     // Auf/zu und Erklaerung: nur dieser Browser, standardmaessig zu; der gewaehlte Monat gilt nur bis zum Neuladen
-    const ui = { open: false, info: false, month: null };
+    const ui = { open: false, info: false, month: null, pc: "over", pcMore: false };
     try { const u = JSON.parse(localStorage.getItem(UI_KEY) || "{}"); ui.open = u.open === true; ui.info = u.info === true; } catch (e) { /* egal */ }
     const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify({ open: ui.open, info: ui.info })); } catch (e) { /* egal */ } };
 
@@ -452,7 +486,7 @@
       const goals = data && Array.isArray(data.goals) ? data.goals : [];
       const yt = goals.find((g) => g.id === "bricks-umsatz"), yg = goals.find((g) => g.id === "bricklink-parts");
       return compute({
-        now: new Date(), revenue: data && data.bricklinkRevenue, inventory: data && data.bricklinkInventory, sales: data && data.bricklinkSales,
+        now: new Date(), revenue: data && data.bricklinkRevenue, inventory: data && data.bricklinkInventory, sales: data && data.bricklinkSales, prices: data && data.bricklinkPrices,
         hours, targetHours: targets ? targets.bricklink : null, ytMonthly: yt && isNum(yt.current) ? yt.current : null,
         yearGoal: yg ? { current: yg.current, target: yg.target, due: yg.due } : null
       });
@@ -488,6 +522,8 @@
       if (act === "toggle") { ui.open = !ui.open; saveUi(); refresh(); }
       else if (act === "info") { ui.info = !ui.info; saveUi(); refresh(); }
       else if (act.startsWith("month:")) { ui.month = act.slice(6); refresh(); }
+      else if (act === "pc:over" || act === "pc:under") { ui.pc = act.slice(3); ui.pcMore = false; refresh(); }
+      else if (act === "pcmore") { ui.pcMore = true; refresh(); }
     }
     // Fehlt ein Bild bei Bricklink, bleibt nur der leere Rahmen (error steigt nicht auf, darum in der Einfangphase)
     function onImgError(e) {

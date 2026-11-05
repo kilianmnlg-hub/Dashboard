@@ -19,12 +19,14 @@
 // (data.bricklinkMessages.items: Bestellnummer, Nachrichten-ID, Zeitpunkt). Welche davon schon
 // geöffnet wurden, merkt sich das Dashboard selbst (msgseen.js). Von Käufern werden nur Zahlen,
 // Nummern und Zeitpunkte gespeichert, nie Inhalte, Namen oder Adressen (auch nicht im privaten Repo).
-// Artikeldaten (keine Kundendaten) stehen nur in zwei kurzen Listen fürs Shop-Radar: die zehn Ladenhüter (data.bricklinkInventory.slow) und die
-// meistverkauften Artikel je Monat (data.bricklinkSales). Das Protokoll (öffentliches Repo) bleibt frei davon.
+// Artikeldaten (keine Kundendaten) stehen nur in drei kurzen Listen fürs Shop-Radar: die zehn Ladenhüter (data.bricklinkInventory.slow), die
+// meistverkauften Artikel je Monat (data.bricklinkSales) und die Lots mit starker Preisabweichung (data.bricklinkPrices). Das Protokoll (öffentliches Repo) bleibt frei davon.
 
 import { buildAuthHeader } from "../lib/oauth1.mjs";
 import { summarizeInventory } from "../lib/inventory.mjs";
 import { summarizeSales } from "../lib/sales.mjs";
+import { DEFAULTS as PRICE_DEFAULTS, evaluate, mergeRows, pickEligible, pickSlice } from "../lib/pricecheck.mjs";
+import { parseGuide } from "../lib/lego.mjs";
 
 const BASE_URL = "https://api.bricklink.com/api/store/v1";
 const REVENUE_WEEKS = Number(process.env.BRICKLINK_REVENUE_WEEKS || 8);
@@ -54,6 +56,17 @@ const NON_REVENUE_STATUSES = ["CANCELLED", "NPB", "NPX", "NRS", "NSS"];
 // BRICKLINK_SALES=off schaltet das ab.
 const SALES_ENABLED = String(process.env.BRICKLINK_SALES || "on").toLowerCase() !== "off";
 
+// Preis-Check (Shop-Radar, siehe lib/pricecheck.mjs): je Lot eine Abfrage des Price Guide (Verkaeufe der letzten 6 Monate), in Etappen von hoechstens BRICKLINK_PRICE_CAP Abfragen
+// am Tag (ein voller Durchlauf dauert so mehrere Tage) und nur einmal am Tag, auch wenn der Sync oefter laeuft. Nur Lots ab BRICKLINK_PRICE_MIN_VALUE Euro Warenwert,
+// Abweichung ab BRICKLINK_PRICE_DEV Prozent, Region BRICKLINK_PRICE_REGION; hoechstens BRICKLINK_PRICE_MINUTES Minuten. BRICKLINK_PRICECHECK=off schaltet das ab.
+const PRICE_ENABLED = String(process.env.BRICKLINK_PRICECHECK || "on").toLowerCase() !== "off";
+const PRICE_REGION = process.env.BRICKLINK_PRICE_REGION || "europe";
+const PRICE_CAP = Number(process.env.BRICKLINK_PRICE_CAP || PRICE_DEFAULTS.cap);
+const PRICE_MIN_VALUE = Number(process.env.BRICKLINK_PRICE_MIN_VALUE || PRICE_DEFAULTS.minValue);
+const PRICE_DEV = Number(process.env.BRICKLINK_PRICE_DEV || PRICE_DEFAULTS.minDev);
+const PRICE_MINUTES = Number(process.env.BRICKLINK_PRICE_MINUTES || 10);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 async function bricklinkGet(path, queryParams, creds) {
   const url = `${BASE_URL}${path}`;
   const qs = new URLSearchParams(queryParams).toString();
@@ -65,6 +78,77 @@ async function bricklinkGet(path, queryParams, creds) {
   const json = await res.json();
   if (json.meta?.code >= 300) throw new Error(`Bricklink API Fehler: ${json.meta?.message}`);
   return json.data;
+}
+
+// Wie bricklinkGet, aber mit Zeitlimit und bis zu drei Versuchen bei 429, 5xx und Zeitueberschreitung (fuer die vielen Abfragen des Preis-Checks). err.status nennt den Code.
+async function bricklinkGetRetry(path, queryParams, creds) {
+  let last;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const url = `${BASE_URL}${path}`;
+      const qs = new URLSearchParams(queryParams).toString();
+      const authHeader = buildAuthHeader({ method: "GET", url, queryParams, ...creds });
+      const res = await fetch(qs ? `${url}?${qs}` : url, { headers: { Authorization: authHeader }, signal: AbortSignal.timeout(25000) });
+      if (res.status >= 500 || res.status === 429) throw Object.assign(new Error(`Bricklink API Fehler ${res.status}`), { retry: true, status: res.status });
+      if (!res.ok) throw Object.assign(new Error(`Bricklink API Fehler ${res.status}`), { status: res.status });
+      const json = await res.json();
+      if (json.meta?.code >= 300) throw Object.assign(new Error(`Bricklink API Fehler ${json.meta.code}`), { status: json.meta.code });
+      return json.data;
+    } catch (err) {
+      last = err;
+      if (!(err.retry || err.name === "TimeoutError" || err.name === "TypeError")) break;
+      await sleep(1500 * (attempt + 1));
+    }
+  }
+  throw last;
+}
+
+// Preis-Check: die heutige Etappe der Lots (Teile und Minifiguren) gegen den 6-Monats-Schnitt pruefen und mit den noch gueltigen Zeilen der letzten Tage zusammenfuehren.
+// Liefert null, wenn es heute schon lief. Fehlt ein Preis (404/400) zaehlt das Lot als geprueft ohne Ergebnis; bei vielen echten Fehlern (429, 5xx, Zeit) bricht die Etappe ab
+// (aborted), behaelt aber, was bis dahin da ist, und darf am selben Tag noch einmal laufen.
+async function fetchPriceCheck(lots, previous, currency, creds, now) {
+  const today = now.toISOString().slice(0, 10);
+  if (previous && previous.day === today && !previous.aborted) return null;
+  const eligible = pickEligible(lots, { minValue: PRICE_MIN_VALUE });
+  const { cycleDays, slice } = pickSlice(eligible, { cap: PRICE_CAP, dayNumber: Math.floor(now.getTime() / 86400000) });
+  const fresh = [];
+  const checkedIds = new Set();
+  let withData = 0, failed = 0, aborted = false;
+  const deadline = Date.now() + PRICE_MINUTES * 60000;
+  const BATCH = 4;
+  for (let i = 0; i < slice.length; i += BATCH) {
+    if (Date.now() > deadline) { aborted = true; break; }
+    const results = await Promise.all(
+      slice.slice(i, i + BATCH).map(async (c) => {
+        const params = { guide_type: "sold", new_or_used: c.cond, region: PRICE_REGION, currency_code: currency };
+        if (c.t === "PART") params.color_id = String(c.color);
+        try {
+          return { c, g: parseGuide(await bricklinkGetRetry(`/items/${c.t}/${encodeURIComponent(c.no)}/price`, params, creds)) };
+        } catch (err) {
+          if (err.status === 404 || err.status === 400) return { c, g: null };
+          failed += 1;
+          return { c, bad: true };
+        }
+      })
+    );
+    results.forEach(({ c, g, bad }) => {
+      if (bad) return;
+      checkedIds.add(c.id);
+      if (g && g.value) withData += 1;
+      const row = evaluate(c, g, { minDev: PRICE_DEV, day: today });
+      if (row) fresh.push(row);
+    });
+    if (failed >= 8 && failed > checkedIds.size * 0.1) { aborted = true; break; }
+    await sleep(150);
+  }
+  // Blieb mehr als jedes zehnte Lot ohne Antwort (Fehler, Zeit), gilt die Etappe als unvollständig und darf heute noch einmal laufen
+  if (slice.length && checkedIds.size < slice.length * 0.9) aborted = true;
+  const merged = mergeRows({ previous: [...(previous?.over || []), ...(previous?.under || [])], fresh, eligible, checkedIds });
+  return {
+    day: today, aborted, checkedAt: now.toISOString(), region: PRICE_REGION, currency,
+    eligible: eligible.length, cycleDays, checked: checkedIds.size, withData, minDev: PRICE_DEV, minSales: PRICE_DEFAULTS.minSales, minValue: PRICE_MIN_VALUE,
+    over: merged.over, under: merged.under
+  };
 }
 
 // Montag der ISO-Woche, in der `date` liegt, als "YYYY-MM-DD".
@@ -312,16 +396,27 @@ export async function fetchBricklink(currentData) {
       currency: patch.bricklinkRevenue?.currency,
       previousWeekly: currentData?.bricklinkInventory?.weekly
     });
+    // Preis-Check (eigener try/catch: ein Fehler hier lässt das Lager stehen)
+    if (PRICE_ENABLED) {
+      try {
+        const res = await fetchPriceCheck(lots, currentData?.bricklinkPrices, patch.bricklinkRevenue?.currency || "EUR", creds, new Date());
+        console.log(res ? "[bricklink] Preis-Check abgerufen." : "[bricklink] Preis-Check lief heute schon.");
+        if (res) patch.bricklinkPrices = res;
+      } catch (err) {
+        console.error("[bricklink] Preis-Check übersprungen:", err.message);
+      }
+    }
   } catch (err) {
     console.error("[bricklink] Inventar übersprungen:", err.message);
   }
 
-  // Farbnamen für die Rabattliste (die Inventar-Antwort kennt nur die Farbnummer): ein Aufruf, bei einem Fehler zeigt das Radar die Nummer
-  if (patch.bricklinkInventory && patch.bricklinkInventory.slow && patch.bricklinkInventory.slow.length) {
+  // Farbnamen für die Listen (die Inventar-Antwort kennt nur die Farbnummer): ein Aufruf, bei einem Fehler zeigt das Radar die Nummer
+  const needColors = [patch.bricklinkInventory?.slow, patch.bricklinkPrices?.over, patch.bricklinkPrices?.under].filter((l) => Array.isArray(l) && l.length);
+  if (needColors.length) {
     try {
       const colors = await bricklinkGet("/colors", {}, creds);
       const byId = new Map((Array.isArray(colors) ? colors : []).map((c) => [Number(c.color_id), String(c.color_name || "").slice(0, 40)]));
-      patch.bricklinkInventory.slow.forEach((s) => { s.colorName = byId.get(s.color) || ""; });
+      needColors.forEach((list) => list.forEach((s) => { s.colorName = byId.get(s.color) || ""; }));
       console.log("[bricklink] Farbnamen abgerufen.");
     } catch (err) {
       console.error("[bricklink] Farbnamen übersprungen:", err.message);
