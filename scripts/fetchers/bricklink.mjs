@@ -1,6 +1,7 @@
 // Holt Bestelldaten aus der Bricklink API: offene Bestellungen (für den "noch zu
 // verschicken"-Alarm), Umsatz-Trends (wöchentlich und monatlich) sowie den aktuellen
-// Inventar-Bestand ("Total Items" für das 100.000-Teile-Ziel).
+// Inventar-Bestand ("Total Items" für das 100.000-Teile-Ziel) und daraus die Lager-Zahlen
+// fürs Shop-Radar (Lots, Wert, Alter, neu eingestellt; nur Zahlen, siehe lib/inventory.mjs).
 // Benötigt: BRICKLINK_CONSUMER_KEY, BRICKLINK_CONSUMER_SECRET, BRICKLINK_TOKEN_VALUE,
 // BRICKLINK_TOKEN_SECRET (siehe README für Einrichtung).
 //
@@ -20,6 +21,7 @@
 // Nummern und Zeitpunkte gespeichert, nie Inhalte, Namen oder Adressen (auch nicht im privaten Repo).
 
 import { buildAuthHeader } from "../lib/oauth1.mjs";
+import { summarizeInventory } from "../lib/inventory.mjs";
 
 const BASE_URL = "https://api.bricklink.com/api/store/v1";
 const REVENUE_WEEKS = Number(process.env.BRICKLINK_REVENUE_WEEKS || 8);
@@ -66,11 +68,11 @@ function isoWeekStart(date) {
   return d.toISOString().slice(0, 10);
 }
 
-// Kalendermonate zurückrechnen (nicht nur Tage), damit "6 Monate" wirklich 6 Kalendermonate sind.
+// Kalendermonate zurückrechnen (nicht nur Tage), damit "6 Monate" wirklich 6 Kalendermonate sind. Beginn ist der 1. des Monats,
+// sonst wäre der älteste Monat nur zum Teil gezählt (und sein Ø Warenkorb im Shop-Radar zu klein).
 function monthsAgo(n) {
   const d = new Date();
-  d.setUTCMonth(d.getUTCMonth() - n);
-  return d;
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - n, 1));
 }
 
 function aggregateBy(orders, keyFn) {
@@ -93,9 +95,9 @@ function aggregateBy(orders, keyFn) {
 // deinem Inventar), NICHT die Stückzahl verkaufter Teile — entspricht der "Total Items"-
 // Kennzahl, die Bricklink dir selbst in den Store-Statistiken zeigt. Eigener, von den
 // Bestellungen unabhängiger API-Aufruf.
-async function fetchTotalInventoryItems(creds) {
+async function fetchInventory(creds) {
   const inventory = await bricklinkGet("/inventories", {}, creds);
-  return (inventory || []).reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+  return Array.isArray(inventory) ? inventory : [];
 }
 
 const lower = (v) => String(v ?? "").trim().toLowerCase();
@@ -220,8 +222,8 @@ export async function fetchBricklink(currentData) {
 
     const allOrders = [...unfiledOrders, ...filedOrders];
     const seen = new Set();
-    const weeksCutoff = new Date();
-    weeksCutoff.setUTCDate(weeksCutoff.getUTCDate() - REVENUE_WEEKS * 7);
+    // Beginn jeweils am Montag der ältesten Woche (nicht mitten in der Woche), damit auch die älteste Woche vollständig ist
+    const weeksCutoff = new Date(`${isoWeekStart(new Date(Date.now() - REVENUE_WEEKS * 7 * 86400000))}T00:00:00Z`);
     const monthsCutoff = monthsAgo(REVENUE_MONTHS);
     const fetchCutoff = weeksCutoff < monthsCutoff ? weeksCutoff : monthsCutoff;
 
@@ -244,24 +246,35 @@ export async function fetchBricklink(currentData) {
     const monthly = aggregateBy(monthlyOrders, "month");
     const currency = allOrders.find((o) => o.cost?.currency_code)?.cost?.currency_code || "EUR";
 
-    patch.bricklinkRevenue = { checkedAt: new Date().toISOString(), currency, weekly, monthly };
+    // weeklyFrom/monthlyFrom: ab wann die Listen vollständig sind (Wochen und Monate ohne Bestellung fehlen in weekly/monthly, sind aber keine Lücke)
+    patch.bricklinkRevenue = {
+      checkedAt: new Date().toISOString(), currency, weekly, monthly,
+      weeklyFrom: weeksCutoff.toISOString().slice(0, 10), monthlyFrom: monthsCutoff.toISOString().slice(0, 7)
+    };
   } catch (err) {
     console.error("[bricklink] Umsatz-Trend übersprungen (filed-Abfrage fehlgeschlagen):", err.message);
   }
 
-  // "100.000 Teile"-Ziel = aktueller Inventar-Bestand, unabhängig von den Bestellungen oben.
-  // Eigener try/catch, damit ein Fehler hier weder den Versand-Alarm noch die Umsatzcharts
-  // mitreißt (und umgekehrt) - das Ziel bleibt dann einfach beim letzten bekannten Stand.
-  if (currentData?.goals?.some((g) => g.id === "bricklink-parts")) {
-    try {
-      const totalItems = await fetchTotalInventoryItems(creds);
-      console.log("[bricklink] Inventar-Teile-Summe abgerufen.");
+  // Inventar (EIN Aufruf für beides): die Teile-Summe fürs "100.000 Teile"-Ziel und die Lager-Zahlen fürs Shop-Radar (data.bricklinkInventory: Lots,
+  // Wert, Alter, neu eingestellt, siehe lib/inventory.mjs). Unabhängig von den Bestellungen oben und mit eigenem try/catch, damit ein Fehler hier weder
+  // den Versand-Alarm noch die Umsatzcharts mitreißt (und umgekehrt) - Ziel und Lager bleiben dann einfach beim letzten bekannten Stand.
+  try {
+    const lots = await fetchInventory(creds);
+    // Eine leere Antwort ist bei einem laufenden Shop eher ein Aussetzer der API als Wirklichkeit: nichts überschreiben
+    if (!lots.length) throw new Error("Inventar-Antwort war leer");
+    console.log("[bricklink] Inventar abgerufen.");
+    if (currentData?.goals?.some((g) => g.id === "bricklink-parts")) {
+      const totalItems = lots.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
       patch.goals = (patch.goals || currentData.goals).map((g) =>
         g.id === "bricklink-parts" ? { ...g, current: totalItems } : g
       );
-    } catch (err) {
-      console.error("[bricklink] Inventar-Teile-Summe übersprungen:", err.message);
     }
+    patch.bricklinkInventory = summarizeInventory(lots, {
+      currency: patch.bricklinkRevenue?.currency,
+      previousWeekly: currentData?.bricklinkInventory?.weekly
+    });
+  } catch (err) {
+    console.error("[bricklink] Inventar übersprungen:", err.message);
   }
 
   return patch;

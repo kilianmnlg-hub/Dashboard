@@ -364,6 +364,11 @@
       startIfIdle(cat) { if (CATS.includes(cat) && !state.active[cat]) toggle(cat); },
       // Fuer die Kennzahl in der Titelzeile: Stunden dieser Woche und Wochen-Soll
       weekSummary() { const c = weekSums(0); return { ist: (c.youtube + c.bricklink) / HOUR, soll: state.targets.youtube + state.targets.bricklink }; },
+      // Fuer das Shop-Radar: Stunden je Kalenderwoche, die letzten `count` Wochen (die laufende zuletzt), start = Montag als JJJJ-MM-TT; dazu die Wochen-Soll-Stunden
+      weekHours(count) {
+        return Array.from({ length: count }, (_, i) => { const o = i - (count - 1), s = weekSums(o); return { start: dateKey(weekDays(o)[0]), youtube: s.youtube / HOUR, bricklink: s.bricklink / HOUR }; });
+      },
+      targets() { return { youtube: state.targets.youtube, bricklink: state.targets.bricklink }; },
       // Gesamte erfasste Zeit (Notion-Verlauf und Dashboard-Eintraege) in Stunden, ohne laufende Timer (fuer das Raum-Minigame)
       totalHours() { return all().reduce((sum, e) => sum + (e.dur || 0), 0) / 3600000; },
       // Wie totalHours, aber nur Eintraege, die ab `since` (ms) beginnen (fuer das Raum-Minigame: Stunden seit 1. Oktober)

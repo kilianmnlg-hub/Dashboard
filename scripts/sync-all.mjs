@@ -126,7 +126,7 @@ async function main() {
 
   const output = `// Datenquelle für das Dashboard.
 // timeTracker, business.bricksOnTheFloor/brainwalkers (Abos/Videos/lastUploadAt/recentUploads),
-// goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue, bricklinkMessages und metricsHistory
+// goals[tiktok-follower].current, bricklinkOrders, bricklinkRevenue, bricklinkMessages, bricklinkInventory (Lager fürs Shop-Radar) und metricsHistory
 // (für die Wochenvergleich-Trendpfeile) werden automatisch von scripts/sync-all.mjs
 // überschrieben (täglich per GitHub Actions oder manuell über den Sync-Button im
 // Dashboard bzw. "node scripts/sync-all.mjs").

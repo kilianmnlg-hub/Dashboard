@@ -1,0 +1,427 @@
+/* Shop-Radar (Bricklink): Ausklappmenue in der Karte "Bricklink Store". Zeigt, warum der Shop laeuft oder nicht: feste Regeln (keine Schaetzung) ueber
+   Umsatz, Bestellungen, Ø Warenkorb und die Bricklink-Zeit aus dem Zeittracker, dazu das Lager (Lots, Lagerwert, Alter, neu eingestellt) und ein
+   Wochenziel "Lots einstellen". Alles kommt aus Zahlen, die der Sync ohnehin holt (data.bricklinkRevenue und data.bricklinkInventory, siehe
+   scripts/fetchers/bricklink.mjs und scripts/lib/inventory.mjs) und aus dem Zeittracker; gespeichert werden nur Zahlen, nie Namen, Adressen oder Nachrichten.
+   Cloud (Feld "shopradar" in sync-data.json): nur das Wochenziel { goal, updatedAt }, Zeitstempel-Prinzip wie bei community.js (der neuere Stand gewinnt).
+   Auf/zu und die Erklaerung merkt sich nur dieser Browser. script.js uebergibt die Daten und ruft applyRemote()/payload() auf.
+   compute() ist eine reine Funktion (ohne Seite), damit sie sich separat pruefen laesst: window.ShopRadarCalc.compute. */
+(function () {
+  const DAY = 86400000, WEEKS = 9, MAX_GOAL = 500, XP_WEEK = 15;
+  const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+  const MON_SHORT = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+  const LEVEL_RANK = { bad: 0, warn: 1, info: 2, ok: 3 };
+  const isNum = (v) => typeof v === "number" && isFinite(v);
+  const pad = (n) => String(n).padStart(2, "0");
+  const keyOf = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const utc = (s) => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d); };
+  const addDaysKey = (key, n) => new Date(utc(key) + n * DAY).toISOString().slice(0, 10);
+  const mondayKey = (d) => { const c = new Date(d.getFullYear(), d.getMonth(), d.getDate()); c.setDate(c.getDate() + (c.getDay() === 0 ? -6 : 1 - c.getDay())); return keyOf(c); };
+  const de = (n, dec) => n.toLocaleString("de-DE", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  const eur0 = (n) => `${de(Math.round(n), 0)} €`;
+  const eur2 = (n) => `${de(n, 2)} €`;
+  const one = (n) => de(Math.round(n * 10) / 10, 1);
+  const sum = (arr, f) => arr.reduce((s, x) => s + f(x), 0);
+  // Veraenderung in Prozent mit echtem Minuszeichen: +12 %, −44 %
+  const pct = (a, b) => { const p = Math.round((a / b - 1) * 100); return (p > 0 ? "+" : p < 0 ? "−" : "") + Math.abs(p) + " %"; };
+  const dm = (key) => `${+key.slice(8, 10)}.${+key.slice(5, 7)}.`;
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  /* ---------- Rechnen (reine Funktion) ---------- */
+  // m: { now, revenue, inventory, hours, targetHours, ytMonthly, goal }
+  //   revenue    data.bricklinkRevenue ({ weekly, monthly, weeklyFrom, monthlyFrom, checkedAt }) oder null
+  //   inventory  data.bricklinkInventory (siehe scripts/lib/inventory.mjs) oder null
+  //   hours      [{ start, youtube, bricklink }] ab der aeltesten Woche, die laufende zuletzt (Zeittracker.weekHours(9)), oder null
+  //   targetHours Wochen-Soll Bricklink in Stunden, ytMonthly YouTube-Umsatz je Monat (Ziel "bricks-umsatz"), goal Wochenziel Lots (0 = aus),
+  //   goalSince Montag der Woche, in der das Ziel zuletzt gesetzt wurde (JJJJ-MM-TT, optional)
+  function compute(m) {
+    const now = m.now || new Date();
+    const rev = m.revenue && Array.isArray(m.revenue.weekly) ? m.revenue : null;
+    const inv = m.inventory && isNum(m.inventory.lots) ? m.inventory : null;
+    const hours = Array.isArray(m.hours) && m.hours.length ? m.hours : null;
+    const target = isNum(m.targetHours) && m.targetHours > 0 ? m.targetHours : null;
+    const goal = Number.isInteger(m.goal) && m.goal > 0 ? m.goal : 0;
+
+    /* Wochen: neun Spalten, die laufende zuletzt */
+    const curMonday = mondayKey(now);
+    const keys = hours ? hours.map((h) => h.start) : Array.from({ length: WEEKS }, (_, i) => addDaysKey(curMonday, (i - (WEEKS - 1)) * 7));
+    const rw = new Map(((rev && rev.weekly) || []).map((w) => [w.weekStart, w]));
+    const wFrom = rev ? rev.weeklyFrom || (rev.weekly[0] && rev.weekly[0].weekStart) || null : null;
+    const weeks = keys.map((k, i) => {
+      const known = !!rev && wFrom !== null && k >= wFrom;
+      const w = rw.get(k);
+      return { key: k, partial: i === keys.length - 1, known, rev: known ? (w ? w.total : 0) : null, ord: known ? (w ? w.orderCount : 0) : null, h: hours ? hours[i].bricklink : null, hy: hours ? hours[i].youtube : null };
+    });
+    const full = weeks.slice(0, -1);
+    const group = (a, b) => { if (a < 0) return null; const g = full.slice(a, b); return g.length === b - a && g.every((w) => w.known) ? g : null; };
+    const last4 = group(full.length - 4, full.length), prev4 = group(full.length - 8, full.length - 4);
+    const avgOrd = (g) => (g ? sum(g, (w) => w.ord) / g.length : null);
+    const aovOf = (g) => { if (!g) return null; const o = sum(g, (w) => w.ord); return o > 0 ? sum(g, (w) => w.rev) / o : null; };
+    const hoursOf = (g) => (g && g.every((w) => isNum(w.h)) ? sum(g, (w) => w.h) : null);
+    const A = avgOrd(last4), B = avgOrd(prev4), aovA = aovOf(last4), aovB = aovOf(prev4), H4 = hoursOf(last4);
+    const revA = last4 ? sum(last4, (w) => w.rev) : null;
+
+    /* Monate: die letzten sechs vollen Kalendermonate */
+    const curMonth = `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
+    const mFrom = rev ? rev.monthlyFrom || (rev.monthly && rev.monthly[0] && rev.monthly[0].month) || null : null;
+    const rm = new Map(((rev && rev.monthly) || []).map((x) => [x.month, x]));
+    const months = [];
+    for (let i = 6; i >= 1; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1), k = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+      const known = !!rev && mFrom !== null && k >= mFrom, x = rm.get(k);
+      months.push({ key: k, mi: d.getMonth(), known, rev: known ? (x ? x.total : 0) : null, ord: known ? (x ? x.orderCount : 0) : null });
+    }
+    months.forEach((x) => { x.aov = x.known && x.ord > 0 ? x.rev / x.ord : null; });
+    const running = rm.get(curMonth) || null;
+
+    /* Kennzahlen */
+    const kpis = [];
+    const lm = months[months.length - 1], pm = months[months.length - 2];
+    if (lm && lm.known) {
+      const k = { label: `UMSATZ ${MONTHS[lm.mi].toUpperCase()}`, value: eur0(lm.rev), help: `Summe aller Bestellungen im ${MONTHS[lm.mi]}, ohne stornierte.` };
+      if (pm && pm.known && pm.rev > 0) { k.line1 = `${pct(lm.rev, pm.rev)} zu ${MONTHS[pm.mi]} (${eur0(pm.rev)})`; k.tone1 = lm.rev < pm.rev ? "bad" : lm.rev > pm.rev ? "good" : "flat"; }
+      const best = months.slice(0, -1).filter((x) => x.known).reduce((b, x) => (!b || x.rev > b.rev ? x : b), null);
+      if (best && best.rev > 0 && (!pm || best.key !== pm.key)) k.line2 = `${pct(lm.rev, best.rev)} zu ${MONTHS[best.mi]} (${eur0(best.rev)})`;
+      else if (running) k.line2 = `${MONTHS[now.getMonth()]} bisher: ${eur0(running.total)}`;
+      kpis.push(k);
+    }
+    if (A !== null) {
+      const end = addDaysKey(last4[last4.length - 1].key, 6);
+      const k = { label: "BESTELLUNGEN PRO WOCHE", value: one(A), line2: "Ø der letzten 4 vollen Wochen", help: `Bestellungen vom ${dm(last4[0].key)} bis ${dm(end)}, geteilt durch 4.` };
+      if (B !== null) { k.line1 = `davor: ${one(B)}`; k.tone1 = A < B ? "bad" : A > B ? "good" : "flat"; }
+      kpis.push(k);
+    }
+    if (aovA !== null) {
+      const k = { label: "Ø WARENKORB", value: eur2(aovA), line2: "letzte 4 volle Wochen", help: "Umsatz geteilt durch die Zahl der Bestellungen." };
+      if (aovB !== null) { k.line1 = `davor: ${eur2(aovB)}`; k.tone1 = aovA < aovB ? "bad" : aovA > aovB ? "good" : "flat"; }
+      kpis.push(k);
+    }
+    if (last4 && H4 !== null) {
+      const hy = hoursOf(last4.map((w) => ({ h: w.hy })));
+      const yt = isNum(m.ytMonthly) && m.ytMonthly > 0 && hy > 0 ? m.ytMonthly / hy : null;
+      const k = { label: "UMSATZ PRO STUNDE", value: H4 > 0 ? eur2(revA / H4) : "–", line2: "Umsatz, nicht Gewinn", help: "Bricklink-Umsatz geteilt durch deine getrackten Bricklink-Stunden, jeweils die letzten 4 vollen Wochen. Gebühren und Einkauf fehlen." };
+      if (yt !== null) { k.line1 = `YouTube: ${eur2(yt)} pro Std.`; k.tone1 = "flat"; k.help += " YouTube: dein Umsatz/Monat aus den Zielen geteilt durch die YouTube-Stunden derselben Wochen."; }
+      kpis.push(k);
+    }
+
+    /* Wochen-Diagramm: Zusammenhang zwischen Stunden und Umsatz (nur volle Wochen mit beiden Angaben) */
+    const hi = new Set();
+    let weekNote = "";
+    const both = full.map((w, i) => ({ i, w })).filter((x) => x.w.known && isNum(x.w.h));
+    if (both.length >= 6) {
+      const k = Math.min(3, Math.floor(both.length / 2));
+      const byH = both.slice().sort((a, b) => b.w.h - a.w.h);
+      const top = byH.slice(0, k), low = byH.slice(-k);
+      top.forEach((x) => hi.add(x.i));
+      const avg = (g, f) => sum(g, (x) => f(x.w)) / g.length;
+      const rT = avg(top, (w) => w.rev), rL = avg(low, (w) => w.rev), hT = avg(top, (w) => w.h), hL = avg(low, (w) => w.h);
+      const head = `In den ${k} Wochen mit den meisten Bricklink-Stunden (Ø ${one(hT)} Std.) kamen im Schnitt ${eur0(rT)} rein, in den ${k} Wochen mit den wenigsten (Ø ${one(hL)} Std.)`;
+      if (rL <= 0 ? rT > 0 : rT / rL >= 1.3) weekNote = `${head} nur ${eur0(rL)}. Das ist ein Zusammenhang, kein Beweis.`;
+      else if (rL > 0 && rT / rL <= 0.8) weekNote = `${head} ${eur0(rL)}. Mehr Stunden brachten hier nicht mehr Umsatz.`;
+      else weekNote = `${head} ${eur0(rL)}. Kein klarer Zusammenhang zwischen Stunden und Umsatz.`;
+    } else if (hours) weekNote = "Für einen Vergleich von Stunden und Umsatz fehlen noch ein paar volle Wochen.";
+
+    /* Monats-Diagramm: Ø Warenkorb */
+    let monthNote = "";
+    const withAov = months.filter((x) => x.aov !== null);
+    if (lm && lm.aov !== null && withAov.length >= 3) {
+      const peak = withAov.slice(0, -1).reduce((b, x) => (!b || x.aov > b.aov ? x : b), null);
+      if (peak && lm.aov > peak.aov) {
+        monthNote = `${MONTHS[lm.mi]} ist mit ${eur2(lm.aov)} der höchste Wert der letzten ${withAov.length} Monate.`;
+      } else if (peak && lm.aov >= peak.aov * 0.9) {
+        monthNote = `${MONTHS[lm.mi]} liegt mit ${eur2(lm.aov)} nahe am besten Wert (${MONTHS[peak.mi]}: ${eur2(peak.aov)}).`;
+      } else if (peak) {
+        monthNote = `${MONTHS[peak.mi]} war mit ${eur2(peak.aov)} der höchste Wert, ${MONTHS[lm.mi]} liegt bei ${eur2(lm.aov)}. Bestellungen pro Monat: ${lm.ord} statt ${peak.ord}.`;
+        const fewer = lm.ord <= peak.ord * 0.75, smaller = lm.aov <= peak.aov * 0.75;
+        if (fewer && smaller) monthNote += " Weniger und kleinere Bestellungen gleichzeitig.";
+        else if (fewer) monthNote += " Es kommen weniger Bestellungen, die Warenkörbe blieben ähnlich groß.";
+        else if (smaller) monthNote += " Die Warenkörbe sind kleiner geworden.";
+      }
+    }
+
+    /* Lager */
+    let lager = null;
+    const curKey = keys[keys.length - 1];
+    if (inv) {
+      const today = keyOf(now);
+      const daysSince = inv.lastListed ? Math.max(0, Math.round((utc(today) - utc(inv.lastListed)) / DAY)) : null;
+      const wk = new Map((Array.isArray(inv.weekly) ? inv.weekly : []).map((w) => [w.weekStart, Number(w.listed) || 0]));
+      const listedNow = wk.has(curKey) ? wk.get(curKey) : null;
+      const ageN = inv.age ? inv.age.d30 + inv.age.d90 + inv.age.d365 + inv.age.older : 0;
+      const ageRows = inv.age && ageN > 0
+        ? [["unter 30 Tage", inv.age.d30], ["30 bis 90 Tage", inv.age.d90], ["90 bis 365 Tage", inv.age.d365], ["über 1 Jahr", inv.age.older]].map(([label, n]) => ({ label, n, p: Math.round((n / ageN) * 100) }))
+        : null;
+      let series = 0;
+      if (goal && wk.size) for (let i = keys.length - 2; i >= 0 && (wk.get(keys[i]) || 0) >= goal; i--) series++;
+      lager = {
+        lots: inv.lots, parts: isNum(inv.parts) ? inv.parts : null, value: isNum(inv.value) ? inv.value : null,
+        newLots: isNum(inv.newLots) ? inv.newLots : null, usedLots: isNum(inv.usedLots) ? inv.usedLots : null,
+        stockroomLots: isNum(inv.stockroomLots) ? inv.stockroomLots : 0,
+        newLots30: isNum(inv.newLots30) ? inv.newLots30 : null,
+        lastListed: inv.lastListed || null, daysSince, listedNow, ageRows,
+        olderShare: ageRows ? ageRows[3].p : null,
+        goal, series, reached: goal > 0 && listedNow !== null && listedNow >= goal,
+        // die Vorwoche zaehlt nur, wenn das Ziel schon vor ihrem Ende galt (sonst gaebe es beim Setzen des Ziels sofort Punkte fuer vergangene Wochen)
+        prevReached: goal > 0 && wk.has(keys[keys.length - 2]) && (wk.get(keys[keys.length - 2]) || 0) >= goal && (!m.goalSince || m.goalSince <= keys[keys.length - 2]),
+        curKey, prevKey: keys[keys.length - 2]
+      };
+    }
+
+    /* Hinweise: feste Regeln, die schlimmsten zuerst */
+    const hints = [];
+    if (A !== null && B !== null && B > 0) {
+      const t = `Letzte 4 volle Wochen Ø ${one(A)}, davor Ø ${one(B)}.`;
+      if (A <= B * 0.75) hints.push({ level: A <= B * 0.6 ? "bad" : "warn", title: `Bestellungen: nur noch Ø ${one(A)} pro Woche`, text: t });
+      else if (A >= B * 1.25) hints.push({ level: "ok", title: `Bestellungen steigen: Ø ${one(A)} pro Woche`, text: t });
+      else hints.push({ level: "ok", title: `Bestellungen stabil: Ø ${one(A)} pro Woche`, text: t });
+    }
+    const earlier = months.slice(0, -1).filter((x) => x.known && x.ord > 0);
+    if (lm && lm.aov !== null && earlier.length >= 2) {
+      const base = sum(earlier, (x) => x.rev) / sum(earlier, (x) => x.ord), t = `${MONTHS[lm.mi]} ${eur2(lm.aov)}, in den Monaten davor Ø ${eur2(base)}.`;
+      if (lm.aov <= base * 0.75) hints.push({ level: lm.aov <= base * 0.6 ? "bad" : "warn", title: lm.aov <= base * 0.65 ? "Ø Warenkorb stark gefallen" : "Ø Warenkorb gefallen", text: t });
+      else if (lm.aov >= base * 1.25) hints.push({ level: "ok", title: "Ø Warenkorb gestiegen", text: t });
+    }
+    if (target !== null && last4 && H4 !== null) {
+      const Ah = H4 / 4;
+      if (Ah < target * 0.85) hints.push({ level: Ah < target * 0.6 ? "bad" : "warn", title: "Bricklink-Zeit unter deinem Ziel", text: `Ø ${one(Ah)} Std. pro Woche statt ${one(target)} in den letzten 4 vollen Wochen.` });
+      else hints.push({ level: "ok", title: "Bricklink-Zeit im Ziel", text: `Ø ${one(Ah)} Std. pro Woche, Ziel ${one(target)}.` });
+    }
+    if (lager) {
+      const part = lager.listedNow !== null ? `Diese Woche ${lager.listedNow} ${lager.listedNow === 1 ? "neues Lot" : "neue Lots"}${goal ? `, Ziel ${goal}` : ""}.` : "";
+      const d = lager.daysSince;
+      if (d !== null) {
+        const level = d >= 14 ? "bad" : d >= 7 ? "warn" : "ok";
+        const title = level !== "ok" ? `Seit ${d} Tagen nichts eingestellt` : d === 0 ? "Heute etwas eingestellt" : d === 1 ? "Gestern etwas eingestellt" : `Zuletzt vor ${d} Tagen etwas eingestellt`;
+        hints.push({ level, title, text: part || `Das neueste Lot ist vom ${dm(lager.lastListed)}` });
+      }
+      if (lager.olderShare !== null && lager.olderShare >= 40) hints.push({ level: "warn", title: `${lager.olderShare} % der Lots sind älter als ein Jahr`, text: "Ladenhüter binden Geld, ohne zu verkaufen." });
+    } else {
+      hints.push({ level: "info", title: "Lager noch nicht geladen", text: "Die Lager-Zahlen kommen mit dem nächsten Sync." });
+    }
+    hints.sort((a, b) => LEVEL_RANK[a.level] - LEVEL_RANK[b.level]);
+
+    const issues = hints.filter((h) => h.level === "bad" || h.level === "warn").length;
+    const worst = hints.length ? hints[0].level : "info";
+    const stamp = [rev && rev.checkedAt, inv && inv.checkedAt].filter(Boolean).sort().pop();
+    const sd = stamp ? new Date(stamp) : null;
+    return {
+      weeks, hi, weekNote, months, monthNote, kpis, hints, lager, worst, issues,
+      stand: sd && !isNaN(sd) ? sd.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) : "",
+      hasRevenue: !!rev, hasHours: !!hours, target, goal
+    };
+  }
+
+  /* ---------- Anzeige ---------- */
+  const sq = (n, max) => `<span class="sr-ords" aria-hidden="true">${"<i></i>".repeat(Math.min(n, max))}${n > max ? `<b>+${n - max}</b>` : ""}</span>`;
+  const lab = (key) => `<span class="sr-lab"><span>${+key.slice(8, 10)}.</span><span>${+key.slice(5, 7)}.</span></span>`;
+  const maxOf = (arr, f) => Math.max(1, ...arr.map((x) => f(x) || 0));
+
+  function hintsHtml(model) {
+    return model.hints.map((h) => `<div class="sr-hint sr-lvl-${h.level}"><span class="sr-hdot"></span><div><b>${esc(h.title)}</b><span>${esc(h.text)}</span></div></div>`).join("");
+  }
+  function kpiHtml(model, info) {
+    return model.kpis.map((k) => `<div class="sr-kpi"><span class="sr-kl">${esc(k.label)}</span><b class="sr-kv">${esc(k.value)}</b>${k.line1 ? `<span class="sr-k1 sr-tone-${k.tone1 || "flat"}">${esc(k.line1)}</span>` : ""}${k.line2 ? `<span class="sr-k2">${esc(k.line2)}</span>` : ""}${info ? `<span class="sr-kh">${esc(k.help)}</span>` : ""}</div>`).join("");
+  }
+  function weekChartHtml(model) {
+    const { weeks, hi, target } = model;
+    const rMax = maxOf(weeks, (w) => w.rev), hMax = Math.max(1, target || 0, ...weeks.map((w) => w.h || 0));
+    const R = 92, H = 84;
+    const cls = (w, i) => `sr-col${hi.has(i) ? " sr-hi" : ""}${w.partial ? " sr-part" : ""}${!w.known ? " sr-unk" : ""}`;
+    const revCols = weeks.map((w, i) => {
+      const t = w.known ? `${dm(w.key)}: ${eur2(w.rev)} · ${w.ord} ${w.ord === 1 ? "Bestellung" : "Bestellungen"}${w.partial ? " (läuft noch)" : ""}` : `${dm(w.key)}: keine Daten`;
+      return `<div class="${cls(w, i)}" title="${esc(t)}"><span class="sr-val">${w.known ? Math.round(w.rev) : "–"}</span><span class="sr-bar sr-bar-r" style="height:${w.known ? (w.rev > 0 ? Math.max(4, Math.round((w.rev / rMax) * R)) : 2) : 4}px"></span>${w.known ? sq(w.ord, 6) : '<span class="sr-ords"></span>'}</div>`;
+    }).join("");
+    const hCols = weeks.map((w, i) => {
+      const known = isNum(w.h);
+      const t = known ? `${dm(w.key)}: ${one(w.h)} Std. Bricklink${w.partial ? " (läuft noch)" : ""}` : `${dm(w.key)}: keine Zeitdaten`;
+      return `<div class="${cls({ ...w, known: known }, i)}" title="${esc(t)}"><span class="sr-val">${known ? one(w.h) : "–"}</span><span class="sr-bar sr-bar-h" style="height:${known ? (w.h > 0 ? Math.max(4, Math.round((w.h / hMax) * H)) : 2) : 4}px"></span></div>`;
+    }).join("");
+    const line = target ? `<span class="sr-target" style="bottom:${4 + Math.round((target / hMax) * H)}px"></span>` : "";
+    const hoursPart = model.hasHours
+      ? `<div class="sr-leg"><span><i class="sr-sw sr-sw-h"></i>Bricklink-Zeit in Std.</span>${target ? `<span><i class="sr-sw sr-sw-t"></i>Ziel ${one(target)} Std.</span>` : ""}</div>
+      <div class="sr-hwrap"><div class="sr-grid sr-grid-h" role="group" aria-label="Bricklink-Zeit pro Woche in Stunden">${hCols}</div>${line}</div>`
+      : "";
+    return `<div class="sr-leg"><span><i class="sr-sw sr-sw-r"></i>Umsatz in €</span><span>■ = 1 Bestellung</span></div>
+      <div class="sr-grid sr-grid-r" role="group" aria-label="Umsatz pro Woche in Euro mit Zahl der Bestellungen">${revCols}</div>
+      ${hoursPart}
+      <div class="sr-grid sr-grid-l">${weeks.map((w) => lab(w.key)).join("")}</div>`;
+  }
+  function monthChartHtml(model) {
+    const ms = model.months, aMax = maxOf(ms, (x) => x.aov);
+    return `<div class="sr-grid sr-grid-m" role="group" aria-label="Durchschnittlicher Warenkorb pro Monat in Euro">${ms.map((x) => {
+      const t = x.aov !== null ? `${MONTHS[x.mi]}: Ø ${eur2(x.aov)} bei ${x.ord} Bestellungen` : `${MONTHS[x.mi]}: ${x.known ? "keine Bestellung" : "keine Daten"}`;
+      return `<div class="sr-col sr-mcol${x.known ? "" : " sr-unk"}" title="${esc(t)}"><span class="sr-val">${x.aov !== null ? Math.round(x.aov) : "–"}</span><span class="sr-bar sr-bar-r" style="height:${x.aov !== null ? Math.max(4, Math.round((x.aov / aMax) * 120)) : 4}px"></span><span class="sr-mlab">${MON_SHORT[x.mi]}</span><span class="sr-mord">${x.known ? `${x.ord} Best.` : ""}</span></div>`;
+    }).join("")}</div>`;
+  }
+  function lagerHtml(model) {
+    const L = model.lager;
+    const tile = (label, value, sub, off) => `<div class="sr-tile${off ? " sr-off" : ""}"><span class="sr-kl">${label}</span><b class="sr-kv">${value}</b><span class="sr-k2">${sub}</span></div>`;
+    if (!L) {
+      return `<div class="sr-tiles">${tile("LOTS IM SHOP", "–", "kommt mit dem nächsten Sync", true)}${tile("NEU EINGESTELLT", "–", "in 30 Tagen", true)}${tile("LAGERWERT", "–", "Menge mal Preis", true)}${tile("ZULETZT EINGESTELLT", "–", "Tage seit dem letzten Lot", true)}</div>
+        <p class="sr-note">Der tägliche Sync fragt bei Bricklink deine Lots ab (Anzahl, Menge, Preis, Einstelldatum) und speichert nur die Summen. Danach stehen hier echte Zahlen.</p>`;
+    }
+    const parts = [L.parts !== null ? `${de(L.parts, 0)} Teile` : "", L.newLots !== null && L.usedLots !== null ? `${de(L.newLots, 0)} neu, ${de(L.usedLots, 0)} gebraucht` : ""].filter(Boolean).join(" · ");
+    const tiles = [
+      tile("LOTS IM SHOP", de(L.lots, 0), esc(parts) + (L.stockroomLots ? `${parts ? " · " : ""}+ ${de(L.stockroomLots, 0)} im Stockroom` : ""), false),
+      tile("NEU EINGESTELLT", L.newLots30 !== null ? de(L.newLots30, 0) : "–", "in 30 Tagen, noch im Bestand", L.newLots30 === null),
+      tile("LAGERWERT", L.value !== null ? eur0(L.value) : "–", "Verkaufswert: Menge mal Preis", L.value === null),
+      tile("ZULETZT EINGESTELLT", L.daysSince === null ? "–" : L.daysSince === 0 ? "heute" : L.daysSince === 1 ? "gestern" : `vor ${L.daysSince} Tagen`, L.lastListed ? `am ${dm(L.lastListed)}` : "ohne Erstelldatum nicht bekannt", L.daysSince === null)
+    ].join("");
+    const ages = L.ageRows
+      ? L.ageRows.map((a, i) => `<div class="sr-age"><span>${a.label}</span><span class="sr-track"><span class="sr-fill${i === 3 ? (a.p >= 40 ? " sr-fill-bad" : a.p >= 20 ? " sr-fill-warn" : "") : ""}" style="width:${a.p}%"></span></span><span class="sr-pct">${a.p} %</span></div>`).join("") + `<p class="sr-note">Lots, die älter als ein Jahr sind, nennt man Ladenhüter: Sie binden Geld, ohne zu verkaufen.</p>`
+      : `<p class="sr-note">Bricklink liefert für die Lots kein Erstelldatum, deshalb gibt es hier kein Alter.</p>`;
+    const g = L.goal, n = L.listedNow;
+    const barP = g > 0 && n !== null ? Math.min(100, Math.round((n / g) * 100)) : 0;
+    const serie = g > 0 ? (L.reached ? `Serie: ${L.series + 1} ${L.series + 1 === 1 ? "Woche" : "Wochen"} in Folge (mit dieser)` : L.series > 0 ? `Serie: ${L.series} ${L.series === 1 ? "Woche" : "Wochen"} in Folge geschafft` : "Noch keine Serie: Ziel erreichen, dann zählt die Woche.") : "Setze ein Ziel: Es zählt wie ein Habit, mit Wochenserie und 15 XP pro erreichter Woche.";
+    const goalBox = `<div class="sr-goal"><span class="sr-kl">WOCHENZIEL: LOTS EINSTELLEN</span>
+        <div class="sr-gtrack"><span class="sr-gfill${L.reached ? " sr-gdone" : ""}" style="width:${barP}%"></span></div>
+        <b class="sr-gtext">${g > 0 ? (n !== null ? `Diese Woche: ${n} von ${g} Lots` : `Ziel: ${g} Lots pro Woche`) : "Kein Wochenziel gesetzt"}</b>
+        <span class="sr-k2">${serie}</span>
+        <span class="sr-step"><button type="button" data-sr-act="goal-" aria-label="Wochenziel verringern"${g <= 0 ? " disabled" : ""}>−</button><span>${g > 0 ? `${g} Lots` : "aus"}</span><button type="button" data-sr-act="goal+" aria-label="Wochenziel erhöhen">+</button></span></div>`;
+    return `<div class="sr-tiles">${tiles}</div><div class="sr-lcols"><div class="sr-ages"><span class="sr-kl">ALTER DER LOTS</span>${ages}</div>${goalBox}</div>`;
+  }
+
+  function panelHtml(model, ui) {
+    const note = (t) => (t ? `<p class="sr-insight">${esc(t)}</p>` : "");
+    const infoTxt = `<div class="sr-info" ${ui.info ? "" : "hidden"}><span class="sr-kl">SO LIEST DU DEN RADAR</span>
+      <p>Die Hinweise sind feste Regeln, keine Schätzung: Sie vergleichen die letzten 4 vollen Wochen mit den 4 Wochen davor, den letzten vollen Monat mit den Monaten davor und deine Bricklink-Zeit mit deinem Wochen-Soll.</p>
+      <p>Alle Zahlen kommen aus deinen Bestellungen, deinem Lager und dem Zeittracker. Gespeichert werden nur Zahlen, keine Namen und keine Adressen.</p>
+      <p>Das Lager holt der tägliche Sync bei Bricklink. Der Lagerwert ist der Verkaufswert (Menge mal Preis), nicht dein Einkaufspreis. „Neu eingestellt“ zählt nur Lots, die noch im Bestand sind.</p></div>`;
+    return `<div class="sr-head"><div><span class="sr-t1">SHOP-RADAR</span><span class="sr-t2">Bricklink: Warum läuft der Shop (nicht)?</span></div><div class="sr-meta">${model.stand ? `<span>Stand ${esc(model.stand)}</span>` : ""}<button type="button" class="sr-i" data-sr-act="info" aria-pressed="${ui.info ? "true" : "false"}" aria-label="Erklärungen ein- oder ausblenden">i</button></div></div>
+      ${infoTxt}
+      <div class="sr-hints">${hintsHtml(model)}</div>
+      ${model.kpis.length ? `<div class="sr-kpis">${kpiHtml(model, ui.info)}</div>` : ""}
+      ${model.hasRevenue ? `<div class="sr-cols">
+        <section class="sr-box sr-boxw"><h4>Zeit und Umsatz pro Woche</h4><p class="sr-sub">Mehr Stunden, mehr Bestellungen? Die letzten ${model.weeks.length} Wochen (die letzte läuft noch).</p>${weekChartHtml(model)}${note(model.weekNote)}</section>
+        <section class="sr-box"><h4>Ø Warenkorb pro Monat</h4><p class="sr-sub">Umsatz geteilt durch Bestellungen, die letzten 6 vollen Monate.</p>${monthChartHtml(model)}${note(model.monthNote)}</section>
+      </div>` : ""}
+      <section class="sr-box"><h4>Lager</h4><p class="sr-sub">Dein Angebot: Wie viel liegt im Shop, und wie frisch ist es?</p>${lagerHtml(model)}</section>
+      <p class="sr-foot">Nur Zahlen: Bestellungen, Umsätze, Lots und Stunden. Keine Namen, keine Adressen, keine Nachrichten. Quellen: Bricklink-API und Zeittracker.</p>`;
+  }
+
+  function teaser(model) {
+    if (model.issues > 0) return `${model.issues} ${model.issues === 1 ? "Hinweis" : "Hinweise"}: ${model.hints[0].title}`;
+    if (model.hints.some((h) => h.level === "ok")) return "keine Auffälligkeiten";
+    return model.hints.length ? model.hints[0].title : "";
+  }
+
+  // Schrittweite des Wochenziels: 5 bis 20 Lots in 5ern, darueber in 10ern (wenig Tippen bis 30 oder 50)
+  const stepFor = (g, dir) => ((dir > 0 ? g < 20 : g <= 20) ? 5 : 10);
+
+  function sanitize(raw) {
+    const out = { goal: 0, updatedAt: 0 };
+    if (!raw || typeof raw !== "object") return out;
+    if (isNum(raw.updatedAt)) out.updatedAt = raw.updatedAt;
+    if (Number.isInteger(raw.goal) && raw.goal >= 0 && raw.goal <= MAX_GOAL) out.goal = raw.goal;
+    return out;
+  }
+
+  window.ShopRadarCalc = { compute };
+
+  window.createShopRadar = function (deps) {
+    const { dataStore, scheduleAutoSync, data } = deps;
+    const KEY = "dashboard-shopradar-v1", UI_KEY = "dashboard-shopradar-ui";
+    let state = sanitize(null);
+    try {
+      const raw = dataStore.getItem(KEY);
+      if (raw) state = sanitize(JSON.parse(raw));
+    } catch (e) { /* kaputter Speicher: ohne Wochenziel starten */ }
+    // Auf/zu und Erklaerung: nur dieser Browser, standardmaessig zu
+    const ui = { open: false, info: false };
+    try { const u = JSON.parse(localStorage.getItem(UI_KEY) || "{}"); ui.open = u.open === true; ui.info = u.info === true; } catch (e) { /* egal */ }
+    const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch (e) { /* egal */ } };
+
+    const hosts = new Set();
+    const goalXp = (model) => {
+      // Wochenziel erreicht: 15 XP je Woche, aber erst wenn die Cloud geladen ist (sonst blitzt eine Belohnung auf, die schon gebucht ist)
+      const xp = deps.getXp && deps.getXp();
+      const L = model.lager;
+      if (!xp || !L || !L.goal || document.body.dataset.cloud !== "ready" || !(xp.cloudHad && xp.cloudHad())) return;
+      if (L.reached) xp.award(`lotsweek@${L.curKey}`, XP_WEEK, null);
+      if (L.prevReached) xp.award(`lotsweek@${L.prevKey}`, XP_WEEK, null);
+    };
+    function model() {
+      const tt = deps.hours;
+      let hours = null, targets = null;
+      try { hours = tt ? tt.weekHours(WEEKS) : null; targets = tt ? tt.targets() : null; } catch (e) { /* ohne Zeitdaten weiter */ }
+      const yt = data && Array.isArray(data.goals) ? data.goals.find((g) => g.id === "bricks-umsatz") : null;
+      return compute({
+        now: new Date(), revenue: data && data.bricklinkRevenue, inventory: data && data.bricklinkInventory,
+        hours, targetHours: targets ? targets.bricklink : null, ytMonthly: yt && isNum(yt.current) ? yt.current : null, goal: state.goal,
+        goalSince: state.updatedAt > 0 ? mondayKey(new Date(state.updatedAt)) : null
+      });
+    }
+    // Der Knopf wird nur einmal gebaut und danach nur umgeschrieben (sonst ginge der Tastaturfokus bei jedem Klick verloren);
+    // der Inhalt des Menues entsteht nur im aufgeklappten Zustand, ein Knopf darin behaelt seinen Fokus
+    function render(host) {
+      if (!host.firstElementChild) {
+        host.innerHTML = '<button type="button" class="sr-toggle" data-sr-act="toggle" aria-expanded="false" aria-controls="sr-panel"><span class="sr-tg-name">Shop-Radar</span><span class="sr-dot"></span><span class="sr-tg-sum"></span></button><div class="sr-panel" id="sr-panel" role="region" aria-label="Shop-Radar" hidden></div>';
+      }
+      const mdl = host._srModel || (host._srModel = model());
+      const toggle = host.querySelector(".sr-toggle"), panel = host.querySelector(".sr-panel"), card = host.closest(".business-card");
+      toggle.className = `sr-toggle sr-lvl-${mdl.worst}`;
+      toggle.setAttribute("aria-expanded", ui.open ? "true" : "false");
+      toggle.querySelector(".sr-tg-sum").textContent = teaser(mdl);
+      panel.hidden = !ui.open;
+      if (ui.open) {
+        const had = panel.contains(document.activeElement) ? document.activeElement.dataset.srAct : "";
+        panel.innerHTML = panelHtml(mdl, ui);
+        if (had) { const again = panel.querySelector(`[data-sr-act="${had}"]`); if (again && !again.disabled) again.focus(); }
+      } else panel.textContent = "";
+      if (card) card.classList.toggle("sr-open", ui.open);
+    }
+    function refresh() {
+      hosts.forEach((h) => { h._srModel = null; render(h); });
+      const mdl = hosts.size ? [...hosts][0]._srModel : null;
+      if (mdl) goalXp(mdl);
+    }
+    function touch() {
+      state.updatedAt = Math.max(Date.now(), state.updatedAt + 1);
+      try { dataStore.setItem(KEY, JSON.stringify(state)); } catch (e) { /* egal */ }
+      scheduleAutoSync("syncdata");
+      refresh();
+    }
+    function onClick(e) {
+      const b = e.target.closest("[data-sr-act]");
+      if (!b) return;
+      const act = b.dataset.srAct;
+      if (act === "toggle") { ui.open = !ui.open; saveUi(); refresh(); }
+      else if (act === "info") { ui.info = !ui.info; saveUi(); refresh(); }
+      else if (act === "goal+") { state.goal = Math.min(MAX_GOAL, state.goal + stepFor(state.goal, 1)); touch(); }
+      else if (act === "goal-" && state.goal > 0) { state.goal = Math.max(0, state.goal - stepFor(state.goal, -1)); touch(); }
+    }
+
+    return {
+      // Haengt das Menue in den Platzhalter <div data-sr> der Bricklink-Karte
+      mount(host) {
+        if (!host || hosts.has(host)) return;
+        hosts.add(host);
+        host.addEventListener("click", onClick);
+        render(host);
+        if (document.body.dataset.cloud !== "ready") document.addEventListener("cloud-ready", refresh, { once: true });
+        else goalXp(host._srModel);
+      },
+      refresh,
+      // Fuer die Befehlspalette: Menue aufklappen und hinscrollen
+      open() {
+        ui.open = true; saveUi(); refresh();
+        const h = [...hosts][0];
+        if (h) h.scrollIntoView({ block: "start", behavior: "smooth" });
+      },
+      // Stand aus der Cloud: der neuere Zeitstempel gewinnt; ist der lokale neuer, geht er beim naechsten Auto-Sync hoch
+      applyRemote(remote) {
+        if (!remote || typeof remote !== "object") return;
+        const r = sanitize(remote);
+        if (r.updatedAt > state.updatedAt) {
+          state = r;
+          try { dataStore.setItem(KEY, JSON.stringify(state)); } catch (e) { /* egal */ }
+          refresh();
+        } else if (state.updatedAt > r.updatedAt) scheduleAutoSync("syncdata");
+      },
+      // Solange nie ein Ziel gesetzt wurde, bleibt das Feld ganz weg (kein leerer Eintrag in sync-data.json)
+      payload() {
+        if (state.updatedAt <= 0) return null;
+        return { goal: state.goal, updatedAt: Math.max(0, state.updatedAt) };
+      }
+    };
+  };
+})();

@@ -1933,6 +1933,7 @@
       <p class="card-title">${biz.title}<button type="button" class="card-i" aria-expanded="false" aria-label="Mehr zu ${escapeHtml(String(biz.title).replace(/<[^>]*>/g, ""))}" title="Mehr">i</button></p>
       <p class="card-subtitle">${biz.subtitle}</p>
       <div class="stat-list">${stats}</div>
+      ${key === "bricklink" && window.createShopRadar ? '<div class="sr" data-sr></div>' : ""}
       ${biz.note ? `<p class="card-note">${biz.note}</p>` : ""}
       ${renderRhythmBadge(biz)}
       ${key === "bricksOnTheFloor" && communityBoard ? '<div class="cm-block" data-cm></div>' : ""}
@@ -2459,6 +2460,12 @@
     : null;
   let remoteTimeTrackerRaw = null;
 
+  // Shop-Radar (shopradar.js): Ausklappmenue in der Karte "Bricklink Store". Zahlen aus data.bricklinkRevenue und data.bricklinkInventory (Sync),
+  // Stunden aus dem Zeittracker; in der Cloud liegt nur das Wochenziel "Lots einstellen" (Feld shopradar in sync-data.json).
+  const shopRadar = window.createShopRadar ? window.createShopRadar({ dataStore, scheduleAutoSync, data, hours: timeTrackerBoard, getXp: () => xpBoard }) : null;
+  let remoteShopRadarRaw = null;
+  if (shopRadar) document.querySelectorAll("[data-sr]").forEach((el) => shopRadar.mount(el));
+
   // Handy-Notiz (inbox.js): Notizen von jedem Geraet in eine Cloud-Inbox; das lokale Skript sync-brainmap.ps1 uebernimmt
   // sie am PC nach Obsidian, danach tauchen sie in data.notes auf und die Liste zeigt ein Haekchen.
   const inboxBoard = window.createInbox
@@ -2556,6 +2563,7 @@
         openNote: inboxBoard ? () => inboxBoard.open() : null,
         openAfterUpload: afterUploadBoard ? () => afterUploadBoard.open() : null,
         communityDone: communityBoard ? () => communityMark(communityBoard.today(), `Community-Post eingetragen. Der nächste ist in ${communityBoard.days()} Tagen fällig.`) : null,
+        openShopRadar: shopRadar ? () => { if (foldBoard) foldBoard.expand("business"); shopRadar.open(); } : null,
         addNote: inboxBoard ? (text) => inboxBoard.addText(text) : null,
         todoCats: TODO_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
         addTodo: (catId, text) => {
@@ -3298,9 +3306,11 @@
       msgSeen: msgSeenBoard ? msgSeenBoard.payload() : remoteMsgSeenRaw,
       afterUpload: afterUploadBoard ? afterUploadBoard.payload() : remoteAfterUploadRaw,
       community: communityBoard ? communityBoard.payload() : remoteCommunityRaw,
+      shopradar: shopRadar ? shopRadar.payload() : remoteShopRadarRaw,
       room: roomBoard ? roomBoard.payload() : remoteRoomRaw
     };
     if (payload.room == null) delete payload.room;
+    if (payload.shopradar == null) delete payload.shopradar;
     if (payload.afterUpload == null) delete payload.afterUpload;
     if (payload.community == null) delete payload.community;
     if (payload.msgSeen == null) delete payload.msgSeen;
@@ -3458,6 +3468,8 @@
         if (afterUploadBoard) afterUploadBoard.applyRemote(remote.afterUpload);
         remoteCommunityRaw = remote.community ?? null;
         if (communityBoard) communityBoard.applyRemote(remote.community);
+        remoteShopRadarRaw = remote.shopradar ?? null;
+        if (shopRadar) shopRadar.applyRemote(remote.shopradar);
         remoteRoomRaw = remote.room ?? null;
         if (roomBoard) roomBoard.applyRemote(remote.room);
         applyRemoteTodos(remote.todos);
