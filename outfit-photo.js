@@ -96,6 +96,87 @@
     return { canvas: o, empty: false, coverage: (bw * bh) / (w * h) };
   }
 
+  /* ---------- Aufraeumen des Freistellers: Reste anderer Gegenstaende, kleine Loecher, Farbsaum am Rand ----------
+     Das Modell setzt manchmal blasse Flaechen anderer Gegenstaende (Bett, Hose daneben) oder Punkte neben das Teil und laesst am Rand den alten Hintergrund
+     durchscheinen. Hier bleibt nur das deckende Hauptteil (plus gleich grosse Teile, z. B. ein zweiter Schuh): das Innere wird ganz deckend (mit seinen eigenen Farben),
+     der weiche Rand bleibt, seine Farben kommen aus dem Inneren. Gibt { canvas, empty, removed (Anteil der sichtbaren Pixel, die wegfielen), parts (behaltene Teile), uncertain (das Modell
+     war unsicher: kaum sicher deckende Flaeche, dann bleibt das Bild unveraendert) } zurueck. */
+  function cleanup(c) {
+    const w = c.width, h = c.height, n = w * h, T = 128, same = (u) => ({ canvas: c, empty: false, removed: 0, parts: 0, uncertain: u });
+    const g = c.getContext("2d", { willReadFrequently: true }), img = g.getImageData(0, 0, w, h), d = img.data;
+    const a = new Uint8Array(n); let before = 0; for (let i = 0; i < n; i++) { a[i] = d[i * 4 + 3]; before += a[i]; }
+    const a0 = Uint8Array.from(a);
+    /* 1) zusammenhaengende, deckende Flaechen (8er-Nachbarschaft) */
+    const lab = new Int32Array(n), stack = new Int32Array(n), comps = [];
+    for (let s = 0; s < n; s++) {
+      if (a[s] < T || lab[s]) continue;
+      const id = comps.length + 1; let sp = 0, area = 0, strong = 0;
+      stack[sp++] = s; lab[s] = id;
+      while (sp) {
+        const p = stack[--sp], x = p % w, y = (p - x) / w; area++; if (a[p] >= 217) strong++;
+        for (let yy = y > 0 ? y - 1 : 0, ye = y < h - 1 ? y + 1 : y; yy <= ye; yy++) for (let xx = x > 0 ? x - 1 : 0, xe = x < w - 1 ? x + 1 : x; xx <= xe; xx++) { const q = yy * w + xx; if (a[q] >= T && !lab[q]) { lab[q] = id; stack[sp++] = q; } }
+      }
+      comps.push({ id, area, strong: strong / area });
+    }
+    if (!comps.length) return { canvas: c, empty: true, removed: 0, parts: 0, uncertain: true };
+    let big = comps[0]; comps.forEach((k) => { if (k.area > big.area) big = k; });
+    if (big.strong < 0.55) return same(true); /* kaum etwas ist sicher Teil: lieber nichts anfassen */
+    const keep = new Uint8Array(comps.length + 1); let keptArea = 0, parts = 0;
+    comps.forEach((k) => { if (k === big || (k.area >= 0.12 * big.area && k.strong >= 0.6)) { keep[k.id] = 1; keptArea += k.area; parts++; } });
+    const M = new Uint8Array(n); for (let i = 0; i < n; i++) if (lab[i] && keep[lab[i]]) M[i] = 1;
+    /* 2) kleine Loecher im Teil schliessen (hoechstens 0,4 % der Flaeche); was vom Rand aus erreichbar ist, ist Hintergrund */
+    const out = new Uint8Array(n); let sp = 0;
+    const push = (p) => { if (!M[p] && !out[p]) { out[p] = 1; stack[sp++] = p; } };
+    for (let x = 0; x < w; x++) { push(x); push((h - 1) * w + x); } for (let y = 0; y < h; y++) { push(y * w); push(y * w + w - 1); }
+    while (sp) { const p = stack[--sp], x = p % w, y = (p - x) / w; if (x > 0) push(p - 1); if (x < w - 1) push(p + 1); if (y > 0) push(p - w); if (y < h - 1) push(p + w); }
+    const lim = Math.max(24, Math.round(keptArea * 0.004)), seen = new Uint8Array(n);
+    for (let s = 0; s < n; s++) {
+      if (M[s] || out[s] || seen[s]) continue;
+      const cells = []; sp = 0; stack[sp++] = s; seen[s] = 1;
+      while (sp) {
+        const p = stack[--sp], x = p % w, y = (p - x) / w; cells.push(p);
+        const nb = [x > 0 ? p - 1 : -1, x < w - 1 ? p + 1 : -1, y > 0 ? p - w : -1, y < h - 1 ? p + w : -1];
+        for (let k = 0; k < 4; k++) { const q = nb[k]; if (q >= 0 && !M[q] && !out[q] && !seen[q]) { seen[q] = 1; stack[sp++] = q; } }
+      }
+      if (cells.length <= lim) cells.forEach((p) => { M[p] = 1; });
+    }
+    /* 3) Zone: 3 Pixel um das Teil (dort bleibt der weiche Rand), Inneres: 3 Pixel in das Teil hinein */
+    const spread = (src, grow) => {
+      let cur = src;
+      for (let k = 0; k < 3; k++) {
+        const t = new Uint8Array(n), o = new Uint8Array(n);
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const p = y * w + x, l = x > 0 ? cur[p - 1] : (grow ? 0 : 1), r = x < w - 1 ? cur[p + 1] : (grow ? 0 : 1); t[p] = grow ? cur[p] | l | r : cur[p] & l & r; }
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const p = y * w + x, u = y > 0 ? t[p - w] : (grow ? 0 : 1), v = y < h - 1 ? t[p + w] : (grow ? 0 : 1); o[p] = grow ? t[p] | u | v : t[p] & u & v; }
+        cur = o;
+      }
+      return cur;
+    };
+    const Z = spread(M, true), E = spread(M, false);
+    /* Deckkraft: Inneres ganz deckend, Randzone wie vom Modell, aussen nichts. Farbe: Inneres und deckende Pixel behalten ihre Farbe (hinter fast durchsichtigen Pixeln steckt keine),
+       alle anderen bekommen sie aus der Umgebung (Rand: hoechstens 4 Schritte, tote Pixel im Inneren: bis zu 32) */
+    const A = new Uint8Array(n), col = new Uint8Array(n), reach = new Uint8Array(n); let after = 0, vis = 0, lost = 0;
+    for (let i = 0; i < n; i++) {
+      if (E[i]) { A[i] = 255; if (a0[i] >= 60) col[i] = 1; else reach[i] = 32; }
+      else if (Z[i]) { A[i] = a[i]; if (A[i] >= 250) col[i] = 1; else if (A[i] > 0) reach[i] = 4; }
+      after += A[i]; if (a0[i] >= 25) { vis++; if (A[i] < 10) lost++; }
+    }
+    if (after < 0.4 * before) return same(true); /* mehr als die Haelfte weg: das stimmt nicht, nichts aendern */
+    for (let it = 0; it < 32; it++) {
+      const add = [];
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const p = y * w + x; if (col[p] || it >= reach[p]) continue;
+        let r = 0, gg = 0, b = 0, k = 0;
+        for (let yy = y > 0 ? y - 1 : 0, ye = y < h - 1 ? y + 1 : y; yy <= ye; yy++) for (let xx = x > 0 ? x - 1 : 0, xe = x < w - 1 ? x + 1 : x; xx <= xe; xx++) { const q = yy * w + xx; if (col[q]) { r += d[q * 4]; gg += d[q * 4 + 1]; b += d[q * 4 + 2]; k++; } }
+        if (k) add.push(p, Math.round(r / k), Math.round(gg / k), Math.round(b / k));
+      }
+      if (!add.length) break;
+      for (let j = 0; j < add.length; j += 4) { const p = add[j]; d[p * 4] = add[j + 1]; d[p * 4 + 1] = add[j + 2]; d[p * 4 + 2] = add[j + 3]; col[p] = 1; }
+    }
+    for (let i = 0; i < n; i++) d[i * 4 + 3] = A[i];
+    const o = document.createElement("canvas"); o.width = w; o.height = h; o.getContext("2d").putImageData(img, 0, 0);
+    return { canvas: o, empty: false, removed: lost / Math.max(1, vis), parts, uncertain: false };
+  }
+
   /* ---------- Hauptfarben (nur deckende Pixel, aehnliche Toene werden zusammengefasst) ---------- */
   function colors(c, k) {
     const sc = Math.min(1, 96 / Math.max(c.width, c.height)), s = document.createElement("canvas"); s.width = Math.max(1, Math.round(c.width * sc)); s.height = Math.max(1, Math.round(c.height * sc));
@@ -202,6 +283,6 @@
     async ping(store) { return ai.call(store, "/ping", {}); }
   };
 
-  O.photo = { decode, fit, toBlob, copyCanvas, flatten, cutout, trim, colors, makeBlobs, editor, blob2b64 };
+  O.photo = { decode, fit, toBlob, copyCanvas, flatten, cutout, trim, cleanup, colors, makeBlobs, editor, blob2b64 };
   O.ai = ai;
 })();

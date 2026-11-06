@@ -42,7 +42,7 @@
     const syncEl = deps.syncEl || null;
     const SORTS = { new: "Neueste zuerst", cat: "Nach Kategorie", layer: "Nach Schicht (Base, Mid, Outer)", color: "Nach Farbe", wears: "Am meisten getragen", least: "Am wenigsten getragen", price: "Teuerste zuerst" };
     const ui = { tab: "wardrobe", wd: false, q: "", cat: "all", layer: "", sort: "new", fav: false, dirty: false, review: false };
-    const qInfo = { on: false, total: 0, done: 0, step: "", pct: 0, errors: 0, aiErr: "" };
+    const qInfo = { on: false, total: 0, done: 0, step: "", pct: 0, errors: 0, unsure: 0, aiErr: "" };
     let working = false;
 
     const store = O.createStore({ owner: deps.owner, serial: deps.serial, wrote: deps.wrote, onStatus: renderSync });
@@ -232,7 +232,7 @@
     function renderNotice() {
       const st = store.status(); let h = "";
       if (qInfo.on) h += '<div class="of-nt busy"><span class="of-nt-t"><b>FREISTELLEN ' + Math.min(qInfo.done + 1, qInfo.total) + "/" + qInfo.total + "</b> · " + esc(qInfo.step) + '</span><span class="of-bar-p"><i style="width:' + Math.round(qInfo.pct * 100) + '%"></i></span><button type="button" class="of-btn of-sm" data-act="qcancel">ABBRECHEN</button></div>';
-      else if (qInfo.total && qInfo.done) h += '<div class="of-nt ok"><span class="of-nt-t"><b>FERTIG:</b> ' + qInfo.done + (qInfo.done === 1 ? " Teil" : " Teile") + " hinzugefügt" + (qInfo.errors ? ", " + qInfo.errors + " ohne Freistellen" : "") + ". " + (qInfo.aiErr ? "<b>KI hat nichts ausgefüllt:</b> " + esc(qInfo.aiErr) : "Gelb markierte bitte kurz prüfen.") + "</span>" + '<button type="button" class="of-btn of-sm" data-act="qreview">PRÜFEN</button><button type="button" class="of-x" data-act="qclose" aria-label="Ausblenden">×</button></div>';
+      else if (qInfo.total && qInfo.done) h += '<div class="of-nt ok"><span class="of-nt-t"><b>FERTIG:</b> ' + qInfo.done + (qInfo.done === 1 ? " Teil" : " Teile") + " hinzugefügt" + (qInfo.errors ? ", " + qInfo.errors + " ohne Freistellen" : "") + (qInfo.unsure ? ", <b>" + qInfo.unsure + " unsicher freigestellt</b> (helle Teile auf dunklen Grund legen oder NACHBESSERN)" : "") + ". " + (qInfo.aiErr ? "<b>KI hat nichts ausgefüllt:</b> " + esc(qInfo.aiErr) : "Gelb markierte bitte kurz prüfen.") + "</span>" + '<button type="button" class="of-btn of-sm" data-act="qreview">PRÜFEN</button><button type="button" class="of-x" data-act="qclose" aria-label="Ausblenden">×</button></div>';
       if (st.s === "local" && !qInfo.on) h += '<div class="of-nt warn"><span class="of-nt-t"><b>Nur auf diesem Gerät gespeichert.</b> Für Handy und PC verbindest du ein privates GitHub-Repo.</span><button type="button" class="of-btn of-sm" data-act="settings">VERBINDEN</button></div>';
       else if (st.s === "error") h += '<div class="of-nt bad"><span class="of-nt-t"><b>Nicht gesichert:</b> ' + esc(st.msg || "unbekannter Fehler") + '</span><button type="button" class="of-btn of-sm" data-act="retry">NOCHMAL</button><button type="button" class="of-btn of-sm" data-act="settings">EINSTELLUNGEN</button></div>';
       notice.hidden = !h; notice.innerHTML = h;
@@ -242,7 +242,7 @@
       if (a.dataset.act === "settings") openSettings();
       else if (a.dataset.act === "retry") store.sync();
       else if (a.dataset.act === "qreview") { qInfo.total = qInfo.done = 0; openWardrobe(); ui.review = true; ui.cat = "all"; renderNotice(); renderWardrobe(); }
-      else if (a.dataset.act === "qclose") { qInfo.total = qInfo.done = qInfo.errors = 0; qInfo.aiErr = ""; renderNotice(); }
+      else if (a.dataset.act === "qclose") { qInfo.total = qInfo.done = qInfo.errors = qInfo.unsure = 0; qInfo.aiErr = ""; renderNotice(); }
       else if (a.dataset.act === "qcancel") { cancelQueue = true; a.disabled = true; }
     }
     notice.addEventListener("click", noticeClick);
@@ -252,10 +252,10 @@
        ========================================================================== */
     let cancelQueue = false;
     function openAdd() {
-      const s = sheet("TEIL HINZUFÜGEN", '<p class="of-p">Lege das Teil auf eine ruhige, helle Fläche (Bett, Boden) und fotografiere es von oben. Aus der Galerie kannst du <b>mehrere Fotos auf einmal</b> wählen, sie werden nacheinander freigestellt.</p>' +
+      const s = sheet("TEIL HINZUFÜGEN", '<p class="of-p">Lege das Teil auf eine ruhige, einfarbige Fläche, die anders aussieht als das Teil (helle Teile auf dunklen Grund, dunkle auf hellen), und fotografiere es von oben. Aus der Galerie kannst du <b>mehrere Fotos auf einmal</b> wählen, sie werden nacheinander freigestellt.</p>' +
         '<div class="of-big"><label class="of-bigb">' + ic("camera", 32) + '<b>KAMERA</b><small>ein Foto aufnehmen</small><input type="file" accept="image/*" capture="environment" data-src="cam" hidden></label>' +
         '<label class="of-bigb">' + ic("image", 32) + '<b>GALERIE</b><small>ein oder mehrere Fotos</small><input type="file" accept="image/*" multiple data-src="gal" hidden></label></div>' +
-        '<p class="of-p of-dim">Beim ersten Freistellen lädt der Browser einmalig das Modell (ca. 45 MB, Internet nötig). Danach geht es schneller.</p>');
+        '<p class="of-p of-dim">Beim ersten Freistellen lädt der Browser einmalig das Modell (ca. 90 MB, Internet nötig). Danach geht es schneller.</p>');
       s.body.addEventListener("change", (e) => {
         const inp = e.target.closest("input[type=file]"); if (!inp || !inp.files.length) return;
         const files = Array.from(inp.files); s.close(); enqueue(files);
@@ -265,7 +265,7 @@
       files = files.filter((f) => /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name || ""));
       if (!files.length) return toast("Keine Bilddatei erkannt", "warn");
       for (const f of files) await store.queue.add(f, target ? { target } : {});
-      if (!qInfo.on) { qInfo.total = 0; qInfo.done = 0; qInfo.errors = 0; qInfo.aiErr = ""; }
+      if (!qInfo.on) { qInfo.total = 0; qInfo.done = 0; qInfo.errors = 0; qInfo.unsure = 0; qInfo.aiErr = ""; }
       qInfo.total += files.length; toast(files.length === 1 ? "Foto wird verarbeitet …" : files.length + " Fotos werden verarbeitet …", "info", 3500);
       runQueue();
     }
@@ -276,7 +276,7 @@
           const list = await store.queue.list(); if (!list.length || cancelQueue) break;
           const job = list[0]; if (!qInfo.total) qInfo.total = list.length;
           qInfo.pct = 0; qInfo.step = "LADE FOTO"; renderNotice();
-          try { const r = await processOne(job); if (r && r.uncut) qInfo.errors++; qInfo.done++; }
+          try { const r = await processOne(job); if (r && r.uncut) qInfo.errors++; if (r && r.unsure) qInfo.unsure++; qInfo.done++; }
           catch (err) { console.warn("Outfits: Foto uebersprungen", err); toast("Foto nicht verarbeitet: " + (err && err.message ? err.message : "Fehler"), "warn", 6000); qInfo.done++; qInfo.errors++; }
           await store.queue.done(job.id);
         }
@@ -296,9 +296,11 @@
       if (set.get("cutMode") !== "off") {
         step("STELLE FREI", 0.05);
         try {
-          cut = await P.cutout(work, { model: set.get("cutModel") === "better" ? "isnet_fp16" : "isnet_quint8", gpu: !!set.get("cutGpu"), onProgress: (p, tot) => { if (tot > 100000) step(p < 0.999 ? "LADE FREISTELLER " + Math.round(p * 100) + " %" : "STELLE FREI", p * 0.8); } });
+          cut = await P.cutout(work, { model: set.get("cutModel") === "fast" ? "isnet_quint8" : "isnet_fp16", gpu: !!set.get("cutGpu"), onProgress: (p, tot) => { if (tot > 100000) step(p < 0.999 ? "LADE FREISTELLER " + Math.round(p * 100) + " %" : "STELLE FREI", p * 0.8); } });
         } catch (e) { console.warn("Freistellen fehlgeschlagen", e); uncut = true; toast(e.message || "Freistellen nicht möglich, Foto bleibt unverändert", "warn", 6000); }
       }
+      let unsure = false;
+      if (cut) { const cl = P.cleanup(cut); cut = cl.canvas; unsure = !!cl.uncertain; } /* Reste anderer Gegenstaende weg, Rand saeubern; bei Unsicherheit bleibt das Bild wie es ist */
       let fin = cut ? P.trim(cut, 24, 0.04) : null;
       if (fin && (fin.empty || fin.coverage < 0.02)) { fin = null; uncut = true; toast("Freistellen hat kein Teil gefunden, Foto bleibt unverändert", "warn", 6000); }
       const base = fin ? fin.canvas : work;
@@ -317,7 +319,7 @@
       /* Original und Freistellung bleiben auf diesem Geraet, damit Nachbessern (Zurueckholen) spaeter geht */
       try { await store.putAux("orig", item.id, await P.toBlob(work, "image/jpeg", 0.88)); if (cut) await store.putAux("cut", item.id, await P.toBlob(cut, "image/webp", 0.92)); } catch (e) { /* egal */ }
       if (aiErr) toast("KI-Erkennung nicht möglich: " + aiErr, "warn", 6000);
-      return { uncut };
+      return { uncut, unsure };
     }
 
     /* ==========================================================================
@@ -338,7 +340,7 @@
       const render = () => {
         s.body.innerHTML =
           '<div class="of-item"><div class="of-pic"><span class="of-img big"><img alt="" id="ofBig"></span>' +
-          '<div class="of-pic-b"><button type="button" class="of-btn of-sm" data-a="retouch">' + ic("brush", 12) + ' NACHBESSERN</button><button type="button" class="of-btn of-sm" data-a="retake">' + ic("camera", 12) + " NEUES FOTO</button></div>" +
+          '<div class="of-pic-b"><button type="button" class="of-btn of-sm" data-a="retouch">' + ic("brush", 12) + ' NACHBESSERN</button><button type="button" class="of-btn of-sm" data-a="retake">' + ic("camera", 12) + " NEUES FOTO</button>" + '<button type="button" class="of-btn of-sm" data-a="recut">' + ic("image", 12) + " NEU FREISTELLEN</button></div>" +
           '<div class="of-flags"><button type="button" class="of-flag' + (fav ? " on" : "") + '" data-a="fav">' + ic("heart", 14) + ' LIEBLINGSTEIL</button><button type="button" class="of-flag' + (dirty ? " on" : "") + '" data-a="dirty">' + ic("drop", 14) + " SCHMUTZIG</button></div></div>" +
           '<div class="of-form">' +
           '<label class="of-fld"><span class="of-lbl">BEZEICHNUNG' + aiMark("name") + '</span><input name="name" maxlength="80" placeholder="z. B. Navy-Hoodie mit Logo" value="' + esc(it.name) + '"></label>' +
@@ -374,6 +376,11 @@
         else if (act === "save") { const next = read(); next.review = false; await store.putItem(next); toast("Gespeichert", "ok", 2200); s.close(); }
         else if (act === "del") { if (!confirmDel) { confirmDel = true; a.lastChild.textContent = " WIRKLICH LÖSCHEN?"; a.classList.add("armed"); setTimeout(() => { confirmDel = false; if (a.isConnected) { a.lastChild.textContent = " LÖSCHEN"; a.classList.remove("armed"); } }, 4000); } else { await store.removeItem(id); toast("Teil gelöscht", "ok", 2200); s.close(); } }
         else if (act === "retouch") { const cur = read(); Object.assign(it, cur); await retouch(id, s); }
+        else if (act === "recut") {
+          const orig = await store.getAux("orig", id);
+          if (!orig) return toast("Das Originalfoto liegt nicht auf diesem Gerät. Mach ein NEUES FOTO.", "warn", 5000);
+          Object.assign(it, read()); await store.putItem(it); s.close(); enqueue([new File([orig], "original.jpg", { type: orig.type || "image/jpeg" })], id);
+        }
         else if (act === "retake") { const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.onchange = () => { if (inp.files[0]) { Object.assign(it, read()); store.putItem(it).then(() => { s.close(); enqueue([inp.files[0]], id); }); } }; inp.click(); }
       });
       s.body.addEventListener("input", (e) => {
@@ -384,6 +391,24 @@
         const a = e.target.closest('[data-a="addcol"]'); if (!a) return;
         const cur = read(); Object.assign(it, cur); cols.push(a.value.toLowerCase()); it.colors = cols; render();
       });
+    }
+    /* Vorhandene Teile aufraeumen: nur wenn wirklich etwas wegfaellt (Reste anderer Gegenstaende), sonst bleibt die Datei unveraendert (kein erneutes Komprimieren) */
+    async function cleanAll(report) {
+      const list = store.items().slice(); let done = 0, same = 0, failed = 0; const unsure = [];
+      for (let i = 0; i < list.length; i++) {
+        const it = list[i]; report("Räume auf " + (i + 1) + "/" + list.length + " …");
+        try {
+          const u = await store.photoURL(it.id); if (!u) { failed++; continue; }
+          const c = P.fit(await P.decode(await (await fetch(u)).blob()), 4096), r = P.cleanup(c);
+          if (r.uncertain) { unsure.push(itemTitle(it)); continue; }
+          if (r.removed < 0.005) { same++; continue; }
+          const fin = P.trim(r.canvas, 24, 0.04); if (fin.empty) { failed++; continue; }
+          await store.putItem(Object.assign({}, it), await P.makeBlobs(fin.canvas));
+          if (await store.getAux("cut", it.id)) await store.putAux("cut", it.id, await P.toBlob(fin.canvas, "image/webp", 0.92)); /* sonst holt Nachbessern die Reste wieder */
+          done++;
+        } catch (e) { console.warn("Aufraeumen:", it.id, e); failed++; }
+      }
+      report("Fertig: " + done + " aufgeräumt, " + same + " unverändert" + (unsure.length ? ", " + unsure.length + " unsicher (" + unsure.slice(0, 3).join(", ") + (unsure.length > 3 ? " …" : "") + ")" : "") + (failed ? ", " + failed + " nicht lesbar" : "") + ".");
     }
     async function retouch(id, s) {
       try {
@@ -428,8 +453,9 @@
           '<div class="of-actions left"><button type="button" class="of-btn of-sm" data-a="saveai">SPEICHERN</button></div></div></section>' +
           det("cut", "FREISTELLEN",
             '<div class="of-row2"><label class="of-fld"><span class="of-lbl">MODUS</span><select name="cutMode"><option value="auto"' + (set.get("cutMode") !== "off" ? " selected" : "") + '>Automatisch</option><option value="off"' + (set.get("cutMode") === "off" ? " selected" : "") + '>Aus</option></select></label>' +
-            '<label class="of-fld"><span class="of-lbl">QUALITÄT</span><select name="cutModel"><option value="fast"' + (set.get("cutModel") !== "better" ? " selected" : "") + '>Schnell</option><option value="better"' + (set.get("cutModel") === "better" ? " selected" : "") + ">Besser (langsamer)</option></select></label></div>" +
-            '<label class="of-chk"><input type="checkbox" name="cutGpu"' + (set.get("cutGpu") ? " checked" : "") + "> Grafikchip nutzen (experimentell)</label>") +
+            '<label class="of-fld"><span class="of-lbl">QUALITÄT</span><select name="cutModel"><option value="fast"' + (set.get("cutModel") === "fast" ? " selected" : "") + '>Schnell</option><option value="better"' + (set.get("cutModel") !== "fast" ? " selected" : "") + ">Besser (Standard)</option></select></label></div>" +
+            '<label class="of-chk"><input type="checkbox" name="cutGpu"' + (set.get("cutGpu") ? " checked" : "") + "> Grafikchip nutzen (experimentell)</label>" +
+            '<div class="of-actions left"><button type="button" class="of-btn of-sm" data-a="cleanall">ALLE TEILE AUFRÄUMEN</button></div><p class="of-p of-dim" id="ofCleanMsg" aria-live="polite">Entfernt Reste im Foto (z. B. eine Hose neben dem Teil).</p>') +
           det("cats", "KATEGORIEN · " + cats.length,
             '<div class="of-catl">' +
             cats.map((c, i) => '<div class="of-cat"><input data-ci="' + i + '" data-k="label" value="' + esc(c.label) + '" maxlength="40" aria-label="Name"><select data-ci="' + i + '" data-k="slot" aria-label="Platz">' + Object.keys(D.SLOTS).map((k) => '<option value="' + k + '"' + (c.slot === k ? " selected" : "") + ">" + D.SLOTS[k] + "</option>").join("") + '</select><span class="of-cnt">' + used(c.id) + '</span><button type="button" class="of-btn of-sm of-bad" data-a="delcat" data-ci="' + i + '"' + (used(c.id) ? " disabled title=\"Erst die Teile in eine andere Kategorie legen\"" : "") + ' aria-label="Löschen">×</button></div>').join("") + "</div>" +
@@ -460,6 +486,7 @@
         else if (act === "addocc") { const n = s.body.querySelector("#ofNewOcc").value.trim(); if (n && occs.indexOf(n) < 0) { occs.push(n); render(); } }
         else if (act === "delocc") { occs.splice(+a.dataset.oi, 1); render(); }
         else if (act === "saveocc") { await store.saveCats(store.cats(), occs); toast("Anlässe gespeichert", "ok", 2200); }
+        else if (act === "cleanall") { a.disabled = true; try { await cleanAll((t) => msg("ofCleanMsg", t)); } finally { a.disabled = false; } }
         else if (act === "export") { const b = new Blob([store.exportJson()], { type: "application/json" }), u = URL.createObjectURL(b), l = document.createElement("a"); l.href = u; l.download = "outfits-" + O.util.dayKey() + ".json"; l.click(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
       });
     }
