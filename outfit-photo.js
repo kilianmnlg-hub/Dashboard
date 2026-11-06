@@ -160,8 +160,8 @@ self.onmessage = async (e) => {
   async function cutout(canvas, opts) {
     opts = opts || {};
     if (opts.engine !== "isnet") {
-      try { const out = await cutoutRmbg(canvas, opts); O.photo.cutEngine = "rmbg"; return out; }
-      catch (e) { console.warn("RMBG nicht moeglich, nehme ISNet:", e && e.message); O.photo.cutEngine = "isnet-ersatz"; opts = Object.assign({}, opts, { model: "isnet_fp16" }); }
+      try { const out = await cutoutRmbg(canvas, opts); O.photo.cutEngine = "rmbg"; O.photo.cutError = ""; return out; }
+      catch (e) { console.warn("RMBG nicht moeglich, nehme ISNet:", e && e.message); O.photo.cutEngine = "isnet-ersatz"; O.photo.cutError = String((e && e.message) || e).slice(0, 120); opts = Object.assign({}, opts, { model: "isnet_fp16" }); }
     } else O.photo.cutEngine = "isnet";
     return cutoutIsnet(canvas, opts);
   }

@@ -42,7 +42,7 @@
     const syncEl = deps.syncEl || null;
     const SORTS = { new: "Neueste zuerst", cat: "Nach Kategorie", layer: "Nach Schicht (Base, Mid, Outer)", color: "Nach Farbe", wears: "Am meisten getragen", least: "Am wenigsten getragen", price: "Teuerste zuerst" };
     const ui = { tab: "wardrobe", wd: false, q: "", cat: "all", layer: "", sort: "new", fav: false, dirty: false, review: false };
-    const qInfo = { on: false, total: 0, done: 0, step: "", pct: 0, errors: 0, unsure: 0, aiErr: "" };
+    const qInfo = { on: false, total: 0, done: 0, step: "", pct: 0, errors: 0, unsure: 0, engine: "", engineErr: "", aiErr: "" };
     let working = false;
 
     const store = O.createStore({ owner: deps.owner, serial: deps.serial, wrote: deps.wrote, onStatus: renderSync });
@@ -232,7 +232,7 @@
     function renderNotice() {
       const st = store.status(); let h = "";
       if (qInfo.on) h += '<div class="of-nt busy"><span class="of-nt-t"><b>FREISTELLEN ' + Math.min(qInfo.done + 1, qInfo.total) + "/" + qInfo.total + "</b> · " + esc(qInfo.step) + '</span><span class="of-bar-p"><i style="width:' + Math.round(qInfo.pct * 100) + '%"></i></span><button type="button" class="of-btn of-sm" data-act="qcancel">ABBRECHEN</button></div>';
-      else if (qInfo.total && qInfo.done) h += '<div class="of-nt ok"><span class="of-nt-t"><b>FERTIG:</b> ' + qInfo.done + (qInfo.done === 1 ? " Teil" : " Teile") + " hinzugefügt" + (qInfo.errors ? ", " + qInfo.errors + " ohne Freistellen" : "") + (qInfo.unsure ? ", <b>" + qInfo.unsure + " unsicher freigestellt</b> (NACHBESSERN oder neu fotografieren)" : "") + ". " + (qInfo.aiErr ? "<b>KI hat nichts ausgefüllt:</b> " + esc(qInfo.aiErr) : "Gelb markierte bitte kurz prüfen.") + "</span>" + '<button type="button" class="of-btn of-sm" data-act="qreview">PRÜFEN</button><button type="button" class="of-x" data-act="qclose" aria-label="Ausblenden">×</button></div>';
+      else if (qInfo.total && qInfo.done) h += '<div class="of-nt ok"><span class="of-nt-t"><b>FERTIG:</b> ' + qInfo.done + (qInfo.done === 1 ? " Teil" : " Teile") + " hinzugefügt" + (qInfo.errors ? ", " + qInfo.errors + " ohne Freistellen" : "") + (qInfo.unsure ? ", <b>" + qInfo.unsure + " unsicher freigestellt</b> (NACHBESSERN oder neu fotografieren)" : "") + (qInfo.engine ? " · Modell " + (qInfo.engine === "rmbg" ? "RMBG" : qInfo.engine === "isnet-ersatz" ? "<b>Ersatz ISNet</b> (RMBG ging nicht: " + esc(qInfo.engineErr || "unbekannt") + ")" : "ISNet") : "") + ". " + (qInfo.aiErr ? "<b>KI hat nichts ausgefüllt:</b> " + esc(qInfo.aiErr) : "Gelb markierte bitte kurz prüfen.") + "</span>" + '<button type="button" class="of-btn of-sm" data-act="qreview">PRÜFEN</button><button type="button" class="of-x" data-act="qclose" aria-label="Ausblenden">×</button></div>';
       if (st.s === "local" && !qInfo.on) h += '<div class="of-nt warn"><span class="of-nt-t"><b>Nur auf diesem Gerät gespeichert.</b> Für Handy und PC verbindest du ein privates GitHub-Repo.</span><button type="button" class="of-btn of-sm" data-act="settings">VERBINDEN</button></div>';
       else if (st.s === "error") h += '<div class="of-nt bad"><span class="of-nt-t"><b>Nicht gesichert:</b> ' + esc(st.msg || "unbekannter Fehler") + '</span><button type="button" class="of-btn of-sm" data-act="retry">NOCHMAL</button><button type="button" class="of-btn of-sm" data-act="settings">EINSTELLUNGEN</button></div>';
       notice.hidden = !h; notice.innerHTML = h;
@@ -242,7 +242,7 @@
       if (a.dataset.act === "settings") openSettings();
       else if (a.dataset.act === "retry") store.sync();
       else if (a.dataset.act === "qreview") { qInfo.total = qInfo.done = 0; openWardrobe(); ui.review = true; ui.cat = "all"; renderNotice(); renderWardrobe(); }
-      else if (a.dataset.act === "qclose") { qInfo.total = qInfo.done = qInfo.errors = qInfo.unsure = 0; qInfo.aiErr = ""; renderNotice(); }
+      else if (a.dataset.act === "qclose") { qInfo.total = qInfo.done = qInfo.errors = qInfo.unsure = 0; qInfo.engine = ""; qInfo.engineErr = ""; qInfo.aiErr = ""; renderNotice(); }
       else if (a.dataset.act === "qcancel") { cancelQueue = true; a.disabled = true; }
     }
     notice.addEventListener("click", noticeClick);
@@ -265,7 +265,7 @@
       files = files.filter((f) => /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|heif)$/i.test(f.name || ""));
       if (!files.length) return toast("Keine Bilddatei erkannt", "warn");
       for (const f of files) await store.queue.add(f, target ? { target } : {});
-      if (!qInfo.on) { qInfo.total = 0; qInfo.done = 0; qInfo.errors = 0; qInfo.unsure = 0; qInfo.aiErr = ""; }
+      if (!qInfo.on) { qInfo.total = 0; qInfo.done = 0; qInfo.errors = 0; qInfo.unsure = 0; qInfo.engine = ""; qInfo.engineErr = ""; qInfo.aiErr = ""; }
       qInfo.total += files.length; toast(files.length === 1 ? "Foto wird verarbeitet …" : files.length + " Fotos werden verarbeitet …", "info", 3500);
       runQueue();
     }
@@ -296,9 +296,10 @@
       if (set.get("cutMode") !== "off") {
         step("STELLE FREI", 0.05);
         try {
-          cut = await P.cutout(work, { engine: set.get("cutModel") === "fast" || set.get("cutModel") === "better" ? "isnet" : "rmbg", model: set.get("cutModel") === "fast" ? "isnet_quint8" : "isnet_fp16", gpu: !!set.get("cutGpu"), onProgress: (p, tot) => { if (tot > 100000) step(p < 0.999 ? "LADE FREISTELLER " + Math.round(p * 100) + " %" : "STELLE FREI", p * 0.8); } });
+          cut = await P.cutout(work, { engine: set.get("cutEngine") === "fast" || set.get("cutEngine") === "better" ? "isnet" : "rmbg", model: set.get("cutEngine") === "fast" ? "isnet_quint8" : "isnet_fp16", gpu: !!set.get("cutGpu"), onProgress: (p, tot) => { if (tot > 100000) step(p < 0.999 ? "LADE FREISTELLER " + Math.round(p * 100) + " %" : "STELLE FREI", p * 0.8); } });
         } catch (e) { console.warn("Freistellen fehlgeschlagen", e); uncut = true; toast(e.message || "Freistellen nicht möglich, Foto bleibt unverändert", "warn", 6000); }
       }
+      if (cut) { qInfo.engine = P.cutEngine || ""; qInfo.engineErr = P.cutError || ""; }
       if (cut && P.cutEngine === "isnet-ersatz") toast("Das beste Modell ließ sich nicht laden, ich nehme das Ersatzmodell.", "warn", 6000);
       let unsure = false;
       if (cut) { const cl = P.cleanup(cut); cut = cl.canvas; unsure = !!cl.uncertain; } /* Reste anderer Gegenstaende weg, Rand saeubern; bei Unsicherheit bleibt das Bild wie es ist */
@@ -454,7 +455,7 @@
           '<div class="of-actions left"><button type="button" class="of-btn of-sm" data-a="saveai">SPEICHERN</button></div></div></section>' +
           det("cut", "FREISTELLEN",
             '<div class="of-row2"><label class="of-fld"><span class="of-lbl">MODUS</span><select name="cutMode"><option value="auto"' + (set.get("cutMode") !== "off" ? " selected" : "") + '>Automatisch</option><option value="off"' + (set.get("cutMode") === "off" ? " selected" : "") + '>Aus</option></select></label>' +
-            '<label class="of-fld"><span class="of-lbl">MODELL</span><select name="cutModel"><option value="rmbg"' + (set.get("cutModel") !== "fast" && set.get("cutModel") !== "better" ? " selected" : "") + '>RMBG, am besten (ca. 55 MB)</option><option value="better"' + (set.get("cutModel") === "better" ? " selected" : "") + '>ISNet besser (ca. 80 MB)</option><option value="fast"' + (set.get("cutModel") === "fast" ? " selected" : "") + ">ISNet schnell (ca. 40 MB)</option></select></label></div>" +
+            '<label class="of-fld"><span class="of-lbl">MODELL</span><select name="cutEngine"><option value="rmbg"' + (set.get("cutEngine") !== "fast" && set.get("cutEngine") !== "better" ? " selected" : "") + '>RMBG, am besten (ca. 55 MB)</option><option value="better"' + (set.get("cutEngine") === "better" ? " selected" : "") + '>ISNet besser (ca. 80 MB)</option><option value="fast"' + (set.get("cutEngine") === "fast" ? " selected" : "") + ">ISNet schnell (ca. 40 MB)</option></select></label></div>" +
             '<label class="of-chk"><input type="checkbox" name="cutGpu"' + (set.get("cutGpu") ? " checked" : "") + "> Grafikchip nutzen (experimentell)</label>" +
             '<div class="of-actions left"><button type="button" class="of-btn of-sm" data-a="cleanall">ALLE TEILE AUFRÄUMEN</button></div><p class="of-p of-dim" id="ofCleanMsg" aria-live="polite">Entfernt Reste im Foto (z. B. eine Hose neben dem Teil).</p>') +
           det("cats", "KATEGORIEN · " + cats.length,
@@ -472,7 +473,7 @@
       s.body.addEventListener("input", (e) => { const i = e.target.dataset.ci; if (i != null && e.target.dataset.k === "label") cats[+i].label = e.target.value; });
       s.body.addEventListener("change", (e) => { const i = e.target.dataset.ci; if (i != null && e.target.dataset.k === "slot") cats[+i].slot = e.target.value; });
       s.body.addEventListener("toggle", (e) => { const k = e.target.dataset && e.target.dataset.sec; if (k) open[k] = e.target.open; }, true);
-      s.body.addEventListener("change", (e) => { if (/^cut(Mode|Model|Gpu)$/.test(e.target.name || "")) { set.set({ cutMode: val("cutMode"), cutModel: val("cutModel"), cutGpu: !!val("cutGpu") }); toast("Gespeichert", "ok", 1500); } });
+      s.body.addEventListener("change", (e) => { if (/^cut(Mode|Engine|Gpu)$/.test(e.target.name || "")) { set.set({ cutMode: val("cutMode"), cutEngine: val("cutEngine"), cutGpu: !!val("cutGpu") }); toast("Gespeichert", "ok", 1500); } });
       s.body.addEventListener("click", async (e) => {
         const a = e.target.closest("[data-a]"); if (!a) return; const act = a.dataset.a;
         if (act === "edit") { const box = s.body.querySelector("#" + a.dataset.t); if (box) box.hidden = !box.hidden; return; }
