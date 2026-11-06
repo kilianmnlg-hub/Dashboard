@@ -68,7 +68,7 @@
     const mod = await loadImgly();
     try { return await mod.removeBackground(input, cfg); } catch (e) { if (!cfg.device) throw e; delete cfg.device; return mod.removeBackground(input, cfg); }
   }
-  async function cutout(canvas, opts) {
+  async function cutoutIsnet(canvas, opts) {
     opts = opts || {};
     const input = await toBlob(canvas, "image/jpeg", 0.92), seen = {};
     const onProgress = (k, cur, tot) => {
@@ -84,6 +84,88 @@
     const bmp = await createImageBitmap(out), c = document.createElement("canvas"); c.width = bmp.width; c.height = bmp.height; c.getContext("2d").drawImage(bmp, 0, 0); return c;
   }
 
+  /* ---------- Hintergrund entfernen mit RMBG-1.4 (BRIA, ONNX, laeuft im Browser mit onnxruntime-web) ----------
+     Auf echten Fotos (Tisch, Schwert an der Wand, Beine im Bild) findet RMBG das Teil, wo ISNet (imgly) fast nichts sah (weisses Polo, olivgruenes Hemd). Das Modell (44 MB,
+     quantisiert) kommt von Hugging Face und wird im Browser-Speicher (Cache Storage) abgelegt; gerechnet wird im eigenen Web Worker. Der Eingang bekommt 1,8-fache Farbsaettigung
+     (hilft bei wenig Farbunterschied, z. B. olivgruen auf grau; staerker holt es Fremdes dazu), das Ergebnis wird auf das unveraenderte Foto gelegt. Geht etwas schief, nimmt cutout
+     das ISNet-Modell. Lizenz des Modells: nur nicht-kommerzielle Nutzung (https://bria.ai/bria-huggingface-model-license-agreement/). */
+  const ORT_BASE = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
+  const RMBG_URL = "https://huggingface.co/briaai/RMBG-1.4/resolve/main/onnx/model_quantized.onnx";
+  const RMBG_SAT = 1.8;
+  const RMBG_WORKER = `
+let ort = null, session = null;
+async function getModel(url, report) {
+  let cache = null; try { cache = await caches.open("outfit-rmbg-1"); const hit = await cache.match(url); if (hit) return await hit.arrayBuffer(); } catch (e) { cache = null; }
+  const r = await fetch(url); if (!r.ok) throw new Error("Modell nicht ladbar (" + r.status + ")");
+  const total = Number(r.headers.get("content-length")) || 44500000, reader = r.body.getReader(), parts = []; let got = 0;
+  for (;;) { const x = await reader.read(); if (x.done) break; parts.push(x.value); got += x.value.length; report(got, total); }
+  const buf = new Uint8Array(got); let o = 0; parts.forEach((q) => { buf.set(q, o); o += q.length; });
+  if (cache) { try { await cache.put(url, new Response(buf, { headers: { "content-type": "application/octet-stream" } })); } catch (e) { /* egal */ } }
+  return buf.buffer;
+}
+self.onmessage = async (e) => {
+  const d = e.data;
+  try {
+    if (!ort) { ort = await import(d.ort + "ort.min.mjs"); ort.env.wasm.wasmPaths = d.ort; ort.env.wasm.numThreads = 1; }
+    if (!session) {
+      const buf = await getModel(d.model, (cur, tot) => self.postMessage({ t: "p", cur, tot }));
+      session = await ort.InferenceSession.create(buf, { executionProviders: ["wasm"] });
+    }
+    const res = await session.run({ [session.inputNames[0]]: new ort.Tensor("float32", d.input, [1, 3, 1024, 1024]) });
+    const o = res[session.outputNames[0]].data, n = 1024 * 1024; let mi = 1e9, ma = -1e9;
+    for (let i = 0; i < n; i++) { if (o[i] < mi) mi = o[i]; if (o[i] > ma) ma = o[i]; }
+    const mask = new Uint8Array(n), sc = 255 / Math.max(1e-6, ma - mi);
+    for (let i = 0; i < n; i++) { const v = (o[i] - mi) * sc; mask[i] = v < 0 ? 0 : v > 255 ? 255 : v; }
+    self.postMessage({ t: "d", mask }, [mask.buffer]);
+  } catch (err) { self.postMessage({ t: "e", m: String((err && err.message) || err) }); }
+};
+`;
+  let rmbgWorker = null, rmbgUrl = "", rmbgIdle = 0;
+  function stopRmbg() { clearTimeout(rmbgIdle); if (rmbgWorker) { try { rmbgWorker.terminate(); } catch (e) { /* egal */ } } rmbgWorker = null; if (rmbgUrl) { URL.revokeObjectURL(rmbgUrl); rmbgUrl = ""; } }
+  function rmbgInWorker(input, onProgress) {
+    return new Promise((resolve, reject) => {
+      if (typeof Worker === "undefined") return reject(new Error("kein Worker"));
+      try {
+        if (!rmbgWorker) { rmbgUrl = URL.createObjectURL(new Blob([RMBG_WORKER], { type: "text/javascript" })); rmbgWorker = new Worker(rmbgUrl, { type: "module" }); }
+      } catch (e) { stopRmbg(); return reject(e); }
+      const w = rmbgWorker, fin = () => { clearTimeout(timer); w.onmessage = null; w.onerror = null; clearTimeout(rmbgIdle); rmbgIdle = setTimeout(stopRmbg, 120000); };
+      const timer = setTimeout(() => { stopRmbg(); reject(new Error("Zeitüberschreitung")); }, 360000);
+      w.onmessage = (e) => {
+        const d = e.data || {};
+        if (d.t === "p") onProgress(d.cur / Math.max(1, d.tot), d.tot);
+        else if (d.t === "d") { fin(); resolve(d.mask); }
+        else if (d.t === "e") { fin(); reject(new Error(d.m)); }
+      };
+      w.onerror = (e) => { clearTimeout(timer); stopRmbg(); reject(new Error((e && e.message) || "Hintergrund-Thread nicht verfügbar")); };
+      clearTimeout(rmbgIdle);
+      w.postMessage({ ort: ORT_BASE, model: RMBG_URL, input }, [input.buffer]);
+    });
+  }
+  async function cutoutRmbg(canvas, opts) {
+    const w = canvas.width, h = canvas.height, n = 1024 * 1024;
+    const sq = document.createElement("canvas"); sq.width = 1024; sq.height = 1024; const sg = sq.getContext("2d", { willReadFrequently: true }); sg.imageSmoothingQuality = "high"; sg.drawImage(canvas, 0, 0, 1024, 1024);
+    const px = sg.getImageData(0, 0, 1024, 1024).data, f = new Float32Array(3 * n), cl = (v) => (v < 0 ? 0 : v > 255 ? 255 : v);
+    for (let i = 0; i < n; i++) {
+      const r = px[i * 4], gg = px[i * 4 + 1], b = px[i * 4 + 2], l = 0.299 * r + 0.587 * gg + 0.114 * b;
+      f[i] = cl(l + (r - l) * RMBG_SAT) / 255 - 0.5; f[n + i] = cl(l + (gg - l) * RMBG_SAT) / 255 - 0.5; f[2 * n + i] = cl(l + (b - l) * RMBG_SAT) / 255 - 0.5;
+    }
+    const mask = await rmbgInWorker(f, (p, tot) => { if (opts && opts.onProgress) opts.onProgress(p, tot); });
+    const mk = document.createElement("canvas"); mk.width = 1024; mk.height = 1024; const mg = mk.getContext("2d"), im = mg.createImageData(1024, 1024);
+    for (let i = 0; i < n; i++) { im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = 255; im.data[i * 4 + 3] = mask[i]; }
+    mg.putImageData(im, 0, 0);
+    const out = copyCanvas(canvas), og = out.getContext("2d"); og.globalCompositeOperation = "destination-in"; og.imageSmoothingQuality = "high"; og.drawImage(mk, 0, 0, w, h);
+    return out;
+  }
+  /* RMBG ist der Standard (opts.engine "rmbg"); opts.engine "isnet" nimmt das imgly-Modell opts.model. Faellt RMBG aus, kommt ISNet "besser" als Ersatz (O.photo.cutEngine "isnet-ersatz"). */
+  async function cutout(canvas, opts) {
+    opts = opts || {};
+    if (opts.engine !== "isnet") {
+      try { const out = await cutoutRmbg(canvas, opts); O.photo.cutEngine = "rmbg"; return out; }
+      catch (e) { console.warn("RMBG nicht moeglich, nehme ISNet:", e && e.message); O.photo.cutEngine = "isnet-ersatz"; opts = Object.assign({}, opts, { model: "isnet_fp16" }); }
+    } else O.photo.cutEngine = "isnet";
+    return cutoutIsnet(canvas, opts);
+  }
+
   /* ---------- Zuschneiden auf das Teil (Alphakanal) ---------- */
   function trim(c, thr, padRatio) {
     const g = c.getContext("2d", { willReadFrequently: true }), w = c.width, h = c.height, d = g.getImageData(0, 0, w, h).data;
@@ -96,34 +178,63 @@
     return { canvas: o, empty: false, coverage: (bw * bh) / (w * h) };
   }
 
-  /* ---------- Aufraeumen des Freistellers: Reste anderer Gegenstaende, kleine Loecher, Farbsaum am Rand ----------
-     Das Modell setzt manchmal blasse Flaechen anderer Gegenstaende (Bett, Hose daneben) oder Punkte neben das Teil und laesst am Rand den alten Hintergrund
-     durchscheinen. Hier bleibt nur das deckende Hauptteil (plus gleich grosse Teile, z. B. ein zweiter Schuh): das Innere wird ganz deckend (mit seinen eigenen Farben),
-     der weiche Rand bleibt, seine Farben kommen aus dem Inneren. Gibt { canvas, empty, removed (Anteil der sichtbaren Pixel, die wegfielen), parts (behaltene Teile), uncertain (das Modell
-     war unsicher: kaum sicher deckende Flaeche, dann bleibt das Bild unveraendert) } zurueck. */
+  /* ---------- Aufraeumen des Freistellers: Hauptteil waehlen, Reste und fremde Gegenstaende weg, Loecher fuellen, Farbsaum am Rand ----------
+     Das Modell nimmt oft mehr mit als das Teil: blasse Reste (eine Hose daneben), ein Schwert an der Wand, die eigenen Knie. Hier bleibt nur das Hauptteil:
+     1) Die deckende Maske (ab 50 %) wird so weit abgetragen, dass Gegenstaende, die sich nur beruehren, getrennt sind; jeder Kern zaehlt nach Groesse und Naehe zur Mitte.
+     2) Der beste Kern gewinnt; weitere bleiben nur, wenn sie wie ein Paar aussehen (aehnliche Farbe und Groesse, z. B. zwei Schuhe). Alles andere faellt weg, auch duenne Dinge
+        (Schwert, Kabel) und Punkte. Jeder Maskenpixel gehoert zum naechsten Kern, so bleiben Fransen und Traeger am Hauptteil hängen.
+     3) Kleine Loecher werden gefuellt, das Innere wird ganz deckend (mit den eigenen Farben), der weiche Rand bleibt, seine Farben kommen aus dem Inneren (kein Farbsaum).
+     Gibt { canvas, empty, removed (Anteil der sichtbaren Pixel, die wegfielen), parts (behaltene Kerne), uncertain } zurueck. Ist das Ergebnis offensichtlich falsch (kaum sicher deckende
+     Flaeche, wie beim weissen Hoodie, oder mehr als 60 % der Deckkraft waeren weg), bleibt das Bild unveraendert und uncertain ist wahr. */
   function cleanup(c) {
     const w = c.width, h = c.height, n = w * h, T = 128, same = (u) => ({ canvas: c, empty: false, removed: 0, parts: 0, uncertain: u });
     const g = c.getContext("2d", { willReadFrequently: true }), img = g.getImageData(0, 0, w, h), d = img.data;
     const a = new Uint8Array(n); let before = 0; for (let i = 0; i < n; i++) { a[i] = d[i * 4 + 3]; before += a[i]; }
-    const a0 = Uint8Array.from(a);
-    /* 1) zusammenhaengende, deckende Flaechen (8er-Nachbarschaft) */
-    const lab = new Int32Array(n), stack = new Int32Array(n), comps = [];
-    for (let s = 0; s < n; s++) {
-      if (a[s] < T || lab[s]) continue;
-      const id = comps.length + 1; let sp = 0, area = 0, strong = 0;
-      stack[sp++] = s; lab[s] = id;
-      while (sp) {
-        const p = stack[--sp], x = p % w, y = (p - x) / w; area++; if (a[p] >= 217) strong++;
-        for (let yy = y > 0 ? y - 1 : 0, ye = y < h - 1 ? y + 1 : y; yy <= ye; yy++) for (let xx = x > 0 ? x - 1 : 0, xe = x < w - 1 ? x + 1 : x; xx <= xe; xx++) { const q = yy * w + xx; if (a[q] >= T && !lab[q]) { lab[q] = id; stack[sp++] = q; } }
+    const a0 = Uint8Array.from(a), M0 = new Uint8Array(n); let any = 0; for (let i = 0; i < n; i++) if (a[i] >= T) { M0[i] = 1; any++; }
+    if (!any) return { canvas: c, empty: true, removed: 0, parts: 0, uncertain: true };
+    const lab = new Int32Array(n), stack = new Int32Array(n), spread = (src, grow, steps) => {
+      let cur = src;
+      for (let k = 0; k < steps; k++) {
+        const t = new Uint8Array(n), o = new Uint8Array(n);
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const p = y * w + x, l = x > 0 ? cur[p - 1] : (grow ? 0 : 1), r = x < w - 1 ? cur[p + 1] : (grow ? 0 : 1); t[p] = grow ? cur[p] | l | r : cur[p] & l & r; }
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const p = y * w + x, u = y > 0 ? t[p - w] : (grow ? 0 : 1), v = y < h - 1 ? t[p + w] : (grow ? 0 : 1); o[p] = grow ? t[p] | u | v : t[p] & u & v; }
+        cur = o;
       }
-      comps.push({ id, area, strong: strong / area });
+      return cur;
+    };
+    /* 1) Kerne: abtragen, bis Beruehrendes getrennt ist (bei duennen Teilen mit kleinerem Schritt noch einmal) */
+    let cores = [];
+    for (const r of [Math.max(4, Math.min(9, Math.round(Math.max(w, h) / 130))), 3, 1]) {
+      const E = spread(M0, false, r); lab.fill(0); cores = [];
+      for (let s = 0; s < n; s++) {
+        if (!E[s] || lab[s]) continue;
+        const id = cores.length + 1; let sp = 0, area = 0, sx = 0, sy = 0, sr = 0, sg = 0, sb = 0; stack[sp++] = s; lab[s] = id;
+        while (sp) {
+          const p = stack[--sp], x = p % w, y = (p - x) / w; area++; sx += x; sy += y; sr += d[p * 4]; sg += d[p * 4 + 1]; sb += d[p * 4 + 2];
+          for (let yy = y > 0 ? y - 1 : 0, ye = y < h - 1 ? y + 1 : y; yy <= ye; yy++) for (let xx = x > 0 ? x - 1 : 0, xe = x < w - 1 ? x + 1 : x; xx <= xe; xx++) { const q = yy * w + xx; if (E[q] && !lab[q]) { lab[q] = id; stack[sp++] = q; } }
+        }
+        cores.push({ id, area, cx: sx / area / w, cy: sy / area / h, lab: C().rgb2lab(sr / area, sg / area, sb / area) });
+      }
+      cores = cores.filter((k) => k.area >= Math.max(40, 0.003 * n));
+      if (cores.length) break;
     }
-    if (!comps.length) return { canvas: c, empty: true, removed: 0, parts: 0, uncertain: true };
-    let big = comps[0]; comps.forEach((k) => { if (k.area > big.area) big = k; });
-    if (big.strong < 0.55) return same(true); /* kaum etwas ist sicher Teil: lieber nichts anfassen */
-    const keep = new Uint8Array(comps.length + 1); let keptArea = 0, parts = 0;
-    comps.forEach((k) => { if (k === big || (k.area >= 0.12 * big.area && k.strong >= 0.6)) { keep[k.id] = 1; keptArea += k.area; parts++; } });
-    const M = new Uint8Array(n); for (let i = 0; i < n; i++) if (lab[i] && keep[lab[i]]) M[i] = 1;
+    if (!cores.length) return same(true);
+    const score = (k) => k.area * (0.6 + 0.4 * Math.exp(-((k.cx - 0.5) * (k.cx - 0.5) + (k.cy - 0.5) * (k.cy - 0.5)) / (2 * 0.3 * 0.3)));
+    let main = cores[0]; cores.forEach((k) => { if (score(k) > score(main)) main = k; });
+    const keepId = new Set([main.id]);
+    cores.forEach((k) => { if (k !== main && k.area >= 0.25 * main.area && k.area <= 4 * main.area && C().dE(k.lab, main.lab) < 22) keepId.add(k.id); });
+    const coreIds = new Set(cores.map((k) => k.id));
+    /* jeder Maskenpixel gehoert zum naechsten (vom Rand aus gesehen: durch die Maske erreichbaren) Kern */
+    const own = new Int32Array(n); let qh = 0, qt = 0; const queue = stack;
+    for (let i = 0; i < n; i++) if (lab[i] && coreIds.has(lab[i])) { own[i] = lab[i]; queue[qt++] = i; }
+    while (qh < qt) {
+      const p = queue[qh++], x = p % w, y = (p - x) / w, o = own[p];
+      for (let yy = y > 0 ? y - 1 : 0, ye = y < h - 1 ? y + 1 : y; yy <= ye; yy++) for (let xx = x > 0 ? x - 1 : 0, xe = x < w - 1 ? x + 1 : x; xx <= xe; xx++) { const q = yy * w + xx; if (M0[q] && !own[q]) { own[q] = o; queue[qt++] = q; } }
+    }
+    const M = new Uint8Array(n); let keptArea = 0, strong = 0;
+    for (let i = 0; i < n; i++) if (own[i] && keepId.has(own[i])) { M[i] = 1; keptArea++; if (a[i] >= 217) strong++; }
+    if (strong / Math.max(1, keptArea) < 0.55) return same(true); /* kaum etwas ist sicher Teil: lieber nichts anfassen */
+    const parts = keepId.size;
     /* 2) kleine Loecher im Teil schliessen (hoechstens 0,4 % der Flaeche); was vom Rand aus erreichbar ist, ist Hintergrund */
     const out = new Uint8Array(n); let sp = 0;
     const push = (p) => { if (!M[p] && !out[p]) { out[p] = 1; stack[sp++] = p; } };
@@ -141,22 +252,12 @@
       if (cells.length <= lim) cells.forEach((p) => { M[p] = 1; });
     }
     /* 3) Zone: 3 Pixel um das Teil (dort bleibt der weiche Rand), Inneres: 3 Pixel in das Teil hinein */
-    const spread = (src, grow) => {
-      let cur = src;
-      for (let k = 0; k < 3; k++) {
-        const t = new Uint8Array(n), o = new Uint8Array(n);
-        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const p = y * w + x, l = x > 0 ? cur[p - 1] : (grow ? 0 : 1), r = x < w - 1 ? cur[p + 1] : (grow ? 0 : 1); t[p] = grow ? cur[p] | l | r : cur[p] & l & r; }
-        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const p = y * w + x, u = y > 0 ? t[p - w] : (grow ? 0 : 1), v = y < h - 1 ? t[p + w] : (grow ? 0 : 1); o[p] = grow ? t[p] | u | v : t[p] & u & v; }
-        cur = o;
-      }
-      return cur;
-    };
-    const Z = spread(M, true), E = spread(M, false);
+    const Z = spread(M, true, 3), E3 = spread(M, false, 3);
     /* Deckkraft: Inneres ganz deckend, Randzone wie vom Modell, aussen nichts. Farbe: Inneres und deckende Pixel behalten ihre Farbe (hinter fast durchsichtigen Pixeln steckt keine),
        alle anderen bekommen sie aus der Umgebung (Rand: hoechstens 4 Schritte, tote Pixel im Inneren: bis zu 32) */
     const A = new Uint8Array(n), col = new Uint8Array(n), reach = new Uint8Array(n); let after = 0, vis = 0, lost = 0;
     for (let i = 0; i < n; i++) {
-      if (E[i]) { A[i] = 255; if (a0[i] >= 60) col[i] = 1; else reach[i] = 32; }
+      if (E3[i]) { A[i] = 255; if (a0[i] >= 60) col[i] = 1; else reach[i] = 32; }
       else if (Z[i]) { A[i] = a[i]; if (A[i] >= 250) col[i] = 1; else if (A[i] > 0) reach[i] = 4; }
       after += A[i]; if (a0[i] >= 25) { vis++; if (A[i] < 10) lost++; }
     }

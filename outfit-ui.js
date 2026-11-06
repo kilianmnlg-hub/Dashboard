@@ -232,7 +232,7 @@
     function renderNotice() {
       const st = store.status(); let h = "";
       if (qInfo.on) h += '<div class="of-nt busy"><span class="of-nt-t"><b>FREISTELLEN ' + Math.min(qInfo.done + 1, qInfo.total) + "/" + qInfo.total + "</b> · " + esc(qInfo.step) + '</span><span class="of-bar-p"><i style="width:' + Math.round(qInfo.pct * 100) + '%"></i></span><button type="button" class="of-btn of-sm" data-act="qcancel">ABBRECHEN</button></div>';
-      else if (qInfo.total && qInfo.done) h += '<div class="of-nt ok"><span class="of-nt-t"><b>FERTIG:</b> ' + qInfo.done + (qInfo.done === 1 ? " Teil" : " Teile") + " hinzugefügt" + (qInfo.errors ? ", " + qInfo.errors + " ohne Freistellen" : "") + (qInfo.unsure ? ", <b>" + qInfo.unsure + " unsicher freigestellt</b> (helle Teile auf dunklen Grund legen oder NACHBESSERN)" : "") + ". " + (qInfo.aiErr ? "<b>KI hat nichts ausgefüllt:</b> " + esc(qInfo.aiErr) : "Gelb markierte bitte kurz prüfen.") + "</span>" + '<button type="button" class="of-btn of-sm" data-act="qreview">PRÜFEN</button><button type="button" class="of-x" data-act="qclose" aria-label="Ausblenden">×</button></div>';
+      else if (qInfo.total && qInfo.done) h += '<div class="of-nt ok"><span class="of-nt-t"><b>FERTIG:</b> ' + qInfo.done + (qInfo.done === 1 ? " Teil" : " Teile") + " hinzugefügt" + (qInfo.errors ? ", " + qInfo.errors + " ohne Freistellen" : "") + (qInfo.unsure ? ", <b>" + qInfo.unsure + " unsicher freigestellt</b> (NACHBESSERN oder neu fotografieren)" : "") + ". " + (qInfo.aiErr ? "<b>KI hat nichts ausgefüllt:</b> " + esc(qInfo.aiErr) : "Gelb markierte bitte kurz prüfen.") + "</span>" + '<button type="button" class="of-btn of-sm" data-act="qreview">PRÜFEN</button><button type="button" class="of-x" data-act="qclose" aria-label="Ausblenden">×</button></div>';
       if (st.s === "local" && !qInfo.on) h += '<div class="of-nt warn"><span class="of-nt-t"><b>Nur auf diesem Gerät gespeichert.</b> Für Handy und PC verbindest du ein privates GitHub-Repo.</span><button type="button" class="of-btn of-sm" data-act="settings">VERBINDEN</button></div>';
       else if (st.s === "error") h += '<div class="of-nt bad"><span class="of-nt-t"><b>Nicht gesichert:</b> ' + esc(st.msg || "unbekannter Fehler") + '</span><button type="button" class="of-btn of-sm" data-act="retry">NOCHMAL</button><button type="button" class="of-btn of-sm" data-act="settings">EINSTELLUNGEN</button></div>';
       notice.hidden = !h; notice.innerHTML = h;
@@ -252,10 +252,10 @@
        ========================================================================== */
     let cancelQueue = false;
     function openAdd() {
-      const s = sheet("TEIL HINZUFÜGEN", '<p class="of-p">Lege das Teil auf eine ruhige, einfarbige Fläche, die anders aussieht als das Teil (helle Teile auf dunklen Grund, dunkle auf hellen), und fotografiere es von oben. Aus der Galerie kannst du <b>mehrere Fotos auf einmal</b> wählen, sie werden nacheinander freigestellt.</p>' +
+      const s = sheet("TEIL HINZUFÜGEN", '<p class="of-p">Lege das Teil flach auf eine ruhige Fläche und fotografiere es von oben. Aus der Galerie kannst du <b>mehrere Fotos auf einmal</b> wählen, sie werden nacheinander freigestellt.</p>' +
         '<div class="of-big"><label class="of-bigb">' + ic("camera", 32) + '<b>KAMERA</b><small>ein Foto aufnehmen</small><input type="file" accept="image/*" capture="environment" data-src="cam" hidden></label>' +
         '<label class="of-bigb">' + ic("image", 32) + '<b>GALERIE</b><small>ein oder mehrere Fotos</small><input type="file" accept="image/*" multiple data-src="gal" hidden></label></div>' +
-        '<p class="of-p of-dim">Beim ersten Freistellen lädt der Browser einmalig das Modell (ca. 90 MB, Internet nötig). Danach geht es schneller.</p>');
+        '<p class="of-p of-dim">Beim ersten Freistellen lädt der Browser einmalig das Modell (ca. 55 MB, Internet nötig). Danach geht es schneller.</p>');
       s.body.addEventListener("change", (e) => {
         const inp = e.target.closest("input[type=file]"); if (!inp || !inp.files.length) return;
         const files = Array.from(inp.files); s.close(); enqueue(files);
@@ -296,9 +296,10 @@
       if (set.get("cutMode") !== "off") {
         step("STELLE FREI", 0.05);
         try {
-          cut = await P.cutout(work, { model: set.get("cutModel") === "fast" ? "isnet_quint8" : "isnet_fp16", gpu: !!set.get("cutGpu"), onProgress: (p, tot) => { if (tot > 100000) step(p < 0.999 ? "LADE FREISTELLER " + Math.round(p * 100) + " %" : "STELLE FREI", p * 0.8); } });
+          cut = await P.cutout(work, { engine: set.get("cutModel") === "fast" || set.get("cutModel") === "better" ? "isnet" : "rmbg", model: set.get("cutModel") === "fast" ? "isnet_quint8" : "isnet_fp16", gpu: !!set.get("cutGpu"), onProgress: (p, tot) => { if (tot > 100000) step(p < 0.999 ? "LADE FREISTELLER " + Math.round(p * 100) + " %" : "STELLE FREI", p * 0.8); } });
         } catch (e) { console.warn("Freistellen fehlgeschlagen", e); uncut = true; toast(e.message || "Freistellen nicht möglich, Foto bleibt unverändert", "warn", 6000); }
       }
+      if (cut && P.cutEngine === "isnet-ersatz") toast("Das beste Modell ließ sich nicht laden, ich nehme das Ersatzmodell.", "warn", 6000);
       let unsure = false;
       if (cut) { const cl = P.cleanup(cut); cut = cl.canvas; unsure = !!cl.uncertain; } /* Reste anderer Gegenstaende weg, Rand saeubern; bei Unsicherheit bleibt das Bild wie es ist */
       let fin = cut ? P.trim(cut, 24, 0.04) : null;
@@ -453,7 +454,7 @@
           '<div class="of-actions left"><button type="button" class="of-btn of-sm" data-a="saveai">SPEICHERN</button></div></div></section>' +
           det("cut", "FREISTELLEN",
             '<div class="of-row2"><label class="of-fld"><span class="of-lbl">MODUS</span><select name="cutMode"><option value="auto"' + (set.get("cutMode") !== "off" ? " selected" : "") + '>Automatisch</option><option value="off"' + (set.get("cutMode") === "off" ? " selected" : "") + '>Aus</option></select></label>' +
-            '<label class="of-fld"><span class="of-lbl">QUALITÄT</span><select name="cutModel"><option value="fast"' + (set.get("cutModel") === "fast" ? " selected" : "") + '>Schnell</option><option value="better"' + (set.get("cutModel") !== "fast" ? " selected" : "") + ">Besser (Standard)</option></select></label></div>" +
+            '<label class="of-fld"><span class="of-lbl">MODELL</span><select name="cutModel"><option value="rmbg"' + (set.get("cutModel") !== "fast" && set.get("cutModel") !== "better" ? " selected" : "") + '>RMBG, am besten (ca. 55 MB)</option><option value="better"' + (set.get("cutModel") === "better" ? " selected" : "") + '>ISNet besser (ca. 80 MB)</option><option value="fast"' + (set.get("cutModel") === "fast" ? " selected" : "") + ">ISNet schnell (ca. 40 MB)</option></select></label></div>" +
             '<label class="of-chk"><input type="checkbox" name="cutGpu"' + (set.get("cutGpu") ? " checked" : "") + "> Grafikchip nutzen (experimentell)</label>" +
             '<div class="of-actions left"><button type="button" class="of-btn of-sm" data-a="cleanall">ALLE TEILE AUFRÄUMEN</button></div><p class="of-p of-dim" id="ofCleanMsg" aria-live="polite">Entfernt Reste im Foto (z. B. eine Hose neben dem Teil).</p>') +
           det("cats", "KATEGORIEN · " + cats.length,

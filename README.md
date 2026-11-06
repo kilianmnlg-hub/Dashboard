@@ -1093,18 +1093,25 @@ Eigener Bereich ganz unten, direkt über den Notizen (Code in `outfit-core.js`, 
 wird in Etappen. **Etappe 1 ist der Schrank:**
 
 - **Teil hinzufügen** (Knopf **+ TEIL**): Kamera (ein Foto) oder Galerie (mehrere Fotos auf einmal). Die Fotos laufen nacheinander durch eine Warteschlange (sie bleibt auch nach einem
-  Neuladen erhalten): verkleinern, **Hintergrund entfernen** (läuft im Browser mit `@imgly/background-removal` Version 1.7.0 von der jsDelivr-CDN; beim allerersten Mal lädt der Browser einmalig
-  das Modell, ca. 80 MB bei „Besser“ (Standard seit 06.11.2026) oder ca. 40 MB bei „Schnell“, danach liegt es im Browser-Zwischenspeicher), **aufräumen** (siehe unten), auf das Teil zuschneiden, Hauptfarben bestimmen, optional **KI-Vorausfüllen**. Jedes neue Teil erscheint gelb als **PRÜFEN**,
+  Neuladen erhalten): verkleinern, **Hintergrund entfernen** (läuft im Browser, Standard seit 06.11.2026 mit **RMBG-1.4**, siehe „Freistell-Modell“ unten; beim allerersten Mal lädt der Browser einmalig das Modell, danach liegt es im Browser-Zwischenspeicher), **aufräumen** (siehe unten), auf das Teil zuschneiden, Hauptfarben bestimmen, optional **KI-Vorausfüllen**. Jedes neue Teil erscheint gelb als **PRÜFEN**,
   bis du es mit **PASST SO** bestätigst. *Seit 29.10.2026:* das Freistellen läuft in einem eigenen Hintergrund-Thread (Web Worker aus einem Blob, lädt die Bibliothek per `import()`), die Seite
   bleibt dabei bedienbar (am PC gemessen: längste Blockade 0,07 s statt 22 s im Hauptthread; ein Foto braucht dort etwa eine halbe Minute, weil GitHub Pages kein Mehrfach-Threading erlaubt). Geht der Worker
   nicht (alter Browser), nimmt `outfit-photo.js` automatisch den Hauptthread wie früher (`Outfit.photo.cutThread` zeigt `worker` oder `main`). Die Fortschrittsanzeige zeichnet höchstens etwa 8 mal pro Sekunde.
-- **Freisteller aufräumen (seit 06.11.2026, `Outfit.photo.cleanup` in `outfit-photo.js`):** Das Modell setzt manchmal blasse Reste anderer Gegenstände ins Bild (z. B. eine Hose neben dem Teil) und lässt am Rand Farbe
-  vom alten Hintergrund stehen. Nach dem Freistellen bleibt darum nur das deckende Hauptteil (Deckkraft ab 50 %, 8er-Nachbarschaft; weitere Flächen nur, wenn sie mindestens 12 % so groß und überwiegend deckend sind, z. B. ein
-  zweiter Schuh). Kleine eingeschlossene Löcher (bis 0,4 % der Fläche) werden gefüllt, das Innere wird ganz deckend (mit den eigenen Farben), der weiche Rand (3 Pixel) bleibt und bekommt seine Farben aus dem Inneren (kein heller Saum).
-  Ist das Ergebnis offensichtlich falsch (kaum sicher deckende Fläche, wie beim weißen Hoodie, oder mehr als 60 % der Deckkraft würden wegfallen), bleibt das Foto **unverändert** und die FERTIG-Meldung sagt „unsicher freigestellt“.
+- **Freisteller aufräumen (seit 06.11.2026, `Outfit.photo.cleanup` in `outfit-photo.js`):** Die Modelle nehmen oft mehr mit als das Teil: blasse Reste anderer Gegenstände, ein Schwert an der Wand, die eigenen Knie, dazu
+  Farbe vom alten Hintergrund am Rand. Nach dem Freistellen bleibt darum nur das **Hauptteil**: Die deckende Maske (ab 50 %) wird so weit abgetragen (Schritte nach Bildgröße, bei dünnen Teilen weniger), dass Gegenstände,
+  die sich nur berühren, getrennt sind; jeder Kern zählt nach Größe und Nähe zur Bildmitte (Größe mal 0,6 bis 1,0). Der beste Kern gewinnt, weitere bleiben nur, wenn sie wie ein Paar aussehen (ähnliche Farbe, Lab-Abstand unter 22,
+  und Größe zwischen einem Viertel und dem Vierfachen, z. B. zwei Schuhe). Alles andere fällt weg, auch dünne Dinge und Punkte; jeder Maskenpixel gehört zum nächsten Kern, so bleiben Fransen und Träger am Hauptteil. Dann werden
+  kleine eingeschlossene Löcher (bis 0,4 % der Fläche) gefüllt, das Innere wird ganz deckend (mit den eigenen Farben), der weiche Rand (3 Pixel) bleibt und bekommt seine Farben aus dem Inneren (kein heller Saum). Ist das Ergebnis
+  offensichtlich falsch (kaum sicher deckende Fläche, wie beim weißen Hoodie mit ISNet, oder mehr als 60 % der Deckkraft würden wegfallen), bleibt das Foto **unverändert** und die FERTIG-Meldung sagt „unsicher freigestellt“.
   Rechenzeit etwa 0,1 bis 0,3 s je Foto. Unter Einstellungen → FREISTELLEN wendet **ALLE TEILE AUFRÄUMEN** das auf vorhandene Teile an, aber nur wenn mindestens 0,5 % der sichtbaren Pixel wegfallen (sonst bleibt die Datei
-  unverändert, kein erneutes Komprimieren), und passt dabei auch die lokale Freistellung für Nachbessern an. Im Teil schneidet **NEU FREISTELLEN** das Teil aus dem Originalfoto, das auf diesem Gerät liegt, mit der aktuellen Qualität
-  neu aus (ohne Original kommt ein Hinweis). Der Tipp beim Hinzufügen: helle Teile auf dunklen Grund legen, dunkle auf hellen.
+  unverändert, kein erneutes Komprimieren), und passt dabei auch die lokale Freistellung für Nachbessern an. Im Teil schneidet **NEU FREISTELLEN** das Teil aus dem Originalfoto, das auf diesem Gerät liegt, mit dem aktuellen
+  Modell neu aus (ohne Original kommt ein Hinweis).
+- **Freistell-Modell (seit 06.11.2026):** Standard ist **RMBG-1.4** (BRIA; ONNX quantisiert, ca. 44 MB von Hugging Face, `onnxruntime-web` 1.20.1 von der jsDelivr-CDN, im eigenen Web Worker; einmal geladen und im Browser-Speicher
+  `outfit-rmbg-1` abgelegt, beim ersten Mal also ca. 55 MB). Am Eingang wird die Farbsättigung auf das 1,8-fache angehoben (hilft bei wenig Farbunterschied, z. B. olivgrün auf grauem Tisch; stärkere Werte holen Fremdes mit),
+  das Ergebnis liegt auf dem unveränderten Foto. Auf echten Fotos (Steintisch, Schwert an der Wand, Beine im Bild) fand das bisherige ISNet (imgly, `isnet_quint8` und `isnet_fp16`) bei 3 von 4 Teilen fast nichts, RMBG alle vier.
+  Einstellungen → FREISTELLEN → **MODELL**: „RMBG, am besten“, „ISNet besser“ (`isnet_fp16`, ca. 80 MB) oder „ISNet schnell“ (`isnet_quint8`, ca. 40 MB). Geht RMBG nicht (kein Worker, kein Netz, zu wenig Speicher), nimmt die App
+  automatisch ISNet besser und meldet es. Am PC dauert ein Foto etwa 20 bis 30 s (WebAssembly, ein Faden). **Lizenz:** RMBG-1.4 ist nur für nicht-kommerzielle Nutzung freigegeben
+  (https://bria.ai/bria-huggingface-model-license-agreement/); das Modell liegt nicht in diesem Repo, der Browser lädt es.
 - **Angaben je Teil:** Bezeichnung, Kategorie, bis zu drei Farben, Marke, Größe, Material, Preis, Kaufdatum, Wärme (1 bis 5), Formalität (1 bis 5), Anlässe, Notiz, Lieblingsteil und
   Wäschestatus (sauber oder schmutzig; schmutzige Teile nimmt der spätere Generator nie). Von der KI vorausgefüllte Felder tragen ein kleines **KI**.
 - **Nachbessern:** Radieren und Zurückholen mit Finger oder Maus (Pinselgröße, Vergrößerung 1× bis 3×, Rückgängig, andere Hintergründe zur Kontrolle). Das Original bleibt dafür **auf dem Gerät**,
@@ -1115,7 +1122,7 @@ wird in Etappen. **Etappe 1 ist der Schrank:**
   *Seit 04.11.2026 ist der Schrank kein Reiter mehr:* er klappt im Fenster auf und zu (Knopf **SCHRANK n** in der Leiste, `aria-expanded`; **ZUKLAPPEN** unten im Feld), zu ist der Standard, der Zustand wird nicht gemerkt.
   **+ TEIL** steht im aufgeklappten Feld; die Foto-Warteschlange und ihre Hinweise stehen weiter oben im Fenster.
 - **Einstellungen (Zahnrad, seit 29.10.2026 aufgeräumt):** oben zwei Statuszeilen **SPEICHER** (Besitzer/Repo, Stand, **JETZT ABGLEICHEN**) und **KI-ERKENNUNG** (Status, **TESTEN**); die Eingabefelder
-  (Besitzer, Repo, Abgleich ein/aus, Worker-Adresse, Geheimes Wort) stecken hinter **ÄNDERN**. Darunter zum Aufklappen **FREISTELLEN** (Modus, Qualität mit „Besser“ als Standard, Grafikchip, ALLE TEILE AUFRÄUMEN; speichert sofort beim Ändern),
+  (Besitzer, Repo, Abgleich ein/aus, Worker-Adresse, Geheimes Wort) stecken hinter **ÄNDERN**. Darunter zum Aufklappen **FREISTELLEN** (Modus, Modell RMBG oder ISNet, Grafikchip für ISNet, ALLE TEILE AUFRÄUMEN; speichert sofort beim Ändern),
   **KATEGORIEN · n**, **ANLÄSSE · n** (merken sich beim Hinzufügen/Löschen, ob sie offen sind) und **LISTE ALS DATEI SICHERN**. Die früheren Erklärtexte und die zwei Einrichtungs-Anleitungen
   stehen jetzt nur noch hier im README und im Kopf von `worker/outfit-worker.js`.
 - **Reiter OUTFITS / GENERATOR und Collage (Etappe 2, seit 29.10.2026, `outfit-collage.js`):** Im Reiter OUTFITS liegen die gespeicherten Outfits als kleine Collagen (Name, Anlass, Zahl der Teile,
