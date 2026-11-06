@@ -67,41 +67,47 @@ const PRICE_DEV = Number(process.env.BRICKLINK_PRICE_DEV || PRICE_DEFAULTS.minDe
 const PRICE_MINUTES = Number(process.env.BRICKLINK_PRICE_MINUTES || 10);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function bricklinkGet(path, queryParams, creds) {
-  const url = `${BASE_URL}${path}`;
-  const qs = new URLSearchParams(queryParams).toString();
-  const fullUrl = qs ? `${url}?${qs}` : url;
-
-  const authHeader = buildAuthHeader({ method: "GET", url, queryParams, ...creds });
-  const res = await fetch(fullUrl, { headers: { Authorization: authHeader } });
-  if (!res.ok) throw new Error(`Bricklink API Fehler ${res.status}: ${await res.text()}`);
-  const json = await res.json();
-  if (json.meta?.code >= 300) throw new Error(`Bricklink API Fehler: ${json.meta?.message}`);
-  return json.data;
-}
-
-// Wie bricklinkGet, aber mit Zeitlimit und bis zu drei Versuchen bei 429, 5xx und Zeitueberschreitung (fuer die vielen Abfragen des Preis-Checks). err.status nennt den Code.
-async function bricklinkGetRetry(path, queryParams, creds) {
+// Alle Abrufe: Zeitlimit (25 s) und bis zu drei Versuche mit Wartezeit bei 429, 5xx, Zeitüberschreitung, Netzfehler und einer Webseite statt Daten (kurze Störung bei Bricklink).
+// Fachliche Fehler (z.B. 404 "gibt es nicht") werden nicht wiederholt, err.status nennt den Code. Nach 5 solchen Fehlschlägen in Folge gibt es keine Wiederholungen mehr:
+// Bricklink ist dann wohl länger gestört, und nicht jede weitere Abfrage soll minutenlang warten. Die Wartezeiten lassen sich für Prüfungen mit BRICKLINK_RETRY_WAITS ändern.
+const WAITS = (process.env.BRICKLINK_RETRY_WAITS || "4000,15000").split(",").map(Number);
+const PRICE_WAITS = [1500, 3000]; // die vielen Abfragen des Preis-Checks warten kürzer
+let failedInRow = 0;
+async function bricklinkRequest(path, queryParams, creds, waits) {
+  const tries = failedInRow >= 5 ? 1 : waits.length + 1;
   let last;
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < tries; attempt++) {
     try {
       const url = `${BASE_URL}${path}`;
       const qs = new URLSearchParams(queryParams).toString();
       const authHeader = buildAuthHeader({ method: "GET", url, queryParams, ...creds });
       const res = await fetch(qs ? `${url}?${qs}` : url, { headers: { Authorization: authHeader }, signal: AbortSignal.timeout(25000) });
+      const body = await res.text();
       if (res.status >= 500 || res.status === 429) throw Object.assign(new Error(`Bricklink API Fehler ${res.status}`), { retry: true, status: res.status });
-      if (!res.ok) throw Object.assign(new Error(`Bricklink API Fehler ${res.status}`), { status: res.status });
-      const json = await res.json();
-      if (json.meta?.code >= 300) throw Object.assign(new Error(`Bricklink API Fehler ${json.meta.code}`), { status: json.meta.code });
+      let json;
+      try {
+        json = JSON.parse(body);
+      } catch (e) {
+        throw Object.assign(new Error(res.ok ? "Bricklink antwortet mit einer Webseite statt Daten" : `Bricklink API Fehler ${res.status}`), { retry: true, status: res.status });
+      }
+      if (!res.ok) throw Object.assign(new Error(`Bricklink API Fehler ${res.status}: ${body.slice(0, 160)}`), { status: res.status });
+      if (json.meta?.code >= 300) throw Object.assign(new Error(`Bricklink API Fehler ${json.meta.code}: ${json.meta.message || ""}`), { status: json.meta.code });
+      failedInRow = 0;
       return json.data;
     } catch (err) {
       last = err;
-      if (!(err.retry || err.name === "TimeoutError" || err.name === "TypeError")) break;
-      await sleep(1500 * (attempt + 1));
+      if (!(err.retry || err.name === "TimeoutError" || err.name === "TypeError")) {
+        failedInRow = 0; // Bricklink hat sauber geantwortet (nur eben mit einem Fehler): erreichbar
+        throw err;
+      }
+      if (attempt < tries - 1) await sleep(waits[attempt] || 1000);
     }
   }
+  failedInRow += 1;
   throw last;
 }
+const bricklinkGet = (path, queryParams, creds) => bricklinkRequest(path, queryParams, creds, WAITS);
+const bricklinkGetRetry = (path, queryParams, creds) => bricklinkRequest(path, queryParams, creds, PRICE_WAITS);
 
 // Preis-Check: die heutige Etappe der Lots (Teile und Minifiguren) gegen den 6-Monats-Schnitt pruefen und mit den noch gueltigen Zeilen der letzten Tage zusammenfuehren.
 // Liefert null, wenn es heute schon lief. Fehlt ein Preis (404/400) zaehlt das Lot als geprueft ohne Ergebnis; bei vielen echten Fehlern (429, 5xx, Zeit) bricht die Etappe ab
