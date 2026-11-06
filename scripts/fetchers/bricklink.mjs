@@ -88,7 +88,9 @@ async function bricklinkRequest(path, queryParams, creds, waits) {
       try {
         json = JSON.parse(body);
       } catch (e) {
-        throw Object.assign(new Error(res.ok ? "Bricklink antwortet mit einer Webseite statt Daten" : `Bricklink API Fehler ${res.status}`), { retry: true, status: res.status });
+        // Damit im Protokoll steht, was für eine Seite das war (Wartung, Sperre, Anmeldung): HTTP-Code und Titel, sonst nichts aus der Antwort
+        const title = (/<title[^>]*>([^<]{0,80})/i.exec(body) || [])[1];
+        throw Object.assign(new Error(`${res.ok ? "Bricklink antwortet mit einer Webseite statt Daten" : "Bricklink API Fehler"} (HTTP ${res.status}${title ? `, Titel „${title.trim()}“` : ""})`), { retry: true, status: res.status });
       }
       if (!res.ok) throw Object.assign(new Error(`Bricklink API Fehler ${res.status}: ${body.slice(0, 160)}`), { status: res.status });
       if (json.meta?.code >= 300) throw Object.assign(new Error(`Bricklink API Fehler ${json.meta.code}: ${json.meta.message || ""}`), { status: json.meta.code });
