@@ -81,7 +81,13 @@ async function bricklinkRequest(path, queryParams, creds, waits) {
       const url = `${BASE_URL}${path}`;
       const qs = new URLSearchParams(queryParams).toString();
       const authHeader = buildAuthHeader({ method: "GET", url, queryParams, ...creds });
-      const res = await fetch(qs ? `${url}?${qs}` : url, { headers: { Authorization: authHeader }, signal: AbortSignal.timeout(25000) });
+      // redirect "manual": Die API leitet sonst nie um. Tut sie es doch (z.B. auf die Startseite), soll das Protokoll zeigen, wohin, statt dass die Antwort stillschweigend als Seite ankommt.
+      const res = await fetch(qs ? `${url}?${qs}` : url, { headers: { Authorization: authHeader }, signal: AbortSignal.timeout(25000), redirect: "manual" });
+      if (res.status >= 300 && res.status < 400) {
+        let where = "";
+        try { const u = new URL(res.headers.get("location") || "", BASE_URL); where = u.origin + u.pathname; } catch (e) { /* ohne Ziel */ }
+        throw Object.assign(new Error(`Bricklink leitet um (HTTP ${res.status}${where ? ` nach ${where}` : ""})`), { retry: true, status: res.status });
+      }
       const body = await res.text();
       if (res.status >= 500 || res.status === 429) throw Object.assign(new Error(`Bricklink API Fehler ${res.status}`), { retry: true, status: res.status });
       let json;
