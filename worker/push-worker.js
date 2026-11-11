@@ -43,6 +43,7 @@ const DEFAULT_SETTINGS = {
     rhythm: { on: true, time: "09:00" },
     community: { on: true, time: "12:00" },
     coop: { on: true },
+    uploadday: { on: true, time: "10:00" },
     afterUpload: { on: true, delayMin: 60 },
     habits: { on: true, time: "19:00" },
     training: { on: true, time: "11:30" },
@@ -64,7 +65,8 @@ const SAMPLES = [
   { title: "Beispiel: YouTube-Timer läuft seit 3 Std.", body: "Vergessen zu stoppen?", url: "#zeit", tag: "sample-timer" },
   { title: "Beispiel: Guten Morgen, Kilian", body: "Heute: 3 To-Dos · Brust/Rücken · 1 Bestellung zu versenden", url: "./", tag: "sample-summary" },
   { title: "Beispiel: Bricks On The Floor: 3 Tage ohne Community-Post", body: "Dein Rhythmus: alle 3 Tage", url: "#business", tag: "sample-community" },
-  { title: "Beispiel: Neue Kooperationsanfrage: Solbridge · Hyper 3D AI", body: "bezahlt · Sucht Creator für eine bezahlte Zusammenarbeit mit einem 3D-KI-Tool.", url: "./", tag: "sample-coop" }
+  { title: "Beispiel: Neue Kooperationsanfrage: Solbridge · Hyper 3D AI", body: "bezahlt · Sucht Creator für eine bezahlte Zusammenarbeit mit einem 3D-KI-Tool.", url: "./", tag: "sample-coop" },
+  { title: "Beispiel: Heute: Upload um 16:00", body: "JP Raptoren Gehege Moc review · Post 12:00", url: "#uploadkal", tag: "sample-uploadday" }
 ];
 
 /* ---------------------------------------------------------------------------------------------------------------------------------- Helfer */
@@ -418,7 +420,8 @@ async function checkData(ctx) {
   const wantCommunity = f("community") || (ev.community.on && dueNow(ev.community.time, nowB.min));
   const wantSummary = f("summary") || (ev.summary.on && dueNow(ev.summary.time, nowB.min));
   const wantAfter = ev.afterUpload.on, wantTimer = ev.timer.on, wantCoop = f("coop") || ev.coop.on;
-  if (!(wantHabits || wantTraining || wantRhythm || wantCommunity || wantSummary || wantAfter || wantTimer || wantCoop)) return;
+  const wantUpload = f("uploadday") || (ev.uploadday.on && dueNow(ev.uploadday.time, nowB.min));
+  if (!(wantHabits || wantTraining || wantRhythm || wantCommunity || wantSummary || wantAfter || wantTimer || wantCoop || wantUpload)) return;
   const key = (k, force) => (force ? "" : k);
 
   try {
@@ -484,6 +487,34 @@ async function checkData(ctx) {
       if (lastPost) {
         const days = dayDiff(lastPost, nowB.date);
         if (days >= every || f("community")) emit(ctx, { type: "community", force: f("community"), key: key("community:" + nowB.date, f("community")), title: "Bricks On The Floor: " + days + (days === 1 ? " Tag" : " Tage") + " ohne Community-Post", body: "Dein Rhythmus: alle " + every + " Tage", url: "#business", tag: "community" });
+      }
+    }
+
+    if (wantUpload) {
+      /* Upload-Kalender (Feld "uploadPlan" in sync-data.json, siehe uploadcal.js): am Tag eines geplanten Uploads, Posts oder Termins einmal erinnern. Ein Upload, der schon
+         online ist (in recentUploads), und ein Post, der schon eingetragen ist (community.posts), zaehlen nicht mehr. */
+      const s = await loadData(ctx, "sync-data.json"), plan = s.uploadPlan && typeof s.uploadPlan === "object" ? s.uploadPlan : {};
+      const items = plan.items && typeof plan.items === "object" ? plan.items : {}, evs = plan.events && typeof plan.events === "object" ? plan.events : {};
+      const posts = s.community && Array.isArray(s.community.posts) ? s.community.posts : [], biz = (await loadData(ctx, "data.js")).business || {};
+      const KEYS = { botf: "bricksOnTheFloor", bw: "brainwalkers" }, ART = { koop: "Kooperation", frist: "Frist", lego: "LEGO-Termin", mtg: "MTG-Termin" };
+      const online = (ch, day) => ((biz[KEYS[ch]] || {}).recentUploads || []).some((v) => { const t = Date.parse(v && v.at); return t && berlin(t).date === day; });
+      const tm = (x) => (/^\d{2}:\d{2}$/.test(x.time || "") ? x.time : "");
+      const lines = [];
+      Object.keys(items).forEach((id) => {
+        const i = items[id];
+        if (!i || i.del || i.date !== nowB.date) return;
+        if (i.kind === "post") { if (posts.indexOf(i.date) < 0) lines.push({ sort: tm(i) || "12:00", t: "Community-Post" + (tm(i) ? " um " + tm(i) : ""), b: clip(i.title || "Bricks On The Floor", 90), s: "Post" + (tm(i) ? " " + tm(i) : "") }); }
+        else if (KEYS[i.ch] && !online(i.ch, i.date)) lines.push({ sort: tm(i) || "16:00", t: "Upload" + (tm(i) ? " um " + tm(i) : " geplant"), b: clip(i.title, 90), s: (tm(i) ? tm(i) + " " : "") + clip(i.title, 40) });
+      });
+      Object.keys(evs).forEach((id) => {
+        const e = evs[id];
+        if (!e || e.del || e.date !== nowB.date || !ART[e.kind]) return;
+        lines.push({ sort: tm(e) || "00:00", t: ART[e.kind] + (tm(e) ? " um " + tm(e) : ""), b: clip(e.title, 90), s: clip(e.title, 40) });
+      });
+      lines.sort((a, b) => (a.sort < b.sort ? -1 : a.sort > b.sort ? 1 : 0));
+      if (lines.length || f("uploadday")) {
+        const one = lines.length === 1, first = lines[0] || { t: "nichts geplant", b: "Für heute steht nichts im Upload-Kalender.", s: "" };
+        emit(ctx, { type: "uploadday", force: f("uploadday"), key: key("uploadday:" + nowB.date, f("uploadday")), title: lines.length > 1 ? "Heute geplant: " + lines.length + " Einträge" : "Heute: " + first.t, body: lines.length > 1 ? clip(lines.map((l) => l.s).join(" · "), 160) : first.b, url: "#uploadkal", tag: "uploadday" });
       }
     }
 
@@ -623,7 +654,7 @@ async function handle(req, env) {
     return json({ ok: rs.some((r) => r.ok), sent: rs.filter((r) => r.ok).length, failed: rs.filter((r) => !r.ok).length, status: rs.map((r) => r.status), title: n.title, index: idx, count: SAMPLES.length }, 200, cors.headers);
   }
   if (path === "/run" && req.method === "POST") {
-    const only = ["summary", "habits", "training", "rhythm", "community", "coop"].indexOf(body.only) >= 0 ? body.only : "";
+    const only = ["summary", "habits", "training", "rhythm", "community", "coop", "uploadday"].indexOf(body.only) >= 0 ? body.only : "";
     return json(await run(env, { only }), 200, cors.headers);
   }
   if (path === "/status") {

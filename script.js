@@ -776,6 +776,26 @@
     else document.addEventListener("cloud-ready", () => coopBoard.start(), { once: true });
   }
 
+  // ---------- Upload-Kalender ----------
+  // Beide Kanaele in einem Plan: Videoideen (aus den Ideen-Listen der Kanal-Karten) per Ziehen oder Antippen auf einen Tag legen, dazu Community-Posts, Kooperationen,
+  // Fristen und LEGO-/MTG-Termine. Geplantes liegt in der Cloud (Feld uploadPlan in sync-data.json), Uploads, Ziele und Rhythmus kommen aus den vorhandenen Daten.
+  // Der Code steht in uploadcal.js; gezeigt wird alles erst, wenn die Cloud geladen ist.
+  const ukBoard = window.createUploadCal
+    ? window.createUploadCal({
+        dataStore, scheduleAutoSync, toast,
+        getData: () => data,
+        getIdeas: () => ({ botf: loadIdeaState("bricksOnTheFloor"), bw: loadIdeaState("brainwalkers") }),
+        community: communityBoard,
+        expand: (id) => { if (foldBoard) foldBoard.expand(id); }
+      })
+    : null;
+  let remoteUkRaw = null;
+  if (ukBoard) {
+    if (document.body.dataset.cloud === "ready") ukBoard.start();
+    else document.addEventListener("cloud-ready", () => ukBoard.start(), { once: true });
+    if (communityBoard) communityBoard.onChange(() => ukBoard.redraw());
+  }
+
   // ---------- Mein Raum (Minigame) ----------
   // Die Stunden aus Zeittracker (Arbeit) und Training sind das Geld, damit wird ein isometrischer Pixelraum eingerichtet. Das Spiel liegt im Ordner raumspiel/ und laeuft als
   // Overlay; room.js ist nur die Anbindung (Kachel, Stunden seit 1. Oktober, Level, Spielstand in der Cloud im Feld room in sync-data.json). Gezeigt wird er erst, wenn die Cloud geladen ist.
@@ -1786,6 +1806,7 @@
       row.querySelector(".idea-promote").addEventListener("click", () => promoteIdea(key, id));
     });
     staggerListOnce(widget.backlogEl);
+    if (ukBoard) ukBoard.redraw(); // der Upload-Kalender zeigt dieselben Ideen
   }
 
   function promoteIdea(key, id) {
@@ -2610,6 +2631,7 @@
         communityDone: communityBoard ? () => communityMark(communityBoard.today(), `Community-Post eingetragen. Der nächste ist in ${communityBoard.days()} Tagen fällig.`) : null,
         openShopRadar: shopRadar ? () => { if (foldBoard) foldBoard.expand("business"); shopRadar.open(); } : null,
         openCoop: coopBoard ? () => coopBoard.open() : null,
+        openUploadCal: ukBoard ? () => ukBoard.open() : null,
         addNote: inboxBoard ? (text) => inboxBoard.addText(text) : null,
         todoCats: TODO_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
         addTodo: (catId, text) => {
@@ -3353,12 +3375,14 @@
       afterUpload: afterUploadBoard ? afterUploadBoard.payload() : remoteAfterUploadRaw,
       community: communityBoard ? communityBoard.payload() : remoteCommunityRaw,
       coop: coopBoard ? coopBoard.payload() : remoteCoopRaw,
+      uploadPlan: ukBoard ? ukBoard.payload() : remoteUkRaw,
       room: roomBoard ? roomBoard.payload() : remoteRoomRaw
     };
     if (payload.room == null) delete payload.room;
     if (payload.afterUpload == null) delete payload.afterUpload;
     if (payload.community == null) delete payload.community;
     if (payload.coop == null) delete payload.coop;
+    if (payload.uploadPlan == null) delete payload.uploadPlan;
     if (payload.msgSeen == null) delete payload.msgSeen;
     if (payload.xp == null) delete payload.xp;
     if (payload.inbox == null) delete payload.inbox;
@@ -3516,6 +3540,8 @@
         if (communityBoard) communityBoard.applyRemote(remote.community);
         remoteCoopRaw = remote.coop ?? null;
         if (coopBoard) coopBoard.applyRemote(remote.coop);
+        remoteUkRaw = remote.uploadPlan ?? null;
+        if (ukBoard) ukBoard.applyRemote(remote.uploadPlan);
         remoteRoomRaw = remote.room ?? null;
         if (roomBoard) roomBoard.applyRemote(remote.room);
         applyRemoteTodos(remote.todos);
@@ -3593,6 +3619,7 @@
     lastCloudRefresh = Date.now();
     Promise.all([fetchRemoteHabits(), fetchRemoteSyncData()]).catch(() => {});
     if (coopBoard) coopBoard.refresh();
+    if (ukBoard) ukBoard.refresh();
     if (trainingBoard) trainingBoard.refresh();
     if (gcalAccessToken) fetchTodayEvents();
   }
@@ -4023,7 +4050,7 @@
   // Rein visuell und nur im Arbeitsspeicher: nichts davon wird gespeichert oder synchronisiert.
   (function pixelLook() {
     if (!PX) return;
-    const SECTION_SPRITES = { kalender: "calendar", todo: "scroll", aufgaben: "sword", habits: "flame", training: "dumbbell", ziele: "trophy", business: "chest", zeit: "hourglass", einkauf: "cart", notizen: "book", afterupload: "film", raum: "home", outfit: "shirt", lego: "brick" };
+    const SECTION_SPRITES = { kalender: "calendar", todo: "scroll", aufgaben: "sword", habits: "flame", training: "dumbbell", ziele: "trophy", business: "chest", zeit: "hourglass", einkauf: "cart", notizen: "book", afterupload: "film", raum: "home", outfit: "shirt", lego: "brick", uploadkal: "play" };
     Object.entries(SECTION_SPRITES).forEach(([id, name]) => {
       const marker = document.querySelector(`#${id} .section-head .section-marker`);
       if (marker) marker.outerHTML = `<span class="sec-sprite">${PX.spr(name, 28)}</span>`;
@@ -4074,6 +4101,7 @@
       afterupload: () => (afterUploadBoard ? afterUploadBoard.metric() : ""),
       raum: () => (roomBoard ? roomBoard.metric() : ""),
       outfit: () => (outfitBoard ? outfitBoard.metric() : ""),
+      uploadkal: () => (ukBoard ? ukBoard.metric() : ""),
       ziele: () => (goalsAvg === null ? "" : `Ø ${Math.round(goalsAvg)} %`),
       business: () => { const m = bizStat("Drive-Thru-Mail offen"); return m ? `${m} MAILS OFFEN` : ""; },
       zeit: () => { const w = timeTrackerBoard && timeTrackerBoard.weekSummary(); return w ? `WOCHE ${fmtH1(w.ist)} / ${fmtH1(w.soll)} H` : ""; },

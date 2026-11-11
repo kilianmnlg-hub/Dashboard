@@ -52,6 +52,8 @@
       addDays,
       last,
       days: () => state.days,
+      // alle eingetragenen Post-Tage (aufsteigend), z.B. fuer den Upload-Kalender
+      list: () => state.posts.slice(),
       // Tage seit dem letzten Post (heute = 0), null solange noch kein Post eingetragen ist
       daysSince,
       // gruen = noch im Rhythmus, gelb = heute faellig (genau am Zieltag), rot = ueberfaellig, null = noch kein Post

@@ -32,6 +32,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `msgseen.js` — merkt sich, welche Bricklink-Nachrichten du geöffnet hast (siehe Abschnitt "Ungelesene Nachrichten")
 - `community.js` — Community-Post-Rhythmus für Bricks On The Floor: Knopf GEPOSTET, Ampel, Zähler, Erinnerung (siehe Abschnitt "Community-Post-Rhythmus")
 - `coop.js` — Kooperationsanfragen aus dem Postfach: Hinweise mit ANTWORTEN / IGNORIEREN, Liste, Wahl in der Cloud (siehe Abschnitt "Kooperationsanfragen (Postfach-Check)")
+- `uploadcal.js`, `uploadcal.css` — Upload-Kalender: Videoideen, Community-Posts und Termine beider Kanäle in einem Plan (siehe Abschnitt "Upload-Kalender")
 - `shopradar.js` — Shop-Radar: Ausklappmenü in der Bricklink-Karte (Hinweise, Kennzahlen, Zeit und Umsatz, Lager, Wochenziel aus dem Jahresziel, Bestseller pro Monat, Rabattvorschlag und Preis-Check mit Bildern; siehe Abschnitt "Shop-Radar")
 - `afterupload.js` — After-Upload-Checkliste: erscheint ganz oben, sobald ein neues Video erkannt wird (siehe Abschnitt "After-Upload-Checkliste")
 - `room.js` — Anbindung des Minigames "Mein Raum" (Kachel, Stunden und Level, Spielstand in der Cloud, Spiel als Vollbild-Overlay; siehe Abschnitt "Mein Raum")
@@ -446,6 +447,19 @@ stammt, wird alles streng geprüft (`cleanItem` in `coop.js`: Längen, erlaubte 
 entschiedene Anfrage der letzten 3 Tage einmal (in der Ruhezeit gesammelt); Älteres bleibt still, damit der erste Lauf nicht viele Meldungen auslöst. Ist der Postfach-Check länger
 als 36 Stunden nicht gelaufen, kommt einmal pro Tag "Postfach-Check läuft nicht mehr". Ohne die Datei bleibt der Worker still. Nach der Änderung an `worker/push-worker.js` muss er
 in Cloudflare neu eingespielt werden (Code einfügen, Deploy); eine Beispielmeldung gibt es unter "Alle Beispiele senden".
+
+## Upload-Kalender
+
+Eigenes aufklappbares Fenster direkt unter den Business-KPIs (Menü "Uploads", Strg+K → "Upload-Kalender öffnen"). Beide Kanäle in einem Plan, Code in `uploadcal.js` und `uploadcal.css`.
+
+- **Oben:** je Kanal das Jahresziel (Longform-Videos, aus `goals` in `data.js`) mit "noch X, Y pro Woche" und dem Tag, an dem nach deinem Rhythmus (`uploadRhythmDays`) der nächste Upload fällig ist; dazu eine Karte für die Community-Posts (Rhythmus aus `community.js`).
+- **Ideenspeicher links:** die Ideen aus den Kanal-Karten ("Nächste Video-Idee" und "Weitere Ideen"), dazu die Karte "+ Community-Post". Abgehakte Ideen verschwinden von selbst, geplante stehen grau mit Datum da.
+- **Kalender rechts:** Monat oder Woche (Woche mit je einer Spur für BOTF, BW, Posts und Termine). Gefüllt = schon online (aus den YouTube-Daten), gestrichelt = geplantes Video (■ zeigt den Stand von Idee bis Fertig), gepunktet = Community-Post, Rahmen = Termin. "BOTF fällig", "BW fällig" und "POST fällig" markieren, wann nach deinem Rhythmus der nächste Eintrag dran wäre (verschwinden, sobald dafür etwas geplant ist). Geplantes in der Vergangenheit ohne Upload ist rot (überfällig). Filter oben: BOTF, BW, Posts, Koop/Fristen, LEGO, MTG.
+- **Planen:** Idee auf einen Tag **ziehen**, oder **antippen** und dann im Kalender auf HIER tippen. Geplante Einträge lassen sich verschieben und auf den Ideenspeicher zurückziehen (Videos werden wieder frei, Posts gelöscht). In der Wochenansicht gilt jeder Kanal nur in seiner Spur. Am Handy (bis 720 px): Punkte im Raster, darunter die Einträge des gewählten Tages; IDEE PLANEN öffnet ein Blatt mit den Ideen zum Antippen.
+- **Beim Drüberfahren** (Maus) erscheint ein kurzes Infofeld (Titel, Datum, Uhrzeit, Stand). **Ein Klick** öffnet ein Fenster mit allen Angaben: Kanal, Art, Datum, Uhrzeit, Abstand zum vorigen Upload oder Post, bei Videos die Stufen IDEE bis FERTIG und eine Notiz, bei Online-Videos der Link zu YouTube, bei Posts ALS GEPOSTET EINTRAGEN (trägt den Tag im Community-Rhythmus ein). Datum, Uhrzeit, Stand und Notiz werden beim Ändern sofort gespeichert.
+- **Termine** (Kooperationen, Fristen, LEGO, MTG) trägst du über + TERMIN ein; der Stichtag der Jahresziele steht automatisch als Frist drin. Die LEGO- und MTG-Termine tippst du selbst ein (eine automatische Quelle gibt es noch nicht).
+- **Daten:** Das Geplante liegt in der Cloud (Feld `uploadPlan` in `sync-data.json`: `items` = geplante Videos und Posts mit `kind`, `ch`, `idea`, `title`, `date`, `time`, `st`, `note`, `t`; `events` = Termine mit `kind`, `title`, `date`, `time`, `note`, `t`; `updatedAt`). Wie bei den Kooperationen gewinnt je Eintrag der neuere Zeitstempel `t`, Löschen ist ein Grabstein (`del`, nach 60 Tagen vergessen), beim Zusammenführen zweier Geräte geht nichts verloren; nach 120 Tagen verfallen alte Einträge. Uploads, Ziele, Rhythmus und gepostete Tage werden nicht doppelt gespeichert, sie kommen aus `data.js`, `community.js` und den Ideen-Listen. Ein geplanter Eintrag, dessen Upload oder Post schon passiert ist, wird nicht mehr doppelt gezeigt. Die Texte kommen aus der Cloud und werden streng geprüft (Längen, erlaubte Werte, nichts wird als HTML eingesetzt).
+- **Handy-Meldung:** Der Anlass "Upload-Kalender: heute dran" (im Fenster "Benachrichtigungen", Standard 10:00 Uhr, einzeln abschaltbar) meldet am Tag eines geplanten Uploads, Posts oder Termins einmal, was heute ansteht; schon Erledigtes zählt nicht. Nach der Änderung an `worker/push-worker.js` muss der Worker in Cloudflare neu eingespielt werden; die Zeile erscheint im Menü erst danach. Eine Beispielmeldung gibt es unter "Alle Beispiele senden".
 
 ## Nächste Video-Idee
 
