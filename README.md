@@ -31,6 +31,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `palette.js` — Schnellsuche und Befehle (siehe Abschnitt "Schnellsuche")
 - `msgseen.js` — merkt sich, welche Bricklink-Nachrichten du geöffnet hast (siehe Abschnitt "Ungelesene Nachrichten")
 - `community.js` — Community-Post-Rhythmus für Bricks On The Floor: Knopf GEPOSTET, Ampel, Zähler, Erinnerung (siehe Abschnitt "Community-Post-Rhythmus")
+- `coop.js` — Kooperationsanfragen aus dem Postfach: Hinweise mit ANTWORTEN / IGNORIEREN, Liste, Wahl in der Cloud (siehe Abschnitt "Kooperationsanfragen (Postfach-Check)")
 - `shopradar.js` — Shop-Radar: Ausklappmenü in der Bricklink-Karte (Hinweise, Kennzahlen, Zeit und Umsatz, Lager, Wochenziel aus dem Jahresziel, Bestseller pro Monat, Rabattvorschlag und Preis-Check mit Bildern; siehe Abschnitt "Shop-Radar")
 - `afterupload.js` — After-Upload-Checkliste: erscheint ganz oben, sobald ein neues Video erkannt wird (siehe Abschnitt "After-Upload-Checkliste")
 - `room.js` — Anbindung des Minigames "Mein Raum" (Kachel, Stunden und Level, Spielstand in der Cloud, Spiel als Vollbild-Overlay; siehe Abschnitt "Mein Raum")
@@ -419,6 +420,32 @@ Nach einer Änderung an `worker/push-worker.js` muss der Worker in Cloudflare ne
 
 **Daten:** Feld `community` in `sync-data.json` (privates Repo): `posts` = Tage `JJJJ-MM-TT` (die letzten 120), `days` = Rhythmus (3), `updatedAt`; der neuere Stand gewinnt,
 Code in `community.js`. Der Rhythmus ist fest auf 3 Tage eingestellt (`DEFAULT_DAYS` in `community.js`, im Worker der Rückfall `3`).
+
+## Kooperationsanfragen (Postfach-Check)
+
+Neue **Kooperationsanfragen** aus dem Gmail-Postfach `backandbuild@gmail.com` (der Kanal-Posteingang) erscheinen ganz oben als Hinweis im Look der anderen: Firma, Art
+(BEZAHLT / PRODUKT / PROVISION / ANFRAGE), eine Kurzfassung und der Link zur Mail. **ANTWORTEN** legt direkt eine Aufgabe "Kooperation beantworten: …" an (mit Mail-Link, kleiner
+Pfeil in der Aufgabenzeile), **IGNORIEREN** blendet die Anfrage aus, das × schiebt die Entscheidung auf (nur für diese Sitzung). Beides lässt sich im Hinweis mit RÜCKGÄNGIG
+zurücknehmen. Die ganze Liste (auch Erledigtes mit WIEDER ÖFFNEN) steht unter Strg+K → "Kooperationsanfragen anzeigen" und über ALLE ANZEIGEN in der Karte Bricks On The
+Floor; diese Zeile zeigt auch, wann das Postfach zuletzt geprüft wurde (rot, wenn länger als 30 Stunden nicht).
+
+**Wer das Postfach liest:** eine Cloud-Routine bei claude.ai ("Dashboard: Kooperationsanfragen aus Gmail", morgens 8 und abends 19 Uhr): Claude mit der Gmail-Verbindung, erlaubt
+sind nur die Werkzeuge `search_threads` und `get_thread` (nichts senden, entwerfen, labeln oder löschen). Gezählt werden neue Erstanfragen von Marken, Agenturen und Plattformen
+(auch Erinnerungen), keine Newsletter (Amazon Creator, YouTube Creator Community, vidIQ …) und keine Verhandlungen, in denen schon geantwortet wurde. Pro Anfrage steht nur Firma,
+Marke, Art, eine Kurzfassung (höchstens 170 Zeichen), Sprache, Frist, Postfach und der Mail-Link in der Datei, keine Mailtexte, keine Personennamen, keine Adressen.
+Mails an `bricksontheflooryt@gmail.com` werden nur gelesen, wenn dieses Konto sie an `backandbuild@gmail.com` weiterleitet (die Gmail-Verbindung liest immer nur ein Konto).
+
+**Daten:** `coop-inbox.json` (von der Routine geschrieben: `checkedAt` und `items` mit `id` = Gmail-Thread, `at`, `firma`, `fuer`, `art`, `kurz`, `typ`, `sprache`, `frist`,
+`postfach`, `url`) liegt im privaten Repo auf dem Branch `claude/coop-inbox`, nur diese Datei (so kommen sich Routine und Syncs nie in die Quere, und die Routine darf auch dann
+schreiben, wenn sie nur auf `claude/`-Branches pushen kann). Deine Wahl liegt wie alles andere in der Cloud (Feld `coop` in `sync-data.json`:
+`done` = `{ <Thread-ID>: { s: "reply" | "ignore" | "open", t } }`, `updatedAt`); je Eintrag gewinnt der neuere Zeitstempel, beim Zusammenführen zweier Geräte geht nichts verloren.
+Das Dashboard liest die Inbox-Datei beim Start, alle 10 Minuten und beim Zurückkehren in den Tab (`readCloudJson(file, ref)` in `script.js`). Weil die Datei von einem KI-Lauf
+stammt, wird alles streng geprüft (`cleanItem` in `coop.js`: Längen, erlaubte Werte, nur Gmail-Links aus erlaubten Zeichen) und nichts als HTML eingesetzt.
+
+**Handy-Meldung:** Der Worker liest dieselben Dateien (Anlass "Neue Kooperationsanfrage", im Fenster "Benachrichtigungen" einzeln abschaltbar) und meldet jede neue, noch nicht
+entschiedene Anfrage der letzten 3 Tage einmal (in der Ruhezeit gesammelt); Älteres bleibt still, damit der erste Lauf nicht viele Meldungen auslöst. Ist der Postfach-Check länger
+als 36 Stunden nicht gelaufen, kommt einmal pro Tag "Postfach-Check läuft nicht mehr". Ohne die Datei bleibt der Worker still. Nach der Änderung an `worker/push-worker.js` muss er
+in Cloudflare neu eingespielt werden (Code einfügen, Deploy); eine Beispielmeldung gibt es unter "Alle Beispiele senden".
 
 ## Nächste Video-Idee
 

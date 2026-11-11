@@ -25,6 +25,7 @@
     { id: "message", t: "Neue Käufer-Nachricht", s: "gebündelt, höchstens alle 30 Min." },
     { id: "rhythm", t: "Upload-Rhythmus überfällig", s: "einmal pro Tag um", time: true },
     { id: "community", t: "Community-Post fällig", s: "wenn 3 Tage ohne Post, einmal pro Tag um", time: true },
+    { id: "coop", t: "Neue Kooperationsanfrage", s: "sobald der Postfach-Check eine findet" },
     { id: "afterUpload", t: "After-Upload-Checkliste offen", s: "nach dem neuen Video", sel: { k: "delayMin", opts: [30, 60, 120, 240], fmt: (v) => (v >= 60 ? v / 60 + " Std." : v + " Min.") } },
     { id: "habits", t: "Habits abends offen", s: "nur bei Wochenziel in Gefahr, um", time: true },
     { id: "training", t: "Trainingstag", s: "wenn heute Training geplant ist, um", time: true },

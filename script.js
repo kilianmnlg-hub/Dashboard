@@ -368,12 +368,12 @@
     owner: data.github?.dataOwner || data.github?.owner || localStorage.getItem("dashboard-gh-owner"),
     repo: data.github?.dataRepo || data.github?.repo || localStorage.getItem("dashboard-gh-repo")
   });
-  async function readCloudJson(file) {
+  async function readCloudJson(file, ref) {
     const { owner, repo } = dataRepoOf();
     const token = localStorage.getItem("dashboard-gh-token");
     if (!owner || !repo) throw new Error("Repo nicht konfiguriert");
     if (!token) throw new Error("GitHub-Token fehlt");
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${file}`;
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${file}${ref ? "?ref=" + encodeURIComponent(ref) : ""}`;
     const res = await fetch(url, { cache: "no-store", headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}` } });
     if (res.status === 404) return { json: null, sha: null };
     if (!res.ok) throw new Error(res.status === 403 ? "GitHub-Limit erreicht oder Zugriff verweigert (403)" : `Status ${res.status}`);
@@ -753,6 +753,27 @@
     // Erst nach dem Laden der Cloud zeigen, sonst steht kurz "noch keiner eingetragen" da
     if (document.body.dataset.cloud === "ready") refreshCommunityViews();
     else document.addEventListener("cloud-ready", refreshCommunityViews, { once: true });
+  }
+
+  // ---------- Kooperationsanfragen (Gmail) ----------
+  // Eine Cloud-Routine (Claude mit reinem Lesezugriff auf Gmail, morgens und abends) legt neue Anfragen von Marken und Agenturen als Kurzfassung in coop-inbox.json
+  // (privates Daten-Repo, Branch claude/coop-inbox). Hier erscheint jede als Hinweis ganz oben mit ANTWORTEN (legt direkt eine Aufgabe an) und IGNORIEREN; die Wahl
+  // liegt in der Cloud (Feld coop in sync-data.json), der Code steht in coop.js. Der Cloudflare-Worker schickt dazu die Handy-Meldung. Gezeigt wird alles erst,
+  // wenn die Cloud geladen ist.
+  const COOP_REF = "claude/coop-inbox";
+  const coopBoard = window.createCoop
+    ? window.createCoop({
+        dataStore, scheduleAutoSync, escapeHtml, toast, pxSpr,
+        readInbox: () => readCloudJson("coop-inbox.json", COOP_REF),
+        addTask: (text, url) => taskBoard.addTask(text, url),
+        removeTask: (id) => taskBoard.removeTask(id),
+        expand: (id) => { if (foldBoard) foldBoard.expand(id); }
+      })
+    : null;
+  let remoteCoopRaw = null;
+  if (coopBoard) {
+    if (document.body.dataset.cloud === "ready") coopBoard.start();
+    else document.addEventListener("cloud-ready", () => coopBoard.start(), { once: true });
   }
 
   // ---------- Mein Raum (Minigame) ----------
@@ -1937,6 +1958,7 @@
       ${biz.note ? `<p class="card-note">${biz.note}</p>` : ""}
       ${renderRhythmBadge(biz)}
       ${key === "bricksOnTheFloor" && communityBoard ? '<div class="cm-block" data-cm></div>' : ""}
+      ${key === "bricksOnTheFloor" && coopBoard ? '<div class="cm-block" data-coop></div>' : ""}
       ${isYoutubeChannel && afterUploadBoard ? '<button type="button" class="au-open" data-au-open>After-Upload-Checkliste</button>' : ""}
       ${
         isYoutubeChannel
@@ -2231,6 +2253,9 @@
   // ---------- Aufgaben + Remote Tasks (persistent, kein täglicher Reset) ----------
   // Beide Listen funktionieren identisch und unterscheiden sich nur in Storage-Key, Feld in
   // sync-data.json und den DOM-Elementen - daher eine gemeinsame Fabrik.
+  // Mail-Links an Aufgaben (z.B. "Kooperation beantworten"): nur Gmail-Adressen aus erlaubten Zeichen, damit nichts aus dem Attribut ausbrechen kann
+  const GMAIL_URL = /^https:\/\/mail\.google\.com\/[\w\-.~:/?#@!$&()*+,;=%|\[\]]*$/;
+  const TASK_LINK_ICON = '<svg viewBox="0 0 7 7" width="14" height="14" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M2 0h5v1H2zM6 1h1v4H6zM5 1h1v1H5zM4 2h1v1H4zM3 3h1v1H3zM2 4h1v1H2zM1 5h1v1H1z"/></svg>';
   function createTaskBoard({ storageKey, listId, inputId, addBtnId, xpKey }) {
     // Cloud-Sync ueber sync-data.json, gleiches Zeitstempel-Prinzip wie beim Habit-Tracker.
     const loadState = () => {
@@ -2259,6 +2284,26 @@
       scheduleAutoSync("syncdata");
     };
 
+    // Aufgabe aus dem Code anlegen (z.B. "Kooperation beantworten" aus coop.js); url = optionaler Link zur Mail, nur Gmail-Adressen ohne Sonderzeichen
+    board.addTask = (text, url) => {
+      const item = { id: newId(), text: String(text || "").trim().slice(0, 120), done: false };
+      if (!item.text) return null;
+      if (typeof url === "string" && GMAIL_URL.test(url)) item.url = url.slice(0, 400);
+      board.items.push(item);
+      board.save();
+      board.render();
+      flashNewItem(listEl, item.id);
+      return item.id;
+    };
+    board.removeTask = (id) => {
+      const before = board.items.length;
+      board.items = board.items.filter((t) => t.id !== id);
+      if (board.items.length === before) return false;
+      board.save();
+      board.render();
+      return true;
+    };
+
     // Verschiebt eine Aufgabe zurueck ins heutige Tages-To-Do (in die gewaehlte Spalte) - das
     // Gegenstueck zu migrateStaleTodosToTasks() weiter unten, das den umgekehrten Weg geht.
     function moveToTodo(id, categoryId) {
@@ -2283,6 +2328,7 @@
       <li class="todo-item ${item.done ? "done" : ""}" data-id="${item.id}">
         <input type="checkbox" ${item.done ? "checked" : ""} aria-label="Erledigt: ${escapeHtml(item.text)}" />
         <span>${escapeHtml(item.text)}</span>
+        ${item.url && GMAIL_URL.test(item.url) ? `<a class="todo-link" href="${item.url}" target="_blank" rel="noopener" aria-label="Mail in Gmail öffnen" title="Mail in Gmail öffnen">${TASK_LINK_ICON}</a>` : ""}
         <div class="todo-move-wrap">
           <button type="button" class="todo-move" aria-label="Ins Tages-To-Do verschieben" title="Ins Tages-To-Do verschieben">↩</button>
           <div class="todo-move-menu" hidden>
@@ -2563,6 +2609,7 @@
         openAfterUpload: afterUploadBoard ? () => afterUploadBoard.open() : null,
         communityDone: communityBoard ? () => communityMark(communityBoard.today(), `Community-Post eingetragen. Der nächste ist in ${communityBoard.days()} Tagen fällig.`) : null,
         openShopRadar: shopRadar ? () => { if (foldBoard) foldBoard.expand("business"); shopRadar.open(); } : null,
+        openCoop: coopBoard ? () => coopBoard.open() : null,
         addNote: inboxBoard ? (text) => inboxBoard.addText(text) : null,
         todoCats: TODO_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
         addTodo: (catId, text) => {
@@ -3305,11 +3352,13 @@
       msgSeen: msgSeenBoard ? msgSeenBoard.payload() : remoteMsgSeenRaw,
       afterUpload: afterUploadBoard ? afterUploadBoard.payload() : remoteAfterUploadRaw,
       community: communityBoard ? communityBoard.payload() : remoteCommunityRaw,
+      coop: coopBoard ? coopBoard.payload() : remoteCoopRaw,
       room: roomBoard ? roomBoard.payload() : remoteRoomRaw
     };
     if (payload.room == null) delete payload.room;
     if (payload.afterUpload == null) delete payload.afterUpload;
     if (payload.community == null) delete payload.community;
+    if (payload.coop == null) delete payload.coop;
     if (payload.msgSeen == null) delete payload.msgSeen;
     if (payload.xp == null) delete payload.xp;
     if (payload.inbox == null) delete payload.inbox;
@@ -3465,6 +3514,8 @@
         if (afterUploadBoard) afterUploadBoard.applyRemote(remote.afterUpload);
         remoteCommunityRaw = remote.community ?? null;
         if (communityBoard) communityBoard.applyRemote(remote.community);
+        remoteCoopRaw = remote.coop ?? null;
+        if (coopBoard) coopBoard.applyRemote(remote.coop);
         remoteRoomRaw = remote.room ?? null;
         if (roomBoard) roomBoard.applyRemote(remote.room);
         applyRemoteTodos(remote.todos);
@@ -3541,6 +3592,7 @@
     if (!localStorage.getItem("dashboard-gh-token")) return;
     lastCloudRefresh = Date.now();
     Promise.all([fetchRemoteHabits(), fetchRemoteSyncData()]).catch(() => {});
+    if (coopBoard) coopBoard.refresh();
     if (trainingBoard) trainingBoard.refresh();
     if (gcalAccessToken) fetchTodayEvents();
   }

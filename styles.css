@@ -3083,3 +3083,36 @@ body.priv-fail main, body.priv-fail .nav, body.priv-fail .top-timers, body.priv-
   .sr-item { grid-template-columns: auto 56px minmax(0, 1fr); }
   .sr-iv { grid-column: 3 / -1; display: flex; flex-wrap: wrap; gap: 0 10px; justify-content: flex-start; text-align: left; }
 }
+
+/* ==========================================================================
+   Kooperationsanfragen (coop.js): Hinweise ganz oben mit ANTWORTEN / IGNORIEREN, Liste mit allen Anfragen, Rueckgaengig-Knopf im Hinweis, Mail-Link an Aufgaben
+   ========================================================================== */
+.top-alert.ta-coop .ship-alert-inner { flex-wrap: wrap; align-items: flex-start; }
+.top-alert.ta-coop .ship-alert-text { flex: 1 1 260px; min-width: 0; }
+.top-alert.ta-coop .ta-btns { display: flex; gap: 8px; flex: none; align-self: center; }
+.top-alert .ta-action.ta-ghost { background: var(--surface); color: var(--text); }
+.top-alert .ta-action.ta-ghost:hover { background: var(--surface-2); }
+.ta-tag { display: inline-block; font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; padding: 1px 6px; margin-right: 8px; border: 2px solid var(--text); border-radius: var(--r); vertical-align: 2px; color: var(--accent-ink); background: var(--accent); }
+.ta-tag.bezahlt { background: var(--status-good); color: #06210a; }
+.ta-tag.provision { background: var(--accent-brainwalkers); color: #fff; }
+.ta-tag.sonstiges { background: var(--surface-3); color: var(--text); }
+@media (max-width: 720px) { .top-alert.ta-coop .ship-alert-text { order: 1; } .top-alert.ta-coop .ship-alert-dismiss { order: 2; } .top-alert.ta-coop .ta-btns { order: 3; flex: 1 0 100%; } .top-alert.ta-coop .ta-btns .ta-action { flex: 1; } }
+
+.coop-modal { max-width: 760px; max-height: calc(100vh - 40px); overflow: auto; }
+.coop-h { font-family: var(--px); font-size: var(--fs-8); font-weight: 400; line-height: 1.6; margin: 16px 0 8px; color: var(--text-muted); }
+.coop-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.coop-item { border: 2px solid var(--border); border-radius: var(--r); background: var(--surface-2); padding: 10px 12px; }
+.coop-item.new { border-color: var(--text); }
+.coop-item.ignore { opacity: .65; }
+.coop-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.coop-head .ta-tag { margin-right: 2px; }
+.coop-kurz { margin: 6px 0 0; font-size: var(--fs-14); }
+.coop-meta { margin: 4px 0 0; font-size: var(--fs-12); color: var(--text-faint); }
+.coop-meta a { color: var(--text-muted); }
+.coop-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.coop-state { font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--text-muted); }
+.coop-empty { color: var(--text-faint); font-size: var(--fs-14); margin: 12px 0 0; }
+
+.dash-toast .dt-undo { margin-left: 12px; font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: inherit; background: none; border: 2px solid currentColor; border-radius: var(--r); padding: 3px 7px; cursor: pointer; }
+.todo-link { flex: none; display: inline-grid; place-items: center; color: var(--text-muted); padding: 4px; }
+.todo-link:hover { color: var(--accent); }

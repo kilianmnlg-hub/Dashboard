@@ -42,6 +42,7 @@ const DEFAULT_SETTINGS = {
     message: { on: true },
     rhythm: { on: true, time: "09:00" },
     community: { on: true, time: "12:00" },
+    coop: { on: true },
     afterUpload: { on: true, delayMin: 60 },
     habits: { on: true, time: "19:00" },
     training: { on: true, time: "11:30" },
@@ -62,7 +63,8 @@ const SAMPLES = [
   { title: "Beispiel: Heute: Brust/Rücken", body: "Brust, Rücken · 6 Übungen · ca. 50 Min", url: "#training", tag: "sample-training" },
   { title: "Beispiel: YouTube-Timer läuft seit 3 Std.", body: "Vergessen zu stoppen?", url: "#zeit", tag: "sample-timer" },
   { title: "Beispiel: Guten Morgen, Kilian", body: "Heute: 3 To-Dos · Brust/Rücken · 1 Bestellung zu versenden", url: "./", tag: "sample-summary" },
-  { title: "Beispiel: Bricks On The Floor: 3 Tage ohne Community-Post", body: "Dein Rhythmus: alle 3 Tage", url: "#business", tag: "sample-community" }
+  { title: "Beispiel: Bricks On The Floor: 3 Tage ohne Community-Post", body: "Dein Rhythmus: alle 3 Tage", url: "#business", tag: "sample-community" },
+  { title: "Beispiel: Neue Kooperationsanfrage: Solbridge · Hyper 3D AI", body: "bezahlt · Sucht Creator für eine bezahlte Zusammenarbeit mit einem 3D-KI-Tool.", url: "./", tag: "sample-coop" }
 ];
 
 /* ---------------------------------------------------------------------------------------------------------------------------------- Helfer */
@@ -377,6 +379,37 @@ function nextTrainingDay(t) {
 }
 const planSets = (day) => (day.ex || []).reduce((n, e) => n + ((e.s || []).length), 0);
 
+/* Kooperationsanfragen: eine Cloud-Routine (Claude mit Lesezugriff auf Gmail) legt Kurzfassungen in coop-inbox.json (Branch claude/coop-inbox im privaten Repo,
+   siehe coop.js). Jede neue, noch nicht entschiedene Anfrage der letzten 3 Tage wird einmal gemeldet (aeltere bleiben still, damit der erste Lauf kein Feuerwerk
+   zuendet); ist der Postfach-Check seit ueber 36 Std. nicht gelaufen, kommt einmal pro Tag eine Warnung. Ohne Datei (Routine noch nicht eingerichtet) bleibt es still. */
+async function checkCoop(ctx) {
+  const { env, now, nowB, st } = ctx, f = ctx.force === "coop";
+  if (!(env.DATA_REPO && env.DATA_TOKEN)) return;
+  let inbox;
+  try {
+    inbox = await loadData(ctx, "coop-inbox.json?ref=claude/coop-inbox");
+  } catch (e) {
+    if (!/ 404$/.test(String((e && e.message) || e))) st.coop = { ok: false, at: now, error: clip((e && e.message) || e, 120) };
+    return;
+  }
+  const items = Array.isArray(inbox && inbox.items) ? inbox.items : [], checked = Date.parse(inbox && inbox.checkedAt) || 0;
+  st.coop = { ok: true, at: now, checked, n: items.length };
+  let done = {};
+  try { done = ((await loadData(ctx, "sync-data.json")).coop || {}).done || {}; } catch (e) { /* ohne Entscheidungen: alles gilt als offen */ }
+  const decided = (id) => { const d = done[id]; return !!(d && d.s && d.s !== "open"); };
+  const ART = { bezahlt: "bezahlt", produkt: "Produkt", provision: "Provision" };
+  let first = true;
+  items.slice().sort((a, b) => (Date.parse(b.at) || 0) - (Date.parse(a.at) || 0)).forEach((i) => {
+    const id = String((i && i.id) || ""), at = Date.parse(i && i.at) || 0, firma = clip(i && i.firma, 40);
+    if (!/^[\w-]{6,40}$/.test(id) || !at || !firma) return;
+    if (!f && (now - at > 3 * DAY || decided(id))) return;
+    if (f && !first) return;
+    first = false;
+    emit(ctx, { type: "coop", force: f, key: f ? "" : "coop:" + id, title: "Neue Kooperationsanfrage: " + firma + (i.fuer ? " · " + clip(i.fuer, 30) : ""), body: [ART[i.art], clip(i.kurz, 110)].filter(Boolean).join(" · "), url: "./", tag: "coop-" + id });
+  });
+  if (checked && now - checked > 36 * HOUR) emit(ctx, { type: "ops", key: "ops-coop:" + nowB.date, title: "Postfach-Check läuft nicht mehr", body: "Zuletzt geprüft vor " + Math.floor((now - checked) / HOUR) + " Std.", url: "./", tag: "ops-coop" });
+}
+
 async function checkData(ctx) {
   const { ev, now, nowB, seen, st } = ctx, f = (name) => ctx.force === name;
   const wantHabits = f("habits") || (ev.habits.on && dueNow(ev.habits.time, nowB.min));
@@ -384,8 +417,8 @@ async function checkData(ctx) {
   const wantRhythm = f("rhythm") || (ev.rhythm.on && dueNow(ev.rhythm.time, nowB.min));
   const wantCommunity = f("community") || (ev.community.on && dueNow(ev.community.time, nowB.min));
   const wantSummary = f("summary") || (ev.summary.on && dueNow(ev.summary.time, nowB.min));
-  const wantAfter = ev.afterUpload.on, wantTimer = ev.timer.on;
-  if (!(wantHabits || wantTraining || wantRhythm || wantCommunity || wantSummary || wantAfter || wantTimer)) return;
+  const wantAfter = ev.afterUpload.on, wantTimer = ev.timer.on, wantCoop = f("coop") || ev.coop.on;
+  if (!(wantHabits || wantTraining || wantRhythm || wantCommunity || wantSummary || wantAfter || wantTimer || wantCoop)) return;
   const key = (k, force) => (force ? "" : k);
 
   try {
@@ -453,6 +486,8 @@ async function checkData(ctx) {
         if (days >= every || f("community")) emit(ctx, { type: "community", force: f("community"), key: key("community:" + nowB.date, f("community")), title: "Bricks On The Floor: " + days + (days === 1 ? " Tag" : " Tage") + " ohne Community-Post", body: "Dein Rhythmus: alle " + every + " Tage", url: "#business", tag: "community" });
       }
     }
+
+    if (wantCoop) await checkCoop(ctx);
 
     if (wantTimer) {
       const s = await loadData(ctx, "sync-data.json"), act = (s.timetracker && s.timetracker.active) || {};
@@ -588,14 +623,14 @@ async function handle(req, env) {
     return json({ ok: rs.some((r) => r.ok), sent: rs.filter((r) => r.ok).length, failed: rs.filter((r) => !r.ok).length, status: rs.map((r) => r.status), title: n.title, index: idx, count: SAMPLES.length }, 200, cors.headers);
   }
   if (path === "/run" && req.method === "POST") {
-    const only = ["summary", "habits", "training", "rhythm", "community"].indexOf(body.only) >= 0 ? body.only : "";
+    const only = ["summary", "habits", "training", "rhythm", "community", "coop"].indexOf(body.only) >= 0 ? body.only : "";
     return json(await run(env, { only }), 200, cors.headers);
   }
   if (path === "/status") {
     const st = await kget(env, "state", {}), subs = await kget(env, "subs", []), settings = cleanSettings(await kget(env, "settings", null)), now = Date.now();
     return json({
       now, lastRun: st.lastRun || 0, runs: st.runs || 0, subs: subs.length, quiet: inQuiet(settings.quiet, berlin(now).min),
-      bricklink: st.bl || null, data: st.data || null, queue: (st.queue || []).length,
+      bricklink: st.bl || null, data: st.data || null, coop: st.coop || null, queue: (st.queue || []).length,
       sent24h: (st.sent || []).filter((x) => now - x.t < DAY).length, last: (st.sent || []).slice(-5).reverse().map((x) => ({ t: x.t, type: x.type, title: x.title, ok: x.ok, n: x.n }))
     }, 200, cors.headers);
   }
