@@ -63,7 +63,7 @@
     const diff = Math.round((day(now) - day(d)) / DAY);
     if (diff <= 0) return "heute " + hm;
     if (diff === 1) return "gestern " + hm;
-    return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }) + ". " + hm;
+    return String(d.getDate()).padStart(2, "0") + "." + String(d.getMonth() + 1).padStart(2, "0") + ". " + hm;
   }
 
   window.createCoop = function (deps) {
