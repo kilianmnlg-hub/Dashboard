@@ -461,6 +461,15 @@ Eigenes aufklappbares Fenster direkt unter den Business-KPIs (Menü "Uploads", S
 - **Daten:** Das Geplante liegt in der Cloud (Feld `uploadPlan` in `sync-data.json`: `items` = geplante Videos und Posts mit `kind`, `ch`, `idea`, `title`, `date`, `time`, `st`, `note`, `t`; `events` = Termine mit `kind`, `title`, `date`, `time`, `note`, `t`; `updatedAt`). Wie bei den Kooperationen gewinnt je Eintrag der neuere Zeitstempel `t`, Löschen ist ein Grabstein (`del`, nach 60 Tagen vergessen), beim Zusammenführen zweier Geräte geht nichts verloren; nach 120 Tagen verfallen alte Einträge. Uploads, Ziele, Rhythmus und gepostete Tage werden nicht doppelt gespeichert, sie kommen aus `data.js`, `community.js` und den Ideen-Listen. Ein geplanter Eintrag, dessen Upload oder Post schon passiert ist, wird nicht mehr doppelt gezeigt. Die Texte kommen aus der Cloud und werden streng geprüft (Längen, erlaubte Werte, nichts wird als HTML eingesetzt).
 - **Handy-Meldung:** Der Anlass "Upload-Kalender: heute dran" (im Fenster "Benachrichtigungen", Standard 10:00 Uhr, einzeln abschaltbar) meldet am Tag eines geplanten Uploads, Posts oder Termins einmal, was heute ansteht; schon Erledigtes zählt nicht. Nach der Änderung an `worker/push-worker.js` muss der Worker in Cloudflare neu eingespielt werden; die Zeile erscheint im Menü erst danach. Eine Beispielmeldung gibt es unter "Alle Beispiele senden".
 
+## Artlist-Credits (Erinnerung vor der Erneuerung)
+
+Das Artlist-Abo (Plan "AI Suite 40K") erneuert sich monatlich, ungenutzte Credits verfallen dann. Damit nichts verfällt, kommt kurz davor eine Meldung. Alles läuft in der Cloud, auf dem PC läuft nichts.
+
+- **Routine** (claude.ai, "Dashboard: Artlist-Credits pruefen", `CRON_TZ=Europe/Berlin 0 9 1-11 * *`, also nur vom 1. bis 11. jedes Monats): Claude mit der offiziellen Artlist-Verbindung (erlaubt ist nur `get_balance`, nichts, was Credits kostet) schreibt den Stand in `artlist-credits.json` auf den Branch `claude/artlist-credits` des privaten Repos (`checkedAt`, `planName`, `creditsLeft`, `planCredits`, `renewsOn`). Bei einem Fehler bleibt die alte Datei stehen.
+- **Letzter Tag:** Artlist nennt als Erneuerung z. B. den 12.; das Abo erneuert sich "immer am 11.", darum gilt der Tag vor dem genannten Datum als letzter Tag.
+- **Meldung aufs Handy** (Worker, Anlass "Artlist-Credits laufen aus", 10:00 Uhr, einzeln abschaltbar): 7, 3 und 1 Tag vor dem letzten Tag, je einmal (wer später einsteigt, bekommt nur die aktuelle Stufe), wenn dann noch mindestens 1.000 Credits übrig sind und der Stand nicht älter als 48 Stunden ist. Bleibt die Routine in den ersten elf Tagen aus, kommt einmal pro Tag "Artlist-Check läuft nicht mehr". Nach der Änderung an `worker/push-worker.js` muss der Worker in Cloudflare neu eingespielt werden; eine Beispielmeldung gibt es unter "Alle Beispiele senden".
+- **Im Dashboard:** in den letzten 7 Tagen steht dieselbe Meldung als gelber Hinweis ganz oben (pro Sitzung wegklickbar; Code in `script.js`, Block "Artlist-Credits").
+
 ## Nächste Video-Idee
 
 Auf beiden YouTube-Karten: eine kleine Ideen-Liste statt eines einzelnen

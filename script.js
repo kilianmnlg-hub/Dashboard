@@ -776,6 +776,41 @@
     else document.addEventListener("cloud-ready", () => coopBoard.start(), { once: true });
   }
 
+  // ---------- Artlist-Credits ----------
+  // Eine Cloud-Routine (Claude mit der Artlist-Verbindung, nur get_balance) legt den Stand an den ersten elf Tagen des Monats in artlist-credits.json ab (privates Daten-Repo, Branch
+  // claude/artlist-credits). Kilians Abo erneuert sich "immer am 11.", Artlist nennt den 12.: der Tag vor dem genannten Datum gilt als letzter Tag. Sind dann noch mindestens 1.000 Credits
+  // uebrig, steht in den letzten 7 Tagen ein Hinweis ganz oben; der Cloudflare-Worker schickt dazu die Handy-Meldung (gleiche Regeln wie checkArtlist in worker/push-worker.js).
+  const ARTLIST_REF = "claude/artlist-credits", ARTLIST_MIN = 1000;
+  let artlistData = null, artlistLoadedAt = 0;
+  function renderArtlistAlert() {
+    const host = document.getElementById("topAlerts");
+    if (!host) return;
+    host.querySelector('[data-alert^="artlist-"]')?.remove();
+    const d = artlistData;
+    if (!d || document.body.dataset.cloud !== "ready") return;
+    const left = Number(d.creditsLeft), checked = Date.parse(d.checkedAt) || 0, renews = String(d.renewsOn || "");
+    if (!Number.isFinite(left) || left < ARTLIST_MIN || !/^\d{4}-\d{2}-\d{2}$/.test(renews) || isNaN(Date.parse(renews + "T00:00:00Z")) || !checked || Date.now() - checked > 48 * 3600000) return;
+    const last = new Date(Date.parse(renews + "T00:00:00Z") - 86400000).toISOString().slice(0, 10);
+    const days = Math.round((Date.parse(last + "T00:00:00Z") - Date.parse(todayKey() + "T00:00:00Z")) / 86400000);
+    if (days < 0 || days > 7) return;
+    const stage = days <= 1 ? 1 : days <= 3 ? 3 : 7, id = `artlist-${renews}-${stage}`;
+    try { if (sessionStorage.getItem(`dashboard-alert-dismissed-${id}`)) return; } catch (e) { /* egal */ }
+    const num = String(Math.round(left)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const when = days === 0 ? "heute letzter Tag" : days === 1 ? "verfallen morgen" : `verfallen in ${days} Tagen`;
+    host.insertAdjacentHTML("beforeend", `<div class="ship-alert top-alert yellow" data-alert="${escapeHtml(id)}"><div class="ship-alert-inner">${pxSpr("coin", 22)}<span class="ship-alert-text"><b>${escapeHtml(`Artlist: noch ${num} Credits, ${when}`)}</b>` +
+      `<span class="ta-sub">${escapeHtml(`Letzter Tag: ${+last.slice(8)}.${+last.slice(5, 7)}., danach erneuert sich dein Abo und ungenutzte Credits verfallen.`)}</span></span><button type="button" class="ship-alert-dismiss" aria-label="Ausblenden">×</button></div></div>`);
+  }
+  async function loadArtlist() {
+    artlistLoadedAt = Date.now();
+    try {
+      const { json } = await readCloudJson("artlist-credits.json", ARTLIST_REF);
+      artlistData = json && typeof json === "object" ? json : null;
+    } catch (e) { /* kein Netz oder Datei noch nicht da: dann bleibt es, wie es ist */ }
+    renderArtlistAlert();
+  }
+  if (document.body.dataset.cloud === "ready") loadArtlist();
+  else document.addEventListener("cloud-ready", loadArtlist, { once: true });
+
   // ---------- Upload-Kalender ----------
   // Beide Kanaele in einem Plan: Videoideen (aus den Ideen-Listen der Kanal-Karten) per Ziehen oder Antippen auf einen Tag legen, dazu Community-Posts, Kooperationen,
   // Fristen und LEGO-/MTG-Termine. Geplantes liegt in der Cloud (Feld uploadPlan in sync-data.json), Uploads, Ziele und Rhythmus kommen aus den vorhandenen Daten.
@@ -3620,6 +3655,7 @@
     Promise.all([fetchRemoteHabits(), fetchRemoteSyncData()]).catch(() => {});
     if (coopBoard) coopBoard.refresh();
     if (ukBoard) ukBoard.refresh();
+    if (Date.now() - artlistLoadedAt > 30 * 60000) loadArtlist();
     if (trainingBoard) trainingBoard.refresh();
     if (gcalAccessToken) fetchTodayEvents();
   }

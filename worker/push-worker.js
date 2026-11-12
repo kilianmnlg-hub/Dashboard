@@ -44,6 +44,7 @@ const DEFAULT_SETTINGS = {
     community: { on: true, time: "12:00" },
     coop: { on: true },
     uploadday: { on: true, time: "10:00" },
+    artlist: { on: true, time: "10:00" },
     afterUpload: { on: true, delayMin: 60 },
     habits: { on: true, time: "19:00" },
     training: { on: true, time: "11:30" },
@@ -66,7 +67,8 @@ const SAMPLES = [
   { title: "Beispiel: Guten Morgen, Kilian", body: "Heute: 3 To-Dos · Brust/Rücken · 1 Bestellung zu versenden", url: "./", tag: "sample-summary" },
   { title: "Beispiel: Bricks On The Floor: 3 Tage ohne Community-Post", body: "Dein Rhythmus: alle 3 Tage", url: "#business", tag: "sample-community" },
   { title: "Beispiel: Neue Kooperationsanfrage: Solbridge · Hyper 3D AI", body: "bezahlt · Sucht Creator für eine bezahlte Zusammenarbeit mit einem 3D-KI-Tool.", url: "./", tag: "sample-coop" },
-  { title: "Beispiel: Heute: Upload um 16:00", body: "JP Raptoren Gehege Moc review · Post 12:00", url: "#uploadkal", tag: "sample-uploadday" }
+  { title: "Beispiel: Heute: Upload um 16:00", body: "JP Raptoren Gehege Moc review · Post 12:00", url: "#uploadkal", tag: "sample-uploadday" },
+  { title: "Beispiel: Artlist: noch 12.400 Credits, verfallen in 3 Tagen", body: "Letzter Tag: 11.12., danach erneuert sich dein Abo und ungenutzte Credits verfallen.", url: "./", tag: "sample-artlist" }
 ];
 
 /* ---------------------------------------------------------------------------------------------------------------------------------- Helfer */
@@ -412,6 +414,38 @@ async function checkCoop(ctx) {
   if (checked && now - checked > 36 * HOUR) emit(ctx, { type: "ops", key: "ops-coop:" + nowB.date, title: "Postfach-Check läuft nicht mehr", body: "Zuletzt geprüft vor " + Math.floor((now - checked) / HOUR) + " Std.", url: "./", tag: "ops-coop" });
 }
 
+/* Artlist-Credits: eine Cloud-Routine (Claude mit der Artlist-Verbindung, nur get_balance) legt den Stand in artlist-credits.json (Branch claude/artlist-credits im privaten Repo)
+   ab. Artlist nennt als Erneuerung z.B. den 12.; Kilians Abo erneuert sich "immer am 11.", darum gilt der Tag VOR dem genannten Datum als letzter Tag, an dem die Credits noch zaehlen.
+   Die Routine laeuft nur vom 1. bis 11. des Monats (sparsam, kurz vor der Erneuerung). Gemeldet wird 7, 3 und 1 Tag vor dem letzten Tag (je Stufe einmal, wer spaeter einsteigt bekommt nur
+   die aktuelle Stufe), wenn dann noch mindestens ARTLIST_MIN Credits uebrig sind und der Check nicht aelter als 48 Std. ist; bleibt der Check in diesem Zeitraum aus, kommt einmal pro Tag
+   eine Warnung. Ohne Datei (Routine noch nicht eingerichtet) bleibt es still.
+   Dieselben Regeln stehen in script.js (Hinweis ganz oben im Dashboard). */
+const ARTLIST_MIN = 1000;
+const ptNum = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+const dmOf = (day) => (+day.slice(8)) + "." + (+day.slice(5, 7)) + ".";
+async function checkArtlist(ctx) {
+  const { env, now, nowB, st } = ctx, f = ctx.force === "artlist";
+  if (!(env.DATA_REPO && env.DATA_TOKEN)) return;
+  let d;
+  try {
+    d = await loadData(ctx, "artlist-credits.json?ref=claude/artlist-credits");
+  } catch (e) {
+    if (!/ 404$/.test(String((e && e.message) || e))) st.artlist = { ok: false, at: now, error: clip((e && e.message) || e, 120) };
+    return;
+  }
+  const left = Number(d && d.creditsLeft), renews = String((d && d.renewsOn) || ""), checked = Date.parse(d && d.checkedAt) || 0;
+  if (!Number.isFinite(left) || left < 0 || !/^\d{4}-\d{2}-\d{2}$/.test(renews) || isNaN(Date.parse(renews + "T00:00:00Z"))) return;
+  st.artlist = { ok: true, at: now, checked, left, renews };
+  const last = new Date(dayNum(renews) * DAY - DAY).toISOString().slice(0, 10), days = dayDiff(nowB.date, last);
+  const stale = checked && now - checked > 48 * HOUR;
+  /* Die Routine laeuft nur vom 1. bis 11. des Monats (sparsam): ausserhalb davon ist ein alter Stand normal, gewarnt wird nur, wenn sie in diesem Zeitraum ausbleibt */
+  if (stale && days >= 0 && days <= 10) emit(ctx, { type: "ops", key: "ops-artlist:" + nowB.date, title: "Artlist-Check läuft nicht mehr", body: "Zuletzt geprüft vor " + Math.floor((now - checked) / HOUR) + " Std.", url: "./", tag: "ops-artlist" });
+  const stage = days < 0 ? 0 : days <= 1 ? 1 : days <= 3 ? 3 : days <= 7 ? 7 : 0;
+  if (!f && !(stage && checked && !stale && left >= ARTLIST_MIN)) return;
+  const when = days < 0 ? "" : days === 0 ? "heute letzter Tag" : days === 1 ? "verfallen morgen" : "verfallen in " + days + " Tagen";
+  emit(ctx, { type: "artlist", force: f, key: f ? "" : "artlist:" + renews + ":" + stage, title: "Artlist: noch " + ptNum(left) + " Credits" + (when ? ", " + when : ""), body: "Letzter Tag: " + dmOf(last) + ", danach erneuert sich dein Abo und ungenutzte Credits verfallen.", url: "./", tag: "artlist" });
+}
+
 async function checkData(ctx) {
   const { ev, now, nowB, seen, st } = ctx, f = (name) => ctx.force === name;
   const wantHabits = f("habits") || (ev.habits.on && dueNow(ev.habits.time, nowB.min));
@@ -421,7 +455,8 @@ async function checkData(ctx) {
   const wantSummary = f("summary") || (ev.summary.on && dueNow(ev.summary.time, nowB.min));
   const wantAfter = ev.afterUpload.on, wantTimer = ev.timer.on, wantCoop = f("coop") || ev.coop.on;
   const wantUpload = f("uploadday") || (ev.uploadday.on && dueNow(ev.uploadday.time, nowB.min));
-  if (!(wantHabits || wantTraining || wantRhythm || wantCommunity || wantSummary || wantAfter || wantTimer || wantCoop || wantUpload)) return;
+  const wantArtlist = f("artlist") || (ev.artlist.on && dueNow(ev.artlist.time, nowB.min));
+  if (!(wantHabits || wantTraining || wantRhythm || wantCommunity || wantSummary || wantAfter || wantTimer || wantCoop || wantUpload || wantArtlist)) return;
   const key = (k, force) => (force ? "" : k);
 
   try {
@@ -518,6 +553,7 @@ async function checkData(ctx) {
       }
     }
 
+    if (wantArtlist) await checkArtlist(ctx);
     if (wantCoop) await checkCoop(ctx);
 
     if (wantTimer) {
@@ -654,14 +690,14 @@ async function handle(req, env) {
     return json({ ok: rs.some((r) => r.ok), sent: rs.filter((r) => r.ok).length, failed: rs.filter((r) => !r.ok).length, status: rs.map((r) => r.status), title: n.title, index: idx, count: SAMPLES.length }, 200, cors.headers);
   }
   if (path === "/run" && req.method === "POST") {
-    const only = ["summary", "habits", "training", "rhythm", "community", "coop", "uploadday"].indexOf(body.only) >= 0 ? body.only : "";
+    const only = ["summary", "habits", "training", "rhythm", "community", "coop", "uploadday", "artlist"].indexOf(body.only) >= 0 ? body.only : "";
     return json(await run(env, { only }), 200, cors.headers);
   }
   if (path === "/status") {
     const st = await kget(env, "state", {}), subs = await kget(env, "subs", []), settings = cleanSettings(await kget(env, "settings", null)), now = Date.now();
     return json({
       now, lastRun: st.lastRun || 0, runs: st.runs || 0, subs: subs.length, quiet: inQuiet(settings.quiet, berlin(now).min),
-      bricklink: st.bl || null, data: st.data || null, coop: st.coop || null, queue: (st.queue || []).length,
+      bricklink: st.bl || null, data: st.data || null, coop: st.coop || null, artlist: st.artlist || null, queue: (st.queue || []).length,
       sent24h: (st.sent || []).filter((x) => now - x.t < DAY).length, last: (st.sent || []).slice(-5).reverse().map((x) => ({ t: x.t, type: x.type, title: x.title, ok: x.ok, n: x.n }))
     }, 200, cors.headers);
   }
