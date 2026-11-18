@@ -1041,6 +1041,10 @@ der Rest):
   in der Cloud gespeichert), Fortschrittsleiste mit Marke "heute" ("1,7 h unter Plan") und der Verlauf der letzten 9 Wochen mit
   gestrichelter Soll-Linie.
 - **Verlauf** der letzten 100 Einträge, "+ Eintrag" für manuelle Zeiten, × zum Löschen.
+- **Gleiche Minute, kein Verlust:** Handeinträge bekommen als Start 12:00. Ein zweiter Eintrag derselben Art am selben Tag (oder ein Timer, der in der
+  Minute eines kurzen Fehlstarts läuft) ging früher still verloren, weil Einträge über Art plus Start-Minute erkannt werden. Jetzt rückt der neue weiter
+  (ein Handeintrag hinter das Ende des belegenden Eintrags, ein Timer um ganze Minuten); die Dauer bleibt immer gleich. Stoppen zwei Geräte denselben Timer,
+  zählt er weiter nur einmal (gleicher Start auf die Millisekunde).
 
 **Daten:** Im Dashboard erfasste Einträge, gelöschte Einträge und laufende Timer liegen nur in der Cloud (Feld `timetracker`
 in `sync-data.json`, wie alles andere). Die Historie kommt aus Notion (`data.timeTracker.entries`, vom täglichen Sync).
@@ -1050,6 +1054,8 @@ Start-Minute). Einträge und Löschungen werden bei gleichzeitigen Änderungen a
 **Abgleich mit Notion:** Der Workflow `sync-all.yml` schreibt in seinem ersten Schritt (`scripts/push-timetracker.mjs`) neue
 Dashboard-Einträge als Seiten in die Notion-Datenbank "Zeittracker" und verschiebt gelöschte in den Notion-Papierkorb;
 danach liest der normale Sync alles wieder ein. Das passiert täglich um 08:00 Uhr oder sofort über den Sync-Knopf oben.
+Der Workflow läuft nie zweimal gleichzeitig (`concurrency: sync-all`): zwei gleichzeitige Läufe sahen einen neuen Eintrag in Notion noch nicht und legten ihn beide an (so
+entstand eine Dublette). In der Cloud-Datei bleiben nur Einträge, die noch nicht länger als 14 Tage in Notion stehen (sonst wuchs die Liste ewig).
 Bis dahin steht oben rechts im Tracker "N OFFEN" (Einträge, die noch auf Notion warten). Voraussetzung: Die
 Notion-Integration hat Schreibrechte (siehe "Einrichtung", Notion). Der alte Notion-Tracker (Artifact) funktioniert
 weiter; seine Einträge erscheinen nach dem nächsten Sync im Dashboard.

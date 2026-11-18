@@ -81,11 +81,15 @@
     // Nur Oberflaeche
     let mode = "week", offset = 0, animNext = true, index = null;
     const persist = () => dataStore.setItem(KEY, JSON.stringify(state));
+    // Was schon sicher in Notion steht und aelter als 14 Tage ist, muss nicht doppelt in der Cloud-Datei liegen; Loesch-Markierungen
+    // bleiben 3 Tage (oder solange der Eintrag noch in Notion steht). Beim Speichern UND beim Hochladen angewandt: die Cloud-Liste
+    // wuchs sonst ewig, weil beim Hochladen zuerst der Cloud-Stand (mit allen alten Eintraegen) wieder dazugemischt wird.
+    const keepEntry = (e, cutoff) => !(notionKeys.has(e.k) && e.start < cutoff);
+    const keepRemoved = (k, now) => notionKeys.has(k) || now - Number(k.split("|")[1]) * MIN < 3 * DAY;
     function prune() {
-      const cutoff = Date.now() - 14 * DAY, now = Date.now();
-      // Was schon sicher in Notion steht und aelter als 14 Tage ist, muss nicht doppelt in der Cloud-Datei liegen
-      state.entries = state.entries.filter((e) => !(notionKeys.has(e.k) && e.start < cutoff));
-      state.removed = state.removed.filter((k) => notionKeys.has(k) || now - Number(k.split("|")[1]) * MIN < 3 * DAY);
+      const now = Date.now(), cutoff = now - 14 * DAY;
+      state.entries = state.entries.filter((e) => keepEntry(e, cutoff));
+      state.removed = state.removed.filter((k) => keepRemoved(k, now));
     }
     const save = () => { prune(); state.updatedAt = Date.now(); index = null; persist(); scheduleAutoSync("syncdata"); };
 
@@ -139,10 +143,27 @@
         $("ttSub-" + c).textContent = "Heute: " + fmtHM(t[c]) + (run ? " · Auto-Stopp " + fmtClockTime(state.active[c] + MAX_TIMER) : "");
       });
     }
+    // Ein Eintrag wird ueber Kategorie + Start-Minute erkannt. Ist die Minute schon belegt (zwei Handeintraege am selben Tag starten beide um 12:00, ein Timer
+    // wird in derselben Minute wie ein kurzer Fehlstart gestartet), ging der neue Eintrag bisher still verloren. Jetzt rueckt er weiter: ein Handeintrag hinter das
+    // Ende des belegenden Eintrags, ein Timer um ganze Minuten (damit die Uhrzeit ungefaehr stimmt). Die Dauer bleibt immer gleich.
+    const slotTaken = (k) => state.entries.some((e) => e.k === k) || notionKeys.has(k);
+    function freeSlot(cat, start, end, stack) {
+      let s = start;
+      for (let i = 0; i < 1500; i++) {
+        const k = keyOf(cat, s);
+        if (!slotTaken(k)) break;
+        const hit = stack ? state.entries.find((e) => e.k === k) || notion.find((e) => e.k === k) : null;
+        s = Math.max(s + MIN, hit ? Math.ceil(hit.end / MIN) * MIN : 0);
+      }
+      return [s, s + (end - start)];
+    }
     function commit(cat, start, end) {
+      // Dieselbe Zeitmessung ein zweites Mal (zwei Geraete stoppen denselben Timer): nichts doppelt anlegen
+      const twice = state.entries.some((e) => e.cat === cat && e.start === start);
+      if (!twice) [start, end] = freeSlot(cat, start, end, false);
       const k = keyOf(cat, start);
       state.removed = state.removed.filter((x) => x !== k);
-      if (!state.entries.some((e) => e.k === k) && !notionKeys.has(k)) state.entries.push({ id: newId(), cat, start, end, k });
+      if (!twice) state.entries.push({ id: newId(), cat, start, end, k });
       state.active[cat] = null;
       freshKey = k;
       xpForEntry(k, start, end, $("ttBtn-" + cat));
@@ -282,9 +303,10 @@
       commitManual($("ttMCat").value, s, s + mins * MIN);
     });
     function commitManual(cat, start, end) {
+      [start, end] = freeSlot(cat, start, end, true);
       const k = keyOf(cat, start);
       state.removed = state.removed.filter((x) => x !== k);
-      if (!state.entries.some((e) => e.k === k) && !notionKeys.has(k)) state.entries.push({ id: newId(), cat, start, end, k });
+      state.entries.push({ id: newId(), cat, start, end, k });
       freshKey = k;
       $("ttLogCard").open = true;
       xpForEntry(k, start, end, null);
@@ -395,9 +417,10 @@
         if (changedLocal) scheduleAutoSync("syncdata");
       },
       payload() {
+        const now = Date.now(), cutoff = now - 14 * DAY;
         return {
-          entries: state.entries.map((e) => ({ id: e.id, cat: e.cat, start: e.start, end: e.end })),
-          removed: state.removed.slice(),
+          entries: state.entries.filter((e) => keepEntry(e, cutoff)).map((e) => ({ id: e.id, cat: e.cat, start: e.start, end: e.end })),
+          removed: state.removed.filter((k) => keepRemoved(k, now)),
           active: { youtube: state.active.youtube, bricklink: state.active.bricklink },
           targets: { youtube: state.targets.youtube, bricklink: state.targets.bricklink },
           updatedAt: Math.max(0, state.updatedAt)

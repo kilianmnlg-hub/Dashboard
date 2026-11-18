@@ -18,6 +18,12 @@ on:
     - cron: "0 7 * * *" # 08:00 Uhr Winterzeit (UTC+1)
   workflow_dispatch: {}
 
+# Nie zwei Syncs gleichzeitig (der Sync-Knopf im Dashboard und der Zeitplan koennen zusammenfallen; GitHub startet verspaetete Zeitplaene gern
+# gebuendelt). Sonst fragen beide Notion ab, sehen einen neuen Zeiteintrag noch nicht und legen ihn beide an (so entstand eine Dublette).
+concurrency:
+  group: sync-all
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
