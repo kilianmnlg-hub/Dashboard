@@ -1618,6 +1618,27 @@ svg.links line.lit { stroke: var(--accent); stroke-width: 2; }
 .tt-hb span { font-size: var(--fs-8); color: var(--text-faint); white-space: nowrap; }
 .tt-soll { position: absolute; left: 0; right: 0; border-top: 2px dashed var(--gold); pointer-events: none; } .tt-soll em { position: absolute; right: 0; top: -15px; font-style: normal; font-size: var(--fs-8); color: var(--gold); }
 .tt-hint { margin: 12px 0 0; font-size: var(--fs-12); color: var(--text-muted); }
+
+/* Wochen-Verlauf: Stunden je Kalenderwoche als Linie, gleicher Stil wie die Abonnenten-Kurve (.kc-*) */
+.tt-wk { --kc: var(--accent); }
+.tt-wk[data-c="youtube"] { --kc: var(--tt-yt); } .tt-wk[data-c="bricklink"] { --kc: var(--tt-bl); }
+.tt-wk .kc-h { margin-bottom: 10px; }
+.tt-wk .kc-l { color: var(--text-muted); }
+.tt-wkseg { margin: 14px 0 0; }
+.tt-wkseg .tt-tab { padding: 6px 9px; }
+.tt-wkseg .tt-ls { display: none; }
+@media (max-width: 560px) { .tt-wkseg .tt-lf { display: none; } .tt-wkseg .tt-ls { display: inline; } }
+.tt-wkplot { margin-top: 18px; }
+.tt-wksoll { fill: none; stroke: var(--gold); stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
+.tt-wkrun { stroke-dasharray: 5 4; }
+.tt-wkend { fill: var(--surface); }
+.tt-yl { position: absolute; left: 0; transform: translateY(-105%); font-family: var(--px); font-size: var(--fs-8); line-height: 1; color: var(--text-faint); pointer-events: none; }
+.tt-yl.tt-ys { left: auto; right: 0; color: var(--gold); }
+.tt-wktip { display: grid; gap: 3px; text-align: left; }
+.tt-wktip b { font-weight: 600; color: var(--text-muted); } .tt-wktip span { color: var(--text); }
+.tt-wkm { position: relative; height: 14px; margin-top: 4px; }
+.tt-wkm span { position: absolute; top: 0; transform: translateX(-50%); font-family: var(--px); font-size: var(--fs-8); line-height: 1; color: var(--text-faint); white-space: nowrap; }
+.tt-wkcap { margin-top: 8px; }
 @media (max-width: 760px) { .tt-goal { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .tt-wrow { grid-template-columns: minmax(0, 1fr) auto; } .tt-wrow > .tt-wn { grid-column: 1 / -1; padding-top: 0; } .tt-step button { height: 34px; width: 36px; } }
 

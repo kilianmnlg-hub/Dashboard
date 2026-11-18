@@ -709,7 +709,7 @@ Auf Kilians Wunsch ("minimalisieren, unnötige Erklärungen weg, Dopplungen verm
   Longform-Video"); die kleine Zeile darunter ist weg. Bei den Bricklink-Nachrichten bleiben die Bestell-Knöpfe und "ALLE GELESEN".
 - **Aufgaben + Remote Tasks** sind ein Fenster mit Umschalter (`#taskSeg`, Zahl der offenen Punkte je Reiter); IDs der Listen und der Cloud-Stand sind unverändert.
 - **After Upload** ist zugeklappt (Titel, Balken, Knopf "CHECKLISTE ÖFFNEN · n OFFEN"); der Knopf in den Kanal-Karten öffnet sie aufgeklappt (auch nach "SCHLIESSEN").
-- **Zeittracker:** Wochenziel, Übersicht und Verlauf liegen hinter einer Zeile "DETAILS".
+- **Zeittracker:** Wochenziel, Wochenübersicht, Übersicht und Verlauf liegen hinter einer Zeile "DETAILS".
 - **Nur Handy (unter 720 px):** Zähler-Chips neben den Überschriften sind aus (die Menü-Kacheln zeigen sie weiter; bei den Zielen bleibt der Durchschnitt), die
   Brain-Karte ist 290 px hoch (Gruß, Spruch, Dschungel-Bild, Schilder; der Knopf KARTE klappt die Knoten auf), die Umsatz-Diagramme sind hinter "UMSATZ-TREND",
   im Training bleiben "Als Nächstes" und die Wochenleiste, der Rest (Reiter Verlauf/Plan, Statistik, Kacheln) liegt hinter "PLAN · VERLAUF · STATISTIK",
@@ -1040,6 +1040,12 @@ der Rest):
 - **Wochenziel** (Ausklappfenster): Stunden-Soll pro Bereich (Standard YouTube 20 h, Bricklink 8 h, mit − und + einstellbar und
   in der Cloud gespeichert), Fortschrittsleiste mit Marke "heute" ("1,7 h unter Plan") und der Verlauf der letzten 9 Wochen mit
   gestrichelter Soll-Linie.
+- **Wochenübersicht** (Ausklappfenster in DETAILS, zwischen Wochenziel und Übersicht): die Stunden je Kalenderwoche als Linie mit Fläche, im Stil der
+  Abonnenten-Kurve in den Kanal-Karten (Klassen `kc-*` in `styles.css`, Code in `timetracker.js`). Alle Wochen seit dem ersten Eintrag (höchstens 52), die
+  laufende Woche gestrichelt mit hohlem Endpunkt, gestrichelte Soll-Linie (Gesamt = YouTube + Bricklink, je Bereich dessen Soll), Monatsmarken; darunter Schnitt,
+  beste Woche und wie oft das Soll erreicht wurde. Umschalter Gesamt / YouTube / Bricklink (am Handy GESAMT / YT / BL); beim Darüberfahren oder Antippen steht die
+  Woche mit Stunden und Aufteilung ("KW 34 · 17.8.–23.8. · 42,1 h · YT 38,6 · BL 3,4"), mit den Pfeiltasten geht es durch die Wochen. In der Titelzeile steht
+  "Ø 25,5 H · 18 WOCHEN". Das Fenster erscheint erst, wenn es mindestens zwei Wochen mit Einträgen gibt.
 - **Verlauf** der letzten 100 Einträge, "+ Eintrag" für manuelle Zeiten, × zum Löschen.
 - **Gleiche Minute, kein Verlust:** Handeinträge bekommen als Start 12:00. Ein zweiter Eintrag derselben Art am selben Tag (oder ein Timer, der in der
   Minute eines kurzen Fehlstarts läuft) ging früher still verloren, weil Einträge über Art plus Start-Minute erkannt werden. Jetzt rückt der neue weiter

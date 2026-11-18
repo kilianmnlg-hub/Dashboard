@@ -359,7 +359,103 @@
     });
     $("ttGoalCard").addEventListener("toggle", () => { if ($("ttGoalCard").open) renderGoalFold(); });
 
-    function renderAll() { index = null; renderTimers(); renderStats(); renderChart(); renderEntries(); renderSync(); renderGoalFold(); }
+    /* ---------- Wochen-Verlauf: Stunden je Kalenderwoche als Linie (Stil der Abonnenten-Kurve in den Kanal-Karten) ---------- */
+    const WK = { W: 380, H: 112, X0: 6, X1: 374, Y0: 12, Y1: 96 };
+    let wkCat = "all", wkGrow = true; // die Linie waechst nur beim ersten Zeichnen und beim Wechsel des Bereichs hoch, nicht bei jedem Neuladen des Cloud-Stands
+    const WK_CATS = [["all", "GESAMT", "GESAMT"], ["youtube", "YOUTUBE", "YT"], ["bricklink", "BRICKLINK", "BL"]]; // Name, lang, kurz (schmale Bildschirme)
+    const isoWeek = (d) => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), dn = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - dn); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / DAY + 1) / 7); };
+    const fmtDM = (d) => d.getDate() + "." + (d.getMonth() + 1) + ".";
+    // Alle Wochen ab der ersten mit einem Eintrag (hoechstens 52), die laufende Woche zuletzt
+    function weekSeries() {
+      const list = buildIndex().list;
+      if (!list.length) return [];
+      const first = monday(new Date(list.reduce((m, e) => Math.min(m, e.start), Infinity))), cur = monday(new Date());
+      const n = Math.max(1, Math.min(52, Math.round((cur - first) / (7 * DAY)) + 1));
+      return Array.from({ length: n }, (_, i) => { const o = i - (n - 1), s = weekSums(o), days = weekDays(o); return { d0: days[0], d6: days[6], y: s.youtube / HOUR, b: s.bricklink / HOUR, cur: o === 0 }; });
+    }
+    function growPlot(el) {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) { el.classList.add("grown"); return; }
+      el.classList.remove("grown"); void el.offsetWidth; el.classList.add("grown");
+    }
+    function renderWeekLine() {
+      const host = $("ttWk"), card = $("ttWkCard");
+      if (!host || !card) return;
+      const weeks = weekSeries();
+      card.hidden = weeks.length < 2; // eine einzige Woche ergibt keine Linie
+      if (card.hidden) return;
+      host.dataset.c = wkCat;
+      const val = (w) => (wkCat === "youtube" ? w.y : wkCat === "bricklink" ? w.b : w.y + w.b);
+      const vals = weeks.map(val), soll = wkCat === "all" ? state.targets.youtube + state.targets.bricklink : state.targets[wkCat];
+      const done = weeks.filter((w) => !w.cur), dv = done.map(val), avg = dv.length ? dv.reduce((a, v) => a + v, 0) / dv.length : 0;
+      const need = Math.max(soll, ...vals) * 1.06, hi = [10, 15, 20, 25, 30, 40, 50, 60, 80, 100].find((s) => s >= need) || Math.ceil(need / 20) * 20;
+      const { W, H, X0, X1, Y0, Y1 } = WK, n = weeks.length, r1 = (v) => Math.round(v * 10) / 10;
+      const x = (i) => X0 + (i * (X1 - X0)) / (n - 1), y = (v) => Y1 - (Math.min(v, hi) / hi) * (Y1 - Y0);
+      const xy = weeks.map((w, i) => [x(i), y(val(w))]), pts = xy.map(([a, b]) => r1(a) + "," + r1(b));
+      const [ex, ey] = xy[n - 1], pct = (yy) => ((yy / H) * 100).toFixed(1) + "%";
+      const best = done.reduce((m, w) => (val(w) > val(m) ? w : m), done[0] || weeks[0]), hit = soll > 0 ? dv.filter((v) => v >= soll).length : 0;
+      const months = weeks.map((w, i) => (i > 0 && w.d0.getDate() <= 7 ? [x(i), MONTH_LABELS[w.d0.getMonth()].toUpperCase()] : null)).filter(Boolean);
+      const label = `Stunden je Woche, ${fmtDM(weeks[0].d0)} bis ${fmtDM(weeks[n - 1].d0)}: im Schnitt ${fmtH(avg)} Stunden. Mit den Pfeiltasten durch die Wochen gehen.`;
+      $("ttWkSum").textContent = `Ø ${fmtH(avg)} H · ${n} WOCHEN`;
+      host.innerHTML = `
+        <div class="kc-h"><span class="kc-l tt-px">STUNDEN JE WOCHE · ${n} WOCHEN</span><span class="kc-d flat">Ø ${fmtH(avg)} H</span></div>
+        <div class="kc-plot tt-wkplot" tabindex="0" role="group" aria-label="${esc(label)}">
+          <svg viewBox="0 0 ${W} ${H}" aria-hidden="true" focusable="false">
+            <path class="kc-grid" d="M${X0} ${Y0}H${X1}M${X0} ${r1((Y0 + Y1) / 2)}H${X1}M${X0} ${Y1}H${X1}"/>
+            <polygon class="kc-area" points="${X0},${Y1} ${pts.join(" ")} ${X1},${Y1}"/>
+            ${soll > 0 ? `<path class="tt-wksoll" d="M${X0} ${r1(y(soll))}H${X1}"/>` : ""}
+            ${n > 2 ? `<polyline class="kc-line" points="${pts.slice(0, n - 1).join(" ")}"/>` : ""}
+            <polyline class="kc-line tt-wkrun" points="${pts.slice(n - 2).join(" ")}"/>
+            <path class="kc-guide" d=""/>
+            <rect class="kc-dot" width="8" height="8" x="-20" y="-20"/>
+            <rect class="kc-end tt-wkend" width="10" height="10" x="${r1(ex - 5)}" y="${r1(ey - 5)}"/>
+          </svg>
+          <span class="tt-yl" style="top:${pct(Y0)}">${fmtH(hi)} H</span><span class="tt-yl" style="top:${pct((Y0 + Y1) / 2)}">${fmtH(hi / 2)}</span><span class="tt-yl" style="top:${pct(Y1)}">0</span>
+          ${soll > 0 ? `<span class="tt-yl tt-ys" style="top:${pct(y(soll))}">SOLL ${fmtH(soll)}</span>` : ""}
+          <span class="kc-tip tt-wktip" hidden></span>
+        </div>
+        <div class="tt-wkm" aria-hidden="true">${months.map(([mx, t]) => `<span style="left:${((mx / W) * 100).toFixed(1)}%">${t}</span>`).join("")}</div>
+        <div class="kc-f"><span>${fmtDM(weeks[0].d0)} · ${fmtH(vals[0])} h</span><span>${fmtDM(weeks[n - 1].d0)} · ${fmtH(vals[n - 1])} h (läuft)</span></div>
+        <div class="tt-seg tt-wkseg" role="tablist">${WK_CATS.map(([c, l, s]) => `<button class="tt-tab tt-px" type="button" data-wk="${c}" aria-selected="${c === wkCat}" aria-label="${LABEL[c] || "Gesamt"}"><span class="tt-lf">${l}</span><span class="tt-ls">${s}</span></button>`).join("")}</div>
+        <p class="tt-hint tt-wkcap">${dv.length ? `Ø ${fmtH(avg)} h pro Woche · beste Woche ${fmtH(val(best))} h (ab ${fmtDM(best.d0)})${soll > 0 ? ` · Soll erreicht: ${hit} von ${dv.length} Wochen` : ""}` : "Noch keine abgeschlossene Woche."}</p>
+        <span class="kc-live" role="status" aria-live="polite"></span>`;
+      const plot = host.querySelector(".kc-plot"), svg = plot.querySelector("svg"), tip = plot.querySelector(".kc-tip"), guide = plot.querySelector(".kc-guide"), dot = plot.querySelector(".kc-dot"), live = host.querySelector(".kc-live");
+      let cur = -1, hideT = 0;
+      const show = (i, announce) => {
+        clearTimeout(hideT);
+        cur = Math.max(0, Math.min(n - 1, i));
+        const [px, py] = xy[cur], w = weeks[cur], total = w.y + w.b;
+        guide.setAttribute("d", `M${px} ${Y0}V${Y1}`);
+        dot.setAttribute("x", px - 4); dot.setAttribute("y", py - 4);
+        plot.classList.add("kc-on");
+        const head = `KW ${isoWeek(w.d0)} · ${fmtDM(w.d0)}–${fmtDM(w.d6)}`, body = `${fmtH(val(w))} h` + (wkCat === "all" ? ` · YT ${fmtH(w.y)} · BL ${fmtH(w.b)}` : "") + (w.cur ? " · läuft" : "");
+        tip.hidden = false;
+        tip.innerHTML = `<b>${head}</b><span>${body}</span>`;
+        const p = (px / W) * 100;
+        tip.style.left = p + "%";
+        tip.dataset.pos = p < 24 ? "l" : p > 76 ? "r" : "m";
+        if (announce && live) live.textContent = head + ", " + body;
+      };
+      const hide = () => { cur = -1; plot.classList.remove("kc-on"); tip.hidden = true; dot.setAttribute("x", -20); };
+      const idxAt = (clientX) => { const r = svg.getBoundingClientRect(); return r.width ? Math.round(((((clientX - r.left) / r.width) * W - X0) / (X1 - X0)) * (n - 1)) : 0; };
+      plot.addEventListener("pointermove", (e) => show(idxAt(e.clientX)));
+      plot.addEventListener("pointerdown", (e) => show(idxAt(e.clientX)));
+      plot.addEventListener("pointerleave", (e) => { if (e.pointerType === "mouse") hide(); else hideT = setTimeout(hide, 2200); });
+      plot.addEventListener("blur", hide);
+      plot.addEventListener("keydown", (e) => {
+        const k = e.key;
+        if (k === "ArrowLeft" || k === "ArrowDown") { e.preventDefault(); show(cur < 0 ? n - 1 : cur - 1, true); }
+        else if (k === "ArrowRight" || k === "ArrowUp") { e.preventDefault(); show(cur < 0 ? n - 1 : cur + 1, true); }
+        else if (k === "Home") { e.preventDefault(); show(0, true); }
+        else if (k === "End") { e.preventDefault(); show(n - 1, true); }
+        else if (k === "Escape") hide();
+      });
+      if (wkGrow) { wkGrow = false; growPlot(plot); } else plot.classList.add("grown");
+    }
+    $("ttWk").addEventListener("click", (e) => { const b = e.target.closest("[data-wk]"); if (b && b.dataset.wk !== wkCat) { wkCat = b.dataset.wk; wkGrow = true; renderWeekLine(); } });
+    // Beim Aufklappen waechst die Linie neu hoch (im zugeklappten Fenster waere die Bewegung unsichtbar)
+    $("ttWkCard").addEventListener("toggle", () => { if ($("ttWkCard").open) { wkGrow = true; renderWeekLine(); } });
+
+    function renderAll() { index = null; renderTimers(); renderStats(); renderChart(); renderEntries(); renderSync(); renderGoalFold(); renderWeekLine(); }
     renderAll();
     async function loadFreshNotion() {
       try {
