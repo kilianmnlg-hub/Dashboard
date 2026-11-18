@@ -214,13 +214,16 @@
       const today = new Date();
       $("ttYear").innerHTML = Array.from({ length: 12 }, (_, m) => {
         const first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7, n = new Date(y, m + 1, 0).getDate();
+        let monthMs = 0; // Gesamtarbeitszeit des Monats, steht kurz hinter dem Monatsnamen
         const cells = Array.from({ length: lead }, () => `<span class="tt-yd tt-e"></span>`).concat(Array.from({ length: n }, (_, i) => {
           const d = new Date(y, m, i + 1), t = dayTotals(d), tot = t.youtube + t.bricklink, td = sameDay(d, today) ? " tt-today" : "";
+          monthMs += tot;
           if (!tot) return `<button class="tt-yd${td}" data-d="${dateKey(d)}" aria-label="${d.toLocaleDateString("de-DE")}, nichts erfasst" type="button"></button>`;
           const p = Math.round((t.youtube / tot) * 100), a = 0.25 + Math.min(1, tot / (6 * 3600000)) * 0.75;
           return `<button class="tt-yd${td}" data-d="${dateKey(d)}" style="background:linear-gradient(to right,var(--tt-yt) ${p}%,var(--tt-bl) ${p}%);opacity:${a.toFixed(2)}" title="${d.toLocaleDateString("de-DE")}: ${fmtHM(tot)}" aria-label="${d.toLocaleDateString("de-DE")}, ${fmtHM(tot)}" type="button"></button>`;
         }));
-        return `<div><div class="tt-ym tt-px">${MONTH_LABELS[m].toUpperCase()}</div><div class="tt-yg">${cells.join("")}</div></div>`;
+        const hours = monthMs ? `<span class="tt-ymt" title="${MONTH_LABELS[m]} ${y}: ${fmtHM(monthMs)}">${String(Math.round(monthMs / 360000) / 10).replace(".", ",")} H</span>` : "";
+        return `<div><div class="tt-ym tt-px">${MONTH_LABELS[m].toUpperCase()}${hours}</div><div class="tt-yg">${cells.join("")}</div></div>`;
       }).join("");
       $("ttRange").textContent = String(y);
     }

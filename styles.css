@@ -1506,6 +1506,7 @@ svg.links line.lit { stroke: var(--accent); stroke-width: 2; }
 .tt-legend span { display: inline-flex; align-items: center; gap: 8px; } .tt-legend i { width: 10px; height: 10px; display: block; }
 .tt-year { display: none; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 16px; }
 .tt-ym { font-size: var(--fs-8); color: var(--text-muted); margin-bottom: 6px; }
+.tt-ymt { margin-left: 8px; color: var(--text); }
 .tt-yg { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
 .tt-yd { aspect-ratio: 1; background: var(--surface-3); cursor: pointer; border: 0; padding: 0; display: block; }
 .tt-yd:hover { outline: 2px solid var(--text); } .tt-yd.tt-e { visibility: hidden; } .tt-yd.tt-today { outline: 2px solid var(--text); outline-offset: 1px; }

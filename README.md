@@ -1035,7 +1035,9 @@ der Rest):
 - **Kacheln** Heute / Diese Woche / Dieser Monat mit Anteil YouTube vs. Bricklink.
 - **Ausklappfenster:** "Übersicht" (Diagramm) und "Verlauf" sind standardmäßig zugeklappt und sparen Platz. In der Titelzeile steht
   eine Kurzinfo (z.B. "WOCHE 5.10. – 11.10. · 8h 11m", "224 EINTRÄGE · ZULETZT 06.10.").
-- **Diagramm** Woche, Monat und Jahr (Heatmap) mit Vor-/Zurück-Pfeilen; Tipp auf einen Tag öffnet das Tages-Detail.
+- **Diagramm** Woche, Monat und Jahr (Heatmap) mit Vor-/Zurück-Pfeilen; Tipp auf einen Tag öffnet das Tages-Detail. In der Jahresansicht steht kurz hinter
+  jedem Monatsnamen die Gesamtarbeitszeit des Monats (z. B. "NOV 90,4 H", Stunden mit einer Nachkommastelle; beim Darüberfahren Stunden und Minuten;
+  Monate ohne Einträge zeigen nur den Namen).
   Auf dem Handy wechselt Wischen zwischen Woche, Monat und Jahr.
 - **Wochenziel** (Ausklappfenster): Stunden-Soll pro Bereich (Standard YouTube 20 h, Bricklink 8 h, mit − und + einstellbar und
   in der Cloud gespeichert), Fortschrittsleiste mit Marke "heute" ("1,7 h unter Plan") und der Verlauf der letzten 9 Wochen mit
