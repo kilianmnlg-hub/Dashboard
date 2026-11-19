@@ -1,7 +1,8 @@
 /* Upload-Kalender: beide Kanaele in einem Plan. Videoideen (aus den Ideen-Listen der Kanal-Karten) werden per Ziehen oder Antippen auf einen Tag gelegt,
    dazu Community-Posts (Rhythmus aus community.js), Kooperationen, Fristen sowie LEGO- und MTG-Termine. Gezeigt werden Monat und Woche; geplante Eintraege,
    Termine und der Stand "geplant" liegen wie alles andere in der Cloud (Feld "uploadPlan" in sync-data.json). Bereits hochgeladene Videos kommen aus den
-   YouTube-Daten (business.*.recentUploads), Ziele und Rhythmus aus data.js, gepostete Community-Posts aus community.js. Nichts davon wird hier doppelt gespeichert.
+   YouTube-Daten (business.*.recentUploads und die dauerhafte Liste business.*.uploadHistory), Ziele und Rhythmus aus data.js, gepostete Community-Posts aus community.js.
+   Nichts davon wird hier doppelt gespeichert.
    Zeitstempel-Prinzip wie bei coop.js: je Eintrag gewinnt der neuere Zeitstempel "t", Loeschen = Grabstein (del), beim Zusammenfuehren zweier Geraete geht nichts verloren.
    script.js uebergibt die Anbindungen (deps) und ruft start() nach dem Laden der Cloud sowie applyRemote()/payload() auf. */
 (function () {
@@ -122,21 +123,30 @@
     const ideasNow = () => { try { return (deps.getIdeas && deps.getIdeas()) || {}; } catch (e) { return {}; } };
     const comm = () => deps.community || null;
 
+    /* Alle veroeffentlichten Longform-Videos: die letzten fuenf (recentUploads, mit dem frischesten Titel) plus die dauerhafte Liste uploadHistory,
+       die der Sync fuehrt (siehe scripts/lib/uploads.mjs). Ein Video steht so von allein im Kalender und bleibt dort, auch wenn es laengst nicht
+       mehr unter den letzten fuenf ist. Dasselbe Video aus beiden Listen zaehlt einmal. */
     function uploads() {
-      const out = [], biz = data().business || {};
+      const out = [], seen = new Set(), biz = data().business || {};
       Object.keys(CH).forEach((ch) => {
-        ((biz[CH[ch].key] || {}).recentUploads || []).forEach((u) => {
-          const ts = Date.parse(u && u.at);
-          if (!isFinite(ts)) return;
-          const d = new Date(ts);
-          out.push({ ch, id: String((u && u.id) || ""), title: String((u && u.title) || ""), day: keyOf(d), time: pad(d.getHours()) + ":" + pad(d.getMinutes()) });
+        const b = biz[CH[ch].key] || {};
+        [b.recentUploads, b.uploadHistory].forEach((list) => {
+          (Array.isArray(list) ? list : []).forEach((u) => {
+            const ts = Date.parse(u && u.at);
+            if (!isFinite(ts)) return;
+            const id = String((u && u.id) || "");
+            if (id) { if (seen.has(ch + ":" + id)) return; seen.add(ch + ":" + id); }
+            const d = new Date(ts);
+            out.push({ ch, id, title: String((u && u.title) || ""), day: keyOf(d), time: pad(d.getHours()) + ":" + pad(d.getMinutes()) });
+          });
         });
       });
       return out;
     }
-    /* Standard-Uhrzeit je Kanal: Mittelwert der letzten Uploads, auf 15 Minuten gerundet (sonst feste Zeit) */
+    /* Standard-Uhrzeit je Kanal: Mittelwert der letzten fuenf Uploads, auf 15 Minuten gerundet (sonst feste Zeit) */
     function defaultTime(ch, ups) {
-      const mins = ups.filter((u) => u.ch === ch).map((u) => +u.time.slice(0, 2) * 60 + +u.time.slice(3)).sort((a, b) => a - b);
+      const last5 = ups.filter((u) => u.ch === ch).sort((a, b) => (a.day + a.time < b.day + b.time ? 1 : a.day + a.time > b.day + b.time ? -1 : 0)).slice(0, 5);
+      const mins = last5.map((u) => +u.time.slice(0, 2) * 60 + +u.time.slice(3)).sort((a, b) => a - b);
       if (!mins.length) return CH[ch].time;
       const m = Math.round(mins[Math.floor(mins.length / 2)] / 15) * 15;
       return pad(Math.floor(m / 60) % 24) + ":" + pad(m % 60);
