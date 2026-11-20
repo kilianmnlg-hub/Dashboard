@@ -1544,9 +1544,14 @@
   // ---------- Ziel-Realitaets-Check ----------
   // Zeigt pro Ziel, welches Tempo bis zur Frist noetig ist, wie schnell du gerade bist und wo du bei
   // gleichbleibendem Tempo landest. Tempo: Follower/Abos aus metricsHistory (letzte 28 Tage, mind. 7 Tage Verlauf),
-  // Longform-Videos aus dem Upload-Rhythmus des Kanals. Ohne Messwerte gibt es nur die Zeile "noetig".
+  // Longform-Videos aus dem Upload-Rhythmus des Kanals, Bricklink-Teile aus den Teilen je Woche des Lagers (Ø der letzten vier vollen Wochen,
+  // dieselbe Rechnung wie das Wochenziel im Shop-Radar, ohne Verkaeufe). Ohne Messwerte gibt es nur die Zeile "noetig".
   const PACE_WINDOW_DAYS = 28;
   const BIZ_BY_VIDEO_GOAL = { "bricks-longform-2026": "bricksOnTheFloor", "brainwalkers-longform-2026": "brainwalkers" };
+  // Ziele, deren Tempo pro Woche angezeigt wird (wie im Shop-Radar und bei den Videos), alle anderen pro Tag
+  const WEEKLY_PACE_GOALS = new Set(["bricklink-parts"]);
+  // Bricklink-Teile: die Rechnung des Wochenziels aus dem Shop-Radar (Schnitt, Wochenziel), damit Karte und Radar dieselben Zahlen zeigen; sonst null
+  const shopPlanFor = (goal) => (goal.id === "bricklink-parts" ? window.ShopRadarCalc?.partsPlan?.(data.bricklinkInventory, goal, new Date()) || null : null);
   function goalPacePerDay(goal) {
     const key = HISTORY_KEY_BY_GOAL[goal.id];
     const hist = key ? data.metricsHistory?.[key] : null;
@@ -1559,6 +1564,8 @@
       const days = (new Date(latest.date + "T00:00:00") - new Date(past.date + "T00:00:00")) / 86400000;
       if (days >= 7) return (latest.value - past.value) / days;
     }
+    const plan = shopPlanFor(goal);
+    if (plan && plan.avg4 !== null) return plan.avg4 / 7;
     const biz = data.business?.[BIZ_BY_VIDEO_GOAL[goal.id]];
     if (biz?.uploadRhythmDays) return 1 / biz.uploadRhythmDays;
     return null;
@@ -1566,18 +1573,21 @@
   function goalRealityHtml(goal, remaining) {
     if (goal.current >= goal.target) return `<div class="goal-reality"><span class="gr-tag good">ERREICHT</span></div>`;
     if (remaining <= 0) return `<div class="goal-reality"><span class="gr-tag bad">FRIST ABGELAUFEN</span></div>`;
-    const weekly = goal.unit === "Videos";
+    const weekly = goal.unit === "Videos" || WEEKLY_PACE_GOALS.has(goal.id);
     const k = weekly ? 7 : 1, unit = weekly ? "/Woche" : "/Tag";
     const fmtRate = (v) => (v < 20 ? fmtDE.format(Math.round(v * 10) / 10) : fmtDE.format(Math.round(v)));
-    const need = (goal.target - goal.current) / remaining;
+    // Bricklink-Teile: nötig ist das Wochenziel aus dem Shop-Radar, sonst der Rest geteilt durch die Zeit bis zur Frist
+    const plan = shopPlanFor(goal);
+    const need = plan && plan.weekTarget > 0 ? plan.weekTarget / 7 : (goal.target - goal.current) / remaining;
     const pace = goalPacePerDay(goal);
-    const needRow = `<div class="gr-row"><span class="gr-l">NÖTIG</span><div class="gr-blk gr-need">${"<i></i>".repeat(20)}</div><b>${fmtRate(need * k)}${unit}</b></div>`;
+    const needRow = `<div class="gr-row"><span class="gr-l"${plan && plan.weekTarget > 0 ? ' title="Wochenziel aus dem Jahresziel, wie im Shop-Radar"' : ""}>NÖTIG</span><div class="gr-blk gr-need">${"<i></i>".repeat(20)}</div><b>${fmtRate(need * k)}${unit}</b></div>`;
     if (pace === null) return `<div class="goal-reality">${needRow}<p class="gr-note">Tempo noch nicht messbar.</p></div>`;
     const proj = goal.current + Math.max(0, pace) * remaining, ratio = proj / goal.target;
     const [label, cls] = ratio >= 0.97 ? ["AUF KURS", "good"] : ratio >= 0.9 ? ["KNAPP DAHINTER", "warn"] : ratio >= 0.7 ? ["DAHINTER", "warn"] : ["ZU WEIT WEG", "bad"];
     const lit = Math.max(pace > 0 ? 1 : 0, Math.min(20, Math.round((Math.max(0, pace) / need) * 20)));
+    const paceTip = goal.id === "bricklink-parts" ? ' title="Ø der letzten 4 vollen Wochen neu eingestellte Teile, wie im Shop-Radar (Verkäufe nicht eingerechnet)"' : "";
     return `<div class="goal-reality">${needRow}
-      <div class="gr-row gr-${cls}"><span class="gr-l">AKTUELL</span><div class="gr-blk">${Array.from({ length: 20 }, (_, i) => `<i class="${i < lit ? "on" : ""}"></i>`).join("")}</div><b>${fmtRate(Math.max(0, pace) * k)}${unit}</b></div>
+      <div class="gr-row gr-${cls}"><span class="gr-l"${paceTip}>AKTUELL</span><div class="gr-blk">${Array.from({ length: 20 }, (_, i) => `<i class="${i < lit ? "on" : ""}"></i>`).join("")}</div><b>${fmtRate(Math.max(0, pace) * k)}${unit}</b></div>
       <div class="gr-row gr-${cls}"><span class="gr-l" title="Prognose zum ${fmtDate(goal.due)}">PROGNOSE</span><span class="gr-tag ${cls}">${label}</span><b title="Stand zum ${fmtDate(goal.due)}">${fmtDE.format(Math.round(proj))}</b></div></div>`;
   }
 

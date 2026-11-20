@@ -5,7 +5,8 @@
    siehe scripts/fetchers/bricklink.mjs und scripts/lib/inventory.mjs, sales.mjs, pricecheck.mjs) und aus dem Zeittracker. Von Kaeufern wird nichts gespeichert; die
    drei Artikellisten enthalten nur Artikeldaten. Bilder: die kleinen Vorschaubilder von Bricklink (img.bricklink.com), direkt eingebunden.
    Gespeichert wird hier nichts; auf/zu, die Erklaerung und die Wahl Teile/Minifiguren beim Rabattvorschlag merkt sich nur dieser Browser, die Auswahl der Monate und der anderen Reiter gilt bis zum Neuladen.
-   compute() ist eine reine Funktion (ohne Seite), damit sie sich separat pruefen laesst: window.ShopRadarCalc.compute. */
+   compute() ist eine reine Funktion (ohne Seite), damit sie sich separat pruefen laesst: window.ShopRadarCalc.compute. window.ShopRadarCalc.partsPlan liefert die Rechnung
+   hinter dem Wochenziel (Schnitt der letzten vier vollen Wochen, Prognose) auch der Zielkarte "Bricklink-Teile" in script.js. */
 (function () {
   const DAY = 86400000, WEEKS = 9, XP_WEEK = 15;
   const MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
@@ -475,7 +476,14 @@
     return model.hints.length ? model.hints[0].title : "";
   }
 
-  window.ShopRadarCalc = { compute };
+  // Die Rechnung hinter dem Wochenziel (Ø der letzten vier vollen Wochen, Prognose zum Stichtag) fuer andere Stellen: die Zielkarte "Bricklink-Teile" in script.js
+  // zeigt so dieselben Zahlen wie das Radar. Gibt null, solange die Teile je Woche noch nicht da sind oder das Ziel fehlt.
+  function partsPlan(inventory, yearGoal, now) {
+    const d = now || new Date(), inv = inventory && isNum(inventory.lots) ? inventory : null;
+    return buildPlan(inv, yearGoal, d, mondayKey(d));
+  }
+
+  window.ShopRadarCalc = { compute, partsPlan };
 
   window.createShopRadar = function (deps) {
     const { data } = deps;

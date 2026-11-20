@@ -784,7 +784,10 @@ Neue Regeln nehmen immer diese Variablen und nie einen eigenen Pixelwert:
 **Reality-Check:** Jede Zielkarte zeigt unter dem Ring das nötige Tempo bis zur Frist (z.B. "244/Tag"), dein aktuelles Tempo, die
 Prognose zur Frist und einen Status: AUF KURS (ab 97 % des Ziels), KNAPP DAHINTER (ab 90 %), DAHINTER (ab 70 %) oder ZU WEIT WEG.
 Das Tempo kommt bei Abos und Followern aus `metricsHistory` (letzte 28 Tage, mindestens 7 Tage Verlauf), bei den Longform-Videos
-aus dem Upload-Rhythmus des Kanals. Ohne Messwerte (z.B. Umsatz, Bricklink-Teile) steht nur die Zeile "nötig".
+aus dem Upload-Rhythmus des Kanals und bei den **Bricklink-Teilen** aus den Teilen je Woche im Lager: Ø der letzten 4 vollen Wochen, in denen Teile neu
+eingestellt wurden (Verkäufe nicht eingerechnet), dieselbe Rechnung wie das Wochenziel im Shop-Radar (`ShopRadarCalc.partsPlan` in `shopradar.js`).
+Bei diesem Ziel zeigt die Karte alles pro Woche und "nötig" ist das Wochenziel des Radars, Karte und Radar nennen also dieselben Zahlen; das Tempo erscheint, sobald zwei
+volle Wochen Lager-Daten da sind. Ohne Messwerte (z.B. Umsatz/Monat) steht nur die Zeile "nötig".
 
 **Achtung-Banner:** Ganz oben, wie der Versand-Alarm, erscheinen weitere wegklickbare Hinweise: überfälliger Longform-Upload je Kanal
 (rot ab 1,5-fachem Rhythmus, sonst gelb; Shorts zählen nicht) und ungelesene Bricklink-Nachrichten (live aus `data.bricklinkMessages` abzüglich deines Abhakens, siehe "Ungelesene Nachrichten"; bei 0 erscheint kein Hinweis).
