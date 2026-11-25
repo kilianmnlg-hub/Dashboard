@@ -2736,9 +2736,53 @@
     }
   };
 
+  // Preis-Check sofort kontrollieren (Shop-Radar, Knopf JETZT PRUEFEN): startet den Workflow check-prices.yml (der sonst alle 2 Stunden von selbst laeuft), wartet auf sein Ende (er teilt sich
+  // die Warteschlange mit dem Sync, kann also warten) und liest danach data.bricklinkPrices frisch aus dem privaten Repo (data.js).
+  const CHECK_WORKFLOW = "check-prices.yml";
+  async function loadFreshPrices() {
+    const { owner, repo } = dataRepoOf();
+    const token = localStorage.getItem("dashboard-gh-token");
+    if (!owner || !repo || !token) throw new Error("GitHub-Token fehlt");
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/data.js`, { headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github.raw+json" }, cache: "no-store" });
+    if (!res.ok) throw new Error(`Die Daten konnten nicht neu geladen werden (Status ${res.status})`);
+    const box = {};
+    new Function("window", "module", await res.text())(box); // data.js legt sich in window.DASHBOARD_DATA ab
+    const prices = box.DASHBOARD_DATA && box.DASHBOARD_DATA.bricklinkPrices;
+    if (!prices || typeof prices !== "object") throw new Error("Der Preis-Check fehlt in den geladenen Daten");
+    return prices;
+  }
+  async function runPriceCheck() {
+    const cfg = getGithubConfig();
+    if (!cfg) throw new Error("GitHub-Token fehlt");
+    const tag = `pc-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    const hdr = { Authorization: `Bearer ${cfg.token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" };
+    const disp = await serialWrite(async () => {
+      const r = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${CHECK_WORKFLOW}/dispatches`, { method: "POST", headers: hdr, body: JSON.stringify({ ref: "main", inputs: { tag } }) });
+      markWrite();
+      return r;
+    });
+    if (disp.status === 401 || disp.status === 403) throw new Error((await isGithubRateLimit(disp)) ? RATE_LIMIT_MSG : "Der GitHub-Token darf keine Workflows starten");
+    if (disp.status !== 204) throw new Error(disp.status === 404 || disp.status === 422 ? "Der Workflow für die Prüfung wurde bei GitHub nicht gefunden" : `GitHub antwortete mit Status ${disp.status}`);
+    // Auf das Ende des Laufs warten (erst nach etwa 10 Sekunden nachsehen, danach alle 5; bis zu 5 Minuten, weil ein laufender Sync den Lauf aufhaelt)
+    const t0 = Date.now();
+    let run = null;
+    for (let i = 0; Date.now() - t0 < 300000; i++) {
+      await waitMs(i === 0 ? 10000 : 5000);
+      try {
+        const rr = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${CHECK_WORKFLOW}/runs?per_page=10`, { headers: hdr, cache: "no-store" });
+        if (rr.ok) run = ((await rr.json()).workflow_runs || []).find((x) => String(x.display_title || "").includes(tag)) || run;
+      } catch (e) { /* kurzer Netzfehler: weiter versuchen */ }
+      if (run && run.status === "completed") break;
+    }
+    if (!run || run.status !== "completed") throw new Error("Die Prüfung läuft noch (vielleicht ist gerade ein Sync dran). Bitte später die Seite neu laden.");
+    if (run.conclusion !== "success") throw new Error(run.conclusion === "cancelled" ? "Der Lauf wurde abgebrochen, weil ein neuerer ihn ersetzt hat. Bitte noch einmal versuchen." : "Der Lauf bei GitHub ist fehlgeschlagen (Tab Actions, „Check prices“).");
+    return loadFreshPrices();
+  }
+  const priceCheckBoard = { run: runPriceCheck };
+
   // Shop-Radar (shopradar.js): Ausklappmenue in der Karte "Bricklink Store". Zahlen aus data.bricklinkRevenue, data.bricklinkInventory und data.bricklinkSales (Sync),
   // das Jahresziel "bricklink-parts" aus data.goals, Stunden aus dem Zeittracker. Es speichert nichts (auch nicht in der Cloud); nur XP fuer das Wochenziel. Einzige Ausnahme: Preise bei Bricklink aendern (priceEditBoard oben).
-  const shopRadar = window.createShopRadar ? window.createShopRadar({ data, hours: timeTrackerBoard, getXp: () => xpBoard, askForm, toast, priceEdit: priceEditBoard }) : null;
+  const shopRadar = window.createShopRadar ? window.createShopRadar({ data, hours: timeTrackerBoard, getXp: () => xpBoard, askForm, toast, priceEdit: priceEditBoard, priceCheck: priceCheckBoard }) : null;
   if (shopRadar) document.querySelectorAll("[data-sr]").forEach((el) => shopRadar.mount(el));
 
   // Handy-Notiz (inbox.js): Notizen von jedem Geraet in eine Cloud-Inbox; das lokale Skript sync-brainmap.ps1 uebernimmt

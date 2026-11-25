@@ -6,7 +6,8 @@
    drei Artikellisten enthalten nur Artikeldaten. Bilder: die kleinen Vorschaubilder von Bricklink (img.bricklink.com), direkt eingebunden.
    Gespeichert wird hier nichts; auf/zu, die Erklaerung und die Wahl Teile/Minifiguren beim Rabattvorschlag merkt sich nur dieser Browser, die Auswahl der Monate und der anderen Reiter gilt bis zum Neuladen.
    Einzige Ausnahme: der Knopf PREIS ANPASSEN im Preis-Check aendert ueber deps.priceEdit (script.js) den Preis eines Lots bei Bricklink und kann das mit RUECKGAENGIG zuruecknehmen
-   (Auftrag im privaten Repo, Workflow bricklink-price.yml, Pruefungen in scripts/lib/priceedit.mjs).
+   (Auftrag im privaten Repo, Workflow bricklink-price.yml, Pruefungen in scripts/lib/priceedit.mjs). Ausserdem startet JETZT PRUEFEN die regelmaessige Kontrolle des Preis-Checks sofort
+   (deps.priceCheck, Workflow check-prices.yml) und uebernimmt den frischen Stand in data.bricklinkPrices.
    compute() ist eine reine Funktion (ohne Seite), damit sie sich separat pruefen laesst: window.ShopRadarCalc.compute. window.ShopRadarCalc.partsPlan liefert die Rechnung
    hinter dem Wochenziel (Schnitt der letzten vier vollen Wochen, Prognose) auch der Zielkarte "Bricklink-Teile" in script.js. */
 (function () {
@@ -248,11 +249,16 @@
       // groesste Abweichung in Prozent zuerst (bei gleichem Prozentsatz der groessere Unterschied fuer das Lot)
       const byPercent = (a, b) => Math.abs(b.dev) - Math.abs(a.dev) || Math.abs(b.diff) - Math.abs(a.diff);
       const P = m.prices;
+      // Erledigt: Eintraege der regelmaessigen Kontrolle (lib/pricecheck.mjs refreshRows); neu = in den letzten drei Tagen zum ersten Mal aufgefallen
+      const okDone = (d) => d && typeof d.no === "string" && isNum(d.from) && (d.why === "gone" || isNum(d.to));
+      const newSince = addDaysKey(keyOf(m.now), -2);
       prices = {
         over: (Array.isArray(P.over) ? P.over : []).filter(ok).sort(byPercent), under: (Array.isArray(P.under) ? P.under : []).filter(ok).sort(byPercent),
         eligible: Number(P.eligible) || 0, cycleDays: Math.max(1, Number(P.cycleDays) || 1), checked: Number(P.checked) || 0,
-        minDev: Number(P.minDev) || 30, minSales: Number(P.minSales) || 3, minValue: Number(P.minValue) || 1, region: String(P.region || ""), day: String(P.day || "")
+        minDev: Number(P.minDev) || 30, minSales: Number(P.minSales) || 3, minValue: Number(P.minValue) || 1, region: String(P.region || ""), day: String(P.day || ""),
+        done: (Array.isArray(P.done) ? P.done : []).filter(okDone), liveAt: String(P.liveAt || ""), checkedAt: String(P.checkedAt || ""), newSince, newCount: 0
       };
+      prices.newCount = prices.over.concat(prices.under).filter((r) => typeof r.since === "string" && r.since >= newSince).length;
     }
 
     /* Hinweise: feste Regeln, die schlimmsten zuerst */
@@ -301,7 +307,7 @@
       hints.push({ level: "info", title: "Lager noch nicht geladen", text: "Die Lager-Zahlen kommen mit dem nächsten Sync." });
     }
     if (prices && (prices.over.length || prices.under.length)) {
-      hints.push({ level: "info", title: `Preis-Check: ${prices.over.length} Lots deutlich über, ${prices.under.length} deutlich unter dem 6-Monats-Schnitt`, text: "Die Listen stehen weiter unten." });
+      hints.push({ level: "info", title: `Preis-Check: ${prices.over.length} Lots deutlich über, ${prices.under.length} deutlich unter dem 6-Monats-Schnitt${prices.newCount ? ` (${prices.newCount} neu)` : ""}`, text: prices.done.length ? `Schon geändert oder verkauft: ${prices.done.length} (Reiter Erledigt). Die Listen stehen weiter unten.` : "Die Listen stehen weiter unten." });
     }
     hints.sort((a, b) => LEVEL_RANK[a.level] - LEVEL_RANK[b.level]);
 
@@ -360,12 +366,12 @@
   }
 
   // Eine Zeile mit Rang, Bild, Teilenummer (Link zur Bricklink-Katalogseite), Name und Farbe; rechts die Zahlen
-  function itemRow(n, r, right, cls) {
+  function itemRow(n, r, right, cls, tag) {
     const colorTxt = r.colorName || (r.color ? `Farbe ${r.color}` : "");
     const sub = [colorTxt, r.cond === "N" ? "neu" : r.cond === "U" ? "gebraucht" : "", r.t !== "PART" ? TYPE_LABEL[r.t] || "" : ""].filter(Boolean).join(" · ");
     const img = imgUrl(r.t, r.no, r.color), url = pageUrl(r.t, r.no, r.color);
     return `<li class="sr-item${cls ? ` ${cls}` : ""}"><span class="sr-rank" aria-label="Platz ${n}">${n}</span><span class="sr-img">${img ? `<img src="${esc(img)}" alt="" width="56" height="56" loading="lazy" referrerpolicy="no-referrer">` : ""}</span>
-      <div class="sr-im"><b class="sr-no">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="Katalogseite in Bricklink öffnen">${esc(r.no)}</a>` : esc(r.no)}</b><span class="sr-iname">${esc(decode(r.name))}</span>${sub ? `<span class="sr-isub">${esc(sub)}</span>` : ""}</div>
+      <div class="sr-im"><b class="sr-no">${url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="Katalogseite in Bricklink öffnen">${esc(r.no)}</a>` : esc(r.no)}${tag || ""}</b><span class="sr-iname">${esc(decode(r.name))}</span>${sub ? `<span class="sr-isub">${esc(sub)}</span>` : ""}</div>
       <div class="sr-iv">${right}</div></li>`;
   }
 
@@ -480,21 +486,61 @@
     return `<span class="sr-ac"><button type="button" class="sr-edit" data-sr-act="pe:${id}" title="Preis dieses Lots bei Bricklink ändern">PREIS ANPASSEN</button></span>`;
   }
 
-  // Preis-Check: Reiter "Zu teuer" / "Zu billig", darunter die Lots mit der groessten Abweichung in Prozent zuerst; zehn, auf Wunsch alle gespeicherten
+  // Wann zuletzt kontrolliert wurde: "heute 14:41", "gestern 09:12" oder "23.11. 09:12"
+  function whenText(iso) {
+    const d = new Date(iso);
+    if (!isFinite(d.getTime())) return "";
+    const day0 = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const hm = `${pad(d.getHours())}:${pad(d.getMinutes())}`, diff = Math.round((day0(new Date()) - day0(d)) / DAY);
+    return diff === 0 ? `heute ${hm}` : diff === 1 ? `gestern ${hm}` : `${d.getDate()}.${d.getMonth() + 1}. ${hm}`;
+  }
+  // Zeile oben im Preis-Check: wann zuletzt kontrolliert wurde (die Kontrolle laeuft alle 2 Stunden von selbst, siehe .github/workflows/check-prices.yml) und der Knopf JETZT PRUEFEN
+  function standHtml(P, ui) {
+    const at = P.liveAt || P.checkedAt, w = at ? whenText(at) : "";
+    const late = !!P.liveAt && Date.now() - Date.parse(P.liveAt) > 30 * 3600000;
+    const txt = late ? `Zuletzt kontrolliert: ${w}. Die automatische Kontrolle hat sich länger nicht gemeldet.` : w ? `Zuletzt kontrolliert: ${w}. Die Liste wird alle 2 Stunden automatisch erneuert.` : "Die Liste wird automatisch erneuert.";
+    const btn = ui.canCheck ? `<button type="button" class="sr-edit sr-chk" data-sr-act="pcnow"${ui.checking ? " disabled" : ""}>${ui.checking ? "PRÜFUNG LÄUFT …" : "JETZT PRÜFEN"}</button>` : "";
+    return `<div class="sr-pcbar"><span class="sr-stand${late ? " sr-late" : ""}">${esc(txt)}</span>${btn}</div>`;
+  }
+  const devText = (dev) => `${dev > 0 ? "+" : dev < 0 ? "−" : ""}${Math.abs(dev)} %`;
+  // Eine Zeile der Liste "Erledigt": das Lot hat jetzt einen passenden Preis (why "price"), ist weg (why "gone") oder der Unterschied ist zu klein geworden (why "small")
+  function doneRow(i, d) {
+    const day = typeof d.day === "string" && d.day.length === 10 ? `<span class="sr-m"><span class="sr-nb">erkannt am ${dm(d.day)}</span></span>` : "";
+    let right;
+    if (d.why === "gone") right = `<span class="sr-pr"><s>${exact(d.from)}</s> → <b>nicht mehr im Shop</b></span><span class="sr-m">verkauft, gelöscht oder im Stockroom</span>${day}`;
+    else if (d.why === "small") right = `<span class="sr-pr"><b class="sr-ok">✓ erledigt</b></span><span class="sr-m">Unterschied jetzt unter 0,50 € (${de(d.qty, 0)} Stück)</span>${day}`;
+    else right = `<span class="sr-pr"><s>${exact(d.from)}</s> → <b>${exact(d.to)}</b></span><span class="sr-m"><b class="sr-ok">✓ passt jetzt</b>${isNum(d.dev) ? ` <span class="sr-nb">${devText(d.dev)} zum Ø ${exact(d.avg)}</span>` : ""}</span>${day}`;
+    return itemRow(i + 1, d, right);
+  }
+
+  // Preis-Check: oben der Stand und der Knopf JETZT PRUEFEN, dann die Reiter "Zu teuer" / "Zu billig" / "Erledigt", darunter die Lots mit der groessten Abweichung in Prozent zuerst
+  // (zehn, auf Wunsch alle gespeicherten). "Erledigt" zeigt, was sich seit der letzten Kontrolle geaendert hat oder weg ist (lib/pricecheck.mjs refreshRows); NEU kennzeichnet Zeilen,
+  // die in den letzten drei Tagen zum ersten Mal auffielen.
   function priceHtml(model, ui) {
     const P = model.prices;
     if (!P) return `<p class="sr-note">Die Liste kommt mit dem nächsten Sync.</p>`;
-    const tab = ui.pc === "under" ? "under" : "over", rows = P[tab], shown = ui.pcMore ? rows : rows.slice(0, 10);
-    const tabs = `<div class="sr-tabs" role="group" aria-label="Richtung wählen"><button type="button" class="sr-tab" data-sr-act="pc:over" aria-pressed="${tab === "over"}">Zu teuer (${P.over.length})</button><button type="button" class="sr-tab" data-sr-act="pc:under" aria-pressed="${tab === "under"}">Zu billig (${P.under.length})</button></div>`;
-    const list = shown.length
-      ? `<ol class="sr-items">${shown.map((r, i) => {
-        const up = r.dev > 0, sign = up ? "+" : "−";
-        const last = ui.canEdit ? lastOk(ui.hist, r.id) : null, chg = staleChange(r, last);
-        return itemRow(i + 1, r, `<span class="sr-pr"><b>${price(r.price)}</b> <span class="sr-vs">statt Ø ${price(r.avg)}</span></span><span class="sr-m"><b class="sr-dev ${up ? "sr-dev-up" : "sr-dev-down"}">${sign}${Math.abs(r.dev)} %</b> <span class="sr-nb">bei ${de(r.n, 0)} Verkäufen</span></span><span class="sr-m"><span class="sr-nb">${de(r.qty, 0)} Stück ·</span> <span class="sr-nb">${sign}${eur2(Math.abs(r.diff))} im Lot</span></span>${editHtml(r, ui, last, chg)}`, chg ? "sr-changed" : "");
-      }).join("")}</ol>${rows.length > shown.length ? `<button type="button" class="sr-more" data-sr-act="pcmore">Alle ${rows.length} anzeigen</button>` : ""}`
-      : `<p class="sr-note">${tab === "over" ? "Bisher kein Lot gefunden, das deutlich über dem Durchschnitt liegt." : "Bisher kein Lot gefunden, das deutlich unter dem Durchschnitt liegt."}</p>`;
-    const cover = `Geprüft wird in Etappen, weil Bricklink nur begrenzt viele Abfragen am Tag erlaubt: heute ${de(P.checked, 0)} von ${de(P.eligible, 0)} Lots, ein voller Durchlauf dauert ${P.cycleDays} ${P.cycleDays === 1 ? "Tag" : "Tage"}. Die Listen füllen sich in dieser Zeit.`;
-    return `${tabs}${list}<p class="sr-note">Verglichen wird dein Preis mit dem Durchschnitt der Verkäufe der letzten 6 Monate (${P.region === "europe" ? "Europa" : esc(P.region || "weltweit")}, ohne MwSt., nach Stückzahl gewichtet), nur Teile und Minifiguren ab ${de(P.minValue, 0)} € Warenwert, mindestens ${P.minSales} Verkäufe, Abweichung ab ${P.minDev} %. Sortiert ist nach der Abweichung in Prozent, die größte zuerst; „Im Lot“ ist der Unterschied für die ganze Menge. ${cover}</p>`;
+    const tab = ui.pc === "under" ? "under" : ui.pc === "done" ? "done" : "over";
+    const tabBtn = (id, label, n) => `<button type="button" class="sr-tab" data-sr-act="pc:${id}" aria-pressed="${tab === id}">${label} (${n})</button>`;
+    const tabs = `<div class="sr-tabs" role="group" aria-label="Liste wählen">${tabBtn("over", "Zu teuer", P.over.length)}${tabBtn("under", "Zu billig", P.under.length)}${tabBtn("done", "Erledigt", P.done.length)}</div>`;
+    let list;
+    if (tab === "done") {
+      list = P.done.length
+        ? `<ol class="sr-items">${P.done.map((d, i) => doneRow(i, d)).join("")}</ol>`
+        : `<p class="sr-note">Noch nichts erledigt: Sobald sich der Preis eines Lots aus der Liste ändert oder es verkauft ist, steht es hier.</p>`;
+    } else {
+      const rows = P[tab], shown = ui.pcMore ? rows : rows.slice(0, 10);
+      list = shown.length
+        ? `<ol class="sr-items">${shown.map((r, i) => {
+          const up = r.dev > 0, sign = up ? "+" : "−";
+          const last = ui.canEdit ? lastOk(ui.hist, r.id) : null, chg = staleChange(r, last);
+          const isNew = typeof r.since === "string" && r.since >= P.newSince;
+          const was = isNum(r.was) ? `<span class="sr-m">schon geändert, war ${exact(r.was)}</span>` : "";
+          return itemRow(i + 1, r, `<span class="sr-pr"><b>${price(r.price)}</b> <span class="sr-vs">statt Ø ${price(r.avg)}</span></span><span class="sr-m"><b class="sr-dev ${up ? "sr-dev-up" : "sr-dev-down"}">${sign}${Math.abs(r.dev)} %</b> <span class="sr-nb">bei ${de(r.n, 0)} Verkäufen</span></span><span class="sr-m"><span class="sr-nb">${de(r.qty, 0)} Stück ·</span> <span class="sr-nb">${sign}${eur2(Math.abs(r.diff))} im Lot</span></span>${was}${editHtml(r, ui, last, chg)}`, chg ? "sr-changed" : "", isNew ? `<span class="sr-new">NEU</span>` : "");
+        }).join("")}</ol>${rows.length > shown.length ? `<button type="button" class="sr-more" data-sr-act="pcmore">Alle ${rows.length} anzeigen</button>` : ""}`
+        : `<p class="sr-note">${tab === "over" ? "Bisher kein Lot gefunden, das deutlich über dem Durchschnitt liegt." : "Bisher kein Lot gefunden, das deutlich unter dem Durchschnitt liegt."}</p>`;
+    }
+    const cover = `Geprüft wird in Etappen, weil Bricklink nur begrenzt viele Abfragen am Tag erlaubt: heute ${de(P.checked, 0)} von ${de(P.eligible, 0)} Lots, ein voller Durchlauf dauert ${P.cycleDays} ${P.cycleDays === 1 ? "Tag" : "Tage"}. Zusätzlich wird alle 2 Stunden der Bestand mit der Liste verglichen (geänderte Preise, verkaufte Lots) und neu eingestellte Lots werden gleich geprüft.`;
+    return `${standHtml(P, ui)}${tabs}${list}<p class="sr-note">Verglichen wird dein Preis mit dem Durchschnitt der Verkäufe der letzten 6 Monate (${P.region === "europe" ? "Europa" : esc(P.region || "weltweit")}, ohne MwSt., nach Stückzahl gewichtet), nur Teile und Minifiguren ab ${de(P.minValue, 0)} € Warenwert, mindestens ${P.minSales} Verkäufe, Abweichung ab ${P.minDev} %. Sortiert ist nach der Abweichung in Prozent, die größte zuerst; „Im Lot“ ist der Unterschied für die ganze Menge. ${cover}</p>`;
   }
 
   function panelHtml(model, ui) {
@@ -505,6 +551,7 @@
       <p>Der Lagerwert ist der Verkaufswert (Menge mal Preis), nicht dein Einkaufspreis. „Neu eingestellt“ zählt nur Lots, die noch im Bestand sind. Bestseller zählen die Stückzahl je Monat (neu und gebraucht zusammen), die Bilder kommen direkt von Bricklink.</p>
       <p>Der Preis-Check vergleicht deine Preise mit den Verkaufspreisen der letzten 6 Monate bei Bricklink. Weil dafür je Lot eine Abfrage nötig ist und Bricklink nur begrenzt viele am Tag erlaubt, wird täglich ein Teil deiner Lots geprüft.</p>
       <p>PREIS ANPASSEN ändert den Preis dieses einen Lots sofort bei Bricklink (nur der Preis, und nur wenn er dort noch so ist wie hier angezeigt). Mit RÜCKGÄNGIG stellst du den alten Preis wieder her. Ein eigener Rabatt auf das Lot bleibt dabei erhalten.</p>
+      <p>Alle 2 Stunden wird dein Bestand mit der Preis-Check-Liste verglichen: Lots, deren Preis du geändert hast (in Bricklink oder hier) oder die verkauft sind, wandern in „Erledigt“. Neu eingestellte Lots werden gleich geprüft; was in den letzten drei Tagen zum ersten Mal auffiel, trägt NEU. JETZT PRÜFEN startet die Kontrolle sofort.</p>
       <p>Gespeichert werden Zahlen und für die drei Listen je Artikel Nummer, Name, Farbe, Menge und Preis, im privaten Repo. Von Käufern wird nichts gespeichert: keine Namen, keine Adressen, keine Nachrichten.</p></div>`;
     return `<div class="sr-head"><div><span class="sr-t1">SHOP-RADAR</span><span class="sr-t2">Bricklink: Warum läuft der Shop (nicht)?</span></div><div class="sr-meta">${model.stand ? `<span>Stand ${esc(model.stand)}</span>` : ""}<button type="button" class="sr-i" data-sr-act="info" aria-pressed="${ui.info ? "true" : "false"}" aria-label="Erklärungen ein- oder ausblenden">i</button></div></div>
       ${infoTxt}
@@ -540,7 +587,7 @@
     const { data } = deps;
     const UI_KEY = "dashboard-shopradar-ui";
     // Auf/zu und Erklaerung: nur dieser Browser, standardmaessig zu; der gewaehlte Monat gilt nur bis zum Neuladen
-    const ui = { open: false, info: false, month: null, pc: "over", pcMore: false, slow: "parts", canEdit: !!deps.priceEdit, busy: new Set(), hist: [], histTried: false, asking: false };
+    const ui = { open: false, info: false, month: null, pc: "over", pcMore: false, slow: "parts", canEdit: !!deps.priceEdit, busy: new Set(), hist: [], histTried: false, asking: false, canCheck: !!deps.priceCheck, checking: false };
     try { const u = JSON.parse(localStorage.getItem(UI_KEY) || "{}"); ui.open = u.open === true; ui.info = u.info === true; ui.slow = u.slow === "minis" ? "minis" : "parts"; } catch (e) { /* egal */ }
     const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify({ open: ui.open, info: ui.info, slow: ui.slow })); } catch (e) { /* egal */ } };
 
@@ -659,6 +706,28 @@
       } finally { ui.asking = false; }
       if (ok) await runEdit([{ id, expect: last.effectiveAfter, target: last.effectiveBefore }]);
     }
+    // JETZT PRUEFEN: startet die Kontrolle bei GitHub (Workflow check-prices.yml), wartet, holt den frischen Stand und sagt, was neu und was erledigt ist
+    async function checkNow() {
+      if (!ui.canCheck || ui.checking) return;
+      const say = deps.toast || (() => {});
+      const idsOf = (l) => new Set((Array.isArray(l) ? l : []).map((r) => String(r.id)));
+      const old = (data && data.bricklinkPrices) || {};
+      const before = { rows: idsOf((old.over || []).concat(old.under || [])), done: idsOf(old.done) };
+      ui.checking = true;
+      refresh();
+      say("Die Prüfung läuft. Das dauert etwa eine Minute.", "info", 7000);
+      try {
+        const fresh = await deps.priceCheck.run();
+        if (fresh && typeof fresh === "object" && data) data.bricklinkPrices = fresh;
+        const nNew = ((fresh && fresh.over) || []).concat((fresh && fresh.under) || []).filter((r) => !before.rows.has(String(r.id))).length;
+        const nDone = ((fresh && fresh.done) || []).filter((d) => !before.done.has(String(d.id))).length;
+        say(nNew || nDone ? `Preis-Check aktualisiert: ${nNew} neu, ${nDone} erledigt.` : "Preis-Check aktualisiert: keine Änderung.", "ok", 9000);
+      } catch (e) {
+        say(`Prüfung nicht abgeschlossen: ${e && e.message ? e.message : "unbekannter Fehler"}`, "err", 12000);
+      }
+      ui.checking = false;
+      refresh();
+    }
     function onClick(e) {
       const b = e.target.closest("[data-sr-act]");
       if (!b) return;
@@ -666,7 +735,8 @@
       if (act === "toggle") { ui.open = !ui.open; saveUi(); refresh(); }
       else if (act === "info") { ui.info = !ui.info; saveUi(); refresh(); }
       else if (act.startsWith("month:")) { ui.month = act.slice(6); refresh(); }
-      else if (act === "pc:over" || act === "pc:under") { ui.pc = act.slice(3); ui.pcMore = false; refresh(); }
+      else if (act === "pc:over" || act === "pc:under" || act === "pc:done") { ui.pc = act.slice(3); ui.pcMore = false; refresh(); }
+      else if (act === "pcnow") checkNow();
       else if (act === "pcmore") { ui.pcMore = true; refresh(); }
       else if (act === "slow:parts" || act === "slow:minis") { ui.slow = act.slice(5); saveUi(); refresh(); }
       else if (act.startsWith("peu:")) undoPrice(act.slice(4));

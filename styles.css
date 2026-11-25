@@ -3135,6 +3135,12 @@ body.priv-fail main, body.priv-fail .nav, body.priv-fail .top-timers, body.priv-
 .sr-ok { font-size: var(--fs-12); font-weight: 700; color: var(--ok); }
 .sr-busy { font-size: var(--fs-12); color: var(--text-muted); }
 .sr-item.sr-changed .sr-pr, .sr-item.sr-changed .sr-m { opacity: .55; }
+/* Preis-Check: Stand der Kontrolle mit Knopf JETZT PRUEFEN, Markierung NEU */
+.sr-pcbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin: 4px 0 10px; }
+.sr-stand { font-size: var(--fs-12); color: var(--text-muted); }
+.sr-stand.sr-late { color: var(--warn); }
+.sr-chk:disabled { cursor: default; opacity: .6; }
+.sr-new { margin-left: 8px; padding: 2px 5px; font-family: var(--px); font-size: var(--fs-8); line-height: 1.4; vertical-align: middle; color: var(--accent-ink); background: var(--card-accent, var(--accent)); border-radius: var(--r); }
 @media (pointer: coarse) { .sr-edit { min-height: var(--tap); } }
 @media (max-width: 560px) {
   .sr-item { grid-template-columns: auto 56px minmax(0, 1fr); }

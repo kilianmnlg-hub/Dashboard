@@ -1,0 +1,98 @@
+# Regelmäßige Kontrolle des Preis-Checks (Shop-Radar): alle 2 Stunden wird das Bricklink-Inventar abgerufen (EIN Aufruf) und die Liste gegen den Bestand gehalten:
+# Lots, deren Preis du inzwischen geändert hast (in Bricklink oder über das Dashboard), und verkaufte oder gelöschte Lots wandern in die Liste "Erledigt", neu eingestellte
+# Lots werden gleich auf einen schlechten Preis geprüft, statt auf ihre Etappe zu warten (SYNC_ONLY=prices in scripts/sync-all.mjs, Rechenregeln in scripts/lib/pricecheck.mjs).
+# Schreibt data.js (im privaten Repo) NUR bei einer Änderung, höchstens alle 12 Stunden zusätzlich den Zeitstempel "liveAt" (damit das Dashboard sieht, dass die Kontrolle läuft).
+# Kostet je Lauf einen API-Aufruf plus höchstens 150 Preisabfragen für neue Lots (Tageslimit der Bricklink-API: 5.000, davon höchstens 600 für neue Lots).
+# GitHub startet geplante Läufe manchmal mit einigen Minuten Verspätung. Braucht dieselben Secrets wie der Sync (BRICKLINK_*, PRIVATE_DATA_TOKEN).
+# Manuell anstoßen: Tab "Actions" -> "Check prices" -> "Run workflow", oder im Dashboard mit dem Knopf "JETZT PRÜFEN" im Preis-Check (der gibt eine Kennung mit, damit er seinen Lauf wiederfindet).
+name: Check prices
+
+# Die Kennung im Titel des Laufs: so findet das Dashboard seinen Lauf wieder (bei geplanten Läufen bleibt sie leer)
+run-name: Check prices ${{ inputs.tag }}
+
+on:
+  schedule:
+    - cron: "41 */2 * * *"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Kennung (vom Dashboard)"
+        required: false
+        default: ""
+        type: string
+
+# Nie gleichzeitig mit dem Sync (beide schreiben data.js; der Sync läuft bis zu einer Viertelstunde, ein Zusammentreffen würde sein Speichern stören). Die Gruppe ist dieselbe wie beim Sync.
+concurrency:
+  group: sync-all
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    # Fehlt das Secret PRIVATE_DATA_TOKEN (z.B. nach dem Neuanlegen des Repos), wird der Lauf mit einer Warnung übersprungen,
+    # statt jedes Mal mit einer Fehlermail zu scheitern. Ein abgelaufener oder falscher Token scheitert weiterhin laut.
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.chk.outputs.ok }}
+    steps:
+      - id: chk
+        env:
+          PRIVATE_DATA_TOKEN: ${{ secrets.PRIVATE_DATA_TOKEN }}
+        run: |
+          if [ -n "$PRIVATE_DATA_TOKEN" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Secret PRIVATE_DATA_TOKEN fehlt, Lauf uebersprungen (Settings > Secrets and variables > Actions)"
+          fi
+  check:
+    needs: gate
+    if: needs.gate.outputs.ok == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Die Daten liegen im PRIVATEN Repo (dashboard-privat), nicht hier. Der Zugriff kommt aus dem Secret PRIVATE_DATA_TOKEN
+      # (fine-grained Token, nur dieses eine Repo, Contents: Read and write). Die Skripte arbeiten dort ueber DATA_DIR.
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/dashboard-privat
+          token: ${{ secrets.PRIVATE_DATA_TOKEN }}
+          path: private
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Preis-Check kontrollieren und ggf. speichern
+        env:
+          SYNC_ONLY: prices
+          DATA_DIR: private
+          BRICKLINK_CONSUMER_KEY: ${{ secrets.BRICKLINK_CONSUMER_KEY }}
+          BRICKLINK_CONSUMER_SECRET: ${{ secrets.BRICKLINK_CONSUMER_SECRET }}
+          BRICKLINK_TOKEN_VALUE: ${{ secrets.BRICKLINK_TOKEN_VALUE }}
+          BRICKLINK_TOKEN_SECRET: ${{ secrets.BRICKLINK_TOKEN_SECRET }}
+        run: |
+          git -C private config user.name "dashboard-bot"
+          git -C private config user.email "actions@users.noreply.github.com"
+          n=0
+          until [ $n -ge 5 ]; do
+            node scripts/sync-all.mjs
+            git -C private add data.js
+            if git -C private diff --quiet --cached; then
+              echo "Nichts zu speichern."
+              exit 0
+            fi
+            git -C private commit -q -m "Preis-Check aufgefrischt"
+            if git -C private push -q; then
+              exit 0
+            fi
+            # Push abgelehnt: zeitgleich hat jemand anderes geschrieben (z.B. der stündliche Schnellcheck auf neue Videos). Mit dem neuesten Stand neu rechnen,
+            # statt denselben Commit erneut zu versuchen.
+            n=$((n+1))
+            echo "Push fehlgeschlagen (Versuch $n/5), hole den neuesten Stand und rechne erneut ..."
+            git -C private fetch origin main
+            git -C private reset --hard origin/main
+            sleep $((RANDOM % 8 + 3))
+          done
+          echo "Push nach 5 Versuchen weiterhin fehlgeschlagen."
+          exit 1

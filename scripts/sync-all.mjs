@@ -7,6 +7,8 @@
 //   - lokal: node scripts/sync-all.mjs (Umgebungsvariablen vorher setzen, siehe README)
 //   - SYNC_ONLY=uploads: stündlicher Schnellcheck (.github/workflows/check-uploads.yml). Fragt nur YouTube nach neuen
 //     Longform-Videos und schreibt data.js nur, wenn eines dazugekommen ist (sonst gäbe es stündlich einen Commit).
+//   - SYNC_ONLY=prices: regelmäßige Kontrolle des Preis-Checks (.github/workflows/check-prices.yml, alle 2 Stunden). Holt nur das Bricklink-Inventar (ein Aufruf),
+//     erkennt geänderte und verkaufte Lots in der Liste, prüft neu eingestellte Lots gleich mit und schreibt data.js nur bei einer Änderung.
 //
 // Jeder Fetcher überspringt sich selbst (mit Warnung), wenn seine Zugangsdaten fehlen,
 // statt den gesamten Sync abzubrechen — so funktioniert z.B. der Notion-Sync auch,
@@ -20,7 +22,7 @@ import { fetchTimeTracker } from "./fetchers/time-tracker.mjs";
 import { fetchYouTube, UPLOAD_CHANNEL_KEYS } from "./fetchers/youtube.mjs";
 import { uploadsKey } from "./lib/uploads.mjs";
 import { fetchTikTok } from "./fetchers/tiktok.mjs";
-import { fetchBricklink } from "./fetchers/bricklink.mjs";
+import { fetchBricklink, fetchBricklinkPrices } from "./fetchers/bricklink.mjs";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -28,6 +30,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : path.join(__dirname, "..");
 const DATA_FILE = path.join(DATA_DIR, "data.js");
 const ONLY_UPLOADS = process.env.SYNC_ONLY === "uploads";
+const ONLY_PRICES = process.env.SYNC_ONLY === "prices";
 
 function deepMerge(target, patch) {
   Object.keys(patch).forEach((key) => {
@@ -72,6 +75,8 @@ async function main() {
   // Ausgangsstand, würde der zuletzt gemergte Patch die Änderungen des anderen überschreiben.
   const fetchers = ONLY_UPLOADS
     ? [["youtube", () => fetchYouTube(DASHBOARD_DATA, { uploadsOnly: true })]]
+    : ONLY_PRICES
+    ? [["bricklink-prices", () => fetchBricklinkPrices(DASHBOARD_DATA)]]
     : [
         ["time-tracker", () => fetchTimeTracker()],
         ["youtube", () => fetchYouTube(DASHBOARD_DATA)],
@@ -93,7 +98,8 @@ async function main() {
   }
 
   if (!changed) {
-    console.warn("Keine einzige Datenquelle war erreichbar/konfiguriert — data.js bleibt unverändert.");
+    if (ONLY_PRICES) console.log("Preis-Check: nichts zu speichern — data.js bleibt unverändert.");
+    else console.warn("Keine einzige Datenquelle war erreichbar/konfiguriert — data.js bleibt unverändert.");
     return;
   }
 
@@ -118,8 +124,8 @@ async function main() {
     pushMetricHistory(DASHBOARD_DATA.metricsHistory, "tiktokFollower", tiktokFollower, todayKey);
   }
 
-  // Der Schnellcheck ist kein Sync: "Stand" im Fuß der Seite bleibt beim letzten richtigen Lauf
-  if (!ONLY_UPLOADS) {
+  // Die Schnellchecks sind kein Sync: "Stand" im Fuß der Seite bleibt beim letzten richtigen Lauf
+  if (!ONLY_UPLOADS && !ONLY_PRICES) {
     DASHBOARD_DATA.meta.lastUpdated = new Date().toISOString().slice(0, 10);
     DASHBOARD_DATA.meta.lastSyncedAt = new Date().toISOString();
   }

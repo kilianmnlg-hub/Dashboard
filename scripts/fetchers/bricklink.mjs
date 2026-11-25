@@ -25,7 +25,7 @@
 import { buildAuthHeader } from "../lib/oauth1.mjs";
 import { summarizeInventory } from "../lib/inventory.mjs";
 import { summarizeSales } from "../lib/sales.mjs";
-import { DEFAULTS as PRICE_DEFAULTS, evaluate, mergeRows, pickEligible, pickSlice } from "../lib/pricecheck.mjs";
+import { DEFAULTS as PRICE_DEFAULTS, evaluate, indexLots, pickEligible, pickSlice, refreshRows } from "../lib/pricecheck.mjs";
 import { parseGuide } from "../lib/lego.mjs";
 
 const BASE_URL = "https://api.bricklink.com/api/store/v1";
@@ -65,6 +65,11 @@ const PRICE_CAP = Number(process.env.BRICKLINK_PRICE_CAP || PRICE_DEFAULTS.cap);
 const PRICE_MIN_VALUE = Number(process.env.BRICKLINK_PRICE_MIN_VALUE || PRICE_DEFAULTS.minValue);
 const PRICE_DEV = Number(process.env.BRICKLINK_PRICE_DEV || PRICE_DEFAULTS.minDev);
 const PRICE_MINUTES = Number(process.env.BRICKLINK_PRICE_MINUTES || 10);
+// Regelmaessige Kontrolle (fetchBricklinkPrices): neu eingestellte Lots gleich pruefen, hoechstens so viele je Lauf, je Tag und Minuten; der Zeitstempel liveAt wird alle 12 Stunden erneuert
+const PRICE_NEW_RUN_CAP = Number(process.env.BRICKLINK_PRICE_NEW_RUN || 150);
+const PRICE_NEW_DAY_CAP = Number(process.env.BRICKLINK_PRICE_NEW_DAY || 600);
+const PRICE_NEW_MINUTES = Number(process.env.BRICKLINK_PRICE_NEW_MINUTES || 5);
+const LIVE_REFRESH_MS = 12 * 3600000;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Alle Abrufe: Zeitlimit (25 s) und bis zu drei Versuche mit Wartezeit bei 429, 5xx, Zeitüberschreitung, Netzfehler und einer Webseite statt Daten (kurze Störung bei Bricklink).
@@ -117,18 +122,14 @@ async function bricklinkRequest(path, queryParams, creds, waits) {
 const bricklinkGet = (path, queryParams, creds) => bricklinkRequest(path, queryParams, creds, WAITS);
 const bricklinkGetRetry = (path, queryParams, creds) => bricklinkRequest(path, queryParams, creds, PRICE_WAITS);
 
-// Preis-Check: die heutige Etappe der Lots (Teile und Minifiguren) gegen den 6-Monats-Schnitt pruefen und mit den noch gueltigen Zeilen der letzten Tage zusammenfuehren.
-// Liefert null, wenn es heute schon lief. Fehlt ein Preis (404/400) zaehlt das Lot als geprueft ohne Ergebnis; bei vielen echten Fehlern (429, 5xx, Zeit) bricht die Etappe ab
-// (aborted), behaelt aber, was bis dahin da ist, und darf am selben Tag noch einmal laufen.
-async function fetchPriceCheck(lots, previous, currency, creds, now) {
-  const today = now.toISOString().slice(0, 10);
-  if (previous && previous.day === today && !previous.aborted) return null;
-  const eligible = pickEligible(lots, { minValue: PRICE_MIN_VALUE });
-  const { cycleDays, slice } = pickSlice(eligible, { cap: PRICE_CAP, dayNumber: Math.floor(now.getTime() / 86400000) });
+// Eine Gruppe Lots gegen den 6-Monats-Schnitt pruefen (je Lot eine Abfrage des Price Guide, vier gleichzeitig). Liefert die neuen Zeilen (fresh), die Nummern der geprueften Lots (checkedIds),
+// wie viele Preisdaten hatten (withData) und ob die Pruefung vorzeitig endete (aborted: Zeit um, viele Fehler oder mehr als jedes zehnte Lot ohne Antwort). Fehlt ein Preis (404/400),
+// zaehlt das Lot als geprueft ohne Ergebnis; bei vielen echten Fehlern (429, 5xx, Zeit) bricht die Pruefung ab, behaelt aber, was bis dahin da ist.
+async function checkLots(slice, { creds, currency, today, minutes }) {
   const fresh = [];
   const checkedIds = new Set();
   let withData = 0, failed = 0, aborted = false;
-  const deadline = Date.now() + PRICE_MINUTES * 60000;
+  const deadline = Date.now() + minutes * 60000;
   const BATCH = 4;
   for (let i = 0; i < slice.length; i += BATCH) {
     if (Date.now() > deadline) { aborted = true; break; }
@@ -155,15 +156,108 @@ async function fetchPriceCheck(lots, previous, currency, creds, now) {
     if (failed >= 8 && failed > checkedIds.size * 0.1) { aborted = true; break; }
     await sleep(150);
   }
-  // Blieb mehr als jedes zehnte Lot ohne Antwort (Fehler, Zeit), gilt die Etappe als unvollständig und darf heute noch einmal laufen
+  // Blieb mehr als jedes zehnte Lot ohne Antwort (Fehler, Zeit), gilt die Pruefung als unvollstaendig
   if (slice.length && checkedIds.size < slice.length * 0.9) aborted = true;
-  const merged = mergeRows({ previous: [...(previous?.over || []), ...(previous?.under || [])], fresh, eligible, checkedIds });
+  return { fresh, checkedIds, withData, aborted };
+}
+
+// Preis-Check: die heutige Etappe der Lots (Teile und Minifiguren) gegen den 6-Monats-Schnitt pruefen und mit den noch gueltigen Zeilen der letzten Tage zusammenfuehren
+// (lib/pricecheck.mjs refreshRows: Zeilen, deren Lot sich geaendert hat oder weg ist, wandern in die Liste "Erledigt", neue Zeilen tragen since). Lief die Etappe heute schon, gibt es
+// keine neuen Abfragen, aber die gespeicherten Zeilen werden trotzdem gegen den heutigen Bestand gehalten (so verschwindet ein inzwischen geaenderter Preis auch bei einem zweiten Sync am Tag).
+// Eine unvollstaendige Etappe (aborted) darf am selben Tag noch einmal laufen.
+async function fetchPriceCheck(lots, previous, currency, creds, now) {
+  const today = now.toISOString().slice(0, 10);
+  const index = indexLots(lots);
+  const eligible = pickEligible(lots, { minValue: PRICE_MIN_VALUE });
+  const prevRows = [...(previous?.over || []), ...(previous?.under || [])];
+  if (previous && previous.day === today && !previous.aborted) {
+    const r = refreshRows({ previous: prevRows, index, today, previousDone: previous.done, minDev: PRICE_DEV });
+    return { ...previous, eligible: eligible.length, liveAt: now.toISOString(), over: r.over, under: r.under, done: r.done };
+  }
+  const { cycleDays, slice } = pickSlice(eligible, { cap: PRICE_CAP, dayNumber: Math.floor(now.getTime() / 86400000) });
+  const { fresh, checkedIds, withData, aborted } = await checkLots(slice, { creds, currency, today, minutes: PRICE_MINUTES });
+  const merged = refreshRows({ previous: prevRows, fresh, index, checkedIds, today, previousDone: previous?.done, minDev: PRICE_DEV });
   return {
-    day: today, aborted, checkedAt: now.toISOString(), region: PRICE_REGION, currency,
+    ...(previous || {}),
+    day: today, aborted, checkedAt: now.toISOString(), liveAt: now.toISOString(), region: PRICE_REGION, currency,
     eligible: eligible.length, cycleDays, checked: checkedIds.size, withData, minDev: PRICE_DEV, minSales: PRICE_DEFAULTS.minSales, minValue: PRICE_MIN_VALUE,
-    over: merged.over, under: merged.under
+    over: merged.over, under: merged.under, done: merged.done
   };
 }
+
+// Die regelmaessige Kontrolle (SYNC_ONLY=prices, Workflow check-prices.yml, alle 2 Stunden): holt das Inventar (EIN Aufruf), haelt die gespeicherten Zeilen des Preis-Checks gegen den
+// Bestand (geaenderte Preise, verkaufte Lots, siehe refreshRows) und prueft neu eingestellte Lots gleich mit, statt auf ihre Etappe zu warten. "Neu" heisst: Erstelldatum ab der Marke
+// newFrom (zuerst das Datum der letzten Etappe, danach das des ersten noch nicht geprueften Lots), hoechstens BRICKLINK_PRICE_NEW_RUN je Lauf und BRICKLINK_PRICE_NEW_DAY je Tag,
+// damit das Tageslimit der API (5.000) auch nach einem grossen Upload reicht. Liefert null, wenn sich nichts geaendert hat (der Zeitstempel liveAt wird alle 12 Stunden erneuert, damit
+// das Dashboard sieht, dass die Kontrolle laeuft). Vor dem ersten Durchlauf der Etappen gibt es nichts aufzufrischen.
+export async function fetchBricklinkPrices(currentData) {
+  if (!PRICE_ENABLED) return null;
+  const previous = currentData?.bricklinkPrices;
+  if (!previous || !Array.isArray(previous.over) || !Array.isArray(previous.under)) {
+    console.log("[bricklink] Preis-Check: noch kein erster Durchlauf, nichts aufzufrischen.");
+    return null;
+  }
+  const creds = {
+    consumerKey: process.env.BRICKLINK_CONSUMER_KEY,
+    consumerSecret: process.env.BRICKLINK_CONSUMER_SECRET,
+    tokenValue: process.env.BRICKLINK_TOKEN_VALUE,
+    tokenSecret: process.env.BRICKLINK_TOKEN_SECRET
+  };
+  if (Object.values(creds).some((v) => !v)) {
+    console.warn("[bricklink] API-Zugangsdaten unvollständig — übersprungen.");
+    return null;
+  }
+  const lots = await fetchInventory(creds);
+  // Eine leere oder auffaellig kleine Antwort ist eher ein Aussetzer der API als Wirklichkeit: sonst gaelten viele Zeilen zu Unrecht als "weg"
+  if (!lots.length) throw new Error("Inventar-Antwort war leer");
+  const now = new Date(), today = now.toISOString().slice(0, 10);
+  const index = indexLots(lots);
+  const eligible = pickEligible(lots, { minValue: PRICE_MIN_VALUE });
+  if (previous.eligible > 200 && eligible.length < previous.eligible * 0.6) throw new Error("Inventar-Antwort auffällig klein, nichts geändert");
+  console.log("[bricklink] Inventar abgerufen.");
+  const currency = previous.currency || "EUR";
+
+  // neu eingestellte Lots gleich pruefen
+  const mark = Date.parse(previous.newFrom || "") || Date.parse(previous.checkedAt || "") || now.getTime() - 86400000;
+  const createdOf = (c) => (index.get(c.id) || {}).created;
+  const pending = eligible.filter((c) => Number.isFinite(createdOf(c)) && createdOf(c) >= mark).sort((a, b) => createdOf(a) - createdOf(b));
+  const usedToday = previous.newDay === today ? Number(previous.newCount) || 0 : 0;
+  const take = Math.max(0, Math.min(PRICE_NEW_RUN_CAP, PRICE_NEW_DAY_CAP - usedToday));
+  const batch = pending.slice(0, take);
+  const res = batch.length ? await checkLots(batch, { creds, currency, today, minutes: PRICE_NEW_MINUTES }) : { fresh: [], checkedIds: new Set(), withData: 0, aborted: false };
+  // Die Marke rueckt bis zum ersten noch nicht geprueften Lot vor; ist alles geprueft, auf das Erstelldatum des neuesten Lots plus eine Millisekunde
+  let k = 0;
+  while (k < pending.length && res.checkedIds.has(pending[k].id)) k += 1;
+  let newest = 0;
+  index.forEach((v) => { if (v.created && v.created > newest) newest = v.created; });
+  const newFrom = k < pending.length ? createdOf(pending[k]) : Math.max(mark, newest + 1);
+
+  const merged = refreshRows({ previous: [...previous.over, ...previous.under], fresh: res.fresh, index, checkedIds: res.checkedIds, today, previousDone: previous.done, minDev: PRICE_DEV });
+  // Farbnamen der neuen Zeilen (ein Aufruf, bei einem Fehler zeigt das Radar die Nummer)
+  const lacking = [...merged.over, ...merged.under, ...merged.done].filter((s) => s && !s.colorName && s.color);
+  if (lacking.length) {
+    try {
+      const colors = await bricklinkGet("/colors", {}, creds);
+      const byId = new Map((Array.isArray(colors) ? colors : []).map((c) => [Number(c.color_id), String(c.color_name || "").slice(0, 40)]));
+      lacking.forEach((s) => { s.colorName = byId.get(s.color) || ""; });
+    } catch (err) {
+      console.error("[bricklink] Farbnamen übersprungen:", err.message);
+    }
+  }
+  const next = {
+    ...previous, over: merged.over, under: merged.under, done: merged.done,
+    liveAt: now.toISOString(), eligible: eligible.length, newFrom: new Date(newFrom).toISOString(), newDay: today, newCount: usedToday + res.checkedIds.size
+  };
+  const core = (p) => JSON.stringify([p.over, p.under, p.done, p.newFrom]);
+  const stale = now.getTime() - (Date.parse(previous.liveAt || "") || 0) > LIVE_REFRESH_MS;
+  if (!stale && core(next) === core(previous)) {
+    console.log("[bricklink] Preis-Check: keine Änderung.");
+    return null;
+  }
+  console.log("[bricklink] Preis-Check aufgefrischt.");
+  return { bricklinkPrices: next };
+}
+
 
 // Montag der ISO-Woche, in der `date` liegt, als "YYYY-MM-DD".
 function isoWeekStart(date) {
@@ -414,7 +508,7 @@ export async function fetchBricklink(currentData) {
     if (PRICE_ENABLED) {
       try {
         const res = await fetchPriceCheck(lots, currentData?.bricklinkPrices, patch.bricklinkRevenue?.currency || "EUR", creds, new Date());
-        console.log(res ? "[bricklink] Preis-Check abgerufen." : "[bricklink] Preis-Check lief heute schon.");
+        console.log("[bricklink] Preis-Check aktualisiert.");
         if (res) patch.bricklinkPrices = res;
       } catch (err) {
         console.error("[bricklink] Preis-Check übersprungen:", err.message);
@@ -425,7 +519,7 @@ export async function fetchBricklink(currentData) {
   }
 
   // Farbnamen für die Listen (die Inventar-Antwort kennt nur die Farbnummer): ein Aufruf, bei einem Fehler zeigt das Radar die Nummer
-  const needColors = [patch.bricklinkInventory?.slow, patch.bricklinkPrices?.over, patch.bricklinkPrices?.under].filter((l) => Array.isArray(l) && l.length);
+  const needColors = [patch.bricklinkInventory?.slow, patch.bricklinkPrices?.over, patch.bricklinkPrices?.under, patch.bricklinkPrices?.done].filter((l) => Array.isArray(l) && l.length);
   if (needColors.length) {
     try {
       const colors = await bricklinkGet("/colors", {}, creds);
