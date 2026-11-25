@@ -635,7 +635,7 @@
       let target = null;
       try {
         const colorTxt = r.colorName || (r.color ? `Farbe ${r.color}` : "");
-        const sub = `${r.no} · ${decode(r.name)}${colorTxt ? ` · ${colorTxt}` : ""}${r.cond === "N" ? " · neu" : r.cond === "U" ? " · gebraucht" : ""} · ${de(r.qty, 0)} Stück. Im Shop jetzt ${exact(r.price)}, Durchschnitt der letzten 6 Monate ${exact(r.avg)}. Es zählt der Preis, den Käufer sehen (nach einem eigenen Rabatt). Er gilt bei Bricklink sofort.`;
+        const sub = `${r.no} · ${decode(r.name)}${colorTxt ? ` · ${colorTxt}` : ""}${r.cond === "N" ? " · neu" : r.cond === "U" ? " · gebraucht" : ""} · ${de(r.qty, 0)} Stück. Im Shop zuletzt ${exact(r.price)}${/^\d{4}-\d{2}-\d{2}$/.test(String(r.day)) ? ` (geprüft am ${dm(r.day)})` : ""}, Durchschnitt der letzten 6 Monate ${exact(r.avg)}. Es zählt der Preis, den Käufer sehen (nach einem eigenen Rabatt). Er gilt bei Bricklink sofort.`;
         let value = String(Math.max(MIN_PRICE, Math.round(r.avg * 1000) / 1000)).replace(".", ",");
         for (;;) {
           const v = await deps.askForm({ title: "Preis bei Bricklink ändern", sub, fields: [{ label: "Neuer Preis in €", value }], okText: "Bei Bricklink ändern" });
