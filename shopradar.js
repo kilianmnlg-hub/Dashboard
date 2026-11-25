@@ -256,7 +256,7 @@
         over: (Array.isArray(P.over) ? P.over : []).filter(ok).sort(byPercent), under: (Array.isArray(P.under) ? P.under : []).filter(ok).sort(byPercent),
         eligible: Number(P.eligible) || 0, cycleDays: Math.max(1, Number(P.cycleDays) || 1), checked: Number(P.checked) || 0,
         minDev: Number(P.minDev) || 30, minSales: Number(P.minSales) || 3, minValue: Number(P.minValue) || 1, region: String(P.region || ""), day: String(P.day || ""),
-        done: (Array.isArray(P.done) ? P.done : []).filter(okDone), liveAt: String(P.liveAt || ""), checkedAt: String(P.checkedAt || ""), newSince, newCount: 0
+        done: (Array.isArray(P.done) ? P.done : []).filter(okDone), liveAt: String(P.liveAt || ""), liveChecked: isNum(P.liveChecked) ? P.liveChecked : null, sweepLeft: isNum(P.sweepLeft) ? P.sweepLeft : null, checkedAt: String(P.checkedAt || ""), newSince, newCount: 0
       };
       prices.newCount = prices.over.concat(prices.under).filter((r) => typeof r.since === "string" && r.since >= newSince).length;
     }
@@ -497,8 +497,9 @@
   // Zeile oben im Preis-Check: wann zuletzt kontrolliert wurde (die Kontrolle laeuft alle 2 Stunden von selbst, siehe .github/workflows/check-prices.yml) und der Knopf JETZT PRUEFEN
   function standHtml(P, ui) {
     const at = P.liveAt || P.checkedAt, w = at ? whenText(at) : "";
-    const late = !!P.liveAt && Date.now() - Date.parse(P.liveAt) > 30 * 3600000;
-    const txt = late ? `Zuletzt kontrolliert: ${w}. Die automatische Kontrolle hat sich länger nicht gemeldet.` : w ? `Zuletzt kontrolliert: ${w}. Die Liste wird alle 2 Stunden automatisch erneuert.` : "Die Liste wird automatisch erneuert.";
+    const late = !!P.liveAt && Date.now() - Date.parse(P.liveAt) > 9 * 3600000;
+    const n = P.liveAt && isNum(P.liveChecked) && P.liveChecked > 0 ? ` (${de(P.liveChecked, 0)} Lots geprüft)` : "";
+    const txt = late ? `Zuletzt kontrolliert: ${w}${n}. Die automatische Kontrolle hat sich länger nicht gemeldet.` : w ? `Zuletzt kontrolliert: ${w}${n}. Die Liste wird alle 2 Stunden automatisch erneuert.` : "Die Liste wird automatisch erneuert.";
     const btn = ui.canCheck ? `<button type="button" class="sr-edit sr-chk" data-sr-act="pcnow"${ui.checking ? " disabled" : ""}>${ui.checking ? "PRÜFUNG LÄUFT …" : "JETZT PRÜFEN"}</button>` : "";
     return `<div class="sr-pcbar"><span class="sr-stand${late ? " sr-late" : ""}">${esc(txt)}</span>${btn}</div>`;
   }
@@ -539,7 +540,7 @@
         }).join("")}</ol>${rows.length > shown.length ? `<button type="button" class="sr-more" data-sr-act="pcmore">Alle ${rows.length} anzeigen</button>` : ""}`
         : `<p class="sr-note">${tab === "over" ? "Bisher kein Lot gefunden, das deutlich über dem Durchschnitt liegt." : "Bisher kein Lot gefunden, das deutlich unter dem Durchschnitt liegt."}</p>`;
     }
-    const cover = `Geprüft wird in Etappen, weil Bricklink nur begrenzt viele Abfragen am Tag erlaubt: heute ${de(P.checked, 0)} von ${de(P.eligible, 0)} Lots, ein voller Durchlauf dauert ${P.cycleDays} ${P.cycleDays === 1 ? "Tag" : "Tage"}. Zusätzlich wird alle 2 Stunden der Bestand mit der Liste verglichen (geänderte Preise, verkaufte Lots) und neu eingestellte Lots werden gleich geprüft.`;
+    const cover = `Geprüft wird in Etappen, weil Bricklink nur begrenzt viele Abfragen am Tag erlaubt: heute ${de(P.checked, 0)} von ${de(P.eligible, 0)} Lots, ein voller Durchlauf dauert ${P.cycleDays} ${P.cycleDays === 1 ? "Tag" : "Tage"}. Zusätzlich wird alle 2 Stunden der Bestand mit der Liste verglichen (geänderte Preise, verkaufte Lots), neu eingestellte Lots werden gleich geprüft und ein Durchlauf prüft weitere Lots der Reihe nach, damit die Liste nachwächst.`;
     return `${standHtml(P, ui)}${tabs}${list}<p class="sr-note">Verglichen wird dein Preis mit dem Durchschnitt der Verkäufe der letzten 6 Monate (${P.region === "europe" ? "Europa" : esc(P.region || "weltweit")}, ohne MwSt., nach Stückzahl gewichtet), nur Teile und Minifiguren ab ${de(P.minValue, 0)} € Warenwert, mindestens ${P.minSales} Verkäufe, Abweichung ab ${P.minDev} %. Sortiert ist nach der Abweichung in Prozent, die größte zuerst; „Im Lot“ ist der Unterschied für die ganze Menge. ${cover}</p>`;
   }
 
@@ -551,7 +552,7 @@
       <p>Der Lagerwert ist der Verkaufswert (Menge mal Preis), nicht dein Einkaufspreis. „Neu eingestellt“ zählt nur Lots, die noch im Bestand sind. Bestseller zählen die Stückzahl je Monat (neu und gebraucht zusammen), die Bilder kommen direkt von Bricklink.</p>
       <p>Der Preis-Check vergleicht deine Preise mit den Verkaufspreisen der letzten 6 Monate bei Bricklink. Weil dafür je Lot eine Abfrage nötig ist und Bricklink nur begrenzt viele am Tag erlaubt, wird täglich ein Teil deiner Lots geprüft.</p>
       <p>PREIS ANPASSEN ändert den Preis dieses einen Lots sofort bei Bricklink (nur der Preis, und nur wenn er dort noch so ist wie hier angezeigt). Mit RÜCKGÄNGIG stellst du den alten Preis wieder her. Ein eigener Rabatt auf das Lot bleibt dabei erhalten.</p>
-      <p>Alle 2 Stunden wird dein Bestand mit der Preis-Check-Liste verglichen: Lots, deren Preis du geändert hast (in Bricklink oder hier) oder die verkauft sind, wandern für eine Woche in „Erledigt“ und verschwinden dann von selbst. Neu eingestellte Lots werden gleich geprüft; was in den letzten drei Tagen zum ersten Mal auffiel, trägt NEU. JETZT PRÜFEN startet die Kontrolle sofort.</p>
+      <p>Alle 2 Stunden wird dein Bestand mit der Preis-Check-Liste verglichen: Lots, deren Preis du geändert hast (in Bricklink oder hier) oder die verkauft sind, wandern für eine Woche in „Erledigt“ und verschwinden dann von selbst. Neu eingestellte Lots werden gleich geprüft, dazu kommen bei jeder Kontrolle weitere Lots der Reihe nach dran (so wächst die Liste nach); was in den letzten drei Tagen zum ersten Mal auffiel, trägt NEU. JETZT PRÜFEN startet die Kontrolle sofort und prüft dabei etwas mehr Lots.</p>
       <p>Gespeichert werden Zahlen und für die drei Listen je Artikel Nummer, Name, Farbe, Menge und Preis, im privaten Repo. Von Käufern wird nichts gespeichert: keine Namen, keine Adressen, keine Nachrichten.</p></div>`;
     return `<div class="sr-head"><div><span class="sr-t1">SHOP-RADAR</span><span class="sr-t2">Bricklink: Warum läuft der Shop (nicht)?</span></div><div class="sr-meta">${model.stand ? `<span>Stand ${esc(model.stand)}</span>` : ""}<button type="button" class="sr-i" data-sr-act="info" aria-pressed="${ui.info ? "true" : "false"}" aria-label="Erklärungen ein- oder ausblenden">i</button></div></div>
       ${infoTxt}
@@ -721,7 +722,10 @@
         if (fresh && typeof fresh === "object" && data) data.bricklinkPrices = fresh;
         const nNew = ((fresh && fresh.over) || []).concat((fresh && fresh.under) || []).filter((r) => !before.rows.has(String(r.id))).length;
         const nDone = ((fresh && fresh.done) || []).filter((d) => !before.done.has(String(d.id))).length;
-        say(nNew || nDone ? `Preis-Check aktualisiert: ${nNew} neu, ${nDone} erledigt.` : "Preis-Check aktualisiert: keine Änderung.", "ok", 9000);
+        const checked = fresh && isNum(fresh.liveChecked) ? fresh.liveChecked : null;
+        const part = checked !== null ? ` (${de(checked, 0)} Lots geprüft)` : "";
+        const limit = checked === 0 && fresh.sweepLeft === 0 ? " Das Tageslimit für zusätzliche Abfragen ist erreicht." : "";
+        say(nNew || nDone ? `Preis-Check aktualisiert: ${nNew} neu, ${nDone} erledigt${part}.${limit}` : `Preis-Check aktualisiert: keine Änderung${part}.${limit}`, "ok", 9000);
       } catch (e) {
         say(`Prüfung nicht abgeschlossen: ${e && e.message ? e.message : "unbekannter Fehler"}`, "err", 12000);
       }

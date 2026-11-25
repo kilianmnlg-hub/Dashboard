@@ -2775,7 +2775,7 @@
       if (run && run.status === "completed") break;
     }
     if (!run || run.status !== "completed") throw new Error("Die Prüfung läuft noch (vielleicht ist gerade ein Sync dran). Bitte später die Seite neu laden.");
-    if (run.conclusion !== "success") throw new Error(run.conclusion === "cancelled" ? "Der Lauf wurde abgebrochen, weil ein neuerer ihn ersetzt hat. Bitte noch einmal versuchen." : "Der Lauf bei GitHub ist fehlgeschlagen (Tab Actions, „Check prices“).");
+    if (run.conclusion !== "success") throw new Error(run.conclusion === "cancelled" ? "Der Lauf wurde abgebrochen, weil ein neuerer ihn ersetzt hat. Bitte noch einmal versuchen." : "Der Lauf bei GitHub ist fehlgeschlagen (Tab Actions, „Check prices“). Meist war es nur ein Zusammenstoß beim Speichern, bitte noch einmal drücken.");
     return loadFreshPrices();
   }
   const priceCheckBoard = { run: runPriceCheck };

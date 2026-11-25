@@ -13,10 +13,11 @@
 // "Erledigt" (done), sonst bleibt es mit dem neuen Preis stehen. Ist das Lot weg (verkauft, geloescht, im Stockroom), steht es ebenfalls in "Erledigt". Neue Zeilen tragen den Tag,
 // an dem sie zum ersten Mal auffielen (since), damit das Dashboard sie als NEU kennzeichnen kann.
 
-export const MAX_ROWS = 50;
+// Zeilen je Richtung, die gespeichert werden (das Dashboard zeigt zehn, auf Wunsch alle): grosszuegig, damit nach dem Abarbeiten der obersten Zeilen die naechsten schon da sind
+export const MAX_ROWS = 200;
 export const DEFAULTS = { minValue: 1, cap: 1500, minDev: 30, minSales: 3, minDiff: 0.5 };
 // Liste "Erledigt": hoechstens so viele Eintraege, hoechstens so viele Tage alt
-export const DONE_MAX = 50;
+export const DONE_MAX = 100;
 export const DONE_DAYS = 7;
 
 const num = (v) => {
@@ -100,6 +101,23 @@ export function indexLots(lots) {
     });
   }
   return index;
+}
+
+// Der laufende Durchlauf (zusaetzlich zu den Etappen): die naechsten Lots der Reihe nach Lot-Nummer ab dem Zeiger after (am Ende geht es vorn weiter), ohne die Nummern in skip.
+// Der Zeiger ist die Nummer des zuletzt geprueften Lots und bleibt auch dann stimmig, wenn Lots dazukommen oder wegfallen.
+export function pickSweep(eligible, { after = 0, take = 0, skip = new Set() } = {}) {
+  const sorted = (Array.isArray(eligible) ? eligible : []).filter((c) => !skip.has(c.id)).sort((a, b) => a.id - b.id);
+  if (!sorted.length || !(take > 0)) return [];
+  let start = sorted.findIndex((c) => c.id > after);
+  if (start < 0) start = 0;
+  return Array.from({ length: Math.min(take, sorted.length) }, (_, k) => sorted[(start + k) % sorted.length]);
+}
+
+// Neuer Zeiger nach einer Pruefung: die Nummer des letzten Lots der lueckenlos geprueften Strecke (ein Lot ohne Antwort haelt den Zeiger davor an, damit es beim naechsten Mal wieder drankommt)
+export function advanceCursor(sweep, checkedIds, after = 0) {
+  let k = 0;
+  while (k < sweep.length && checkedIds.has(sweep[k].id)) k += 1;
+  return k > 0 ? sweep[k - 1].id : after;
 }
 
 const devOf = (price, avg) => Math.round((price / avg - 1) * 100);

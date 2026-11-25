@@ -1,8 +1,9 @@
-# Regelmäßige Kontrolle des Preis-Checks (Shop-Radar): alle 2 Stunden wird das Bricklink-Inventar abgerufen (EIN Aufruf) und die Liste gegen den Bestand gehalten:
-# Lots, deren Preis du inzwischen geändert hast (in Bricklink oder über das Dashboard), und verkaufte oder gelöschte Lots wandern in die Liste "Erledigt", neu eingestellte
-# Lots werden gleich auf einen schlechten Preis geprüft, statt auf ihre Etappe zu warten (SYNC_ONLY=prices in scripts/sync-all.mjs, Rechenregeln in scripts/lib/pricecheck.mjs).
-# Schreibt data.js (im privaten Repo) NUR bei einer Änderung, höchstens alle 12 Stunden zusätzlich den Zeitstempel "liveAt" (damit das Dashboard sieht, dass die Kontrolle läuft).
-# Kostet je Lauf einen API-Aufruf plus höchstens 150 Preisabfragen für neue Lots (Tageslimit der Bricklink-API: 5.000, davon höchstens 600 für neue Lots).
+# Regelmäßige Kontrolle des Preis-Checks (Shop-Radar): alle 2 Stunden und auf Knopfdruck ("JETZT PRÜFEN" im Dashboard) wird das Bricklink-Inventar abgerufen (EIN Aufruf) und die Liste
+# gegen den Bestand gehalten: Lots, deren Preis du inzwischen geändert hast (in Bricklink oder über das Dashboard), und verkaufte oder gelöschte Lots wandern in die Liste "Erledigt".
+# Dabei wird weiter nach Lots gesucht, die geändert werden müssen: Neu eingestellte Lots werden gleich geprüft, und ein Durchlauf prüft zusätzlich die nächsten Lots der Reihe nach
+# (im Zeitplan 60 je Lauf, auf Knopfdruck 150; höchstens 1.200 am Tag), so wächst die Liste nach dem Abarbeiten von selbst nach (SYNC_ONLY=prices in scripts/sync-all.mjs, Regeln in scripts/lib/pricecheck.mjs).
+# Schreibt data.js (im privaten Repo) bei einer Änderung, sonst höchstens alle 4 Stunden den Zeitstempel "liveAt" (damit das Dashboard sieht, dass die Kontrolle läuft); auf Knopfdruck immer.
+# Kostet je Lauf einen API-Aufruf plus die Preisabfragen für neue Lots und den Durchlauf (Tageslimit der Bricklink-API: 5.000; der Tages-Sync braucht rund 1.500).
 # GitHub startet geplante Läufe manchmal mit einigen Minuten Verspätung. Braucht dieselben Secrets wie der Sync (BRICKLINK_*, PRIVATE_DATA_TOKEN).
 # Manuell anstoßen: Tab "Actions" -> "Check prices" -> "Run workflow", oder im Dashboard mit dem Knopf "JETZT PRÜFEN" im Preis-Check (der gibt eine Kennung mit, damit er seinen Lauf wiederfindet).
 name: Check prices
@@ -67,6 +68,9 @@ jobs:
         env:
           SYNC_ONLY: prices
           DATA_DIR: private
+          # Auf Knopfdruck (und von Hand) mehr Lots je Lauf und immer speichern, im Zeitplan weniger
+          BRICKLINK_PRICE_SWEEP_RUN: ${{ github.event_name == 'workflow_dispatch' && '150' || '60' }}
+          BRICKLINK_PRICE_FORCE: ${{ github.event_name == 'workflow_dispatch' && '1' || '' }}
           BRICKLINK_CONSUMER_KEY: ${{ secrets.BRICKLINK_CONSUMER_KEY }}
           BRICKLINK_CONSUMER_SECRET: ${{ secrets.BRICKLINK_CONSUMER_SECRET }}
           BRICKLINK_TOKEN_VALUE: ${{ secrets.BRICKLINK_TOKEN_VALUE }}
@@ -75,7 +79,7 @@ jobs:
           git -C private config user.name "dashboard-bot"
           git -C private config user.email "actions@users.noreply.github.com"
           n=0
-          until [ $n -ge 5 ]; do
+          until [ $n -ge 4 ]; do
             node scripts/sync-all.mjs
             git -C private add data.js
             if git -C private diff --quiet --cached; then
@@ -83,16 +87,21 @@ jobs:
               exit 0
             fi
             git -C private commit -q -m "Preis-Check aufgefrischt"
-            if git -C private push -q; then
-              exit 0
-            fi
-            # Push abgelehnt: zeitgleich hat jemand anderes geschrieben (z.B. der stündliche Schnellcheck auf neue Videos). Mit dem neuesten Stand neu rechnen,
-            # statt denselben Commit erneut zu versuchen.
+            # Push abgelehnt: zeitgleich hat jemand anderes in dieses Repo geschrieben. Meist war es eine ANDERE Datei (z.B. ein Preis-Auftrag aus dem Dashboard, die oft kurz hintereinander
+            # kommen): dann genügt ein schnelles Rebase, die Daten dieses Laufs bleiben gültig. Das Neurechnen unten dauert eine halbe Minute und verliert bei vielen Aufträgen das Rennen.
+            for k in 1 2 3 4 5 6; do
+              if git -C private push -q; then exit 0; fi
+              if ! git -C private pull -q --rebase origin main; then
+                git -C private rebase --abort 2>/dev/null || true
+                break
+              fi
+            done
+            # Nur wenn data.js selbst von jemand anderem geändert wurde (Konflikt beim Rebase, z.B. durch den stündlichen Schnellcheck auf neue Videos): mit dem neuesten Stand neu rechnen
             n=$((n+1))
-            echo "Push fehlgeschlagen (Versuch $n/5), hole den neuesten Stand und rechne erneut ..."
-            git -C private fetch origin main
-            git -C private reset --hard origin/main
+            echo "Push fehlgeschlagen (Versuch $n/4), rechne mit dem neuesten Stand neu ..."
+            git -C private fetch -q origin main
+            git -C private reset -q --hard origin/main
             sleep $((RANDOM % 8 + 3))
           done
-          echo "Push nach 5 Versuchen weiterhin fehlgeschlagen."
+          echo "Push nach 4 Versuchen weiterhin fehlgeschlagen."
           exit 1

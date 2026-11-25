@@ -25,7 +25,7 @@
 import { buildAuthHeader } from "../lib/oauth1.mjs";
 import { summarizeInventory } from "../lib/inventory.mjs";
 import { summarizeSales } from "../lib/sales.mjs";
-import { DEFAULTS as PRICE_DEFAULTS, evaluate, indexLots, pickEligible, pickSlice, refreshRows } from "../lib/pricecheck.mjs";
+import { DEFAULTS as PRICE_DEFAULTS, advanceCursor, evaluate, indexLots, pickEligible, pickSlice, pickSweep, refreshRows } from "../lib/pricecheck.mjs";
 import { parseGuide } from "../lib/lego.mjs";
 
 const BASE_URL = "https://api.bricklink.com/api/store/v1";
@@ -69,7 +69,12 @@ const PRICE_MINUTES = Number(process.env.BRICKLINK_PRICE_MINUTES || 10);
 const PRICE_NEW_RUN_CAP = Number(process.env.BRICKLINK_PRICE_NEW_RUN || 150);
 const PRICE_NEW_DAY_CAP = Number(process.env.BRICKLINK_PRICE_NEW_DAY || 600);
 const PRICE_NEW_MINUTES = Number(process.env.BRICKLINK_PRICE_NEW_MINUTES || 5);
-const LIVE_REFRESH_MS = 12 * 3600000;
+// Durchlauf: die naechsten Lots der Reihe nach pruefen (je Lauf, je Tag, Minuten); im Zeitplan wenige je Lauf, auf Knopfdruck mehr (der Workflow setzt BRICKLINK_PRICE_SWEEP_RUN)
+const PRICE_SWEEP_RUN = Number(process.env.BRICKLINK_PRICE_SWEEP_RUN || 60);
+const PRICE_SWEEP_DAY = Number(process.env.BRICKLINK_PRICE_SWEEP_DAY || 1200);
+const PRICE_SWEEP_MINUTES = Number(process.env.BRICKLINK_PRICE_SWEEP_MINUTES || 4);
+const PRICE_FORCE = /^(1|true|yes)$/i.test(String(process.env.BRICKLINK_PRICE_FORCE || "").trim());
+const LIVE_REFRESH_MS = 4 * 3600000;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Alle Abrufe: Zeitlimit (25 s) und bis zu drei Versuche mit Wartezeit bei 429, 5xx, Zeitüberschreitung, Netzfehler und einer Webseite statt Daten (kurze Störung bei Bricklink).
@@ -185,11 +190,15 @@ async function fetchPriceCheck(lots, previous, currency, creds, now) {
   };
 }
 
-// Die regelmaessige Kontrolle (SYNC_ONLY=prices, Workflow check-prices.yml, alle 2 Stunden): holt das Inventar (EIN Aufruf), haelt die gespeicherten Zeilen des Preis-Checks gegen den
-// Bestand (geaenderte Preise, verkaufte Lots, siehe refreshRows) und prueft neu eingestellte Lots gleich mit, statt auf ihre Etappe zu warten. "Neu" heisst: Erstelldatum ab der Marke
-// newFrom (zuerst das Datum der letzten Etappe, danach das des ersten noch nicht geprueften Lots), hoechstens BRICKLINK_PRICE_NEW_RUN je Lauf und BRICKLINK_PRICE_NEW_DAY je Tag,
-// damit das Tageslimit der API (5.000) auch nach einem grossen Upload reicht. Liefert null, wenn sich nichts geaendert hat (der Zeitstempel liveAt wird alle 12 Stunden erneuert, damit
-// das Dashboard sieht, dass die Kontrolle laeuft). Vor dem ersten Durchlauf der Etappen gibt es nichts aufzufrischen.
+// Die regelmaessige Kontrolle (SYNC_ONLY=prices, Workflow check-prices.yml, alle 2 Stunden und auf Knopfdruck im Dashboard): holt das Inventar (EIN Aufruf), haelt die gespeicherten
+// Zeilen des Preis-Checks gegen den Bestand (geaenderte Preise, verkaufte Lots, siehe refreshRows) und sucht dabei weiter nach Lots, die geaendert werden muessen:
+//  - neu eingestellte Lots werden gleich geprueft (Erstelldatum ab der Marke newFrom: zuerst das Datum der letzten Etappe, danach das des ersten noch nicht geprueften Lots),
+//    hoechstens BRICKLINK_PRICE_NEW_RUN je Lauf und BRICKLINK_PRICE_NEW_DAY je Tag;
+//  - der Durchlauf prueft zusaetzlich die naechsten Lots der Reihe nach Lot-Nummer (Zeiger sweepAfter, am Ende geht es vorn weiter), hoechstens BRICKLINK_PRICE_SWEEP_RUN je Lauf
+//    (der Workflow gibt auf Knopfdruck mehr als im Zeitplan) und BRICKLINK_PRICE_SWEEP_DAY je Tag. So waechst die Liste nach dem Abarbeiten von selbst nach, statt auf den naechsten
+//    Tages-Sync zu warten, und das Tageslimit der API (5.000) reicht auch bei vielen Knopfdruecken.
+// Liefert null, wenn sich nichts geaendert hat (der Zeitstempel liveAt wird alle 4 Stunden erneuert, damit das Dashboard sieht, dass die Kontrolle laeuft; BRICKLINK_PRICE_FORCE=1, vom
+// Knopf im Dashboard, schreibt immer). Vor dem ersten Durchlauf der Etappen gibt es nichts aufzufrischen.
 export async function fetchBricklinkPrices(currentData) {
   if (!PRICE_ENABLED) return null;
   const previous = currentData?.bricklinkPrices;
@@ -217,7 +226,7 @@ export async function fetchBricklinkPrices(currentData) {
   console.log("[bricklink] Inventar abgerufen.");
   const currency = previous.currency || "EUR";
 
-  // neu eingestellte Lots gleich pruefen
+  // 1. neu eingestellte Lots gleich pruefen
   const mark = Date.parse(previous.newFrom || "") || Date.parse(previous.checkedAt || "") || now.getTime() - 86400000;
   const createdOf = (c) => (index.get(c.id) || {}).created;
   const pending = eligible.filter((c) => Number.isFinite(createdOf(c)) && createdOf(c) >= mark).sort((a, b) => createdOf(a) - createdOf(b));
@@ -232,7 +241,16 @@ export async function fetchBricklinkPrices(currentData) {
   index.forEach((v) => { if (v.created && v.created > newest) newest = v.created; });
   const newFrom = k < pending.length ? createdOf(pending[k]) : Math.max(mark, newest + 1);
 
-  const merged = refreshRows({ previous: [...previous.over, ...previous.under], fresh: res.fresh, index, checkedIds: res.checkedIds, today, previousDone: previous.done, minDev: PRICE_DEV });
+  // 2. Durchlauf: die naechsten Lots der Reihe nach Lot-Nummer (ohne die eben als neu geprueften)
+  const sweepUsed = previous.sweepDay === today ? Number(previous.sweepCount) || 0 : 0;
+  const sweepTake = Math.max(0, Math.min(PRICE_SWEEP_RUN, PRICE_SWEEP_DAY - sweepUsed));
+  const after = Number(previous.sweepAfter) || 0;
+  const sweep = pickSweep(eligible, { after, take: sweepTake, skip: new Set(batch.map((c) => c.id)) });
+  const sres = sweep.length ? await checkLots(sweep, { creds, currency, today, minutes: PRICE_SWEEP_MINUTES }) : { fresh: [], checkedIds: new Set(), withData: 0, aborted: false };
+  const sweepAfter = advanceCursor(sweep, sres.checkedIds, after);
+
+  const checkedIds = new Set([...res.checkedIds, ...sres.checkedIds]);
+  const merged = refreshRows({ previous: [...previous.over, ...previous.under], fresh: res.fresh.concat(sres.fresh), index, checkedIds, today, previousDone: previous.done, minDev: PRICE_DEV });
   // Farbnamen der neuen Zeilen (ein Aufruf, bei einem Fehler zeigt das Radar die Nummer)
   const lacking = [...merged.over, ...merged.under, ...merged.done].filter((s) => s && !s.colorName && s.color);
   if (lacking.length) {
@@ -244,20 +262,21 @@ export async function fetchBricklinkPrices(currentData) {
       console.error("[bricklink] Farbnamen übersprungen:", err.message);
     }
   }
+  const sweepCount = sweepUsed + sres.checkedIds.size;
   const next = {
     ...previous, over: merged.over, under: merged.under, done: merged.done,
-    liveAt: now.toISOString(), eligible: eligible.length, newFrom: new Date(newFrom).toISOString(), newDay: today, newCount: usedToday + res.checkedIds.size
+    liveAt: now.toISOString(), liveChecked: checkedIds.size, eligible: eligible.length, newFrom: new Date(newFrom).toISOString(), newDay: today, newCount: usedToday + res.checkedIds.size,
+    sweepAfter, sweepDay: today, sweepCount, sweepLeft: Math.max(0, PRICE_SWEEP_DAY - sweepCount)
   };
-  const core = (p) => JSON.stringify([p.over, p.under, p.done, p.newFrom]);
+  const core = (p) => JSON.stringify([p.over, p.under, p.done, p.newFrom, Number(p.sweepAfter) || 0]);
   const stale = now.getTime() - (Date.parse(previous.liveAt || "") || 0) > LIVE_REFRESH_MS;
-  if (!stale && core(next) === core(previous)) {
+  if (!PRICE_FORCE && !stale && core(next) === core(previous)) {
     console.log("[bricklink] Preis-Check: keine Änderung.");
     return null;
   }
   console.log("[bricklink] Preis-Check aufgefrischt.");
   return { bricklinkPrices: next };
 }
-
 
 // Montag der ISO-Woche, in der `date` liegt, als "YYYY-MM-DD".
 function isoWeekStart(date) {
