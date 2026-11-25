@@ -2316,12 +2316,17 @@
 
   renderTodos();
 
-  // ---------- Aufgaben + Remote Tasks (persistent, kein täglicher Reset) ----------
-  // Beide Listen funktionieren identisch und unterscheiden sich nur in Storage-Key, Feld in
-  // sync-data.json und den DOM-Elementen - daher eine gemeinsame Fabrik.
+  // ---------- Aufgaben (persistent, kein täglicher Reset) ----------
+  // Eine Liste fuer alles (frueher getrennt in "Aufgaben" und "Remote Tasks"). Jede Aufgabe hat eine Prioritaet (rot, gelb oder gruen; ohne Angabe gelb)
+  // und eine Remote-Markierung (kleiner Weltkugel-Knopf). Gespeichert wird beides an der Aufgabe: prio ("red" | "yellow" | "green") und remote (true).
+  // Angezeigt wird nach Prioritaet, rot zuerst; die gespeicherte Reihenfolge bleibt unveraendert und gilt innerhalb einer Stufe weiter.
+  // Die alte Remote-Liste aus der Cloud (Feld remoteTasks) wird beim Laden einmal in diese Liste uebernommen (takeOver) und dann geleert.
   // Mail-Links an Aufgaben (z.B. "Kooperation beantworten"): nur Gmail-Adressen aus erlaubten Zeichen, damit nichts aus dem Attribut ausbrechen kann
   const GMAIL_URL = /^https:\/\/mail\.google\.com\/[\w\-.~:/?#@!$&()*+,;=%|\[\]]*$/;
   const TASK_LINK_ICON = '<svg viewBox="0 0 7 7" width="14" height="14" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M2 0h5v1H2zM6 1h1v4H6zM5 1h1v1H5zM4 2h1v1H4zM3 3h1v1H3zM2 4h1v1H2zM1 5h1v1H1z"/></svg>';
+  const TASK_PRIOS = ["red", "yellow", "green"];
+  const TASK_PRIO_NAME = { red: "Rot", yellow: "Gelb", green: "Grün" };
+  const taskPrioOf = (item) => (TASK_PRIOS.includes(item.prio) ? item.prio : "yellow");
   function createTaskBoard({ storageKey, listId, inputId, addBtnId, xpKey }) {
     // Cloud-Sync ueber sync-data.json, gleiches Zeitstempel-Prinzip wie beim Habit-Tracker.
     const loadState = () => {
@@ -2387,14 +2392,27 @@
     }
 
     board.render = () => {
-      listEl.innerHTML = board.items.length
-        ? board.items
-            .map(
-              (item) => `
-      <li class="todo-item ${item.done ? "done" : ""}" data-id="${item.id}">
+      // Reihenfolge der Anzeige: nach Prioritaet (rot, gelb, gruen), innerhalb einer Stufe wie gespeichert
+      const shown = board.items
+        .map((item, i) => ({ item, i }))
+        .sort((a, b) => TASK_PRIOS.indexOf(taskPrioOf(a.item)) - TASK_PRIOS.indexOf(taskPrioOf(b.item)) || a.i - b.i)
+        .map((x) => x.item);
+      listEl.innerHTML = shown.length
+        ? shown
+            .map((item) => {
+              const prio = taskPrioOf(item);
+              return `
+      <li class="todo-item task-item ${item.done ? "done" : ""}${item.remote ? " is-remote" : ""}" data-id="${item.id}" data-prio="${prio}">
         <input type="checkbox" ${item.done ? "checked" : ""} aria-label="Erledigt: ${escapeHtml(item.text)}" />
+        <div class="task-prio-wrap">
+          <button type="button" class="task-prio" aria-haspopup="true" aria-expanded="false" aria-label="Priorität: ${TASK_PRIO_NAME[prio]}, ändern" title="Priorität: ${TASK_PRIO_NAME[prio]}"><i></i></button>
+          <div class="task-prio-menu" hidden>
+            ${TASK_PRIOS.map((p) => `<button type="button" data-prio="${p}" aria-pressed="${p === prio}"><i class="tp-sq" data-prio="${p}"></i>${TASK_PRIO_NAME[p]}</button>`).join("")}
+          </div>
+        </div>
         <span>${escapeHtml(item.text)}</span>
         ${item.url && GMAIL_URL.test(item.url) ? `<a class="todo-link" href="${item.url}" target="_blank" rel="noopener" aria-label="Mail in Gmail öffnen" title="Mail in Gmail öffnen">${TASK_LINK_ICON}</a>` : ""}
+        <button type="button" class="task-remote${item.remote ? " on" : ""}" aria-pressed="${item.remote ? "true" : "false"}" aria-label="Remote markieren" title="${item.remote ? "Remote-Markierung entfernen" : "Als Remote markieren"}">${pxSpr("globe", 14)}</button>
         <div class="todo-move-wrap">
           <button type="button" class="todo-move" aria-label="Ins Tages-To-Do verschieben" title="Ins Tages-To-Do verschieben">↩</button>
           <div class="todo-move-menu" hidden>
@@ -2402,12 +2420,15 @@
           </div>
         </div>
         <button type="button" class="todo-remove" aria-label="Entfernen: ${escapeHtml(item.text)}">×</button>
-      </li>`
-            )
+      </li>`;
+            })
             .join("")
         : `<li class="todo-empty">Noch nichts eingetragen.</li>`;
 
-      const closeAllMoveMenus = () => listEl.querySelectorAll(".todo-move-menu").forEach((m) => (m.hidden = true));
+      const closeAllMoveMenus = () => {
+        listEl.querySelectorAll(".todo-move-menu, .task-prio-menu").forEach((m) => (m.hidden = true));
+        listEl.querySelectorAll('.task-prio[aria-expanded="true"]').forEach((b) => b.setAttribute("aria-expanded", "false"));
+      };
 
       listEl.querySelectorAll(".todo-item").forEach((row) => {
         const id = row.getAttribute("data-id");
@@ -2428,6 +2449,43 @@
           board.save();
           board.render();
         });
+        // Prioritaet: Knopf mit Menue (rot, gelb, gruen); nach der Wahl springt die Zeile an ihren Platz in der Liste und blitzt kurz auf
+        const prioBtn = row.querySelector(".task-prio");
+        const prioMenu = row.querySelector(".task-prio-menu");
+        prioBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const wasHidden = prioMenu.hidden;
+          closeAllMoveMenus();
+          prioMenu.hidden = !wasHidden;
+          prioBtn.setAttribute("aria-expanded", String(!prioMenu.hidden));
+        });
+        prioMenu.querySelectorAll("button").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const item = board.items.find((t) => t.id === id);
+            const p = btn.getAttribute("data-prio");
+            if (!item || !TASK_PRIOS.includes(p) || p === taskPrioOf(item)) {
+              closeAllMoveMenus();
+              prioBtn.focus();
+              return;
+            }
+            item.prio = p;
+            board.save();
+            board.render();
+            flashNewItem(listEl, id);
+            listEl.querySelector(`.todo-item[data-id="${CSS.escape(id)}"] .task-prio`)?.focus();
+          });
+        });
+        // Remote: ein/aus
+        row.querySelector(".task-remote").addEventListener("click", () => {
+          const item = board.items.find((t) => t.id === id);
+          if (!item) return;
+          if (item.remote) delete item.remote;
+          else item.remote = true;
+          board.save();
+          board.render();
+          listEl.querySelector(`.todo-item[data-id="${CSS.escape(id)}"] .task-remote`)?.focus();
+        });
         const menu = row.querySelector(".todo-move-menu");
         row.querySelector(".todo-move").addEventListener("click", (e) => {
           e.stopPropagation();
@@ -2446,6 +2504,9 @@
       if (!listEl.dataset.moveMenuOutsideClickBound) {
         listEl.dataset.moveMenuOutsideClickBound = "1";
         document.addEventListener("click", closeAllMoveMenus);
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeAllMoveMenus();
+        });
       }
       staggerListOnce(listEl);
     };
@@ -2464,6 +2525,29 @@
     inputEl.addEventListener("keydown", (e) => {
       if (e.key === "Enter") add();
     });
+
+    // Die frueheren Remote Tasks (Cloud-Feld remoteTasks) einmal in diese Liste uebernehmen: jeder offene Punkt kommt mit Remote-Markierung dazu
+    // (gleiche ID = schon da, wird uebersprungen). Gibt true zurueck, wenn die alte Liste in der Cloud noch Eintraege hat und deshalb geleert werden
+    // muss. takenIds verhindert, dass ein uebernommener und inzwischen abgehakter Punkt aus einem noch nicht geleerten Cloud-Stand wiederkommt.
+    const takenIds = new Set();
+    board.takeOver = (legacy) => {
+      const list = legacy && Array.isArray(legacy.items) ? legacy.items : [];
+      let added = 0;
+      list.forEach((it) => {
+        if (!it || typeof it.text !== "string" || !it.text.trim() || !it.id || takenIds.has(it.id)) return;
+        takenIds.add(it.id);
+        if (it.done || board.items.some((t) => t.id === it.id)) return;
+        const copy = { id: String(it.id), text: it.text.trim().slice(0, 120), done: false, remote: true };
+        if (typeof it.url === "string" && GMAIL_URL.test(it.url)) copy.url = it.url.slice(0, 400);
+        board.items.push(copy);
+        added++;
+      });
+      if (added) {
+        board.save();
+        board.render();
+      }
+      return list.length > 0;
+    };
 
     // Cloud-Stand uebernehmen (Regeln siehe remoteWins). Direkt in den Speicher mit dem
     // Cloud-Zeitstempel, ohne save(): kein unnoetiger Rueck-Push.
@@ -2512,42 +2596,10 @@
     inputId: "taskInput",
     addBtnId: "taskAddBtn"
   });
-  const remoteTaskBoard = createTaskBoard({
-    xpKey: "rtask",
-    storageKey: "dashboard-remote-tasks-v1",
-    listId: "remoteTaskList",
-    inputId: "remoteTaskInput",
-    addBtnId: "remoteTaskAddBtn"
-  });
   const taskList = taskBoard.listEl;
-  const remoteTaskList = remoteTaskBoard.listEl;
-
-  // Aufgaben und Remote Tasks teilen sich einen Bereich: oben ein Umschalter, die Zahl zeigt je Reiter die offenen Punkte
-  (function taskSwitch() {
-    const seg = document.getElementById("taskSeg");
-    if (!seg) return;
-    const panes = { a: document.getElementById("taskPaneA"), r: document.getElementById("taskPaneR") };
-    const cnt = { a: document.getElementById("taskCntA"), r: document.getElementById("taskCntR") };
-    const select = (t) => {
-      Object.entries(panes).forEach(([k, el]) => { if (el) el.hidden = k !== t; });
-      seg.querySelectorAll("button[data-t]").forEach((b) => {
-        const on = b.dataset.t === t;
-        b.classList.toggle("on", on);
-        b.setAttribute("aria-selected", String(on));
-      });
-    };
-    seg.addEventListener("click", (e) => {
-      const b = e.target.closest("button[data-t]");
-      if (b) select(b.dataset.t);
-    });
-    const open = (board) => (board.items || []).filter((i) => !i.done).length;
-    const count = () => {
-      if (cnt.a) cnt.a.textContent = String(open(taskBoard));
-      if (cnt.r) cnt.r.textContent = String(open(remoteTaskBoard));
-    };
-    [taskList, remoteTaskList].forEach((l) => new MutationObserver(count).observe(l, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] }));
-    count();
-  })();
+  // Frueher getrennte Remote Tasks: stehen sie in der Cloud noch (Feld remoteTasks), werden sie beim Laden in die Aufgaben uebernommen (takeOver)
+  // und beim naechsten Speichern geleert. Der Zeitstempel der geleerten Liste bleibt gleich, damit der Stand sich nicht bei jedem Speichern aendert.
+  let legacyRemoteClear = null;
 
   // Einkaufsliste (Logik, Symbole und Oberfläche in shopping.js). Liegt wie alles andere nur in der
   // Cloud: Feld "shopping" in sync-data.json, gleiche Zeitstempel-/Merge-Regeln wie die Aufgaben.
@@ -3410,7 +3462,6 @@
       studiumDeadline,
       todos: { date: todayKey(), items: todosState.items, updatedAt: clampedAt(todosState.updatedAt) },
       tasks: taskBoard.payload(),
-      remoteTasks: remoteTaskBoard.payload(),
       shopping: shoppingBoard ? shoppingBoard.payload() : remoteShoppingRaw,
       timetracker: timeTrackerBoard ? timeTrackerBoard.payload() : remoteTimeTrackerRaw,
       inbox: inboxBoard ? inboxBoard.payload() : remoteInboxRaw,
@@ -3423,6 +3474,7 @@
       uploadPlan: ukBoard ? ukBoard.payload() : remoteUkRaw,
       room: roomBoard ? roomBoard.payload() : remoteRoomRaw
     };
+    if (legacyRemoteClear) payload.remoteTasks = { items: [], updatedAt: legacyRemoteClear };
     if (payload.room == null) delete payload.room;
     if (payload.afterUpload == null) delete payload.afterUpload;
     if (payload.community == null) delete payload.community;
@@ -3455,6 +3507,11 @@
       markWrite();
       if (putRes.ok) {
         syncDataCloudSha = (await putRes.json()).content?.sha || syncDataCloudSha;
+        // Die alte Remote-Liste ist jetzt in der Cloud geleert: als bekannten Stand merken, damit sie nicht aus dem Gedaechtnis zurueckkommt
+        if (legacyRemoteClear) {
+          if (lastRemoteSyncJson) lastRemoteSyncJson.remoteTasks = payload.remoteTasks;
+          legacyRemoteClear = null;
+        }
         return true;
       }
       if (putRes.status === 401 || putRes.status === 403) {
@@ -3566,7 +3623,11 @@
         applyRemoteIdeas(remote.ideas);
         applyRemoteStudium(remote.studiumDeadline);
         taskBoard.applyRemote(remote.tasks);
-        remoteTaskBoard.applyRemote(remote.remoteTasks);
+        // Fruehere Remote Tasks: einmal in die Aufgaben uebernehmen, die alte Cloud-Liste wird beim naechsten Speichern geleert
+        if (taskBoard.takeOver(remote.remoteTasks) && !legacyRemoteClear) {
+          legacyRemoteClear = Date.now();
+          scheduleAutoSync("syncdata");
+        }
         remoteShoppingRaw = remote.shopping ?? null;
         if (shoppingBoard) shoppingBoard.applyRemote(remote.shopping);
         remoteTimeTrackerRaw = remote.timetracker ?? null;
@@ -3608,7 +3669,6 @@
     // Beim ersten echten Rendern der Cloud-Daten sollen Listen wieder gestaffelt einfliegen
     // (das Rendern des noch leeren Arbeitsspeichers hat die Einmal-Flags sonst schon verbraucht).
     delete taskList.dataset.staggered;
-    delete remoteTaskList.dataset.staggered;
     todoGridStaggeredOnce = false;
     Object.values(ideaWidgets).forEach((w) => delete w.backlogEl.dataset.staggered);
 
@@ -4138,7 +4198,7 @@
         Object.values(todos || {}).forEach((list) => { if (Array.isArray(list)) { total += list.length; open += openCount(list); } });
         return !total ? "" : open ? `${open} OFFEN` : "ALLES ERLEDIGT";
       },
-      aufgaben: () => { const n = openCount(taskBoard.items) + openCount(remoteTaskBoard.items); return n ? `${n} OFFEN` : "ALLES ERLEDIGT"; },
+      aufgaben: () => { const n = openCount(taskBoard.items); return n ? `${n} OFFEN` : "ALLES ERLEDIGT"; },
       habits: () => {
         const hs = habitState.habits || [], today = dateKey(new Date()), log = habitState.log?.[today] || {}, cache = new Map();
         return hs.length ? `${hs.filter((h) => log[h.id] || isAutoDone(h, today, cache)).length} / ${hs.length} HEUTE` : "";
@@ -4282,13 +4342,11 @@
     };
     swipeViews(".habit-panel", "#habitViewToggle");
 
-    // Handy: Aufgaben und Remote Tasks nach rechts wischen = abhaken (wie ein Klick auf das Kaestchen)
-    [taskList, remoteTaskList].forEach((list) =>
-      PX.attachRowSwipe(list, ".todo-item", (row) => {
-        const cb = row.querySelector('input[type="checkbox"]');
-        if (cb) cb.click();
-      })
-    );
+    // Handy: Aufgaben nach rechts wischen = abhaken (wie ein Klick auf das Kaestchen)
+    PX.attachRowSwipe(taskList, ".todo-item", (row) => {
+      const cb = row.querySelector('input[type="checkbox"]');
+      if (cb) cb.click();
+    });
   })();
 
 })();

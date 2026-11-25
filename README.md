@@ -48,7 +48,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
   direkt aus dem Browser aktualisiert (siehe Abschnitt "Habit-Tracker")
 - `sync-data.json` (im privaten Repo) — Cloud-Kopie von Video-Ideen, Studium-Termin, Tages-To-Do und
   Aufgaben, ebenfalls vom Sync-Button direkt aus dem Browser aktualisiert (siehe
-  Abschnitt "Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben / Remote Tasks / Einkaufsliste")
+  Abschnitt "Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben / Einkaufsliste")
 
 ## Privater Daten-Speicher (Repo `dashboard-privat`)
 
@@ -667,13 +667,21 @@ Menü mit den drei Tages-To-Do-Spalten (Business, Studium & Job, Privates) —
 Klick auf eine Spalte verschiebt die Aufgabe dorthin (als neuer, nicht
 abgehakter Punkt) und entfernt sie aus "Aufgaben".
 
-## Remote Tasks
+**Priorität und Remote (seit 25.11.2026):** Es gibt nur noch **eine** Liste (die frühere Unterscheidung Aufgaben | Remote ist weg). Vor dem Text steht ein
+Quadrat in der Farbe der **Priorität**: rot, gelb oder grün. Antippen öffnet ein kleines Menü mit den drei Farben; nach der Wahl springt die Zeile an ihren Platz und
+blitzt kurz auf. Angezeigt wird **rot zuerst, dann gelb, dann grün**, innerhalb einer Farbe in der Reihenfolge, in der die Aufgaben eingetragen wurden. Neue Aufgaben (auch die aus dem
+Tages-To-Do vergangener Tage und aus den Kooperationsanfragen) sind **gelb**, solange du nichts änderst. Rechts am Eintrag sitzt ein kleiner **Weltkugel-Knopf**: Antippen
+markiert die Aufgabe als **Remote** (alles, was unterwegs oder von überall erledigt werden kann; der Knopf bekommt einen orangen Rahmen und bleibt sichtbar), nochmal Antippen nimmt die Markierung
+zurück. Gespeichert wird beides an der Aufgabe in `sync-data.json`: `prio` (`"red"`, `"yellow"` oder `"green"`; fehlt es, gilt gelb) und `remote` (`true`; fehlt es, ist die Aufgabe nicht markiert).
 
-Eigene Liste im Bereich "Aufgaben" (Umschalter AUFGABEN | REMOTE, seit 28.10.2026 kein eigenes Fenster mehr) für alles, was remote/unterwegs erledigt wird. Sie
-funktioniert exakt wie "Aufgaben" (gleicher Code): kein täglicher Reset, Abhaken entfernt
-den Eintrag, der Pfeil (↩) verschiebt ihn ins Tages-To-Do, und der Stand liegt als eigenes
-Feld `remoteTasks` in `sync-data.json` (Cloud-only, siehe unten). Offene Punkte aus dem
-Tages-To-Do vergangener Tage wandern weiterhin nur nach "Aufgaben".
+## Remote Tasks (nur noch eine Markierung)
+
+Bis 25.11.2026 gab es neben "Aufgaben" eine eigene Liste "Remote Tasks" (Umschalter AUFGABEN | REMOTE) für alles, was remote/unterwegs erledigt wird. Die Liste ist weg:
+Remote ist jetzt ein Knopf an jeder Aufgabe (siehe "Aufgaben", Abschnitt "Priorität und Remote"). **Übernahme der alten Einträge:** Beim ersten Laden mit der neuen Version
+kommt jeder offene Punkt aus dem Cloud-Feld `remoteTasks` mit gesetzter Remote-Markierung in die Aufgaben (`takeOver` in `script.js`; eine schon vorhandene ID wird übersprungen,
+nichts wird doppelt), danach wird `remoteTasks` in `sync-data.json` geleert (`{ items: [], updatedAt }`) und nie wieder beschrieben. Schreibt ein Gerät mit alter Version die
+alte Liste später zurück, wird sie beim nächsten Laden genauso übernommen und wieder geleert (nur eine inzwischen erledigte Aufgabe kann dabei einmal wiederkommen). Der Worker
+zählt für die Morgen-Zusammenfassung weiter beide Felder (die alte Liste ist leer).
 
 ## Benachrichtigungen (Web-Push) und Status
 
@@ -708,7 +716,7 @@ Auf Kilians Wunsch ("minimalisieren, unnötige Erklärungen weg, Dopplungen verm
   Level mit Rang, "So funktioniert's" und die Spiel-Version hinter "ⓘ Info". Leere Outfits zeigen nur noch eine Zeile.
 - **Benachrichtigungen oben:** gleiche Kästen wie vorher, aber nur der dicke Text (z.B. "1 Bestellung wartet auf Versand", "Brainwalkers: 15 Tage ohne
   Longform-Video"); die kleine Zeile darunter ist weg. Bei den Bricklink-Nachrichten bleiben die Bestell-Knöpfe und "ALLE GELESEN".
-- **Aufgaben + Remote Tasks** sind ein Fenster mit Umschalter (`#taskSeg`, Zahl der offenen Punkte je Reiter); IDs der Listen und der Cloud-Stand sind unverändert.
+- **Aufgaben + Remote Tasks** waren ein Fenster mit Umschalter (`#taskSeg`); seit 25.11.2026 ist es eine Liste mit Prioritäts-Quadrat und Remote-Knopf je Aufgabe (siehe "Aufgaben").
 - **After Upload** ist zugeklappt (Titel, Balken, Knopf "CHECKLISTE ÖFFNEN · n OFFEN"); der Knopf in den Kanal-Karten öffnet sie aufgeklappt (auch nach "SCHLIESSEN").
 - **Zeittracker:** Wochenziel, Wochenübersicht, Übersicht und Verlauf liegen hinter einer Zeile "DETAILS".
 - **Nur Handy (unter 720 px):** Zähler-Chips neben den Überschriften sind aus (die Menü-Kacheln zeigen sie weiter; bei den Zielen bleibt der Durchschnitt), die
@@ -759,7 +767,7 @@ Wisch-Helfer in `shopping.js`) und speichert nichts. Es gilt weiterhin: alle Nut
   - Ziele, Business und Tages-To-Do sind wischbare Karten-Reihen mit Einrasten und Positions-Punkten.
   - Habit-Woche: Name oben, die sieben Tage groß darunter.
   - Wischen auf Habits und Zeittracker wechselt Woche/Monat/Jahr, auf der Einkaufsliste die vier Reiter.
-  - Eine Zeile in Aufgaben, Remote Tasks und der Einkaufsliste nach rechts wischen = abhaken (ab ca. 90px Zug; in der
+  - Eine Zeile in Aufgaben und der Einkaufsliste nach rechts wischen = abhaken (ab ca. 90px Zug; in der
     Einkaufsliste lässt sich das durch nochmaliges Wischen zurücknehmen). Diagramme scrollen seitlich.
   - Größere Tippflächen, Eingaben ohne Zoom-Sprung (16px), Rücksicht auf Notch und Home-Leiste.
 
@@ -849,7 +857,7 @@ Menüleiste oben. Das Menü speichert nichts.
 Mit **Strg+K** (Mac: Cmd+K), mit **/** (wenn gerade kein Feld aktiv ist) oder mit der Lupe in der Kopfleiste öffnet sich ein Fenster zum Suchen und für
 Befehle. Am Handy füllt es den ganzen Bildschirm (ab 350 px Breite gibt es die Lupe oben).
 
-- **Suchen:** findet Bereiche und Einträge aus dem sichtbaren Text des Dashboards: Tages-To-Dos, Aufgaben, Remote Tasks, Einkauf (Liste, Vorrat, Rezepte),
+- **Suchen:** findet Bereiche und Einträge aus dem sichtbaren Text des Dashboards: Tages-To-Dos, Aufgaben (Remote-markierte tragen den Zusatz "Remote"), Einkauf (Liste, Vorrat, Rezepte),
   Habits, Ziele, Notizen, Video-Ideen und Training. Ein Treffer klappt den Bereich auf, scrollt hin und hebt den Eintrag kurz hervor.
 - **Befehle:** Timer YouTube/Bricklink starten oder stoppen, Training starten (oder das laufende Workout fortsetzen), neue Notiz, Design wechseln, synchronisieren,
   Pixel-Gäste und Skilltree öffnen, Shop-Radar öffnen.
@@ -882,7 +890,7 @@ Der Level startete am 09.10.2026 bei 0. Jedes Abhaken gibt Punkte (XP), die auto
 | Was | XP |
 |---|---|
 | Ziel erreicht (einmal pro Ziel) | so viel wie ein ganzer Levelaufstieg (Meilenstein die Hälfte) |
-| Aufgabe / Remote Task erledigt | 12 |
+| Aufgabe erledigt | 12 |
 | Tages-To-Do abgehakt | 10 |
 | Habit abgehakt (für heute und gestern; ältere Tage geben nichts) | 6 |
 | Alle Habits eines Tages erledigt | +10 Bonus |
@@ -1277,7 +1285,7 @@ bricht der Lauf ab. Ein unbekanntes Set (404) stoppt nur dieses Set. Die Rechenr
 **Voraussetzungen:** Token mit **Contents: Read and write** für `dashboard-privat` (sonst startet das Dashboard gar nicht, siehe "Privater Daten-Speicher") und **Actions: Read and write** für dieses Repo (für den Sofort-Abruf); das Secret
 `PRIVATE_DATA_TOKEN` für die Workflows. **Datenschutz:** Einkaufspreise, Bestand, Werte und Bilder liegen nur im privaten Repo, nicht in diesem.
 
-## Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben / Remote Tasks / Einkaufsliste
+## Cloud-Sync: Video-Ideen / Studium-Termin / Tages-To-Do / Aufgaben / Einkaufsliste
 
 Diese vier kleinen, unabhängigen Felder teilen sich eine gemeinsame Cloud-Datei
 (`sync-data.json`) und funktionieren nach demselben Prinzip wie der

@@ -108,8 +108,8 @@
         });
       };
       add("todo", "scroll", "#todoGrid .todo-item > span", "Tages-To-Do");
-      add("aufgaben", "sword", "#taskList .todo-item > span", "Aufgabe");
-      add("aufgaben", "globe", "#remoteTaskList .todo-item > span", "Remote Task");
+      add("aufgaben", "sword", "#taskList .todo-item:not(.is-remote) > span", "Aufgabe");
+      add("aufgaben", "globe", "#taskList .todo-item.is-remote > span", "Aufgabe · Remote");
       add("kalender", "calendar", "#kalender .todo-item > span", "Kalender");
       add("einkauf", "cart", "#shopPaneList .shop-row .t", "Einkauf");
       add("einkauf", "cart", "#shopRoot .slot .nm", "Einkauf · Vorrat");

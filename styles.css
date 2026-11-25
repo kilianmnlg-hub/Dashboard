@@ -2800,13 +2800,38 @@ body.rm-open { overflow: hidden; }
 
 /* ==== Aufraeumen (28.10.2026): weniger Text, nichts doppelt, Handy uebersichtlicher ==== */
 
-/* Aufgaben und Remote Tasks in einem Bereich: Umschalter oben */
-.task-seg { display: flex; gap: 8px; margin-bottom: 12px; }
-.task-seg button { flex: 1; font-family: var(--px); font-size: var(--fs-8); line-height: 1.6; color: var(--text-muted); background: transparent; border: 2px solid var(--border); border-radius: var(--r); padding: 10px 8px; cursor: pointer; }
-.task-seg button i { font-style: normal; margin-left: 4px; opacity: .85; }
-.task-seg button.on { color: var(--accent-ink); background: var(--accent); border-color: var(--text); box-shadow: var(--sh-s) var(--pxs); }
-.task-seg button:focus-visible { outline: var(--focus); outline-offset: 2px; }
-@media (pointer: coarse) { .task-seg button { min-height: var(--tap); } }
+/* Aufgaben: eine Liste, je Aufgabe ein Quadrat fuer die Prioritaet (rot, gelb, gruen; Menue beim Antippen) und ein kleiner Weltkugel-Knopf fuer Remote */
+.task-item { --pr-r: var(--bad); --pr-y: #f2c230; --pr-g: var(--ok); gap: 8px; }
+.task-prio-wrap { position: relative; flex-shrink: 0; display: inline-flex; }
+.task-prio { display: grid; place-items: center; padding: 5px; border: none; border-radius: var(--r); background: none; cursor: pointer; }
+.task-prio:hover { background: var(--surface); }
+.task-prio i, .tp-sq { display: block; flex: none; width: 12px; height: 12px; border: 2px solid var(--text); border-radius: 2px; background: var(--pr-y); }
+.task-item[data-prio="red"] .task-prio i, .tp-sq[data-prio="red"] { background: var(--pr-r); }
+.task-item[data-prio="yellow"] .task-prio i, .tp-sq[data-prio="yellow"] { background: var(--pr-y); }
+.task-item[data-prio="green"] .task-prio i, .tp-sq[data-prio="green"] { background: var(--pr-g); }
+.task-item.done .task-prio i { opacity: .4; }
+.task-prio-menu:not([hidden]) {
+  position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 4px; width: 128px;
+  background: var(--surface); border: 2px solid var(--text); border-radius: var(--r); box-shadow: var(--sh-m) var(--pxs);
+  padding: 4px; display: flex; flex-direction: column; gap: 2px;
+}
+.task-prio-menu button { display: flex; align-items: center; gap: 10px; border: none; background: none; text-align: left; padding: 7px 8px; border-radius: var(--r); font-size: var(--fs-12); color: var(--text); cursor: pointer; }
+.task-prio-menu button:hover { background: var(--surface-2); }
+.task-prio-menu button[aria-pressed="true"] { background: var(--surface-2); font-weight: 600; }
+.task-remote { flex: none; display: inline-grid; place-items: center; padding: 4px; border: none; border-radius: var(--r); background: none; cursor: pointer; opacity: 0; filter: grayscale(1); transition: opacity .12s ease; }
+.task-remote .spr { display: block; }
+.todo-item:hover .task-remote { opacity: .6; }
+.task-remote:hover, .task-remote:focus-visible { opacity: 1; filter: none; background: var(--surface); }
+.task-remote.on { opacity: 1; filter: none; background: color-mix(in srgb, var(--accent) 18%, transparent); box-shadow: inset 0 0 0 2px var(--accent); }
+@media (hover: none) { .task-remote:not(.on) { opacity: .45; } }
+@media (pointer: coarse) {
+  .task-prio, .task-remote { position: relative; }
+  .task-prio::after, .task-remote::after { content: ""; position: absolute; inset: -5px; }
+}
+@media (max-width: 720px) {
+  .task-item { gap: 6px; }
+  .task-item .todo-remove, .task-item .todo-move { padding: 6px 7px; }
+}
 
 /* After Upload: zugeklappt nur Titel, Balken und ein breiter Knopf */
 .au-wide { width: 100%; justify-content: center; }
