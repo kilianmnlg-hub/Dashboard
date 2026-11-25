@@ -30,7 +30,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `totop.js` — Nach-oben-Knopf nur am Rechner: kleines Feld unten rechts, erscheint nach etwas Scrollen und scrollt zum Seitenanfang (Stil `.to-top` in `styles.css`, am Handy gibt es das Sprungmenue)
 - `palette.js` — Schnellsuche und Befehle (siehe Abschnitt "Schnellsuche")
 - `msgseen.js` — merkt sich, welche Bricklink-Nachrichten du geöffnet hast (siehe Abschnitt "Ungelesene Nachrichten")
-- `community.js` — Community-Post-Rhythmus für Bricks On The Floor: Knopf GEPOSTET, Ampel, Zähler, Erinnerung (siehe Abschnitt "Community-Post-Rhythmus")
+- `community.js` — Community-Post-Rhythmus für Bricks On The Floor und The Brainwalkers: Knopf GEPOSTET, Ampel, Zähler, Erinnerung (siehe Abschnitt "Community-Post-Rhythmus")
 - `coop.js` — Kooperationsanfragen aus dem Postfach: Hinweise mit ANTWORTEN / IGNORIEREN, Liste, Wahl in der Cloud (siehe Abschnitt "Kooperationsanfragen (Postfach-Check)")
 - `uploadcal.js`, `uploadcal.css` — Upload-Kalender: Videoideen, Community-Posts und Termine beider Kanäle in einem Plan (siehe Abschnitt "Upload-Kalender")
 - `shopradar.js` — Shop-Radar: Ausklappmenü in der Bricklink-Karte (Hinweise, Kennzahlen, Zeit und Umsatz, Lager, Wochenziel aus dem Jahresziel, Bestseller pro Monat, Rabattvorschlag und Preis-Check mit Bildern; siehe Abschnitt "Shop-Radar")
@@ -407,20 +407,23 @@ angepasst wurde, fehlt das Feld.
 **Grenzen:** Die Liste erscheint nur für Videos, die YouTube öffentlich zeigt (kein Entwurf, kein privates Video); ein geplantes Video bekommt sie, sobald es live geht. Links in YouTube Studio öffnen sich im
 zuletzt benutzten Google-Konto des Browsers. Das Posten auf Instagram, Facebook und TikTok kann das Dashboard nicht für dich übernehmen: diese Punkte sind Erinnerungen.
 
-## Community-Post-Rhythmus (Bricks On The Floor)
+## Community-Post-Rhythmus (Bricks On The Floor und The Brainwalkers)
 
-Erinnerung, öfter Community-Posts auf dem Kanal Bricks On The Floor zu machen: Ziel **alle 3 Tage**. YouTube verrät über die API nichts über Community-Posts, darum tippst du in der
-Karte "Bricks On The Floor" (direkt unter dem Upload-Rhythmus) auf **GEPOSTET**, sobald du gepostet hast. Daneben steht **GESTERN** (falls du das Tippen vergessen hast), darunter
-"anderer Tag" (Datumsfeld) und "zurücknehmen" (nimmt den neuesten Eintrag zurück). Die Zeile ist 🟢 bis zum 2. Tag nach dem letzten Post, 🟡 am 3. Tag ("heute fällig") und 🔴 danach
-("überfällig") und zählt die Posts der letzten 30 Tage. Ist ein Post fällig, erscheint ganz oben ein Achtung-Banner wie beim Upload-Rhythmus (pro Sitzung wegklickbar). In der
-Schnellsuche (Strg+K) trägt "Community-Post gepostet" den heutigen Tag ein.
+Erinnerung, öfter Community-Posts auf den beiden Kanälen zu machen: Ziel **alle 3 Tage**, für jeden Kanal getrennt (Brainwalkers seit 25.11.2026, genau wie Bricks). YouTube verrät über die API
+nichts über Community-Posts, darum tippst du in der Karte des Kanals ("Bricks On The Floor" bzw. "The Brainwalkers", direkt unter dem Upload-Rhythmus) auf **GEPOSTET**, sobald du gepostet hast.
+Daneben steht **GESTERN** (falls du das Tippen vergessen hast), darunter "anderer Tag" (Datumsfeld) und "zurücknehmen" (nimmt den neuesten Eintrag zurück). Die Zeile ist 🟢 bis zum 2. Tag nach
+dem letzten Post, 🟡 am 3. Tag ("heute fällig") und 🔴 danach ("überfällig") und zählt die Posts der letzten 30 Tage. Ist ein Post fällig, erscheint ganz oben ein Achtung-Banner wie beim
+Upload-Rhythmus, je Kanal einer ("Bricks On The Floor: …" bzw. "Brainwalkers: 4 Tage ohne Community-Post"; pro Sitzung wegklickbar). In der Schnellsuche (Strg+K) tragen die zwei Befehle
+"Community-Post gepostet (heute)" (Zeile "Bricks On The Floor" bzw. "The Brainwalkers") den heutigen Tag ein. Der Upload-Kalender zeigt nur die Posts von Bricks On The Floor.
 
-**Handy-Erinnerung:** Der Cloudflare-Worker liest dasselbe Feld und meldet "Bricks On The Floor: N Tage ohne Community-Post", solange ein Post fällig ist, einmal pro Tag um 12:00
-(Uhrzeit und Schalter im Fenster "Benachrichtigungen", Anlass "Community-Post fällig"). Ohne eingetragenen Post meldet er nichts: beim ersten Mal also GEPOSTET oder "anderer Tag" tippen.
-Nach einer Änderung an `worker/push-worker.js` muss der Worker in Cloudflare neu eingespielt werden (Code einfügen, Deploy), sonst fehlt die Handy-Erinnerung (das Dashboard selbst funktioniert auch so).
+**Handy-Erinnerung:** Der Cloudflare-Worker liest beide Felder und meldet "Bricks On The Floor: N Tage ohne Community-Post" bzw. "Brainwalkers: N Tage ohne Community-Post", solange ein Post fällig ist,
+einmal pro Tag und Kanal um 12:00 (Uhrzeit und Schalter im Fenster "Benachrichtigungen", Anlass "Community-Post fällig", gilt für beide Kanäle). Ohne eingetragenen Post meldet er für den Kanal
+nichts: beim ersten Mal also GEPOSTET oder "anderer Tag" tippen. Nach einer Änderung an `worker/push-worker.js` muss der Worker in Cloudflare neu eingespielt werden (Code einfügen, Deploy), sonst fehlt
+die Handy-Erinnerung (das Dashboard selbst funktioniert auch so); die Brainwalkers-Meldung gibt es erst nach dem Einspielen vom 25.11.2026 (auch die Beispielmeldung, jetzt 14).
 
-**Daten:** Feld `community` in `sync-data.json` (privates Repo): `posts` = Tage `JJJJ-MM-TT` (die letzten 120), `days` = Rhythmus (3), `updatedAt`; der neuere Stand gewinnt,
-Code in `community.js`. Der Rhythmus ist fest auf 3 Tage eingestellt (`DEFAULT_DAYS` in `community.js`, im Worker der Rückfall `3`).
+**Daten:** Felder in `sync-data.json` (privates Repo), je Kanal eines: `community` (Bricks On The Floor) und `communityBw` (The Brainwalkers), beide mit `posts` = Tage `JJJJ-MM-TT` (die letzten 120),
+`days` = Rhythmus (3), `updatedAt`; der neuere Stand gewinnt, Code in `community.js` (eine Instanz je Kanal, Speicherschlüssel `dashboard-community-v1` bzw. `dashboard-community-bw-v1`). `communityBw`
+entsteht erst beim ersten Eintrag; das Feld `community` ist unverändert, der bisherige Worker läuft also weiter. Der Rhythmus ist fest auf 3 Tage eingestellt (`DEFAULT_DAYS` in `community.js`, im Worker der Rückfall `3`).
 
 ## Kooperationsanfragen (Postfach-Check)
 
@@ -697,7 +700,7 @@ KV unter dem Namen `KV` verbinden, Secrets `APP_SECRET` und `BRICKLINK_CONSUMER_
 Geheimes Wort eintragen (liegen nur im Browser, `localStorage` `dashboard-push-settings`) und "Auf diesem Handy aktivieren" tippen. "Testmeldung senden" prüft alles, "Alle Beispiele senden" schickt die zehn Meldungsarten als Muster ("Beispiel: …", eine Anfrage je Meldung, `POST /test` mit `{kind:"sample", index:0..8}`, damit jede Anfrage unter dem Rechenzeit-Limit des Gratis-Tarifs bleibt). Kosten: keine (gratis Stufe).
 
 **Anlässe** (alle standardmäßig an, jeder einzeln abschaltbar, Einstellungen liegen im Worker): neue Bricklink-Bestellung (sofort, mit Teilen und Betrag); Bestellung unversendet nach 24 Std. (Status PAID/PACKED/READY, danach einmal pro Tag);
-neue Käufer-Nachricht (höchstens alle 30 Minuten geprüft, nur offene Nachrichten ohne Antwort des Shops); Upload-Rhythmus überfällig (09:00, wie der Alarm oben); Community-Post fällig (12:00, ab dem 3. Tag nach dem letzten eingetragenen Post, täglich bis du GEPOSTET tippst); After-Upload-Checkliste offen (1 Std. nach der Erkennung des Videos,
+neue Käufer-Nachricht (höchstens alle 30 Minuten geprüft, nur offene Nachrichten ohne Antwort des Shops); Upload-Rhythmus überfällig (09:00, wie der Alarm oben); Community-Post fällig (12:00, je Kanal ab dem 3. Tag nach dem letzten eingetragenen Post, täglich bis du GEPOSTET tippst); After-Upload-Checkliste offen (1 Std. nach der Erkennung des Videos,
 nur wenn nicht abgehakt oder geschlossen); Habits abends (19:00, nur Habits, bei denen jetzt jeder übrige Tag klappen muss, um das Wochenziel zu schaffen); Trainingstag (11:30, nächster Plan-Tag wie in "Als Nächstes", nicht an Ruhetagen
 und nicht, wenn schon trainiert wurde); Timer läuft länger als 3 Std.; Morgen-Zusammenfassung (08:00: To-Dos, Aufgaben, Trainingstag, Bestellungen zu versenden). **Ruhezeit** 22:00 bis 07:00: nichts wird gesendet, danach kommt
 eine Sammelmeldung. Beim allerersten Lauf werden vorhandene Bestellungen und Nachrichten nur gemerkt, nicht gemeldet. Nach 3 fehlgeschlagenen Bricklink-Abfragen in Folge gibt es einmal pro Tag eine Fehlermeldung.

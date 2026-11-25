@@ -1,8 +1,9 @@
-/* Community-Posts auf Bricks On The Floor: Rhythmus-Erinnerung. YouTube verraet ueber die API nichts ueber Community-Posts, darum tippst du in der Karte
-   "Bricks On The Floor" auf GEPOSTET (oder GESTERN / anderer Tag). Das Dashboard merkt sich die Tage und rechnet daraus "vor X Tagen" und die Ampel
-   (Ziel: alle 3 Tage: gruen bis zum 2. Tag, gelb am 3. Tag = heute faellig, rot danach). Die Tage liegen wie alles andere in der Cloud (Feld "community"
-   in sync-data.json: posts = Liste von Tagen JJJJ-MM-TT, days = Ziel-Rhythmus, updatedAt), damit Handy und PC dasselbe wissen; der Cloudflare-Worker liest
-   dasselbe Feld und schickt die Handy-Erinnerung. Zeitstempel-Prinzip wie beim Habit-Tracker: der neuere Stand gewinnt.
+/* Community-Posts auf Bricks On The Floor und The Brainwalkers: Rhythmus-Erinnerung. YouTube verraet ueber die API nichts ueber Community-Posts, darum tippst du in der
+   Karte des Kanals auf GEPOSTET (oder GESTERN / anderer Tag). Das Dashboard merkt sich die Tage und rechnet daraus "vor X Tagen" und die Ampel
+   (Ziel: alle 3 Tage: gruen bis zum 2. Tag, gelb am 3. Tag = heute faellig, rot danach). Die Tage liegen wie alles andere in der Cloud (sync-data.json: posts = Liste
+   von Tagen JJJJ-MM-TT, days = Ziel-Rhythmus, updatedAt), damit Handy und PC dasselbe wissen; der Cloudflare-Worker liest dieselben Felder und schickt die Handy-Erinnerung.
+   Jeder Kanal hat eine eigene Instanz mit eigenem Feld: Bricks On The Floor "community", The Brainwalkers "communityBw" (deps.key ist der Speicherschluessel im Arbeitsspeicher).
+   Zeitstempel-Prinzip wie beim Habit-Tracker: der neuere Stand gewinnt.
    script.js uebergibt dataStore und Auto-Sync und ruft applyRemote()/payload() auf. */
 (function () {
   const MAX_POSTS = 120, DEFAULT_DAYS = 3, DAY = 86400000;
@@ -24,7 +25,7 @@
 
   window.createCommunity = function (deps) {
     const { dataStore, scheduleAutoSync } = deps;
-    const KEY = "dashboard-community-v1";
+    const KEY = deps.key || "dashboard-community-v1";
     let state = sanitize(null);
     try {
       const raw = dataStore.getItem(KEY);

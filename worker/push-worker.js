@@ -68,7 +68,8 @@ const SAMPLES = [
   { title: "Beispiel: Bricks On The Floor: 3 Tage ohne Community-Post", body: "Dein Rhythmus: alle 3 Tage", url: "#business", tag: "sample-community" },
   { title: "Beispiel: Neue Kooperationsanfrage: Solbridge · Hyper 3D AI", body: "bezahlt · Sucht Creator für eine bezahlte Zusammenarbeit mit einem 3D-KI-Tool.", url: "./", tag: "sample-coop" },
   { title: "Beispiel: Heute: Upload um 16:00", body: "JP Raptoren Gehege Moc review · Post 12:00", url: "#uploadkal", tag: "sample-uploadday" },
-  { title: "Beispiel: Artlist: noch 12.400 Credits, verfallen in 3 Tagen", body: "Letzter Tag: 11.12., danach erneuert sich dein Abo und ungenutzte Credits verfallen.", url: "./", tag: "sample-artlist" }
+  { title: "Beispiel: Artlist: noch 12.400 Credits, verfallen in 3 Tagen", body: "Letzter Tag: 11.12., danach erneuert sich dein Abo und ungenutzte Credits verfallen.", url: "./", tag: "sample-artlist" },
+  { title: "Beispiel: Brainwalkers: 3 Tage ohne Community-Post", body: "Dein Rhythmus: alle 3 Tage", url: "#business", tag: "sample-community-bw" }
 ];
 
 /* ---------------------------------------------------------------------------------------------------------------------------------- Helfer */
@@ -515,14 +516,17 @@ async function checkData(ctx) {
     }
 
     if (wantCommunity) {
-      /* Community-Posts auf Bricks On The Floor (Feld "community" in sync-data.json, siehe community.js): ab dem Zieltag (Standard 3 Tage nach dem letzten Post) einmal pro Tag
-         erinnern, solange kein neuer Post eingetragen ist. Ohne eingetragenen Post bleibt es still (der erste Eintrag kommt vom Knopf GEPOSTET im Dashboard). */
-      const c = (await loadData(ctx, "sync-data.json")).community || {}, posts = (Array.isArray(c.posts) ? c.posts : []).filter((p) => /^\d{4}-\d{2}-\d{2}$/.test(p)).sort();
-      const every = Number.isInteger(c.days) && c.days >= 1 && c.days <= 30 ? c.days : 3, lastPost = posts[posts.length - 1];
-      if (lastPost) {
+      /* Community-Posts auf Bricks On The Floor (Feld "community" in sync-data.json) und The Brainwalkers (Feld "communityBw"), siehe community.js: je Kanal ab dem Zieltag
+         (Standard 3 Tage nach dem letzten Post) einmal pro Tag erinnern, solange kein neuer Post eingetragen ist. Ohne eingetragenen Post bleibt es still (der erste Eintrag
+         kommt vom Knopf GEPOSTET im Dashboard). Schluessel und Tag der Bricks-Meldung sind unveraendert (sonst kaeme sie am Tag der Umstellung ein zweites Mal). */
+      const sd = await loadData(ctx, "sync-data.json");
+      [["community", "Bricks On The Floor", "community", "community"], ["communityBw", "Brainwalkers", "community-bw", "communitybw"]].forEach(([field, name, tag, keyName]) => {
+        const c = sd[field] || {}, posts = (Array.isArray(c.posts) ? c.posts : []).filter((p) => /^\d{4}-\d{2}-\d{2}$/.test(p)).sort();
+        const every = Number.isInteger(c.days) && c.days >= 1 && c.days <= 30 ? c.days : 3, lastPost = posts[posts.length - 1];
+        if (!lastPost) return;
         const days = dayDiff(lastPost, nowB.date);
-        if (days >= every || f("community")) emit(ctx, { type: "community", force: f("community"), key: key("community:" + nowB.date, f("community")), title: "Bricks On The Floor: " + days + (days === 1 ? " Tag" : " Tage") + " ohne Community-Post", body: "Dein Rhythmus: alle " + every + " Tage", url: "#business", tag: "community" });
-      }
+        if (days >= every || f("community")) emit(ctx, { type: "community", force: f("community"), key: key(keyName + ":" + nowB.date, f("community")), title: name + ": " + days + (days === 1 ? " Tag" : " Tage") + " ohne Community-Post", body: "Dein Rhythmus: alle " + every + " Tage", url: "#business", tag });
+      });
     }
 
     if (wantUpload) {
