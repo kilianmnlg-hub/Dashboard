@@ -17,7 +17,7 @@ export const MAX_ROWS = 50;
 export const DEFAULTS = { minValue: 1, cap: 1500, minDev: 30, minSales: 3, minDiff: 0.5 };
 // Liste "Erledigt": hoechstens so viele Eintraege, hoechstens so viele Tage alt
 export const DONE_MAX = 50;
-export const DONE_DAYS = 30;
+export const DONE_DAYS = 7;
 
 const num = (v) => {
   const n = typeof v === "string" ? parseFloat(v) : Number(v);

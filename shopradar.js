@@ -525,8 +525,8 @@
     let list;
     if (tab === "done") {
       list = P.done.length
-        ? `<ol class="sr-items">${P.done.map((d, i) => doneRow(i, d)).join("")}</ol>`
-        : `<p class="sr-note">Noch nichts erledigt: Sobald sich der Preis eines Lots aus der Liste ändert oder es verkauft ist, steht es hier.</p>`;
+        ? `<ol class="sr-items">${P.done.map((d, i) => doneRow(i, d)).join("")}</ol><p class="sr-note">Erledigtes bleibt eine Woche stehen und verschwindet dann von selbst.</p>`
+        : `<p class="sr-note">Noch nichts erledigt: Sobald sich der Preis eines Lots aus der Liste ändert oder es verkauft ist, steht es hier (eine Woche lang).</p>`;
     } else {
       const rows = P[tab], shown = ui.pcMore ? rows : rows.slice(0, 10);
       list = shown.length
@@ -551,7 +551,7 @@
       <p>Der Lagerwert ist der Verkaufswert (Menge mal Preis), nicht dein Einkaufspreis. „Neu eingestellt“ zählt nur Lots, die noch im Bestand sind. Bestseller zählen die Stückzahl je Monat (neu und gebraucht zusammen), die Bilder kommen direkt von Bricklink.</p>
       <p>Der Preis-Check vergleicht deine Preise mit den Verkaufspreisen der letzten 6 Monate bei Bricklink. Weil dafür je Lot eine Abfrage nötig ist und Bricklink nur begrenzt viele am Tag erlaubt, wird täglich ein Teil deiner Lots geprüft.</p>
       <p>PREIS ANPASSEN ändert den Preis dieses einen Lots sofort bei Bricklink (nur der Preis, und nur wenn er dort noch so ist wie hier angezeigt). Mit RÜCKGÄNGIG stellst du den alten Preis wieder her. Ein eigener Rabatt auf das Lot bleibt dabei erhalten.</p>
-      <p>Alle 2 Stunden wird dein Bestand mit der Preis-Check-Liste verglichen: Lots, deren Preis du geändert hast (in Bricklink oder hier) oder die verkauft sind, wandern in „Erledigt“. Neu eingestellte Lots werden gleich geprüft; was in den letzten drei Tagen zum ersten Mal auffiel, trägt NEU. JETZT PRÜFEN startet die Kontrolle sofort.</p>
+      <p>Alle 2 Stunden wird dein Bestand mit der Preis-Check-Liste verglichen: Lots, deren Preis du geändert hast (in Bricklink oder hier) oder die verkauft sind, wandern für eine Woche in „Erledigt“ und verschwinden dann von selbst. Neu eingestellte Lots werden gleich geprüft; was in den letzten drei Tagen zum ersten Mal auffiel, trägt NEU. JETZT PRÜFEN startet die Kontrolle sofort.</p>
       <p>Gespeichert werden Zahlen und für die drei Listen je Artikel Nummer, Name, Farbe, Menge und Preis, im privaten Repo. Von Käufern wird nichts gespeichert: keine Namen, keine Adressen, keine Nachrichten.</p></div>`;
     return `<div class="sr-head"><div><span class="sr-t1">SHOP-RADAR</span><span class="sr-t2">Bricklink: Warum läuft der Shop (nicht)?</span></div><div class="sr-meta">${model.stand ? `<span>Stand ${esc(model.stand)}</span>` : ""}<button type="button" class="sr-i" data-sr-act="info" aria-pressed="${ui.info ? "true" : "false"}" aria-label="Erklärungen ein- oder ausblenden">i</button></div></div>
       ${infoTxt}
