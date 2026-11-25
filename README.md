@@ -42,6 +42,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `outfit-core.js`, `outfit-photo.js`, `outfit-collage.js`, `outfit-inspo.js`, `outfit-gen.js`, `outfit-genui.js`, `outfit-ui.js`, `outfit.css` — Outfits: Kleiderschrank mit freigestellten Fotos, Collage-Editor, Nach Foto nachbauen und der Generator (siehe Abschnitt "Outfits"); die Daten liegen in einem **privaten** zweiten Repo, nicht hier
 - `lego.js`, `lego.css` — LEGO-Sammlung: Sets mit Einkaufspreisen, Bricklink-Wert, Rendite und Verlauf (siehe Abschnitt "LEGO-Sammlung"); die Daten liegen im **privaten** Repo
 - `scripts/lego-prices.mjs`, `scripts/lib/lego.mjs`, `.github/workflows/lego-prices.yml` — holen die Bricklink-Werte der Sets (täglich im 08:00-Sync, sofort nach "+ SET")
+- `scripts/bricklink-price.mjs`, `scripts/lib/priceedit.mjs`, `.github/workflows/bricklink-price.yml` — ändern auf Knopfdruck den Preis eines Lots bei Bricklink (Knopf PREIS ANPASSEN im Preis-Check des Shop-Radars, siehe Abschnitt "Shop-Radar")
 - `worker/outfit-worker.js` — Cloudflare-Worker für die KI-Erkennung der Outfits (kostenlos mit der Cloudflare-KI oder mit Claude, Einrichtung steht im Kopf der Datei)
 - `push.js`, `push.css`, `badge-96.png`, `worker/push-worker.js` und die `push`-Ereignisse in `sw.js` — echte Handy-Benachrichtigungen und das Status-Fenster (siehe Abschnitt "Benachrichtigungen (Web-Push)")
 - `habits-data.json` (im privaten Repo) — Cloud-Kopie des Habit-Trackers, wird vom Sync-Button im Dashboard
@@ -318,6 +319,14 @@ Karte am Rechner die ganze Reihe, am Handy die ganze Breite. Es beantwortet "War
   wie beim Wert der LEGO-Sammlung). Zwei Reiter: **Zu teuer** (dein Preis liegt darüber, das Lot verkauft sich womöglich nicht) und **Zu billig** (darunter, du verschenkst Geld). Jede Zeile mit Rang, Bild, Teilenummer,
   Name, Farbe, deinem Preis, dem Durchschnitt, der Abweichung in Prozent, der Zahl der Verkäufe und dem Unterschied für das ganze Lot; **sortiert nach der Abweichung in Prozent, die größte zuerst** (bei gleichem Prozentsatz der größere Unterschied), zehn Zeilen, "Alle anzeigen" zeigt bis zu 50.
   Es zählen nur Lots mit mindestens 3 Verkäufen in den 6 Monaten, ab 30 % Abweichung und ab 0,50 € Unterschied.
+- **Preis anpassen:** Jede Zeile des Preis-Checks hat einen Knopf **PREIS ANPASSEN**. Er öffnet ein kleines Fenster mit dem Durchschnitt der letzten 6 Monate als Vorschlag (änderbar); nach "Bei Bricklink ändern" setzt der
+  Workflow `bricklink-price.yml` den **Listenpreis (`unit_price`) dieses einen Lots** bei Bricklink. Nach etwa einer halben Minute meldet die Zeile "✓ jetzt …"; mit **RÜCKGÄNGIG** kommt der alte Preis zurück. Der Auftrag
+  (Lot-Nummer, bisheriger und neuer Preis) liegt im **privaten** Repo (`bricklink-price-order.json`), das Ergebnis dort in `bricklink-price-changes.json` (Artikel, alter und neuer Preis); im öffentlichen Repo stehen nur
+  die Kennung des Auftrags und im Protokoll Zähler. Geändert wird nur, wenn das Lot noch **genau den Preis hat, den das Dashboard kennt** (sonst bleibt es unberührt und wird beim nächsten Sync neu geprüft), nur bei Teilen und
+  Minifiguren, höchstens 25 Lots je Auftrag, nicht unter 0,001 € oder über 10.000 € und nicht über das 2000-Fache. Hat das Lot einen eigenen Rabatt (Sale in Prozent), bleibt der Prozentsatz stehen und der Listenpreis wird so
+  gesetzt, dass der Preis nach Rabatt der eingegebene ist (das ist auch der Preis, den die Liste zeigt). Danach liest der Workflow das Lot erneut und prüft den Preis. Geschrieben wird ausschließlich das Feld `unit_price`
+  (am 25.11.2026 mit einem Test ohne Änderung geprüft: Bricklink nimmt den Zugang an, es ändert sich sonst nichts, auch das Erstelldatum nicht). Braucht einen Token mit Schreibrecht auf beide Repos (wie der Sync-Knopf).
+  Die Zeile mit dem alten Preis bleibt bis zum nächsten Sync stehen (dann prüft der Preis-Check das Lot neu); bis dahin zeigt sie "✓ jetzt …". Von Hand: Tab "Actions" → "Bricklink price change"; `dry` prüft nur und schreibt nichts.
 
 **Bilder:** die kleinen Vorschaubilder von Bricklink, direkt eingebunden (`https://img.bricklink.com/ItemImage/<P|S|M…>T/<Farbe>/<Nummer>.t1.png`, rund 5 KB), nichts wird gespeichert; fehlt ein Bild, bleibt der leere Rahmen.
 
@@ -338,7 +347,7 @@ Positionen-Abfragen bleiben die alten Bestseller stehen. Im Protokoll steht kein
 `bricklinkSales.months[].top` (zehn Artikel je Monat) und `bricklinkPrices.over/under` (bis zu 50 Lots je Richtung, die mit der größten Abweichung). Das sind Artikeldaten, **keine Kundendaten**: von Käufern wird nichts gespeichert (keine Namen, Adressen, Nachrichten, Bestellnummern in diesen Listen).
 **Grenzen:** Der Lagerwert ist der **Verkaufs**wert, kein Einkaufswert. "Neu eingestellt" und die Teile je Woche zählen nur Lots, die noch im Bestand sind; eine vergangene Woche kann deshalb nur schrumpfen, der höchste je
 gesehene Wert bleibt stehen (`weekly`, 12 Wochen). Wer Lots per Upload ersetzt statt zu aktualisieren, setzt womöglich das Erstelldatum zurück; dann stimmen Alter, "neu eingestellt" und die Ladenhüter an dem Tag nicht.
-Stunden kommen aus dem Zeittracker (`timeTrackerBoard.weekHours`). Das Radar speichert selbst nichts; auf/zu und das **i** merkt sich nur dieser Browser (der Monat der Bestseller nur bis zum Neuladen).
+Stunden kommen aus dem Zeittracker (`timeTrackerBoard.weekHours`). Das Radar speichert selbst nichts (Ausnahme: PREIS ANPASSEN ändert einen Preis bei Bricklink, siehe oben); auf/zu und das **i** merkt sich nur dieser Browser (der Monat der Bestseller nur bis zum Neuladen).
 Die Rechenregeln stehen in `ShopRadarCalc.compute` (`shopradar.js`) und lassen sich dort ohne Seite prüfen. Die Schnellsuche (Strg+K) hat den Befehl "Shop-Radar öffnen".
 
 ## TikTok-Follower (@bricksonthefloor)

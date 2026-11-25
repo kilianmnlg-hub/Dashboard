@@ -2639,9 +2639,106 @@
     : null;
   let remoteTimeTrackerRaw = null;
 
+  // Preise bei Bricklink aendern (Shop-Radar, Preis-Check, Knopf PREIS ANPASSEN). Der Auftrag (Lot-Nummer, bisheriger und neuer Preis) wird im PRIVATEN Daten-Repo abgelegt
+  // (bricklink-price-order.json; im oeffentlichen Repo soll nichts davon stehen), der Workflow bricklink-price.yml fuehrt ihn aus und schreibt das Ergebnis nach
+  // bricklink-price-changes.json, das hier abgefragt wird. Ein Auftrag nach dem anderen. Die Pruefungen (Preis stimmt noch, Grenzen) macht der Workflow, siehe scripts/lib/priceedit.mjs.
+  const PRICE_ORDER_FILE = "bricklink-price-order.json";
+  const PRICE_RESULT_FILE = "bricklink-price-changes.json";
+  const PRICE_WORKFLOW = "bricklink-price.yml";
+  const waitMs = (ms) => new Promise((r) => setTimeout(r, ms));
+  let priceChain = Promise.resolve();
+  // Schreibt eine JSON-Datei ins private Daten-Repo (Contents-API); liefert { ok, status, sha, rate }
+  async function putPrivateJson(file, obj, sha, message) {
+    const { owner, repo } = dataRepoOf();
+    const token = localStorage.getItem("dashboard-gh-token");
+    if (!owner || !repo || !token) throw new Error("GitHub-Token fehlt");
+    const res = await serialWrite(async () => {
+      const r = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${file}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+        body: JSON.stringify({ message, content: btoa(unescape(encodeURIComponent(JSON.stringify(obj, null, 1) + "\n"))), ...(sha ? { sha } : {}) })
+      });
+      markWrite();
+      return r;
+    });
+    let newSha = sha;
+    if (res.ok) {
+      try { newSha = (await res.json()).content.sha; } catch (e) { /* egal */ }
+    }
+    return { ok: res.ok, status: res.status, sha: newSha, rate: !res.ok && (await isGithubRateLimit(res)) };
+  }
+  // Einen eigenen Auftrag zuruecknehmen, der nicht ausgefuehrt wurde (sonst blockiert er neue Auftraege, bis er nach 15 Minuten als abgelaufen gilt); ein spaet startender Lauf findet ihn dann nicht mehr und aendert nichts
+  async function dropOrder(batch) {
+    try {
+      const cur = await readCloudJson(PRICE_ORDER_FILE);
+      if (cur.json && cur.json.batch === batch) await putPrivateJson(PRICE_ORDER_FILE, { batch: "", at: "", changes: [] }, cur.sha, "Bricklink-Preise: Auftrag verworfen");
+    } catch (e) { /* egal */ }
+  }
+  async function runPriceOrder(changes) {
+    const cfg = getGithubConfig();
+    if (!cfg) throw new Error("GitHub-Token fehlt");
+    const batch = `pe-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    const hdr = { Authorization: `Bearer ${cfg.token}`, Accept: "application/vnd.github+json", "Content-Type": "application/json" };
+    // 1. Auftrag im privaten Repo ablegen (ein noch offener, juengerer Auftrag eines anderen Laufs wird nicht ueberschrieben)
+    const cur = await readCloudJson(PRICE_ORDER_FILE);
+    const open = cur.json && Array.isArray(cur.json.changes) && cur.json.changes.length > 0 && Date.now() - Date.parse(cur.json.at || "") < 15 * 60 * 1000;
+    if (open) throw new Error("Es läuft gerade noch ein anderer Preis-Auftrag. Bitte in zwei Minuten noch einmal versuchen.");
+    const put = await putPrivateJson(PRICE_ORDER_FILE, { batch, at: new Date().toISOString(), changes }, cur.sha, "Bricklink-Preise: Auftrag");
+    if (!put.ok) {
+      throw new Error(put.rate ? RATE_LIMIT_MSG : put.status === 401 || put.status === 403 ? "Der GitHub-Token darf im privaten Daten-Repo nicht schreiben" : put.status === 409 || put.status === 422 ? "Konflikt beim Ablegen des Auftrags, bitte noch einmal versuchen" : `GitHub antwortete mit Status ${put.status}`);
+    }
+    // 2. Workflow starten
+    const disp = await serialWrite(async () => {
+      const r = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${PRICE_WORKFLOW}/dispatches`, { method: "POST", headers: hdr, body: JSON.stringify({ ref: "main", inputs: { batch } }) });
+      markWrite();
+      return r;
+    });
+    if (disp.status !== 204) {
+      putPrivateJson(PRICE_ORDER_FILE, { batch: "", at: "", changes: [] }, put.sha, "Bricklink-Preise: Auftrag zurückgenommen").catch(() => {});
+      throw new Error(disp.status === 404 || disp.status === 422 ? "Der Workflow für Preisänderungen wurde bei GitHub nicht gefunden" : `GitHub antwortete mit Status ${disp.status}`);
+    }
+    // 3. Auf das Ergebnis warten: erst nach etwa 15 Sekunden nachsehen, danach alle 5; zwischendurch auch den Lauf selbst (endet er ohne Ergebnis, nicht bis zum Schluss warten)
+    const t0 = Date.now();
+    let endedAt = 0, fatal = "";
+    for (let i = 0; Date.now() - t0 < 200000; i++) {
+      await waitMs(i === 0 ? 15000 : 5000);
+      try {
+        const res = await readCloudJson(PRICE_RESULT_FILE);
+        const mine = res.json && Array.isArray(res.json.changes) ? res.json.changes.filter((c) => c && c.batch === batch) : [];
+        if (mine.length) return mine;
+      } catch (e) { /* kurzer Netzfehler: weiter versuchen */ }
+      if (i % 2 === 1) {
+        try {
+          const rr = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}/actions/workflows/${PRICE_WORKFLOW}/runs?per_page=10`, { headers: hdr, cache: "no-store" });
+          const run = rr.ok ? ((await rr.json()).workflow_runs || []).find((x) => String(x.display_title || "").includes(batch)) : null;
+          if (run && run.status === "completed") {
+            if (!endedAt) endedAt = Date.now();
+            else if (Date.now() - endedAt > 12000) fatal = run.conclusion === "success" ? "Unklar, ob der Preis geändert wurde: Der Lauf bei GitHub ist beendet, ein Ergebnis ist aber nicht angekommen. Bitte in Bricklink nachsehen." : "Unklar, ob der Preis geändert wurde: Der Lauf bei GitHub ist fehlgeschlagen (Tab Actions, „Bricklink price change“). Bitte in Bricklink nachsehen.";
+          }
+        } catch (e) { /* egal */ }
+        if (fatal) { await dropOrder(batch); throw new Error(fatal); }
+      }
+    }
+    await dropOrder(batch);
+    throw new Error("Unklar, ob der Preis geändert wurde: Keine Rückmeldung nach gut drei Minuten. Bitte in Bricklink nachsehen.");
+  }
+  const priceEditBoard = {
+    // alle bisherigen Ergebnisse (aelteste zuerst); wirft ohne Token oder Zugriff
+    history: async () => {
+      const res = await readCloudJson(PRICE_RESULT_FILE);
+      return res.json && Array.isArray(res.json.changes) ? res.json.changes : [];
+    },
+    // fuehrt die Aenderungen aus und liefert die Ergebnis-Zeilen (result "ok", "skipped" oder "failed"); wirft bei Fehlern vor oder waehrend des Laufs
+    run: (changes) => {
+      const job = priceChain.then(() => runPriceOrder(changes));
+      priceChain = job.then(() => {}, () => {});
+      return job;
+    }
+  };
+
   // Shop-Radar (shopradar.js): Ausklappmenue in der Karte "Bricklink Store". Zahlen aus data.bricklinkRevenue, data.bricklinkInventory und data.bricklinkSales (Sync),
-  // das Jahresziel "bricklink-parts" aus data.goals, Stunden aus dem Zeittracker. Es speichert nichts (auch nicht in der Cloud); nur XP fuer das Wochenziel.
-  const shopRadar = window.createShopRadar ? window.createShopRadar({ data, hours: timeTrackerBoard, getXp: () => xpBoard }) : null;
+  // das Jahresziel "bricklink-parts" aus data.goals, Stunden aus dem Zeittracker. Es speichert nichts (auch nicht in der Cloud); nur XP fuer das Wochenziel. Einzige Ausnahme: Preise bei Bricklink aendern (priceEditBoard oben).
+  const shopRadar = window.createShopRadar ? window.createShopRadar({ data, hours: timeTrackerBoard, getXp: () => xpBoard, askForm, toast, priceEdit: priceEditBoard }) : null;
   if (shopRadar) document.querySelectorAll("[data-sr]").forEach((el) => shopRadar.mount(el));
 
   // Handy-Notiz (inbox.js): Notizen von jedem Geraet in eine Cloud-Inbox; das lokale Skript sync-brainmap.ps1 uebernimmt

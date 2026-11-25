@@ -1,0 +1,79 @@
+# Aendert Preise bei Bricklink: Auftrag aus dem Shop-Radar des Dashboards (Preis-Check, Knopf "PREIS ANPASSEN"), nur von Hand bzw. vom Dashboard startbar.
+# Pruefungen und Ablauf: scripts/lib/priceedit.mjs, scripts/bricklink-price.mjs. Geaendert wird nur der Listenpreis einzelner Teile und Minifiguren, hoechstens 25 Lots je Auftrag,
+# und nur, wenn das Lot noch den Preis hat, den das Dashboard kennt. Der Auftrag (Lot-Nummern, Preise) steht im PRIVATEN Repo (bricklink-price-order.json, vom Dashboard abgelegt),
+# das Ergebnis ebenfalls (bricklink-price-changes.json); hier im oeffentlichen Repo stehen nur die Kennung des Auftrags und im Protokoll Zaehler. Braucht dieselben Secrets wie der
+# Sync (BRICKLINK_*, PRIVATE_DATA_TOKEN). "dry" prueft nur und schreibt nichts bei Bricklink. Manuell anstossen: Tab "Actions" -> "Bricklink price change" -> "Run workflow"
+# (die Kennung muss zu bricklink-price-order.json im privaten Repo passen).
+name: Bricklink price change
+
+# Die Kennung im Titel des Laufs: so findet das Dashboard seinen Lauf wieder
+run-name: Bricklink price change ${{ inputs.batch }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch:
+        description: "Kennung des Auftrags (vom Dashboard, steht in bricklink-price-order.json im privaten Repo)"
+        required: true
+        type: string
+      dry:
+        description: "Nur pruefen, nichts bei Bricklink schreiben"
+        required: false
+        default: false
+        type: boolean
+
+# Nie zwei Auftraege gleichzeitig (jeder liest das Lot, prueft den Preis und schreibt ihn)
+concurrency:
+  group: bricklink-price
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  change:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Auftrag und Ergebnis liegen im PRIVATEN Repo (Zugriff ueber das Secret PRIVATE_DATA_TOKEN, wie beim Sync)
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/dashboard-privat
+          token: ${{ secrets.PRIVATE_DATA_TOKEN }}
+          path: private
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      # Die Eingaben gehen ueber Umgebungsvariablen in das Skript (nicht in die Befehlszeile)
+      - run: node scripts/bricklink-price.mjs
+        env:
+          BATCH: ${{ inputs.batch }}
+          DRY: ${{ inputs.dry }}
+          DATA_DIR: private
+          BRICKLINK_CONSUMER_KEY: ${{ secrets.BRICKLINK_CONSUMER_KEY }}
+          BRICKLINK_CONSUMER_SECRET: ${{ secrets.BRICKLINK_CONSUMER_SECRET }}
+          BRICKLINK_TOKEN_VALUE: ${{ secrets.BRICKLINK_TOKEN_VALUE }}
+          BRICKLINK_TOKEN_SECRET: ${{ secrets.BRICKLINK_TOKEN_SECRET }}
+      - name: Ergebnis im privaten Repo speichern
+        if: always()
+        working-directory: private
+        run: |
+          git config user.name "dashboard-bot"
+          git config user.email "actions@users.noreply.github.com"
+          for f in bricklink-price-changes.json bricklink-price-order.json; do
+            if [ -f "$f" ]; then git add "$f"; fi
+          done
+          git diff --quiet --cached && exit 0
+          git commit -q -m "Bricklink-Preise: Ergebnis"
+          n=0
+          until [ $n -ge 5 ]; do
+            git pull -q --rebase origin main && git push -q && break
+            n=$((n+1))
+            echo "Push fehlgeschlagen (Versuch $n/5), vermutlich zeitgleicher anderer Push - erneut versuchen..."
+            git rebase --abort 2>/dev/null || true
+            sleep $((RANDOM % 8 + 3))
+          done
+          if [ $n -ge 5 ]; then
+            echo "Push nach 5 Versuchen weiterhin fehlgeschlagen."
+            exit 1
+          fi

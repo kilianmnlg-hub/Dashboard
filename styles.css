@@ -3126,9 +3126,20 @@ body.priv-fail main, body.priv-fail .nav, body.priv-fail .top-timers, body.priv-
 .sr-more:focus-visible { outline: var(--focus); outline-offset: var(--focus-off); }
 .sr-pr s { color: var(--text-faint); }
 .sr-pc { font-size: var(--fs-12); font-weight: 700; color: var(--warn); }
+/* Preis-Check: Preis bei Bricklink aendern (PREIS ANPASSEN / RUECKGAENGIG), Zustand waehrend der Aenderung und danach */
+.sr-ac { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 8px; margin-top: 4px; }
+.sr-edit { padding: 6px 10px; min-height: 32px; font-family: var(--px); font-size: var(--fs-8); line-height: 1.4; color: var(--text); background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--r); cursor: pointer; }
+.sr-edit:hover { color: var(--card-accent, var(--accent)); border-color: var(--card-accent, var(--accent)); }
+.sr-edit:focus-visible { outline: var(--focus); outline-offset: var(--focus-off); }
+.sr-undo { color: var(--text-muted); }
+.sr-ok { font-size: var(--fs-12); font-weight: 700; color: var(--ok); }
+.sr-busy { font-size: var(--fs-12); color: var(--text-muted); }
+.sr-item.sr-changed .sr-pr, .sr-item.sr-changed .sr-m { opacity: .55; }
+@media (pointer: coarse) { .sr-edit { min-height: var(--tap); } }
 @media (max-width: 560px) {
   .sr-item { grid-template-columns: auto 56px minmax(0, 1fr); }
   .sr-iv { grid-column: 3 / -1; display: flex; flex-wrap: wrap; gap: 0 10px; justify-content: flex-start; text-align: left; }
+  .sr-ac { flex-basis: 100%; justify-content: flex-start; }
 }
 
 /* ==========================================================================
