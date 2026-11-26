@@ -227,6 +227,8 @@
         lastListed: inv.lastListed || null, daysSince, listedNow, ageRows,
         olderShare: ageRows ? ageRows[3].p : null, olderN: inv.age ? inv.age.older : null, oldValue: isNum(inv.oldValue) ? inv.oldValue : null,
         slowParts: sl.slowParts, slowMinis: sl.slowMinis,
+        // wann die Rabattliste zuletzt neu berechnet wurde: im Sync (inv.checkedAt) oder in der regelmaessigen Kontrolle (bricklinkPrices.liveAt)
+        listAt: [inv.checkedAt, m.prices && m.prices.liveAt].filter((x) => typeof x === "string" && x).sort().pop() || "",
         plan: buildPlan(inv, m.yearGoal, now, curKey)
       };
     }
@@ -434,9 +436,14 @@
     const tabs = `<div class="sr-tabs" role="group" aria-label="Teile oder Minifiguren wählen"><button type="button" class="sr-tab" data-sr-act="slow:parts" aria-pressed="${tab === "parts"}">Teile (${L.slowParts.length})</button><button type="button" class="sr-tab" data-sr-act="slow:minis" aria-pressed="${tab === "minis"}">Minifiguren (${L.slowMinis.length})</button></div>`;
     const sumTxt = L.olderN !== null ? `<p class="sr-msum">Lots über 1 Jahr (alle zusammen): <b>${de(L.olderN, 0)}</b>${L.oldValue !== null ? `, gebunden ca. <b>${eur0(L.oldValue)}</b> zum Verkaufspreis` : ""}.${list.length ? ` Hier die ${list.length === 10 ? "zehn" : list.length} ${what} mit dem meisten Geld, das am längsten liegt:` : ""}</p>` : "";
     if (!list.length) return `${tabs}${sumTxt}<p class="sr-note">Keine ${what} über ein Jahr gefunden, für die ein Rabatt nötig wäre.</p>`;
-    const rows = list.map((r, i) => itemRow(i + 1, r, `<span class="sr-pr"><s>${price(r.price)}</s> → <b>${price(r.newPrice)}</b> <span class="sr-pc">−${r.pct} %</span></span><span class="sr-m"><span class="sr-nb">${de(r.qty, 0)} Stück ·</span> <span class="sr-nb">${eur2(r.value)} gebunden</span></span><span class="sr-m"><span class="sr-nb">seit ${ageText(r.age)}</span>${r.sale > 0 ? ` <span class="sr-nb">· schon −${r.sale} %</span>` : ""}</span>`)).join("");
+    const rows = list.map((r, i) => {
+      // Nach RABATT SETZEN zeigt die Zeile bis zum naechsten Abgleich noch den alten Rabatt: dann Haken und RUECKGAENGIG statt des Knopfs
+      const last = ui.canEdit ? lastOk(ui.hist, r.id, "sale") : null;
+      const chg = !!last && last.saleAfter !== (r.sale || 0) && Date.parse(last.at || "") > Date.parse(L.listAt || "");
+      return itemRow(i + 1, r, `<span class="sr-pr"><s>${price(r.price)}</s> → <b>${price(r.newPrice)}</b> <span class="sr-pc">−${r.pct} %</span></span><span class="sr-m"><span class="sr-nb">${de(r.qty, 0)} Stück ·</span> <span class="sr-nb">${eur2(r.value)} gebunden</span></span><span class="sr-m"><span class="sr-nb">seit ${ageText(r.age)}</span>${r.sale > 0 ? ` <span class="sr-nb">· schon −${r.sale} %</span>` : ""}</span>${saleEditHtml(r, ui, last, chg)}`, chg ? "sr-changed" : "");
+    }).join("");
     return `${tabs}${sumTxt}<ol class="sr-items">${rows}</ol>
-      <p class="sr-note">Vorschlag nach Alter: ab 1 Jahr 10 %, ab 2 Jahren 15 %, ab 3 Jahren 20 % auf den Listenpreis. Den Rabatt stellst du in Bricklink beim Lot ein (Sale in Prozent). Bricklink verrät nicht, wie oft ein Lot verkauft wurde: „schlecht verkauft“ heißt hier lange da und noch viel Wert.</p>`;
+      <p class="sr-note">Vorschlag nach Alter: ab 1 Jahr 10 %, ab 2 Jahren 15 %, ab 3 Jahren 20 % auf den Listenpreis. RABATT SETZEN stellt ihn direkt bei Bricklink ein (Sale in Prozent, der Listenpreis bleibt); beim nächsten Abgleich (alle 2 Stunden oder JETZT PRÜFEN im Preis-Check) rückt das nächste Lot nach. Bricklink verrät nicht, wie oft ein Lot verkauft wurde: „schlecht verkauft“ heißt hier lange da und noch viel Wert.</p>`;
   }
 
   /* ---------- Preis bei Bricklink aendern (Preis-Check) ---------- */
@@ -461,19 +468,42 @@
     if (target / current > MAX_RATIO || target / current < 1 / MAX_RATIO) return "Das wäre mehr als das 2000-Fache oder weniger als der 2000. Teil des jetzigen Preises. Bitte noch einmal prüfen.";
     return "";
   }
-  // Die letzte erfolgreiche Aenderung dieses Lots aus dem Protokoll der Aenderungen (aelteste zuerst) oder null
-  function lastOk(hist, id) {
+  // Rabatt setzen (Rabattvorschlag): Rabatt aus dem Eingabefeld ("15", "15 %", "-15"), ganze Prozent, sonst null; hoechstens MAX_SALE (wie scripts/lib/priceedit.mjs)
+  const MAX_SALE = 50;
+  function parseSale(s) {
+    const t = String(s).replace(/[%\s−-]/g, "");
+    return /^\d{1,2}$/.test(t) ? Number(t) : null;
+  }
+  function saleProblem(target, current) {
+    if (target === null) return "Bitte den Rabatt als ganze Zahl eingeben, zum Beispiel 15.";
+    if (target > MAX_SALE) return `Höchstens ${MAX_SALE} % (damit ein Tippfehler nichts verschenkt).`;
+    if (target === (current || 0)) return "Das ist schon der aktuelle Rabatt.";
+    return "";
+  }
+  // Knopf oder Zustand im Rabattvorschlag: RABATT SETZEN, "wird geaendert" oder (nach dem Setzen, solange die Liste noch den alten Rabatt zeigt) Haken mit RUECKGAENGIG
+  function saleEditHtml(r, ui, last, chg) {
+    if (!ui.canEdit || r.id === undefined || r.id === null) return "";
+    const id = esc(String(r.id));
+    if (ui.busy.has(String(r.id))) return `<span class="sr-ac"><span class="sr-busy" role="status">Bricklink wird geändert …</span></span>`;
+    if (chg) {
+      const undo = isNum(last.saleBefore) && isNum(last.listBefore) ? `<button type="button" class="sr-edit sr-undo" data-sr-act="rbu:${id}" title="${last.saleBefore ? `Rabatt wieder auf −${last.saleBefore} % setzen` : "Rabatt wieder entfernen"}">RÜCKGÄNGIG</button>` : "";
+      return `<span class="sr-ac"><span class="sr-ok">✓ ${last.saleAfter ? `−${last.saleAfter} % gesetzt` : "Rabatt entfernt"}</span>${undo}</span>`;
+    }
+    return `<span class="sr-ac"><button type="button" class="sr-edit" data-sr-act="rb:${id}" title="Rabatt dieses Lots bei Bricklink setzen (Sale in Prozent)">RABATT SETZEN</button></span>`;
+  }
+  // Die letzte erfolgreiche Aenderung dieses Lots aus dem Protokoll der Aenderungen (aelteste zuerst) oder null; kind "price" (PREIS ANPASSEN) oder "sale" (RABATT SETZEN)
+  function lastOk(hist, id, kind = "price") {
     for (let i = hist.length - 1; i >= 0; i--) {
       const c = hist[i];
-      if (c && String(c.id) === String(id) && c.result === "ok" && isNum(c.effectiveAfter)) return c;
+      if (c && String(c.id) === String(id) && c.result === "ok" && (c.kind || "price") === kind && isNum(c.effectiveAfter)) return c;
     }
     return null;
   }
   // Wurde das Lot von hier aus geaendert, nachdem die Zeile entstand, und zeigt die Zeile noch den alten Preis? (Spaetestens der naechste Sync prueft das Lot neu.)
   const staleChange = (r, last) => !!last && Math.abs(last.effectiveAfter - r.price) > 0.0005 && String(last.at || "").slice(0, 10) >= String(r.day || "");
   // Meldung, wenn der Workflow ein Lot bewusst nicht angefasst hat
-  const skipText = (why) => (/inzwischen/.test(why) ? "Der Preis dieses Lots hat sich inzwischen geändert (in Bricklink oder durch einen Rabatt), darum habe ich nichts angefasst. Beim nächsten Sync wird es neu geprüft."
-    : /schon so/.test(why) ? "Der Preis ist bei Bricklink schon so, es gab nichts zu ändern." : `Nicht geändert: ${why}.`);
+  const skipText = (why) => (/inzwischen/.test(why) ? "Preis oder Rabatt dieses Lots haben sich inzwischen geändert (in Bricklink oder hier), darum habe ich nichts angefasst. Beim nächsten Abgleich wird es neu geprüft."
+    : /schon so/.test(why) ? "Bei Bricklink ist es schon so eingestellt, es gab nichts zu ändern." : `Nicht geändert: ${why}.`);
   // Knopf oder Zustand rechts in der Zeile: PREIS ANPASSEN, "wird geaendert" oder (nach einer Aenderung, solange die Zeile noch den alten Preis zeigt) Haken mit RUECKGAENGIG
   function editHtml(r, ui, last, chg) {
     if (!ui.canEdit || r.id === undefined || r.id === null) return "";
@@ -551,7 +581,7 @@
       <p>Das Wochenziel für neue Teile folgt aus dem Jahresziel „Bricklink-Teile“: Was bis zum Jahresende fehlt, geteilt durch die Wochen, die noch bleiben. Es ändert sich also von Woche zu Woche, Verkäufe sind nicht eingerechnet.</p>
       <p>Der Lagerwert ist der Verkaufswert (Menge mal Preis), nicht dein Einkaufspreis. „Neu eingestellt“ zählt nur Lots, die noch im Bestand sind. Bestseller zählen die Stückzahl je Monat (neu und gebraucht zusammen), die Bilder kommen direkt von Bricklink.</p>
       <p>Der Preis-Check vergleicht deine Preise mit den Verkaufspreisen der letzten 6 Monate bei Bricklink. Weil dafür je Lot eine Abfrage nötig ist und Bricklink nur begrenzt viele am Tag erlaubt, wird täglich ein Teil deiner Lots geprüft.</p>
-      <p>PREIS ANPASSEN ändert den Preis dieses einen Lots sofort bei Bricklink (nur der Preis, und nur wenn er dort noch so ist wie hier angezeigt). Mit RÜCKGÄNGIG stellst du den alten Preis wieder her. Ein eigener Rabatt auf das Lot bleibt dabei erhalten.</p>
+      <p>PREIS ANPASSEN ändert den Preis dieses einen Lots sofort bei Bricklink (nur der Preis, und nur wenn er dort noch so ist wie hier angezeigt). Mit RÜCKGÄNGIG stellst du den alten Preis wieder her. Ein eigener Rabatt auf das Lot bleibt dabei erhalten. RABATT SETZEN im Rabattvorschlag stellt den Rabatt (Sale in Prozent) beim Lot ein, der Listenpreis bleibt; auch das lässt sich mit RÜCKGÄNGIG zurücknehmen.</p>
       <p>Alle 2 Stunden wird dein Bestand mit der Preis-Check-Liste verglichen: Lots, deren Preis du geändert hast (in Bricklink oder hier) oder die verkauft sind, wandern für eine Woche in „Erledigt“ und verschwinden dann von selbst. Neu eingestellte Lots werden gleich geprüft, dazu kommen bei jeder Kontrolle weitere Lots der Reihe nach dran (so wächst die Liste nach); was in den letzten drei Tagen zum ersten Mal auffiel, trägt NEU. JETZT PRÜFEN startet die Kontrolle sofort und prüft dabei etwas mehr Lots.</p>
       <p>Gespeichert werden Zahlen und für die drei Listen je Artikel Nummer, Name, Farbe, Menge und Preis, im privaten Repo. Von Käufern wird nichts gespeichert: keine Namen, keine Adressen, keine Nachrichten.</p></div>`;
     return `<div class="sr-head"><div><span class="sr-t1">SHOP-RADAR</span><span class="sr-t2">Bricklink: Warum läuft der Shop (nicht)?</span></div><div class="sr-meta">${model.stand ? `<span>Stand ${esc(model.stand)}</span>` : ""}<button type="button" class="sr-i" data-sr-act="info" aria-pressed="${ui.info ? "true" : "false"}" aria-label="Erklärungen ein- oder ausblenden">i</button></div></div>
@@ -629,7 +659,7 @@
         const had = panel.contains(document.activeElement) ? document.activeElement.dataset.srAct : "";
         panel.innerHTML = panelHtml(mdl, ui);
         if (had) { const again = panel.querySelector(`[data-sr-act="${had}"]`); if (again && !again.disabled) again.focus(); }
-        if (mdl.prices && (mdl.prices.over.length || mdl.prices.under.length)) loadHistory();
+        loadHistory();
       } else panel.textContent = "";
       if (card) card.classList.toggle("sr-open", ui.open);
     }
@@ -657,20 +687,21 @@
     }
     // Ein Auftrag mit einer Aenderung: Zeile auf "wird geaendert" stellen, auf das Ergebnis warten, melden
     async function runEdit(changes) {
-      const id = String(changes[0].id), say = deps.toast || (() => {});
+      const id = String(changes[0].id), say = deps.toast || (() => {}), sale = changes[0].kind === "sale";
       ui.busy.add(id);
       refresh();
-      say("Der Preis wird bei Bricklink geändert. Das dauert etwa eine halbe Minute.", "info", 7000);
+      say(sale ? "Der Rabatt wird bei Bricklink gesetzt. Das dauert etwa eine halbe Minute." : "Der Preis wird bei Bricklink geändert. Das dauert etwa eine halbe Minute.", "info", 7000);
       try {
         const rows = await deps.priceEdit.run(changes);
         const row = rows.find((x) => String(x.id) === id) || rows[0];
         ui.hist = ui.hist.concat(rows);
-        if (row && row.result === "ok") say(`Preis geändert: ${row.no} steht jetzt bei ${pr(row.effectiveAfter)} (vorher ${pr(row.effectiveBefore)}).`, "ok", 9000);
+        if (row && row.result === "ok" && sale) say(row.saleAfter ? `Rabatt gesetzt: ${row.no} hat jetzt −${row.saleAfter} %, Käufer zahlen ${pr(row.effectiveAfter)} (vorher ${pr(row.effectiveBefore)}).` : `Rabatt entfernt: ${row.no} hat keinen Rabatt mehr, Käufer zahlen wieder ${pr(row.effectiveAfter)}.`, "ok", 9000);
+        else if (row && row.result === "ok") say(`Preis geändert: ${row.no} steht jetzt bei ${pr(row.effectiveAfter)} (vorher ${pr(row.effectiveBefore)}).`, "ok", 9000);
         else if (row && row.result === "skipped") say(skipText(String(row.why || "")), "warn", 10000);
-        else say(`Bricklink hat den Preis nicht geändert: ${row && row.why ? row.why : "keine Antwort"}`, "err", 10000);
+        else say(`Bricklink hat ${sale ? "den Rabatt" : "den Preis"} nicht geändert: ${row && row.why ? row.why : "keine Antwort"}`, "err", 10000);
       } catch (e) {
         const msg = e && e.message ? e.message : "unbekannter Fehler";
-        say(/^Unklar/.test(msg) ? msg : `Preis nicht geändert: ${msg}`, "err", 12000);
+        say(/^Unklar/.test(msg) ? msg : `${sale ? "Rabatt" : "Preis"} nicht geändert: ${msg}`, "err", 12000);
       }
       ui.busy.delete(id);
       refresh();
@@ -707,6 +738,42 @@
       } finally { ui.asking = false; }
       if (ok) await runEdit([{ id, expect: last.effectiveAfter, target: last.effectiveBefore }]);
     }
+    // RABATT SETZEN: kleines Fenster mit dem Vorschlag nach Alter, dann der Auftrag (nur der Rabatt des Lots, der Listenpreis bleibt)
+    const findSlowRow = (id) => {
+      const h = [...hosts][0], L = h && h._srModel && h._srModel.lager;
+      return L ? [].concat(L.slowParts || [], L.slowMinis || []).find((r) => String(r.id) === String(id)) || null : null;
+    };
+    async function editSale(id) {
+      const r = findSlowRow(id);
+      if (!r || !ui.canEdit || ui.busy.has(id) || ui.asking) return;
+      ui.asking = true;
+      let target = null;
+      try {
+        const colorTxt = r.colorName || (r.color ? `Farbe ${r.color}` : "");
+        const sub = `${r.no} · ${decode(r.name)}${colorTxt ? ` · ${colorTxt}` : ""}${r.cond === "N" ? " · neu" : r.cond === "U" ? " · gebraucht" : ""} · ${de(r.qty, 0)} Stück, seit ${ageText(r.age)} im Shop. Listenpreis ${exact(r.price)}${r.sale > 0 ? `, jetzt schon −${r.sale} %` : ""}; mit −${r.pct} % zahlen Käufer ${exact(r.newPrice)}. Der Rabatt (Sale in Prozent) gilt bei Bricklink sofort, der Listenpreis bleibt.`;
+        let value = String(r.pct);
+        for (;;) {
+          const v = await deps.askForm({ title: "Rabatt bei Bricklink setzen", sub, fields: [{ label: "Rabatt in %", value }], okText: "Bei Bricklink setzen" });
+          if (!v) return;
+          value = v[0];
+          const t = parseSale(value), why = saleProblem(t, r.sale);
+          if (!why) { target = t; break; }
+          if (deps.toast) deps.toast(why, "warn", 7000);
+        }
+      } finally { ui.asking = false; }
+      await runEdit([{ id, kind: "sale", expect: r.price, expectSale: r.sale || 0, target }]);
+    }
+    // RUECKGAENGIG im Rabattvorschlag: der Rabatt vor der letzten Aenderung kommt zurueck
+    async function undoSale(id) {
+      const last = lastOk(ui.hist, id, "sale");
+      if (!last || !isNum(last.saleBefore) || !isNum(last.listBefore) || !ui.canEdit || ui.busy.has(id) || ui.asking) return;
+      ui.asking = true;
+      let ok = null;
+      try {
+        ok = await deps.askForm({ title: "Rabatt zurücknehmen?", sub: `${last.no}: Der Rabatt geht von −${last.saleAfter} % wieder auf ${last.saleBefore ? `−${last.saleBefore} %` : "keinen Rabatt"} zurück. Das gilt bei Bricklink sofort.`, fields: [], okText: "Rückgängig machen" });
+      } finally { ui.asking = false; }
+      if (ok) await runEdit([{ id, kind: "sale", expect: last.listBefore, expectSale: last.saleAfter, target: last.saleBefore }]);
+    }
     // JETZT PRUEFEN: startet die Kontrolle bei GitHub (Workflow check-prices.yml), wartet, holt den frischen Stand und sagt, was neu und was erledigt ist
     async function checkNow() {
       if (!ui.canCheck || ui.checking) return;
@@ -718,8 +785,10 @@
       refresh();
       say("Die Prüfung läuft. Das dauert etwa eine Minute.", "info", 7000);
       try {
-        const fresh = await deps.priceCheck.run();
+        const res = await deps.priceCheck.run();
+        const fresh = res && res.prices ? res.prices : res;
         if (fresh && typeof fresh === "object" && data) data.bricklinkPrices = fresh;
+        if (res && res.inventory && typeof res.inventory === "object" && data) data.bricklinkInventory = res.inventory;
         const nNew = ((fresh && fresh.over) || []).concat((fresh && fresh.under) || []).filter((r) => !before.rows.has(String(r.id))).length;
         const nDone = ((fresh && fresh.done) || []).filter((d) => !before.done.has(String(d.id))).length;
         const checked = fresh && isNum(fresh.liveChecked) ? fresh.liveChecked : null;
@@ -745,6 +814,8 @@
       else if (act === "slow:parts" || act === "slow:minis") { ui.slow = act.slice(5); saveUi(); refresh(); }
       else if (act.startsWith("peu:")) undoPrice(act.slice(4));
       else if (act.startsWith("pe:")) editPrice(act.slice(3));
+      else if (act.startsWith("rbu:")) undoSale(act.slice(4));
+      else if (act.startsWith("rb:")) editSale(act.slice(3));
     }
     // Fehlt ein Bild bei Bricklink, bleibt nur der leere Rahmen (error steigt nicht auf, darum in der Einfangphase)
     function onImgError(e) {

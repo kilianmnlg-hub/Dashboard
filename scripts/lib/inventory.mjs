@@ -118,6 +118,7 @@ export function summarizeInventory(lots, { now = new Date(), currency = "EUR", p
     const rowOf = (c) => {
       const cond = String(c.lot.new_or_used || "").toUpperCase();
       return {
+        id: num(c.lot.inventory_id),
         t: String((c.lot.item && c.lot.item.type) || "").toUpperCase(),
         no: String((c.lot.item && c.lot.item.no) || ""),
         name: String((c.lot.item && c.lot.item.name) || "").slice(0, 120),

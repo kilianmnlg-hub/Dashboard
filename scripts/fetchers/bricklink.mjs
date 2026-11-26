@@ -251,8 +251,14 @@ export async function fetchBricklinkPrices(currentData) {
 
   const checkedIds = new Set([...res.checkedIds, ...sres.checkedIds]);
   const merged = refreshRows({ previous: [...previous.over, ...previous.under], fresh: res.fresh.concat(sres.fresh), index, checkedIds, today, previousDone: previous.done, minDev: PRICE_DEV });
-  // Farbnamen der neuen Zeilen (ein Aufruf, bei einem Fehler zeigt das Radar die Nummer)
-  const lacking = [...merged.over, ...merged.under, ...merged.done].filter((s) => s && !s.colorName && s.color);
+  // Der Rabattvorschlag (die zehn Ladenhueter je Teile/Minifiguren) aus demselben Inventar neu: ein gesetzter Rabatt laesst das Lot aus der Liste fallen und das naechste rueckt nach
+  const inv = summarizeInventory(lots, { currency, previousWeekly: currentData?.bricklinkInventory?.weekly });
+  const slow = inv.slow, slowMini = inv.slowMini;
+  // Farbnamen: zuerst aus den bekannten Listen, nur fuer den Rest ein Aufruf (bei einem Fehler zeigt das Radar die Nummer)
+  const known = new Map();
+  [previous.over, previous.under, previous.done, currentData?.bricklinkInventory?.slow, currentData?.bricklinkInventory?.slowMini].forEach((l) => (Array.isArray(l) ? l : []).forEach((s) => { if (s && s.color && s.colorName) known.set(s.color, s.colorName); }));
+  [slow, slowMini].forEach((l) => (Array.isArray(l) ? l : []).forEach((s) => { if (s && s.color && known.has(s.color)) s.colorName = known.get(s.color); }));
+  const lacking = [...merged.over, ...merged.under, ...merged.done, ...(slow || []), ...(slowMini || [])].filter((s) => s && !s.colorName && s.color);
   if (lacking.length) {
     try {
       const colors = await bricklinkGet("/colors", {}, creds);
@@ -270,12 +276,14 @@ export async function fetchBricklinkPrices(currentData) {
   };
   const core = (p) => JSON.stringify([p.over, p.under, p.done, p.newFrom, Number(p.sweepAfter) || 0]);
   const stale = now.getTime() - (Date.parse(previous.liveAt || "") || 0) > LIVE_REFRESH_MS;
-  if (!PRICE_FORCE && !stale && core(next) === core(previous)) {
+  const norm = (l) => (Array.isArray(l) && l.length ? l : null); // leere Liste und keine Liste gelten als gleich
+  const slowSame = JSON.stringify([norm(slow), norm(slowMini)]) === JSON.stringify([norm(currentData?.bricklinkInventory?.slow), norm(currentData?.bricklinkInventory?.slowMini)]);
+  if (!PRICE_FORCE && !stale && slowSame && core(next) === core(previous)) {
     console.log("[bricklink] Preis-Check: keine Änderung.");
     return null;
   }
   console.log("[bricklink] Preis-Check aufgefrischt.");
-  return { bricklinkPrices: next };
+  return { bricklinkPrices: next, bricklinkInventory: { slow, slowMini } };
 }
 
 // Montag der ISO-Woche, in der `date` liegt, als "YYYY-MM-DD".

@@ -2749,7 +2749,8 @@
     new Function("window", "module", await res.text())(box); // data.js legt sich in window.DASHBOARD_DATA ab
     const prices = box.DASHBOARD_DATA && box.DASHBOARD_DATA.bricklinkPrices;
     if (!prices || typeof prices !== "object") throw new Error("Der Preis-Check fehlt in den geladenen Daten");
-    return prices;
+    // dazu das Lager mit dem Rabattvorschlag (die Kontrolle rechnet ihn ebenfalls neu)
+    return { prices, inventory: box.DASHBOARD_DATA.bricklinkInventory || null };
   }
   async function runPriceCheck() {
     const cfg = getGithubConfig();
