@@ -825,6 +825,59 @@
   if (document.body.dataset.cloud === "ready") loadArtlist();
   else document.addEventListener("cloud-ready", loadArtlist, { once: true });
 
+  // ---------- Rabatt seit 2 Wochen (Rabatt-Wache) ----------
+  // Lots, die seit alertDays Tagen (14) oder laenger einen eigenen Rabatt haben (data.bricklinkDiscounts, von der regelmaessigen Kontrolle des Preis-Checks gepflegt, siehe
+  // scripts/lib/discounts.mjs), stehen oben als Hinweis, bis sie gesehen sind: ANSEHEN oeffnet den Shop-Radar im Reiter "Im Rabatt", GESEHEN hakt ab, x blendet nur fuer diese Sitzung aus.
+  // Was gesehen ist, liegt in der Cloud (Feld discSeen in sync-data.json, derselbe Baustein wie bei den Bricklink-Nachrichten), damit Handy und PC dasselbe wissen.
+  // Die Handy-Meldung dazu schickt der Push-Worker (worker/push-worker.js, "discount"); ein Tipp darauf fuehrt ueber #rabatt hierher.
+  function discountDueItems() {
+    const D = data.bricklinkDiscounts;
+    if (!D || !Array.isArray(D.items)) return [];
+    const days = Number(D.alertDays) > 0 ? Number(D.alertDays) : 14;
+    // eigenes Datum statt todayKey(): diese Funktion laeuft schon beim Start, todayKey ist erst weiter unten definiert
+    const d = new Date(), today = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+    const cut = new Date(today - days * 86400000).toISOString().slice(0, 10);
+    return D.items.filter((i) => i && i.id && typeof i.since === "string" && i.since <= cut).map((i) => ({ order: String(i.no || i.id), id: `${i.id}:${i.since}`, at: i.since }));
+  }
+  const discSeenBoard = window.createMsgSeen ? window.createMsgSeen({ dataStore, scheduleAutoSync, items: discountDueItems(), key: "dashboard-discseen-v1" }) : null;
+  let remoteDiscSeenRaw = null;
+  function openDiscountsView() {
+    if (typeof foldBoard !== "undefined" && foldBoard) foldBoard.expand("business");
+    if (typeof shopRadar !== "undefined" && shopRadar && shopRadar.openDiscounts) shopRadar.openDiscounts();
+  }
+  function renderDiscountAlert() {
+    const host = document.getElementById("topAlerts");
+    if (!host) return;
+    host.querySelector('[data-alert^="disc-"]')?.remove();
+    if (!discSeenBoard || document.body.dataset.cloud !== "ready") return;
+    const open = discSeenBoard.list() || [];
+    if (!open.length) return;
+    const D = data.bricklinkDiscounts || {}, days = Number(D.alertDays) > 0 ? Number(D.alertDays) : 14, span = days === 7 ? "1 Woche" : days % 7 === 0 ? `${days / 7} Wochen` : `${days} Tagen`;
+    const byKey = new Map((Array.isArray(D.items) ? D.items : []).map((i) => [`${i.id}:${i.since}`, i]));
+    const lots = open.map((o) => byKey.get(o.id)).filter(Boolean);
+    if (!lots.length) return;
+    // Kennung aus den offenen Lots: blendet x einen Hinweis aus, erscheint er erst wieder, wenn ein weiteres Lot dazukommt (oder in der naechsten Sitzung)
+    const sig = open.map((o) => o.id).join(",");
+    let h = 0;
+    for (let k = 0; k < sig.length; k++) h = (h * 31 + sig.charCodeAt(k)) | 0;
+    const id = `disc-${(h >>> 0).toString(36)}`;
+    try { if (sessionStorage.getItem(`dashboard-alert-dismissed-${id}`)) return; } catch (e) { /* egal */ }
+    const line = (i) => `${i.no} −${i.sale} %${i.qty0 > i.qty ? ` (${i.qty0 - i.qty} von ${i.qty0} verkauft)` : " (nichts verkauft)"}`;
+    const title = lots.length === 1 ? `Seit ${span} im Rabatt: ${lots[0].no}` : `${lots.length} Lots seit ${span} im Rabatt`;
+    const subText = lots.slice(0, 3).map(line).join(" · ") + (lots.length > 3 ? " …" : "");
+    host.insertAdjacentHTML("beforeend", `<div class="ship-alert top-alert yellow" data-alert="${escapeHtml(id)}"><div class="ship-alert-inner">${pxSpr("coin", 22)}<span class="ship-alert-text"><b>${escapeHtml(title)}</b><span class="ta-sub">${escapeHtml(subText)}</span></span>` +
+      `<button type="button" class="ta-action" data-act="disc-open">ANSEHEN</button><button type="button" class="ta-action" data-act="disc-seen">GESEHEN</button><button type="button" class="ship-alert-dismiss" aria-label="Ausblenden">×</button></div></div>`);
+  }
+  document.getElementById("topAlerts")?.addEventListener("click", (e) => {
+    const b = e.target.closest('.ta-action[data-act^="disc-"]');
+    if (!b || !discSeenBoard) return;
+    discSeenBoard.markAll();
+    if (b.dataset.act === "disc-open") openDiscountsView();
+  });
+  if (discSeenBoard) discSeenBoard.onChange(renderDiscountAlert);
+  if (document.body.dataset.cloud === "ready") renderDiscountAlert();
+  else document.addEventListener("cloud-ready", renderDiscountAlert, { once: true });
+
   // ---------- Upload-Kalender ----------
   // Beide Kanaele in einem Plan: Videoideen (aus den Ideen-Listen der Kanal-Karten) per Ziehen oder Antippen auf einen Tag legen, dazu Community-Posts, Kooperationen,
   // Fristen und LEGO-/MTG-Termine. Geplantes liegt in der Cloud (Feld uploadPlan in sync-data.json), Uploads, Ziele und Rhythmus kommen aus den vorhandenen Daten.
@@ -2750,7 +2803,7 @@
     const prices = box.DASHBOARD_DATA && box.DASHBOARD_DATA.bricklinkPrices;
     if (!prices || typeof prices !== "object") throw new Error("Der Preis-Check fehlt in den geladenen Daten");
     // dazu das Lager mit dem Rabattvorschlag (die Kontrolle rechnet ihn ebenfalls neu)
-    return { prices, inventory: box.DASHBOARD_DATA.bricklinkInventory || null };
+    return { prices, inventory: box.DASHBOARD_DATA.bricklinkInventory || null, discounts: box.DASHBOARD_DATA.bricklinkDiscounts || null };
   }
   async function runPriceCheck() {
     const cfg = getGithubConfig();
@@ -2783,7 +2836,7 @@
 
   // Shop-Radar (shopradar.js): Ausklappmenue in der Karte "Bricklink Store". Zahlen aus data.bricklinkRevenue, data.bricklinkInventory und data.bricklinkSales (Sync),
   // das Jahresziel "bricklink-parts" aus data.goals, Stunden aus dem Zeittracker. Es speichert nichts (auch nicht in der Cloud); nur XP fuer das Wochenziel. Einzige Ausnahme: Preise bei Bricklink aendern (priceEditBoard oben).
-  const shopRadar = window.createShopRadar ? window.createShopRadar({ data, hours: timeTrackerBoard, getXp: () => xpBoard, askForm, toast, priceEdit: priceEditBoard, priceCheck: priceCheckBoard }) : null;
+  const shopRadar = window.createShopRadar ? window.createShopRadar({ data, hours: timeTrackerBoard, getXp: () => xpBoard, askForm, toast, priceEdit: priceEditBoard, priceCheck: priceCheckBoard, onFresh: () => { if (discSeenBoard) discSeenBoard.setItems(discountDueItems()); } }) : null;
   if (shopRadar) document.querySelectorAll("[data-sr]").forEach((el) => shopRadar.mount(el));
 
   // Handy-Notiz (inbox.js): Notizen von jedem Geraet in eine Cloud-Inbox; das lokale Skript sync-brainmap.ps1 uebernimmt
@@ -3626,6 +3679,7 @@
       fold: foldBoard ? foldBoard.payload() : remoteFoldRaw,
       xp: xpBoard ? xpBoard.payload() : remoteXpRaw,
       msgSeen: msgSeenBoard ? msgSeenBoard.payload() : remoteMsgSeenRaw,
+      discSeen: discSeenBoard ? discSeenBoard.payload() : remoteDiscSeenRaw,
       afterUpload: afterUploadBoard ? afterUploadBoard.payload() : remoteAfterUploadRaw,
       community: communityBoard ? communityBoard.payload() : remoteCommunityRaw,
       communityBw: communityBwBoard ? communityBwBoard.payload() : remoteCommunityBwRaw,
@@ -3641,6 +3695,7 @@
     if (payload.coop == null) delete payload.coop;
     if (payload.uploadPlan == null) delete payload.uploadPlan;
     if (payload.msgSeen == null) delete payload.msgSeen;
+    if (payload.discSeen == null) delete payload.discSeen;
     if (payload.xp == null) delete payload.xp;
     if (payload.inbox == null) delete payload.inbox;
     if (payload.fold == null) delete payload.fold;
@@ -3800,6 +3855,8 @@
         if (xpBoard) xpBoard.applyRemote(remote.xp);
         remoteMsgSeenRaw = remote.msgSeen ?? null;
         if (msgSeenBoard) msgSeenBoard.applyRemote(remote.msgSeen);
+        remoteDiscSeenRaw = remote.discSeen ?? null;
+        if (discSeenBoard) discSeenBoard.applyRemote(remote.discSeen);
         remoteAfterUploadRaw = remote.afterUpload ?? null;
         if (afterUploadBoard) afterUploadBoard.applyRemote(remote.afterUpload);
         remoteCommunityRaw = remote.community ?? null;
@@ -4300,6 +4357,7 @@
         toast,
         escapeHtml,
         expand: (id) => { if (typeof foldBoard !== "undefined" && foldBoard) foldBoard.expand(id); },
+        onHash: (id) => { if (id !== "rabatt") return false; openDiscountsView(); return true; },
         syncNow: () => syncButton.click()
       });
     }

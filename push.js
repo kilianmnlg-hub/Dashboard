@@ -27,6 +27,7 @@
     { id: "community", t: "Community-Post fällig", s: "wenn 3 Tage ohne Post, einmal pro Tag um", time: true },
     { id: "coop", t: "Neue Kooperationsanfrage", s: "sobald der Postfach-Check eine findet" },
     { id: "artlist", t: "Artlist-Credits laufen aus", s: "wenn kurz vor der Erneuerung noch Credits übrig sind, um", time: true },
+    { id: "discount", t: "Rabatt seit 2 Wochen", s: "einmal je Lot (Shop-Radar, Im Rabatt), um", time: true },
     { id: "uploadday", t: "Upload-Kalender: heute dran", s: "wenn heute ein Upload, Post oder Termin geplant ist, um", time: true },
     { id: "afterUpload", t: "After-Upload-Checkliste offen", s: "nach dem neuen Video", sel: { k: "delayMin", opts: [30, 60, 120, 240], fmt: (v) => (v >= 60 ? v / 60 + " Std." : v + " Min.") } },
     { id: "habits", t: "Habits abends offen", s: "nur bei Wochenziel in Gefahr, um", time: true },
@@ -311,6 +312,7 @@
     function goTo(url) {
       let id = "";
       try { id = new URL(url, location.href).hash.slice(1); } catch (e) { return; }
+      if (id && deps.onHash && deps.onHash(id)) return; // eigene Ziele, z.B. #rabatt (Shop-Radar, Reiter Im Rabatt)
       const el = id && document.getElementById(id);
       if (!el) return;
       if (deps.expand) deps.expand(id);

@@ -99,6 +99,7 @@
   //   inventory  data.bricklinkInventory (siehe scripts/lib/inventory.mjs) oder null
   //   sales      data.bricklinkSales ({ months: [{ month, orders, units, revenue, top }] }, siehe scripts/lib/sales.mjs) oder null
   //   prices     data.bricklinkPrices ({ over, under, eligible, cycleDays, checked, minDev, minSales, minValue, region, day }, siehe scripts/lib/pricecheck.mjs) oder null
+  //   discounts  data.bricklinkDiscounts ({ alertDays, items: [{ id, no, sale, price, qty, qty0, since, known }] }, siehe scripts/lib/discounts.mjs) oder null
   //   hours      [{ start, youtube, bricklink }] ab der aeltesten Woche, die laufende zuletzt (Zeittracker.weekHours(9)), oder null
   //   targetHours Wochen-Soll Bricklink in Stunden, ytMonthly YouTube-Umsatz je Monat (Ziel "bricks-umsatz"),
   //   yearGoal   das Ziel "bricklink-parts" ({ current, target, due }) oder null
@@ -308,8 +309,25 @@
     } else {
       hints.push({ level: "info", title: "Lager noch nicht geladen", text: "Die Lager-Zahlen kommen mit dem nächsten Sync." });
     }
+    /* Rabatt-Wache: Lots mit eigenem Rabatt und seit wann (data.bricklinkDiscounts, siehe scripts/lib/discounts.mjs); faellig = seit alertDays Tagen oder laenger */
+    let discounts = null;
+    if (m.discounts && Array.isArray(m.discounts.items)) {
+      const alertDays = Number(m.discounts.alertDays) > 0 ? Number(m.discounts.alertDays) : 14, todayK = keyOf(m.now);
+      const items = m.discounts.items
+        .filter((d) => d && typeof d.no === "string" && isNum(d.sale) && isNum(d.price) && isNum(d.qty) && typeof d.since === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.since))
+        .map((d) => {
+          const days = Math.max(0, Math.round((utc(todayK) - utc(d.since)) / DAY)), qty0 = isNum(d.qty0) ? Math.max(d.qty0, d.qty) : d.qty;
+          return { ...d, days, due: days >= alertDays, qty0, sold: qty0 - d.qty };
+        });
+      discounts = { items, alertDays, due: items.filter((d) => d.due), checkedAt: String(m.discounts.checkedAt || "") };
+    }
+
     if (prices && (prices.over.length || prices.under.length)) {
       hints.push({ level: "info", title: `Preis-Check: ${prices.over.length} Lots deutlich über, ${prices.under.length} deutlich unter dem 6-Monats-Schnitt${prices.newCount ? ` (${prices.newCount} neu)` : ""}`, text: prices.done.length ? `Schon geändert oder verkauft: ${prices.done.length} (Reiter Erledigt). Die Listen stehen weiter unten.` : "Die Listen stehen weiter unten." });
+    }
+    if (discounts && discounts.due.length) {
+      const n = discounts.due.length, sold = discounts.due.filter((d) => d.sold > 0).length;
+      hints.push({ level: "warn", title: `${n} ${n === 1 ? "Lot" : "Lots"} seit ${discounts.alertDays === 7 ? "1 Woche" : discounts.alertDays % 7 === 0 ? `${discounts.alertDays / 7} Wochen` : `${discounts.alertDays} Tagen`} im Rabatt`, text: `${sold ? `Bei ${sold} davon wurde seitdem etwas verkauft. ` : "Seitdem wurde davon nichts verkauft. "}Die Liste steht im Rabattvorschlag unter „Im Rabatt“.` });
     }
     hints.sort((a, b) => LEVEL_RANK[a.level] - LEVEL_RANK[b.level]);
 
@@ -318,7 +336,7 @@
     const stamp = [rev && rev.checkedAt, inv && inv.checkedAt].filter(Boolean).sort().pop();
     const sd = stamp ? new Date(stamp) : null;
     return {
-      weeks, hi, weekNote, months, monthNote, kpis, hints, lager, sales, prices, worst, issues,
+      weeks, hi, weekNote, months, monthNote, kpis, hints, lager, sales, prices, discounts, worst, issues,
       stand: sd && !isNaN(sd) ? sd.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" }) : "",
       hasRevenue: !!rev, hasHours: !!hours, target
     };
@@ -427,13 +445,32 @@
       <p class="sr-msum"><b>${MONTHS[sel.mi]} ${sel.year}${sel.running ? " (läuft noch)" : ""}:</b> ${sel.orders} ${sel.orders === 1 ? "Bestellung" : "Bestellungen"}, ${de(sel.units, 0)} Teile, ${eur0(sel.revenue)}</p>${list}`;
   }
 
-  // Rabattvorschlag: die zehn Ladenhueter (Warenwert mal Alter), mit Vorschlag nach Alter; Reiter fuer Teile und Minifiguren (die Wahl merkt sich der Browser)
+  // Eine Zeile im Reiter "Im Rabatt": Rabatt, Preis fuer Kaeufer, seit wann (ab alertDays Tagen hervorgehoben) und was seitdem verkauft wurde; dazu RABATT AENDERN
+  function discRow(i, d, ui, listAt) {
+    const last = ui.canEdit ? lastOk(ui.hist, d.id, "sale") : null;
+    const chg = !!last && last.saleAfter !== d.sale && Date.parse(last.at || "") > Date.parse(listAt || "");
+    const since = `seit ${dm(d.since)}${d.known ? "" : " (mindestens)"} · ${d.days === 1 ? "1 Tag" : `${d.days} Tage`}`;
+    const sold = d.sold > 0 ? `seitdem ${de(d.sold, 0)} von ${de(d.qty0, 0)} verkauft` : "seitdem nichts verkauft";
+    const right = `<span class="sr-pr"><b>${exact(d.price * (1 - d.sale / 100))}</b> <span class="sr-pc">−${d.sale} %</span> <span class="sr-vs">statt ${exact(d.price)}</span></span>` +
+      `<span class="sr-m"><span class="sr-nb${d.due ? " sr-dev-up" : ""}">${since}</span></span><span class="sr-m"><span class="sr-nb">${sold}</span> <span class="sr-nb">· ${de(d.qty, 0)} Stück übrig</span></span>${saleEditHtml(d, ui, last, chg, "RABATT ÄNDERN", "rd")}`;
+    return itemRow(i + 1, d, right, chg ? "sr-changed" : "");
+  }
+
+  // Rabattvorschlag: die zehn Ladenhueter (Warenwert mal Alter), mit Vorschlag nach Alter; Reiter fuer Teile und Minifiguren (die Wahl merkt sich der Browser), dazu "Im Rabatt"
   function slowHtml(model, ui) {
     const L = model.lager;
     if (!L || L.slowParts === undefined) return `<p class="sr-note">Die Liste kommt mit dem nächsten Sync.</p>`;
     if (L.slowParts === null) return `<p class="sr-note">Ohne Erstelldatum der Lots gibt es keine Liste.</p>`;
-    const tab = ui.slow === "minis" ? "minis" : "parts", list = tab === "minis" ? L.slowMinis : L.slowParts, what = tab === "minis" ? "Minifiguren" : "Teile";
-    const tabs = `<div class="sr-tabs" role="group" aria-label="Teile oder Minifiguren wählen"><button type="button" class="sr-tab" data-sr-act="slow:parts" aria-pressed="${tab === "parts"}">Teile (${L.slowParts.length})</button><button type="button" class="sr-tab" data-sr-act="slow:minis" aria-pressed="${tab === "minis"}">Minifiguren (${L.slowMinis.length})</button></div>`;
+    const D = model.discounts;
+    const tab = ui.slow === "minis" ? "minis" : ui.slow === "disc" && D ? "disc" : "parts", list = tab === "minis" ? L.slowMinis : L.slowParts, what = tab === "minis" ? "Minifiguren" : "Teile";
+    const tabs = `<div class="sr-tabs" role="group" aria-label="Teile, Minifiguren oder Lots im Rabatt wählen"><button type="button" class="sr-tab" data-sr-act="slow:parts" aria-pressed="${tab === "parts"}">Teile (${L.slowParts.length})</button><button type="button" class="sr-tab" data-sr-act="slow:minis" aria-pressed="${tab === "minis"}">Minifiguren (${L.slowMinis.length})</button>${D ? `<button type="button" class="sr-tab" data-sr-act="slow:disc" aria-pressed="${tab === "disc"}">Im Rabatt (${D.items.length})</button>` : ""}</div>`;
+    if (tab === "disc") {
+      const span = D.alertDays === 7 ? "1 Woche" : D.alertDays % 7 === 0 ? `${D.alertDays / 7} Wochen` : `${D.alertDays} Tage`;
+      const head = `<p class="sr-msum">Lots mit eigenem Rabatt: <b>${de(D.items.length, 0)}</b>${D.due.length ? `, davon <b>${de(D.due.length, 0)}</b> seit ${span} oder länger` : ""}. Die ältesten zuerst:</p>`;
+      if (!D.items.length) return `${tabs}<p class="sr-note">Gerade hat kein Lot im Shop einen eigenen Rabatt.</p>`;
+      return `${tabs}${head}<ol class="sr-items">${D.items.map((d, i) => discRow(i, d, ui, D.checkedAt)).join("")}</ol>
+      <p class="sr-note">Seit wann ein Lot im Rabatt ist, merkt sich das Dashboard, Bricklink selbst nennt kein Datum: Rabatte über RABATT SETZEN haben das genaue Datum, bei anderen zählt der Tag, an dem die Kontrolle (alle 2 Stunden) den Rabatt zum ersten Mal sah („mindestens“). Ab ${span} kommt eine Meldung aufs Handy und oben im Dashboard. „Verkauft“ ist der Unterschied der Menge seit Beginn.</p>`;
+    }
     const sumTxt = L.olderN !== null ? `<p class="sr-msum">Lots über 1 Jahr (alle zusammen): <b>${de(L.olderN, 0)}</b>${L.oldValue !== null ? `, gebunden ca. <b>${eur0(L.oldValue)}</b> zum Verkaufspreis` : ""}.${list.length ? ` Hier die ${list.length === 10 ? "zehn" : list.length} ${what} mit dem meisten Geld, das am längsten liegt:` : ""}</p>` : "";
     if (!list.length) return `${tabs}${sumTxt}<p class="sr-note">Keine ${what} über ein Jahr gefunden, für die ein Rabatt nötig wäre.</p>`;
     const rows = list.map((r, i) => {
@@ -481,7 +518,7 @@
     return "";
   }
   // Knopf oder Zustand im Rabattvorschlag: RABATT SETZEN, "wird geaendert" oder (nach dem Setzen, solange die Liste noch den alten Rabatt zeigt) Haken mit RUECKGAENGIG
-  function saleEditHtml(r, ui, last, chg) {
+  function saleEditHtml(r, ui, last, chg, label = "RABATT SETZEN", act = "rb") {
     if (!ui.canEdit || r.id === undefined || r.id === null) return "";
     const id = esc(String(r.id));
     if (ui.busy.has(String(r.id))) return `<span class="sr-ac"><span class="sr-busy" role="status">Bricklink wird geändert …</span></span>`;
@@ -489,7 +526,7 @@
       const undo = isNum(last.saleBefore) && isNum(last.listBefore) ? `<button type="button" class="sr-edit sr-undo" data-sr-act="rbu:${id}" title="${last.saleBefore ? `Rabatt wieder auf −${last.saleBefore} % setzen` : "Rabatt wieder entfernen"}">RÜCKGÄNGIG</button>` : "";
       return `<span class="sr-ac"><span class="sr-ok">✓ ${last.saleAfter ? `−${last.saleAfter} % gesetzt` : "Rabatt entfernt"}</span>${undo}</span>`;
     }
-    return `<span class="sr-ac"><button type="button" class="sr-edit" data-sr-act="rb:${id}" title="Rabatt dieses Lots bei Bricklink setzen (Sale in Prozent)">RABATT SETZEN</button></span>`;
+    return `<span class="sr-ac"><button type="button" class="sr-edit" data-sr-act="${act}:${id}" title="Rabatt dieses Lots bei Bricklink setzen (Sale in Prozent)">${label}</button></span>`;
   }
   // Die letzte erfolgreiche Aenderung dieses Lots aus dem Protokoll der Aenderungen (aelteste zuerst) oder null; kind "price" (PREIS ANPASSEN) oder "sale" (RABATT SETZEN)
   function lastOk(hist, id, kind = "price") {
@@ -594,7 +631,7 @@
       </div>` : ""}
       <section class="sr-box"><h4>Lager</h4><p class="sr-sub">Dein Angebot: Wie viel liegt im Shop, und wie frisch ist es?</p>${lagerHtml(model)}</section>
       <section class="sr-box"><h4>Bestseller pro Monat</h4><p class="sr-sub">Die zehn meistverkauften Artikel nach Stückzahl. Bei der Zahl vorn ist es die Teilenummer aus Bricklink.</p>${salesHtml(model, ui)}</section>
-      <section class="sr-box"><h4>Rabattvorschlag</h4><p class="sr-sub">Die zehn Ladenhüter, die du am ehesten im Preis senken könntest, getrennt nach Teilen und Minifiguren.</p>${slowHtml(model, ui)}</section>
+      <section class="sr-box" id="sr-rabatt"><h4>Rabattvorschlag</h4><p class="sr-sub">Die zehn Ladenhüter, die du am ehesten im Preis senken könntest, getrennt nach Teilen und Minifiguren.</p>${slowHtml(model, ui)}</section>
       <section class="sr-box"><h4>Preis-Check</h4><p class="sr-sub">Teile und Minifiguren, deren Preis stark vom Durchschnitt der letzten 6 Monate abweicht.</p>${priceHtml(model, ui)}</section>
       <p class="sr-foot">Keine Kundendaten: keine Namen, Adressen oder Nachrichten von Käufern. Gespeichert sind Zahlen und die drei Artikellisten. Quellen: Bricklink-API und Zeittracker.</p>`;
   }
@@ -619,7 +656,7 @@
     const UI_KEY = "dashboard-shopradar-ui";
     // Auf/zu und Erklaerung: nur dieser Browser, standardmaessig zu; der gewaehlte Monat gilt nur bis zum Neuladen
     const ui = { open: false, info: false, month: null, pc: "over", pcMore: false, slow: "parts", canEdit: !!deps.priceEdit, busy: new Set(), hist: [], histTried: false, asking: false, canCheck: !!deps.priceCheck, checking: false };
-    try { const u = JSON.parse(localStorage.getItem(UI_KEY) || "{}"); ui.open = u.open === true; ui.info = u.info === true; ui.slow = u.slow === "minis" ? "minis" : "parts"; } catch (e) { /* egal */ }
+    try { const u = JSON.parse(localStorage.getItem(UI_KEY) || "{}"); ui.open = u.open === true; ui.info = u.info === true; ui.slow = u.slow === "minis" || u.slow === "disc" ? u.slow : "parts"; } catch (e) { /* egal */ }
     const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify({ open: ui.open, info: ui.info, slow: ui.slow })); } catch (e) { /* egal */ } };
 
     const hosts = new Set();
@@ -638,7 +675,7 @@
       const goals = data && Array.isArray(data.goals) ? data.goals : [];
       const yt = goals.find((g) => g.id === "bricks-umsatz"), yg = goals.find((g) => g.id === "bricklink-parts");
       return compute({
-        now: new Date(), revenue: data && data.bricklinkRevenue, inventory: data && data.bricklinkInventory, sales: data && data.bricklinkSales, prices: data && data.bricklinkPrices,
+        now: new Date(), revenue: data && data.bricklinkRevenue, inventory: data && data.bricklinkInventory, sales: data && data.bricklinkSales, prices: data && data.bricklinkPrices, discounts: data && data.bricklinkDiscounts,
         hours, targetHours: targets ? targets.bricklink : null, ytMonthly: yt && isNum(yt.current) ? yt.current : null,
         yearGoal: yg ? { current: yg.current, target: yg.target, due: yg.due } : null
       });
@@ -739,19 +776,26 @@
       if (ok) await runEdit([{ id, expect: last.effectiveAfter, target: last.effectiveBefore }]);
     }
     // RABATT SETZEN: kleines Fenster mit dem Vorschlag nach Alter, dann der Auftrag (nur der Rabatt des Lots, der Listenpreis bleibt)
-    const findSlowRow = (id) => {
+    // from = "disc": Knopf im Reiter "Im Rabatt" (diese Zeile zuerst), sonst aus dem Rabattvorschlag
+    const findSlowRow = (id, from) => {
       const h = [...hosts][0], L = h && h._srModel && h._srModel.lager;
-      return L ? [].concat(L.slowParts || [], L.slowMinis || []).find((r) => String(r.id) === String(id)) || null : null;
+      const D = h && h._srModel && h._srModel.discounts;
+      const slow = [].concat((L && L.slowParts) || [], (L && L.slowMinis) || []), disc = (D && D.items) || [];
+      return (from === "disc" ? disc.concat(slow) : slow.concat(disc)).find((r) => String(r.id) === String(id)) || null;
     };
-    async function editSale(id) {
-      const r = findSlowRow(id);
+    async function editSale(id, from) {
+      const r = findSlowRow(id, from);
       if (!r || !ui.canEdit || ui.busy.has(id) || ui.asking) return;
       ui.asking = true;
       let target = null;
       try {
         const colorTxt = r.colorName || (r.color ? `Farbe ${r.color}` : "");
-        const sub = `${r.no} · ${decode(r.name)}${colorTxt ? ` · ${colorTxt}` : ""}${r.cond === "N" ? " · neu" : r.cond === "U" ? " · gebraucht" : ""} · ${de(r.qty, 0)} Stück, seit ${ageText(r.age)} im Shop. Listenpreis ${exact(r.price)}${r.sale > 0 ? `, jetzt schon −${r.sale} %` : ""}; mit −${r.pct} % zahlen Käufer ${exact(r.newPrice)}. Der Rabatt (Sale in Prozent) gilt bei Bricklink sofort, der Listenpreis bleibt.`;
-        let value = String(r.pct);
+        const head = `${r.no} · ${decode(r.name)}${colorTxt ? ` · ${colorTxt}` : ""}${r.cond === "N" ? " · neu" : r.cond === "U" ? " · gebraucht" : ""} · ${de(r.qty, 0)} Stück`;
+        // Zeile aus dem Rabattvorschlag (mit Vorschlag pct) oder aus "Im Rabatt" (Rabatt aendern oder mit 0 entfernen)
+        const sub = isNum(r.pct)
+          ? `${head}, seit ${ageText(r.age)} im Shop. Listenpreis ${exact(r.price)}${r.sale > 0 ? `, jetzt schon −${r.sale} %` : ""}; mit −${r.pct} % zahlen Käufer ${exact(r.newPrice)}. Der Rabatt (Sale in Prozent) gilt bei Bricklink sofort, der Listenpreis bleibt.`
+          : `${head}. Listenpreis ${exact(r.price)}, jetzt −${r.sale} % seit ${dm(r.since)}${r.known ? "" : " (mindestens)"}, ${r.sold > 0 ? `seitdem ${r.sold} von ${r.qty0} verkauft` : "seitdem nichts verkauft"}. Neuer Rabatt in Prozent, 0 nimmt ihn weg; er gilt bei Bricklink sofort, der Listenpreis bleibt.`;
+        let value = String(isNum(r.pct) ? r.pct : r.sale);
         for (;;) {
           const v = await deps.askForm({ title: "Rabatt bei Bricklink setzen", sub, fields: [{ label: "Rabatt in %", value }], okText: "Bei Bricklink setzen" });
           if (!v) return;
@@ -789,6 +833,8 @@
         const fresh = res && res.prices ? res.prices : res;
         if (fresh && typeof fresh === "object" && data) data.bricklinkPrices = fresh;
         if (res && res.inventory && typeof res.inventory === "object" && data) data.bricklinkInventory = res.inventory;
+        if (res && res.discounts && typeof res.discounts === "object" && data) data.bricklinkDiscounts = res.discounts;
+        if (deps.onFresh) { try { deps.onFresh(); } catch (e) { /* Anzeige anderswo darf die Meldung nicht stoppen */ } }
         const nNew = ((fresh && fresh.over) || []).concat((fresh && fresh.under) || []).filter((r) => !before.rows.has(String(r.id))).length;
         const nDone = ((fresh && fresh.done) || []).filter((d) => !before.done.has(String(d.id))).length;
         const checked = fresh && isNum(fresh.liveChecked) ? fresh.liveChecked : null;
@@ -811,11 +857,12 @@
       else if (act === "pc:over" || act === "pc:under" || act === "pc:done") { ui.pc = act.slice(3); ui.pcMore = false; refresh(); }
       else if (act === "pcnow") checkNow();
       else if (act === "pcmore") { ui.pcMore = true; refresh(); }
-      else if (act === "slow:parts" || act === "slow:minis") { ui.slow = act.slice(5); saveUi(); refresh(); }
+      else if (act === "slow:parts" || act === "slow:minis" || act === "slow:disc") { ui.slow = act.slice(5); saveUi(); refresh(); }
       else if (act.startsWith("peu:")) undoPrice(act.slice(4));
       else if (act.startsWith("pe:")) editPrice(act.slice(3));
       else if (act.startsWith("rbu:")) undoSale(act.slice(4));
       else if (act.startsWith("rb:")) editSale(act.slice(3));
+      else if (act.startsWith("rd:")) editSale(act.slice(3), "disc");
     }
     // Fehlt ein Bild bei Bricklink, bleibt nur der leere Rahmen (error steigt nicht auf, darum in der Einfangphase)
     function onImgError(e) {
@@ -835,6 +882,14 @@
         else goalXp(host._srModel);
       },
       refresh,
+      // Fuer den Hinweis oben und die Handy-Meldung (#rabatt): Radar auf, Reiter "Im Rabatt", zum Rabattvorschlag scrollen
+      openDiscounts() {
+        ui.open = true; ui.slow = "disc"; saveUi(); refresh();
+        // ohne Animation (ein Tipp auf die Handy-Meldung oeffnet die App frisch, da soll es sofort stehen) und ein zweites Mal, falls sich die Seite darueber noch verschoben hat
+        const go = () => { const el = document.getElementById("sr-rabatt"); if (el && Math.abs(el.getBoundingClientRect().top) > 40) el.scrollIntoView({ block: "start" }); };
+        setTimeout(go, 150);
+        setTimeout(go, 900);
+      },
       // Fuer die Befehlspalette: Menue aufklappen und hinscrollen
       open() {
         ui.open = true; saveUi(); refresh();

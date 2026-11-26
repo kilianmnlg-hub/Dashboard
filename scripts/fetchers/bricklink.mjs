@@ -24,6 +24,7 @@
 
 import { buildAuthHeader } from "../lib/oauth1.mjs";
 import { summarizeInventory } from "../lib/inventory.mjs";
+import { trackDiscounts } from "../lib/discounts.mjs";
 import { summarizeSales } from "../lib/sales.mjs";
 import { DEFAULTS as PRICE_DEFAULTS, advanceCursor, evaluate, indexLots, pickEligible, pickSlice, pickSweep, refreshRows } from "../lib/pricecheck.mjs";
 import { parseGuide } from "../lib/lego.mjs";
@@ -199,7 +200,7 @@ async function fetchPriceCheck(lots, previous, currency, creds, now) {
 //    Tages-Sync zu warten, und das Tageslimit der API (5.000) reicht auch bei vielen Knopfdruecken.
 // Liefert null, wenn sich nichts geaendert hat (der Zeitstempel liveAt wird alle 4 Stunden erneuert, damit das Dashboard sieht, dass die Kontrolle laeuft; BRICKLINK_PRICE_FORCE=1, vom
 // Knopf im Dashboard, schreibt immer). Vor dem ersten Durchlauf der Etappen gibt es nichts aufzufrischen.
-export async function fetchBricklinkPrices(currentData) {
+export async function fetchBricklinkPrices(currentData, opts = {}) {
   if (!PRICE_ENABLED) return null;
   const previous = currentData?.bricklinkPrices;
   if (!previous || !Array.isArray(previous.over) || !Array.isArray(previous.under)) {
@@ -254,11 +255,13 @@ export async function fetchBricklinkPrices(currentData) {
   // Der Rabattvorschlag (die zehn Ladenhueter je Teile/Minifiguren) aus demselben Inventar neu: ein gesetzter Rabatt laesst das Lot aus der Liste fallen und das naechste rueckt nach
   const inv = summarizeInventory(lots, { currency, previousWeekly: currentData?.bricklinkInventory?.weekly });
   const slow = inv.slow, slowMini = inv.slowMini;
+  // Rabatt-Wache (lib/discounts.mjs): welche Lots haben einen Rabatt und seit wann (opts.history = Protokoll der Aenderungen aus dem privaten Repo)
+  const disc = trackDiscounts({ lots, previous: currentData?.bricklinkDiscounts, history: opts.history, today });
   // Farbnamen: zuerst aus den bekannten Listen, nur fuer den Rest ein Aufruf (bei einem Fehler zeigt das Radar die Nummer)
   const known = new Map();
-  [previous.over, previous.under, previous.done, currentData?.bricklinkInventory?.slow, currentData?.bricklinkInventory?.slowMini].forEach((l) => (Array.isArray(l) ? l : []).forEach((s) => { if (s && s.color && s.colorName) known.set(s.color, s.colorName); }));
-  [slow, slowMini].forEach((l) => (Array.isArray(l) ? l : []).forEach((s) => { if (s && s.color && known.has(s.color)) s.colorName = known.get(s.color); }));
-  const lacking = [...merged.over, ...merged.under, ...merged.done, ...(slow || []), ...(slowMini || [])].filter((s) => s && !s.colorName && s.color);
+  [previous.over, previous.under, previous.done, currentData?.bricklinkInventory?.slow, currentData?.bricklinkInventory?.slowMini, currentData?.bricklinkDiscounts?.items].forEach((l) => (Array.isArray(l) ? l : []).forEach((s) => { if (s && s.color && s.colorName) known.set(s.color, s.colorName); }));
+  [slow, slowMini, disc.items].forEach((l) => (Array.isArray(l) ? l : []).forEach((s) => { if (s && s.color && !s.colorName && known.has(s.color)) s.colorName = known.get(s.color); }));
+  const lacking = [...merged.over, ...merged.under, ...merged.done, ...(slow || []), ...(slowMini || []), ...disc.items].filter((s) => s && !s.colorName && s.color);
   if (lacking.length) {
     try {
       const colors = await bricklinkGet("/colors", {}, creds);
@@ -278,12 +281,13 @@ export async function fetchBricklinkPrices(currentData) {
   const stale = now.getTime() - (Date.parse(previous.liveAt || "") || 0) > LIVE_REFRESH_MS;
   const norm = (l) => (Array.isArray(l) && l.length ? l : null); // leere Liste und keine Liste gelten als gleich
   const slowSame = JSON.stringify([norm(slow), norm(slowMini)]) === JSON.stringify([norm(currentData?.bricklinkInventory?.slow), norm(currentData?.bricklinkInventory?.slowMini)]);
-  if (!PRICE_FORCE && !stale && slowSame && core(next) === core(previous)) {
+  const discSame = JSON.stringify(disc.items) === JSON.stringify(currentData?.bricklinkDiscounts?.items || []);
+  if (!PRICE_FORCE && !stale && slowSame && discSame && core(next) === core(previous)) {
     console.log("[bricklink] Preis-Check: keine Änderung.");
     return null;
   }
   console.log("[bricklink] Preis-Check aufgefrischt.");
-  return { bricklinkPrices: next, bricklinkInventory: { slow, slowMini } };
+  return { bricklinkPrices: next, bricklinkInventory: { slow, slowMini }, bricklinkDiscounts: { checkedAt: now.toISOString(), ...disc } };
 }
 
 // Montag der ISO-Woche, in der `date` liegt, als "YYYY-MM-DD".
@@ -412,7 +416,7 @@ async function fetchUnansweredMessages(orders, creds) {
   return { unanswered, items: items.slice(0, MAX_OPEN_ITEMS), checkedOrders: candidates.length, ordersWithMessages: withMessages, failed, fields };
 }
 
-export async function fetchBricklink(currentData) {
+export async function fetchBricklink(currentData, opts = {}) {
   const creds = {
     consumerKey: process.env.BRICKLINK_CONSUMER_KEY,
     consumerSecret: process.env.BRICKLINK_CONSUMER_SECRET,
@@ -531,6 +535,8 @@ export async function fetchBricklink(currentData) {
       currency: patch.bricklinkRevenue?.currency,
       previousWeekly: currentData?.bricklinkInventory?.weekly
     });
+    // Rabatt-Wache (lib/discounts.mjs): welche Lots haben einen Rabatt und seit wann
+    patch.bricklinkDiscounts = { checkedAt: new Date().toISOString(), ...trackDiscounts({ lots, previous: currentData?.bricklinkDiscounts, history: opts.history, today: new Date().toISOString().slice(0, 10) }) };
     // Preis-Check (eigener try/catch: ein Fehler hier lässt das Lager stehen)
     if (PRICE_ENABLED) {
       try {
@@ -546,7 +552,7 @@ export async function fetchBricklink(currentData) {
   }
 
   // Farbnamen für die Listen (die Inventar-Antwort kennt nur die Farbnummer): ein Aufruf, bei einem Fehler zeigt das Radar die Nummer
-  const needColors = [patch.bricklinkInventory?.slow, patch.bricklinkPrices?.over, patch.bricklinkPrices?.under, patch.bricklinkPrices?.done].filter((l) => Array.isArray(l) && l.length);
+  const needColors = [patch.bricklinkInventory?.slow, patch.bricklinkPrices?.over, patch.bricklinkPrices?.under, patch.bricklinkPrices?.done, patch.bricklinkDiscounts?.items].filter((l) => Array.isArray(l) && l.length);
   if (needColors.length) {
     try {
       const colors = await bricklinkGet("/colors", {}, creds);

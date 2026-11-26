@@ -15,7 +15,7 @@
 // solange Bricklink/YouTube noch nicht eingerichtet sind.
 
 import { createRequire } from "module";
-import { writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { fileURLToPath } from "url";
 import path from "path";
 import { fetchTimeTracker } from "./fetchers/time-tracker.mjs";
@@ -31,6 +31,15 @@ const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : pat
 const DATA_FILE = path.join(DATA_DIR, "data.js");
 const ONLY_UPLOADS = process.env.SYNC_ONLY === "uploads";
 const ONLY_PRICES = process.env.SYNC_ONLY === "prices";
+// Protokoll der Preis- und Rabatt-Aenderungen aus dem Dashboard (Workflow bricklink-price.yml): daraus kennt die Rabatt-Wache den Beginn eines Rabatts
+function readPriceHistory() {
+  try {
+    const j = JSON.parse(readFileSync(path.join(DATA_DIR, "bricklink-price-changes.json"), "utf8"));
+    return Array.isArray(j.changes) ? j.changes : [];
+  } catch (e) {
+    return [];
+  }
+}
 
 function deepMerge(target, patch) {
   Object.keys(patch).forEach((key) => {
@@ -76,12 +85,12 @@ async function main() {
   const fetchers = ONLY_UPLOADS
     ? [["youtube", () => fetchYouTube(DASHBOARD_DATA, { uploadsOnly: true })]]
     : ONLY_PRICES
-    ? [["bricklink-prices", () => fetchBricklinkPrices(DASHBOARD_DATA)]]
+    ? [["bricklink-prices", () => fetchBricklinkPrices(DASHBOARD_DATA, { history: readPriceHistory() })]]
     : [
         ["time-tracker", () => fetchTimeTracker()],
         ["youtube", () => fetchYouTube(DASHBOARD_DATA)],
         ["tiktok", () => fetchTikTok(DASHBOARD_DATA)],
-        ["bricklink", () => fetchBricklink(DASHBOARD_DATA)]
+        ["bricklink", () => fetchBricklink(DASHBOARD_DATA, { history: readPriceHistory() })]
       ];
 
   for (const [label, run] of fetchers) {

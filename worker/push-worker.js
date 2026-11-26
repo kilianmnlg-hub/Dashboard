@@ -45,6 +45,7 @@ const DEFAULT_SETTINGS = {
     coop: { on: true },
     uploadday: { on: true, time: "10:00" },
     artlist: { on: true, time: "10:00" },
+    discount: { on: true, time: "10:00" },
     afterUpload: { on: true, delayMin: 60 },
     habits: { on: true, time: "19:00" },
     training: { on: true, time: "11:30" },
@@ -69,7 +70,8 @@ const SAMPLES = [
   { title: "Beispiel: Neue Kooperationsanfrage: Solbridge · Hyper 3D AI", body: "bezahlt · Sucht Creator für eine bezahlte Zusammenarbeit mit einem 3D-KI-Tool.", url: "./", tag: "sample-coop" },
   { title: "Beispiel: Heute: Upload um 16:00", body: "JP Raptoren Gehege Moc review · Post 12:00", url: "#uploadkal", tag: "sample-uploadday" },
   { title: "Beispiel: Artlist: noch 12.400 Credits, verfallen in 3 Tagen", body: "Letzter Tag: 11.12., danach erneuert sich dein Abo und ungenutzte Credits verfallen.", url: "./", tag: "sample-artlist" },
-  { title: "Beispiel: Brainwalkers: 3 Tage ohne Community-Post", body: "Dein Rhythmus: alle 3 Tage", url: "#business", tag: "sample-community-bw" }
+  { title: "Beispiel: Brainwalkers: 3 Tage ohne Community-Post", body: "Dein Rhythmus: alle 3 Tage", url: "#business", tag: "sample-community-bw" },
+  { title: "Beispiel: 3 Lots seit 2 Wochen im Rabatt", body: "2793c01 −10 % (2 von 19 verkauft) · 15533 −15 % (nichts verkauft) · 98283 −10 % (nichts verkauft)", url: "#rabatt", tag: "sample-discount" }
 ];
 
 /* ---------------------------------------------------------------------------------------------------------------------------------- Helfer */
@@ -457,7 +459,8 @@ async function checkData(ctx) {
   const wantAfter = ev.afterUpload.on, wantTimer = ev.timer.on, wantCoop = f("coop") || ev.coop.on;
   const wantUpload = f("uploadday") || (ev.uploadday.on && dueNow(ev.uploadday.time, nowB.min));
   const wantArtlist = f("artlist") || (ev.artlist.on && dueNow(ev.artlist.time, nowB.min));
-  if (!(wantHabits || wantTraining || wantRhythm || wantCommunity || wantSummary || wantAfter || wantTimer || wantCoop || wantUpload || wantArtlist)) return;
+  const wantDiscount = f("discount") || (ev.discount.on && dueNow(ev.discount.time, nowB.min));
+  if (!(wantHabits || wantTraining || wantRhythm || wantCommunity || wantSummary || wantAfter || wantTimer || wantCoop || wantUpload || wantArtlist || wantDiscount)) return;
   const key = (k, force) => (force ? "" : k);
 
   try {
@@ -559,6 +562,30 @@ async function checkData(ctx) {
 
     if (wantArtlist) await checkArtlist(ctx);
     if (wantCoop) await checkCoop(ctx);
+
+    /* Rabatt-Wache: Lots, die seit mehr als zwei Wochen (bricklinkDiscounts.alertDays) einen eigenen Rabatt haben (data.bricklinkDiscounts, gepflegt von der regelmaessigen Kontrolle
+       des Preis-Checks, siehe scripts/lib/discounts.mjs). Jedes Lot wird einmal je Rabatt-Zeitraum gemeldet (seen.disc: Lot -> seit), mehrere am selben Tag in einer Meldung. */
+    if (wantDiscount) {
+      const D = (await loadData(ctx, "data.js")).bricklinkDiscounts || {}, items = Array.isArray(D.items) ? D.items : [];
+      const days = Number(D.alertDays) > 0 ? Number(D.alertDays) : 14, span = days === 7 ? "1 Woche" : days % 7 === 0 ? days / 7 + " Wochen" : days + " Tagen";
+      const cut = new Date(Date.parse(nowB.date + "T00:00:00Z") - days * DAY).toISOString().slice(0, 10);
+      const due = items.filter((i) => i && i.id && typeof i.since === "string" && i.since <= cut);
+      seen.disc = seen.disc && typeof seen.disc === "object" ? seen.disc : {};
+      const live = new Set(items.map((i) => String(i && i.id)));
+      Object.keys(seen.disc).forEach((k) => { if (!live.has(k)) delete seen.disc[k]; });
+      const fresh = due.filter((i) => seen.disc[String(i.id)] !== i.since);
+      const list = fresh.length ? fresh : f("discount") ? due : [];
+      if (list.length || f("discount")) {
+        const line = (i) => i.no + " −" + i.sale + " %" + (i.qty0 > i.qty ? " (" + (i.qty0 - i.qty) + " von " + i.qty0 + " verkauft)" : " (nichts verkauft)");
+        emit(ctx, {
+          type: "discount", force: f("discount"),
+          title: list.length === 1 ? "Seit " + span + " im Rabatt: " + list[0].no : list.length ? list.length + " Lots seit " + span + " im Rabatt" : "Kein Lot seit " + span + " im Rabatt",
+          body: list.length ? clip(list.slice(0, 3).map(line).join(" · ") + (list.length > 3 ? " …" : ""), 160) : "Im Moment ist nichts zu tun.",
+          url: "#rabatt", tag: "discount"
+        });
+        if (!f("discount")) fresh.forEach((i) => { seen.disc[String(i.id)] = i.since; });
+      }
+    }
 
     if (wantTimer) {
       const s = await loadData(ctx, "sync-data.json"), act = (s.timetracker && s.timetracker.active) || {};
@@ -694,7 +721,7 @@ async function handle(req, env) {
     return json({ ok: rs.some((r) => r.ok), sent: rs.filter((r) => r.ok).length, failed: rs.filter((r) => !r.ok).length, status: rs.map((r) => r.status), title: n.title, index: idx, count: SAMPLES.length }, 200, cors.headers);
   }
   if (path === "/run" && req.method === "POST") {
-    const only = ["summary", "habits", "training", "rhythm", "community", "coop", "uploadday", "artlist"].indexOf(body.only) >= 0 ? body.only : "";
+    const only = ["summary", "habits", "training", "rhythm", "community", "coop", "uploadday", "artlist", "discount"].indexOf(body.only) >= 0 ? body.only : "";
     return json(await run(env, { only }), 200, cors.headers);
   }
   if (path === "/status") {

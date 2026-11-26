@@ -3,7 +3,9 @@
    "Alle gelesen" abgehakt hast. Ungelesen = Kaeufer-Nachricht ohne Antwort des Shops, die noch nicht abgehakt ist; antwortest du in Bricklink, verschwindet
    sie beim naechsten Sync von selbst. Die abgehakten IDs liegen wie alles andere in der Cloud (Feld "msgSeen" in sync-data.json), damit Handy und PC
    dasselbe wissen; sie werden nur vereinigt, nie zurueckgenommen.
-   script.js uebergibt dataStore, Auto-Sync und die Nachrichtenliste und ruft applyRemote()/payload() auf. */
+   script.js uebergibt dataStore, Auto-Sync und die Nachrichtenliste und ruft applyRemote()/payload() auf.
+   Derselbe Baustein merkt sich auch, welche Meldungen der Rabatt-Wache (Lot seit 2 Wochen im Rabatt) gesehen sind: eigener Schluessel (deps.key) und eigenes
+   Cloud-Feld "discSeen"; die Liste kann sich nach JETZT PRUEFEN aendern (setItems). */
 (function () {
   const MAX_IDS = 300;
   const isNum = (v) => typeof v === "number" && isFinite(v);
@@ -30,8 +32,8 @@
 
   window.createMsgSeen = function (deps) {
     const { dataStore, scheduleAutoSync } = deps;
-    const items = cleanItems(deps.items);
-    const KEY = "dashboard-msgseen-v1";
+    let items = cleanItems(deps.items);
+    const KEY = deps.key || "dashboard-msgseen-v1";
     let state = sanitize(null);
     try {
       const raw = dataStore.getItem(KEY);
@@ -61,6 +63,8 @@
       markOrder(order) { const u = unseen(); return u ? mark(u.filter((i) => i.order === String(order)).map((i) => i.id)) : 0; },
       markAll() { const u = unseen(); return u ? mark(u.map((i) => i.id)) : 0; },
       onChange(f) { listeners.push(f); },
+      // neue Liste (z.B. nach JETZT PRUEFEN), danach neu anzeigen
+      setItems(list) { items = cleanItems(list); emit(); },
       // Abgehakte IDs aus der Cloud vereinigen; was nur hier abgehakt ist, geht beim naechsten Auto-Sync hoch
       applyRemote(remote) {
         if (!remote) return;
