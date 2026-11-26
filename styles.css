@@ -3040,6 +3040,22 @@ body.priv-fail main, body.priv-fail .nav, body.priv-fail .top-timers, body.priv-
 .sr-panel > .sr-box { flex: none; }
 .sr-box h4 { margin: 0; font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: var(--fs-18); line-height: 1.25; color: var(--text); }
 .sr-sub { margin: 2px 0 8px; font-size: var(--fs-12); color: var(--text-muted); }
+/* Bereiche im Shop-Radar ein- und ausklappen: die Ueberschrift ist der Knopf (Pfeil wie beim Radar selbst), zugeklappt steht daneben das Wichtigste in einer Zeile */
+.sr-sh { margin: 0; }
+.sr-sbtn { display: flex; align-items: flex-start; gap: 10px; width: 100%; margin: 0; padding: 5px 0; font: inherit; color: inherit; text-align: left; background: none; border: 0; cursor: pointer; }
+.sr-sbtn::before { content: "▶"; flex: none; margin-top: 6px; font-family: var(--px); font-size: var(--fs-8); line-height: 10px; color: var(--card-accent, var(--accent)); transform: rotate(90deg); transition: transform .12s steps(2); }
+.sr-sbtn[aria-expanded="false"]::before { transform: none; }
+.sr-stx { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.sr-sbtn:hover .sr-st { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.sr-sbtn:focus-visible { outline: var(--focus); outline-offset: var(--focus-off); }
+.sr-ssum { flex: 1 1 220px; min-width: 0; font-family: 'Public Sans', system-ui, -apple-system, sans-serif; font-size: var(--fs-12); font-weight: 400; line-height: 1.4; color: var(--text-muted); }
+.sr-box.sr-closed { padding-top: 8px; padding-bottom: 8px; }
+.sr-cols > .sr-closed { align-self: flex-start; }
+.sr-sbody > .sr-hints:first-child, .sr-sbody > .sr-kpis:first-child { margin-top: 8px; }
+.sr-box .sr-hint { background: var(--surface); }
+.sr-box .sr-kpi { background: var(--surface); box-shadow: none; }
+@media (pointer: coarse) { .sr-sbtn { padding: 11px 0; } }
+@media (max-width: 720px) { .sr-ssum { flex-basis: 100%; } }
 .sr-leg { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin: 8px 0 4px; font-size: var(--fs-12); color: var(--text-muted); }
 .sr-sw { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -2px; border: var(--bw) solid var(--pxs); box-sizing: border-box; }
 .sr-sw-r { background: var(--card-accent, var(--accent)); } .sr-sw-h { background: var(--tt-bl); }

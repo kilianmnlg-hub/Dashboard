@@ -146,7 +146,7 @@
     const kpis = [];
     const lm = months[months.length - 1], pm = months[months.length - 2];
     if (lm && lm.known) {
-      const k = { label: `UMSATZ ${MONTHS[lm.mi].toUpperCase()}`, value: eur0(lm.rev), help: `Summe aller Bestellungen im ${MONTHS[lm.mi]}, ohne stornierte.` };
+      const k = { label: `UMSATZ ${MONTHS[lm.mi].toUpperCase()}`, value: eur0(lm.rev), short: `Umsatz ${MONTHS[lm.mi]}: ${eur0(lm.rev)}`, help: `Summe aller Bestellungen im ${MONTHS[lm.mi]}, ohne stornierte.` };
       if (pm && pm.known && pm.rev > 0) { k.line1 = `${pct(lm.rev, pm.rev)} zu ${MONTHS[pm.mi]} (${eur0(pm.rev)})`; k.tone1 = lm.rev < pm.rev ? "bad" : lm.rev > pm.rev ? "good" : "flat"; }
       const best = months.slice(0, -1).filter((x) => x.known).reduce((b, x) => (!b || x.rev > b.rev ? x : b), null);
       if (best && best.rev > 0 && (!pm || best.key !== pm.key)) k.line2 = `${pct(lm.rev, best.rev)} zu ${MONTHS[best.mi]} (${eur0(best.rev)})`;
@@ -155,19 +155,19 @@
     }
     if (A !== null) {
       const end = addDaysKey(last4[last4.length - 1].key, 6);
-      const k = { label: "BESTELLUNGEN PRO WOCHE", value: one(A), line2: "Ø der letzten 4 vollen Wochen", help: `Bestellungen vom ${dm(last4[0].key)} bis ${dm(end)}, geteilt durch 4.` };
+      const k = { label: "BESTELLUNGEN PRO WOCHE", value: one(A), short: `${one(A)} Bestellungen pro Woche`, line2: "Ø der letzten 4 vollen Wochen", help: `Bestellungen vom ${dm(last4[0].key)} bis ${dm(end)}, geteilt durch 4.` };
       if (B !== null) { k.line1 = `davor: ${one(B)}`; k.tone1 = A < B ? "bad" : A > B ? "good" : "flat"; }
       kpis.push(k);
     }
     if (aovA !== null) {
-      const k = { label: "Ø WARENKORB", value: eur2(aovA), line2: "letzte 4 volle Wochen", help: "Umsatz geteilt durch die Zahl der Bestellungen." };
+      const k = { label: "Ø WARENKORB", value: eur2(aovA), short: `Ø Warenkorb ${eur2(aovA)}`, line2: "letzte 4 volle Wochen", help: "Umsatz geteilt durch die Zahl der Bestellungen." };
       if (aovB !== null) { k.line1 = `davor: ${eur2(aovB)}`; k.tone1 = aovA < aovB ? "bad" : aovA > aovB ? "good" : "flat"; }
       kpis.push(k);
     }
     if (last4 && H4 !== null) {
       const hy = hoursOf(last4.map((w) => ({ h: w.hy })));
       const yt = isNum(m.ytMonthly) && m.ytMonthly > 0 && hy > 0 ? m.ytMonthly / hy : null;
-      const k = { label: "UMSATZ PRO STUNDE", value: H4 > 0 ? eur2(revA / H4) : "–", line2: "Umsatz, nicht Gewinn", help: "Bricklink-Umsatz geteilt durch deine getrackten Bricklink-Stunden, jeweils die letzten 4 vollen Wochen. Gebühren und Einkauf fehlen." };
+      const k = { label: "UMSATZ PRO STUNDE", value: H4 > 0 ? eur2(revA / H4) : "–", short: H4 > 0 ? `${eur2(revA / H4)} pro Stunde` : "", line2: "Umsatz, nicht Gewinn", help: "Bricklink-Umsatz geteilt durch deine getrackten Bricklink-Stunden, jeweils die letzten 4 vollen Wochen. Gebühren und Einkauf fehlen." };
       if (yt !== null) { k.line1 = `YouTube: ${eur2(yt)} pro Std.`; k.tone1 = "flat"; k.help += " YouTube: dein Umsatz/Monat aus den Zielen geteilt durch die YouTube-Stunden derselben Wochen."; }
       kpis.push(k);
     }
@@ -433,10 +433,13 @@
   }
 
   // Bestseller: Reiter fuer die Monate (aelteste links, laufender Monat rechts), darunter die zehn meistverkauften Artikel des gewaehlten Monats
+  function salesSel(S, ui) {
+    return S.months.find((x) => x.key === ui.month) || S.months.find((x) => x.key === S.defaultKey) || S.months[S.months.length - 1];
+  }
   function salesHtml(model, ui) {
     const S = model.sales;
     if (!S) return `<p class="sr-note">Die Bestseller kommen mit dem nächsten Sync.</p>`;
-    const sel = S.months.find((x) => x.key === ui.month) || S.months.find((x) => x.key === S.defaultKey) || S.months[S.months.length - 1];
+    const sel = salesSel(S, ui);
     const tabs = S.months.map((x) => `<button type="button" class="sr-tab" data-sr-act="month:${x.key}" aria-pressed="${x.key === sel.key ? "true" : "false"}">${MON_SHORT[x.mi]}${x.running ? "*" : ""}</button>`).join("");
     const list = sel.top.length
       ? `<ol class="sr-items">${sel.top.map((r, i) => itemRow(i + 1, r, `<b>${de(r.qty, 0)} Stück</b><span class="sr-m">${eur2(r.revenue)}</span><span class="sr-m">in ${r.orders} ${r.orders === 1 ? "Bestellung" : "Bestellungen"}</span>`)).join("")}</ol>`
@@ -611,6 +614,47 @@
     return `${standHtml(P, ui)}${tabs}${list}<p class="sr-note">Verglichen wird dein Preis mit dem Durchschnitt der Verkäufe der letzten 6 Monate (${P.region === "europe" ? "Europa" : esc(P.region || "weltweit")}, ohne MwSt., nach Stückzahl gewichtet), nur Teile und Minifiguren ab ${de(P.minValue, 0)} € Warenwert, mindestens ${P.minSales} Verkäufe, Abweichung ab ${P.minDev} %. Sortiert ist nach der Abweichung in Prozent, die größte zuerst; „Im Lot“ ist der Unterschied für die ganze Menge. ${cover}</p>`;
   }
 
+  // Die Bereiche des Radars in ihrer Reihenfolge; welche zugeklappt sind, merkt sich der Browser (ui.closed)
+  const SECTIONS = ["hints", "kpis", "weeks", "aov", "lager", "sales", "rabatt", "pc"];
+  // Ein Bereich zum Ein- und Ausklappen: die Ueberschrift ist der Knopf (Pfeil wie beim Radar selbst), zugeklappt steht daneben das Wichtigste in einer Zeile.
+  // body ist eine Funktion: Der Inhalt entsteht nur aufgeklappt, zugeklappte Bereiche laden also auch keine Bilder.
+  function secHtml(ui, id, title, sum, body, cls, attrs) {
+    const open = !ui.closed.has(id);
+    return `<section class="sr-box${cls ? ` ${cls}` : ""}${open ? "" : " sr-closed"}"${attrs || ""}><h4 class="sr-sh"><button type="button" class="sr-sbtn" data-sr-act="sec:${id}" aria-expanded="${open}" aria-controls="sr-b-${id}"><span class="sr-stx"><span class="sr-st">${title}</span>${!open && sum ? `<span class="sr-ssum">${esc(sum)}</span>` : ""}</span></button></h4><div class="sr-sbody" id="sr-b-${id}"${open ? "" : " hidden"}>${open ? body() : ""}</div></section>`;
+  }
+  // Die Zeile neben der Ueberschrift eines zugeklappten Bereichs
+  function secSum(model, ui, id) {
+    const L = model.lager, P = model.prices, D = model.discounts, S = model.sales;
+    const nOrd = (n) => `${n} ${n === 1 ? "Bestellung" : "Bestellungen"}`;
+    if (id === "hints") return teaser(model);
+    if (id === "kpis") return model.kpis.map((k) => k.short).filter(Boolean).join(" · ");
+    if (id === "weeks") {
+      const full = model.weeks.slice(0, -1).filter((w) => w.known), w = full[full.length - 1];
+      return w ? `Woche ab ${dm(w.key)}: ${eur0(w.rev)}, ${nOrd(w.ord)}${isNum(w.h) ? `, ${one(w.h)} Std.` : ""}` : "";
+    }
+    if (id === "aov") {
+      const x = model.months[model.months.length - 1];
+      return x && x.aov !== null ? `${MONTHS[x.mi]}: Ø ${eur2(x.aov)} bei ${nOrd(x.ord)}` : "";
+    }
+    if (id === "lager") {
+      if (!L) return "";
+      const p = L.plan, week = p && !p.done && p.listedParts !== null ? `diese Woche ${de(p.listedParts, 0)} von ${de(p.weekTarget, 0)} neuen Teilen` : "";
+      return [`${de(L.lots, 0)} Lots`, L.value !== null ? `${eur0(L.value)} Lagerwert` : "", week].filter(Boolean).join(" · ");
+    }
+    if (id === "sales") {
+      if (!S) return "";
+      const sel = salesSel(S, ui);
+      return `${MONTHS[sel.mi]}${sel.running ? " (läuft)" : ""}: ${nOrd(sel.orders)}, ${eur0(sel.revenue)}${sel.top[0] ? ` · vorn ${sel.top[0].no}` : ""}`;
+    }
+    if (id === "rabatt") {
+      if (!L || !L.slowParts) return "";
+      const span = D ? (D.alertDays === 7 ? "1 Woche" : D.alertDays % 7 === 0 ? `${D.alertDays / 7} Wochen` : `${D.alertDays} Tagen`) : "";
+      return [`${L.slowParts.length} Teile`, `${L.slowMinis.length} Minifiguren`, D ? `${D.items.length} im Rabatt${D.due.length ? `, ${D.due.length} davon seit ${span}` : ""}` : ""].filter(Boolean).join(" · ");
+    }
+    if (id === "pc") return P ? `${P.over.length} zu teuer · ${P.under.length} zu billig · ${P.done.length} erledigt${P.newCount ? ` · ${P.newCount} neu` : ""}` : "";
+    return "";
+  }
+
   function panelHtml(model, ui) {
     const note = (t) => (t ? `<p class="sr-insight">${esc(t)}</p>` : "");
     const infoTxt = `<div class="sr-info" ${ui.info ? "" : "hidden"}><span class="sr-kl">SO LIEST DU DEN RADAR</span>
@@ -620,19 +664,20 @@
       <p>Der Preis-Check vergleicht deine Preise mit den Verkaufspreisen der letzten 6 Monate bei Bricklink. Weil dafür je Lot eine Abfrage nötig ist und Bricklink nur begrenzt viele am Tag erlaubt, wird täglich ein Teil deiner Lots geprüft.</p>
       <p>PREIS ANPASSEN ändert den Preis dieses einen Lots sofort bei Bricklink (nur der Preis, und nur wenn er dort noch so ist wie hier angezeigt). Mit RÜCKGÄNGIG stellst du den alten Preis wieder her. Ein eigener Rabatt auf das Lot bleibt dabei erhalten. RABATT SETZEN im Rabattvorschlag stellt den Rabatt (Sale in Prozent) beim Lot ein, der Listenpreis bleibt; auch das lässt sich mit RÜCKGÄNGIG zurücknehmen.</p>
       <p>Alle 2 Stunden wird dein Bestand mit der Preis-Check-Liste verglichen: Lots, deren Preis du geändert hast (in Bricklink oder hier) oder die verkauft sind, wandern für eine Woche in „Erledigt“ und verschwinden dann von selbst. Neu eingestellte Lots werden gleich geprüft, dazu kommen bei jeder Kontrolle weitere Lots der Reihe nach dran (so wächst die Liste nach); was in den letzten drei Tagen zum ersten Mal auffiel, trägt NEU. JETZT PRÜFEN startet die Kontrolle sofort und prüft dabei etwas mehr Lots.</p>
+      <p>Ein Klick auf die Überschrift eines Bereichs klappt ihn ein oder aus. Zugeklappt steht daneben das Wichtigste in einer Zeile. Welche Bereiche zu sind, merkt sich dieser Browser.</p>
       <p>Gespeichert werden Zahlen und für die drei Listen je Artikel Nummer, Name, Farbe, Menge und Preis, im privaten Repo. Von Käufern wird nichts gespeichert: keine Namen, keine Adressen, keine Nachrichten.</p></div>`;
     return `<div class="sr-head"><div><span class="sr-t1">SHOP-RADAR</span><span class="sr-t2">Bricklink: Warum läuft der Shop (nicht)?</span></div><div class="sr-meta">${model.stand ? `<span>Stand ${esc(model.stand)}</span>` : ""}<button type="button" class="sr-i" data-sr-act="info" aria-pressed="${ui.info ? "true" : "false"}" aria-label="Erklärungen ein- oder ausblenden">i</button></div></div>
       ${infoTxt}
-      <div class="sr-hints">${hintsHtml(model)}</div>
-      ${model.kpis.length ? `<div class="sr-kpis">${kpiHtml(model, ui.info)}</div>` : ""}
+      ${secHtml(ui, "hints", "Hinweise", secSum(model, ui, "hints"), () => `<div class="sr-hints">${hintsHtml(model)}</div>`)}
+      ${model.kpis.length ? secHtml(ui, "kpis", "Kennzahlen", secSum(model, ui, "kpis"), () => `<div class="sr-kpis">${kpiHtml(model, ui.info)}</div>`) : ""}
       ${model.hasRevenue ? `<div class="sr-cols">
-        <section class="sr-box sr-boxw"><h4>Zeit und Umsatz pro Woche</h4><p class="sr-sub">Mehr Stunden, mehr Bestellungen? Die letzten ${model.weeks.length} Wochen (die letzte läuft noch).</p>${weekChartHtml(model)}${note(model.weekNote)}</section>
-        <section class="sr-box"><h4>Ø Warenkorb pro Monat</h4><p class="sr-sub">Umsatz geteilt durch Bestellungen, die letzten 6 vollen Monate.</p>${monthChartHtml(model)}${note(model.monthNote)}</section>
+        ${secHtml(ui, "weeks", "Zeit und Umsatz pro Woche", secSum(model, ui, "weeks"), () => `<p class="sr-sub">Mehr Stunden, mehr Bestellungen? Die letzten ${model.weeks.length} Wochen (die letzte läuft noch).</p>${weekChartHtml(model)}${note(model.weekNote)}`, "sr-boxw")}
+        ${secHtml(ui, "aov", "Ø Warenkorb pro Monat", secSum(model, ui, "aov"), () => `<p class="sr-sub">Umsatz geteilt durch Bestellungen, die letzten 6 vollen Monate.</p>${monthChartHtml(model)}${note(model.monthNote)}`)}
       </div>` : ""}
-      <section class="sr-box"><h4>Lager</h4><p class="sr-sub">Dein Angebot: Wie viel liegt im Shop, und wie frisch ist es?</p>${lagerHtml(model)}</section>
-      <section class="sr-box"><h4>Bestseller pro Monat</h4><p class="sr-sub">Die zehn meistverkauften Artikel nach Stückzahl. Bei der Zahl vorn ist es die Teilenummer aus Bricklink.</p>${salesHtml(model, ui)}</section>
-      <section class="sr-box" id="sr-rabatt"><h4>Rabattvorschlag</h4><p class="sr-sub">Die zehn Ladenhüter, die du am ehesten im Preis senken könntest, getrennt nach Teilen und Minifiguren.</p>${slowHtml(model, ui)}</section>
-      <section class="sr-box"><h4>Preis-Check</h4><p class="sr-sub">Teile und Minifiguren, deren Preis stark vom Durchschnitt der letzten 6 Monate abweicht.</p>${priceHtml(model, ui)}</section>
+      ${secHtml(ui, "lager", "Lager", secSum(model, ui, "lager"), () => `<p class="sr-sub">Dein Angebot: Wie viel liegt im Shop, und wie frisch ist es?</p>${lagerHtml(model)}`)}
+      ${secHtml(ui, "sales", "Bestseller pro Monat", secSum(model, ui, "sales"), () => `<p class="sr-sub">Die zehn meistverkauften Artikel nach Stückzahl. Bei der Zahl vorn ist es die Teilenummer aus Bricklink.</p>${salesHtml(model, ui)}`)}
+      ${secHtml(ui, "rabatt", "Rabattvorschlag", secSum(model, ui, "rabatt"), () => `<p class="sr-sub">Die zehn Ladenhüter, die du am ehesten im Preis senken könntest, getrennt nach Teilen und Minifiguren.</p>${slowHtml(model, ui)}`, "", ' id="sr-rabatt"')}
+      ${secHtml(ui, "pc", "Preis-Check", secSum(model, ui, "pc"), () => `<p class="sr-sub">Teile und Minifiguren, deren Preis stark vom Durchschnitt der letzten 6 Monate abweicht.</p>${priceHtml(model, ui)}`)}
       <p class="sr-foot">Keine Kundendaten: keine Namen, Adressen oder Nachrichten von Käufern. Gespeichert sind Zahlen und die drei Artikellisten. Quellen: Bricklink-API und Zeittracker.</p>`;
   }
 
@@ -654,10 +699,10 @@
   window.createShopRadar = function (deps) {
     const { data } = deps;
     const UI_KEY = "dashboard-shopradar-ui";
-    // Auf/zu und Erklaerung: nur dieser Browser, standardmaessig zu; der gewaehlte Monat gilt nur bis zum Neuladen
-    const ui = { open: false, info: false, month: null, pc: "over", pcMore: false, slow: "parts", canEdit: !!deps.priceEdit, busy: new Set(), hist: [], histTried: false, asking: false, canCheck: !!deps.priceCheck, checking: false };
-    try { const u = JSON.parse(localStorage.getItem(UI_KEY) || "{}"); ui.open = u.open === true; ui.info = u.info === true; ui.slow = u.slow === "minis" || u.slow === "disc" ? u.slow : "parts"; } catch (e) { /* egal */ }
-    const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify({ open: ui.open, info: ui.info, slow: ui.slow })); } catch (e) { /* egal */ } };
+    // Auf/zu, Erklaerung und zugeklappte Bereiche: nur dieser Browser (Radar standardmaessig zu, Bereiche offen); der gewaehlte Monat gilt nur bis zum Neuladen
+    const ui = { open: false, info: false, month: null, pc: "over", pcMore: false, slow: "parts", canEdit: !!deps.priceEdit, busy: new Set(), hist: [], histTried: false, asking: false, canCheck: !!deps.priceCheck, checking: false, closed: new Set() };
+    try { const u = JSON.parse(localStorage.getItem(UI_KEY) || "{}"); ui.open = u.open === true; ui.info = u.info === true; ui.slow = u.slow === "minis" || u.slow === "disc" ? u.slow : "parts"; ui.closed = new Set((Array.isArray(u.closed) ? u.closed : []).filter((x) => SECTIONS.includes(x))); } catch (e) { /* egal */ }
+    const saveUi = () => { try { localStorage.setItem(UI_KEY, JSON.stringify({ open: ui.open, info: ui.info, slow: ui.slow, closed: [...ui.closed] })); } catch (e) { /* egal */ } };
 
     const hosts = new Set();
     const goalXp = (model) => {
@@ -853,6 +898,7 @@
       const act = b.dataset.srAct;
       if (act === "toggle") { ui.open = !ui.open; saveUi(); refresh(); }
       else if (act === "info") { ui.info = !ui.info; saveUi(); refresh(); }
+      else if (act.startsWith("sec:")) { const id = act.slice(4); if (ui.closed.has(id)) ui.closed.delete(id); else ui.closed.add(id); saveUi(); refresh(); }
       else if (act.startsWith("month:")) { ui.month = act.slice(6); refresh(); }
       else if (act === "pc:over" || act === "pc:under" || act === "pc:done") { ui.pc = act.slice(3); ui.pcMore = false; refresh(); }
       else if (act === "pcnow") checkNow();
@@ -884,7 +930,7 @@
       refresh,
       // Fuer den Hinweis oben und die Handy-Meldung (#rabatt): Radar auf, Reiter "Im Rabatt", zum Rabattvorschlag scrollen
       openDiscounts() {
-        ui.open = true; ui.slow = "disc"; saveUi(); refresh();
+        ui.open = true; ui.slow = "disc"; ui.closed.delete("rabatt"); saveUi(); refresh();
         // ohne Animation (ein Tipp auf die Handy-Meldung oeffnet die App frisch, da soll es sofort stehen) und ein zweites Mal, falls sich die Seite darueber noch verschoben hat
         const go = () => { const el = document.getElementById("sr-rabatt"); if (el && Math.abs(el.getBoundingClientRect().top) > 40) el.scrollIntoView({ block: "start" }); };
         setTimeout(go, 150);

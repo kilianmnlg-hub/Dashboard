@@ -34,7 +34,7 @@ als PWA ("Zum Homescreen hinzufügen"). Keine Frameworks, kein Build-Schritt.
 - `community.js` — Community-Post-Rhythmus für Bricks On The Floor und The Brainwalkers: Knopf GEPOSTET, Ampel, Zähler, Erinnerung (siehe Abschnitt "Community-Post-Rhythmus")
 - `coop.js` — Kooperationsanfragen aus dem Postfach: Hinweise mit ANTWORTEN / IGNORIEREN, Liste, Wahl in der Cloud (siehe Abschnitt "Kooperationsanfragen (Postfach-Check)")
 - `uploadcal.js`, `uploadcal.css` — Upload-Kalender: Videoideen, Community-Posts und Termine beider Kanäle in einem Plan (siehe Abschnitt "Upload-Kalender")
-- `shopradar.js` — Shop-Radar: Ausklappmenü in der Bricklink-Karte (Hinweise, Kennzahlen, Zeit und Umsatz, Lager, Wochenziel aus dem Jahresziel, Bestseller pro Monat, Rabattvorschlag und Preis-Check mit Bildern; siehe Abschnitt "Shop-Radar")
+- `shopradar.js` — Shop-Radar: Ausklappmenü in der Bricklink-Karte (Hinweise, Kennzahlen, Zeit und Umsatz, Lager, Wochenziel aus dem Jahresziel, Bestseller pro Monat, Rabattvorschlag und Preis-Check mit Bildern, jeder Bereich einzeln ein- und ausklappbar; siehe Abschnitt "Shop-Radar")
 - `afterupload.js` — After-Upload-Checkliste: erscheint ganz oben, sobald ein neues Video erkannt wird (siehe Abschnitt "After-Upload-Checkliste")
 - `room.js` — Anbindung des Minigames "Mein Raum" (Kachel, Stunden und Level, Spielstand in der Cloud, Spiel als Vollbild-Overlay; siehe Abschnitt "Mein Raum")
 - `raumspiel/index.html` — das Minigame selbst: ein eigenständiges isometrisches Pixelspiel in einer einzigen Datei (gebaut aus dem Spiele-Projekt, Quellcode liegt dort); `raumspiel/vorschau.png` ist das Kachelbild, bis dein eigener Raum gespeichert ist
@@ -297,7 +297,12 @@ und am 1. des ältesten Monats (nicht mitten drin), damit auch die älteste Woch
 ## Shop-Radar (Bricklink)
 
 Ausklappmenü **SHOP-RADAR** in der Karte "Bricklink Store" (zu, bis du es öffnest; die Zeile zeigt die Zahl der Hinweise und den wichtigsten). Aufgeklappt nimmt die
-Karte am Rechner die ganze Reihe, am Handy die ganze Breite. Es beantwortet "Warum läuft der Shop (nicht)?" mit festen Regeln, keiner Schätzung:
+Karte am Rechner die ganze Reihe, am Handy die ganze Breite. Es beantwortet "Warum läuft der Shop (nicht)?" mit festen Regeln, keiner Schätzung.
+
+**Bereiche ein- und ausklappen:** Ein Klick auf die Überschrift eines Bereichs (Pfeil davor) klappt ihn ein oder aus. Zugeklappt steht daneben das Wichtigste in einer Zeile, zum Beispiel beim
+Preis-Check "191 zu teuer · 0 zu billig · 98 erledigt"; der Inhalt wird dann gar nicht erst gebaut (am Handy also auch keine Bilder geladen). Welche Bereiche zu sind, merkt sich der Browser
+(`localStorage` `dashboard-shopradar-ui`, Feld `closed`; Handy und Rechner also getrennt, am Anfang ist alles offen). Der Hinweis oben und die Handy-Meldung "seit 2 Wochen im Rabatt" (`#rabatt`)
+klappen den Rabattvorschlag von selbst auf. Die Bereiche:
 
 - **Hinweise** (rot, gelb, grün, die schlimmsten zuerst): Bestellungen pro Woche (letzte 4 volle Wochen gegen die 4 davor, gelb ab −25 %, rot ab −40 %), Ø Warenkorb (letzter voller
   Monat gegen den Schnitt der Monate davor), Bricklink-Zeit gegen dein Wochen-Soll im Zeittracker, Lager (Tage seit dem letzten neuen Lot: gelb ab 7, rot ab 14; Anteil Lots über ein Jahr)
