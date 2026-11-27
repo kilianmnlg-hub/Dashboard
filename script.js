@@ -879,7 +879,7 @@
   else document.addEventListener("cloud-ready", renderDiscountAlert, { once: true });
 
   // ---------- Upload-Kalender ----------
-  // Beide Kanaele in einem Plan: Videoideen (aus den Ideen-Listen der Kanal-Karten) per Ziehen oder Antippen auf einen Tag legen, dazu Community-Posts, Kooperationen,
+  // Beide Kanaele in einem Plan: Videoideen (aus den Ideen-Listen der Kanal-Karten) per Ziehen oder Antippen auf einen Tag legen, dazu Community-Posts beider Kanaele, Kooperationen,
   // Fristen und LEGO-/MTG-Termine. Geplantes liegt in der Cloud (Feld uploadPlan in sync-data.json), Uploads, Ziele und Rhythmus kommen aus den vorhandenen Daten.
   // Der Code steht in uploadcal.js; gezeigt wird alles erst, wenn die Cloud geladen ist.
   const ukBoard = window.createUploadCal
@@ -888,6 +888,7 @@
         getData: () => data,
         getIdeas: () => ({ botf: loadIdeaState("bricksOnTheFloor"), bw: loadIdeaState("brainwalkers") }),
         community: communityBoard,
+        communityBw: communityBwBoard,
         expand: (id) => { if (foldBoard) foldBoard.expand(id); }
       })
     : null;
@@ -895,7 +896,7 @@
   if (ukBoard) {
     if (document.body.dataset.cloud === "ready") ukBoard.start();
     else document.addEventListener("cloud-ready", () => ukBoard.start(), { once: true });
-    if (communityBoard) communityBoard.onChange(() => ukBoard.redraw());
+    [communityBoard, communityBwBoard].forEach((board) => { if (board) board.onChange(() => ukBoard.redraw()); });
   }
 
   // ---------- Mein Raum (Minigame) ----------

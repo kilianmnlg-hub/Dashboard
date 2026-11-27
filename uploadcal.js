@@ -1,8 +1,8 @@
 /* Upload-Kalender: beide Kanaele in einem Plan. Videoideen (aus den Ideen-Listen der Kanal-Karten) werden per Ziehen oder Antippen auf einen Tag gelegt,
-   dazu Community-Posts (Rhythmus aus community.js), Kooperationen, Fristen sowie LEGO- und MTG-Termine. Gezeigt werden Monat und Woche; geplante Eintraege,
+   dazu Community-Posts beider Kanaele (Rhythmus aus community.js), Kooperationen, Fristen sowie LEGO- und MTG-Termine. Gezeigt werden Monat und Woche; geplante Eintraege,
    Termine und der Stand "geplant" liegen wie alles andere in der Cloud (Feld "uploadPlan" in sync-data.json). Bereits hochgeladene Videos kommen aus den
-   YouTube-Daten (business.*.recentUploads und die dauerhafte Liste business.*.uploadHistory), Ziele und Rhythmus aus data.js, gepostete Community-Posts aus community.js.
-   Nichts davon wird hier doppelt gespeichert.
+   YouTube-Daten (business.*.recentUploads und die dauerhafte Liste business.*.uploadHistory), Ziele und Rhythmus aus data.js, gepostete Community-Posts aus community.js
+   (Bricks On The Floor: deps.community, The Brainwalkers: deps.communityBw, je Kanal ein eigener Stand und Rhythmus). Nichts davon wird hier doppelt gespeichert.
    Zeitstempel-Prinzip wie bei coop.js: je Eintrag gewinnt der neuere Zeitstempel "t", Loeschen = Grabstein (del), beim Zusammenfuehren zweier Geraete geht nichts verloren.
    script.js uebergibt die Anbindungen (deps) und ruft start() nach dem Laden der Cloud sowie applyRemote()/payload() auf. */
 (function () {
@@ -34,13 +34,16 @@
     mtg: { t: "MTG", l: "MTG-Termin", color: "var(--accent-brainwalkers)", f: "mtg" }
   };
   const MAX_ENTRIES = 500, KEEP_TOMB = 60, KEEP_PAST = 120;
+  // Community-Posts: Bricks On The Floor heisst wie bisher "POST", The Brainwalkers "BW-POST"; die Farbe ist die des Kanals
+  const postTag = (ch) => (ch === "bw" ? "BW-POST" : "POST");
+  const postName = (ch) => (ch === "bw" ? "Brainwalkers-Post" : "Community-Post");
 
   /* ---------- Speicherformat pruefen (kommt aus der Cloud, also nie blind vertrauen) ---------- */
   function cleanPlan(id, r) {
     if (!ID.test(id) || !r || typeof r !== "object" || !isNum(r.t)) return null;
     if (r.del) return { del: 1, t: r.t };
     const kind = r.kind === "post" ? "post" : "video";
-    const ch = kind === "post" ? "botf" : (CH[r.ch] ? r.ch : null);
+    const ch = kind === "post" ? (r.ch === "bw" ? "bw" : "botf") : (CH[r.ch] ? r.ch : null);
     if (!ch || !isDay(r.date)) return null;
     return {
       kind, ch, date: r.date, t: r.t,
@@ -121,7 +124,7 @@
     /* ---------- Daten aus dem Dashboard lesen ---------- */
     const data = () => (deps.getData && deps.getData()) || {};
     const ideasNow = () => { try { return (deps.getIdeas && deps.getIdeas()) || {}; } catch (e) { return {}; } };
-    const comm = () => deps.community || null;
+    const comms = () => ({ botf: deps.community || null, bw: deps.communityBw || null });
 
     /* Alle veroeffentlichten Longform-Videos: die letzten fuenf (recentUploads, mit dem frischesten Titel) plus die dauerhafte Liste uploadHistory,
        die der Sync fuehrt (siehe scripts/lib/uploads.mjs). Ein Video steht so von allein im Kalender und bleibt dort, auch wenn es laengst nicht
@@ -156,12 +159,18 @@
     function context() {
       const today = keyOf(new Date());
       const ups = uploads();
-      const c = comm();
-      const posts = c && c.list ? c.list() : [];
+      // Gepostete Tage, letzter Post und naechster faelliger Post je Kanal (jeder Kanal hat seinen eigenen Stand und Rhythmus in community.js)
+      const cs = comms(), posts = {}, lastPost = {}, dueP = {};
+      Object.keys(CH).forEach((ch) => {
+        const c = cs[ch];
+        posts[ch] = c && c.list ? c.list() : [];
+        lastPost[ch] = c && c.last ? c.last() : null;
+        dueP[ch] = lastPost[ch] && c.days ? addDays(lastPost[ch], c.days()) : null;
+      });
       const items = live("items");
       const upKey = new Set(ups.map((u) => u.ch + "|" + u.day));
       // Ein geplanter Eintrag, dessen Upload oder Post schon passiert ist, wird nicht doppelt gezeigt
-      items.forEach((it) => { it.matched = it.kind === "post" ? posts.includes(it.date) : upKey.has(it.ch + "|" + it.date); });
+      items.forEach((it) => { it.matched = it.kind === "post" ? (posts[it.ch] || []).includes(it.date) : upKey.has(it.ch + "|" + it.date); });
       const events = live("events");
       // Stichtag der Jahresziele automatisch als Frist
       const goalDays = [];
@@ -175,9 +184,7 @@
         const last = ups.filter((u) => u.ch === ch).map((u) => u.day).sort().pop() || (isFinite(t) ? keyOf(new Date(t)) : null);
         if (last && b.uploadRhythmDays > 0) due[ch] = addDays(last, b.uploadRhythmDays);
       });
-      const lastPost = c && c.last ? c.last() : null;
-      const dueP = lastPost && c.days ? addDays(lastPost, c.days()) : null;
-      return { today, ups, posts, items, events, due, dueP, lastPost, ideas: ideasNow(), times: { botf: defaultTime("botf", ups), bw: defaultTime("bw", ups) } };
+      return { today, ups, posts, items, events, due, dueP, lastPost, comms: cs, ideas: ideasNow(), times: { botf: defaultTime("botf", ups), bw: defaultTime("bw", ups) } };
     }
 
     /* ---------- Eintraege eines Tages (alles, was im Kalender erscheinen kann) ---------- */
@@ -188,28 +195,29 @@
     }
     function planEntry(it, ctx) {
       const post = it.kind === "post", late = it.date < ctx.today;
-      const label = post ? "POST " + (it.time ? it.time + " " : "") + (it.title || "") : (it.time ? it.time + " " : "") + it.title;
+      const label = post ? postTag(it.ch) + " " + (it.time ? it.time + " " : "") + (it.title || "") : (it.time ? it.time + " " : "") + it.title;
       const prog = post ? "" : "■".repeat(it.st + 1) + "□".repeat(STEPS.length - 1 - it.st);
       return { key: "p:" + it.id, type: "plan", lane: post ? "post" : it.ch, ch: it.ch, day: it.date, sort: it.time || "00:00", color: late ? "var(--bad)" : CH[it.ch].color,
         cls: (post ? "uk-post" : "uk-plan") + (late ? " uk-late" : ""), label: label.trim(), prog,
-        tipTitle: post ? (it.title || "Community-Post") : it.title,
-        tipMeta: (post ? "Community-Post, " : "") + nice(it.date) + (it.time ? ", " + it.time + " Uhr" : "") + (post ? "" : ", " + STEPS[it.st]) + (late ? ", überfällig" : ""),
+        tipTitle: post ? (it.title || postName(it.ch)) : it.title,
+        tipMeta: (post ? postName(it.ch) + ", " : "") + nice(it.date) + (it.time ? ", " + it.time + " Uhr" : "") + (post ? "" : ", " + STEPS[it.st]) + (late ? ", überfällig" : ""),
         open: true, drag: "p:" + it.id };
     }
-    function cpostEntry(day) {
-      return { key: "c:" + day, type: "cpost", lane: "post", ch: "botf", day, sort: "00:00", color: CH.botf.color, cls: "uk-done uk-post", label: "POST gepostet", prog: "",
-        tipTitle: "Community-Post", tipMeta: "Gepostet " + nice(day), open: false, drag: "" };
+    function cpostEntry(day, ch) {
+      return { key: "c:" + ch + ":" + day, type: "cpost", lane: "post", ch, day, sort: "00:00", color: CH[ch].color, cls: "uk-done uk-post", label: postTag(ch) + " gepostet", prog: "",
+        tipTitle: postName(ch), tipMeta: CH[ch].name + ", gepostet " + nice(day), open: false, drag: "" };
     }
     function evEntry(ev) {
       const k = KIND[ev.kind];
       return { key: "e:" + ev.id, type: "ev", lane: "evt", ch: "", kind: ev.kind, day: ev.date, sort: ev.time || "98:00", color: k.color, cls: "uk-ev", label: (ev.time ? ev.time + " " : "") + ev.title, prog: "",
         tipTitle: ev.title, tipMeta: k.l + ", " + nice(ev.date) + (ev.time ? ", " + ev.time + " Uhr" : ""), open: true, drag: "" };
     }
-    function ghostEntry(which, overdue) {
-      const post = which === "post", c = CH[post ? "botf" : which];
-      return { key: "g:" + which, type: "ghost", lane: which, ch: post ? "botf" : which, sort: post ? "96:00" : "97:00", color: overdue ? "var(--bad)" : c.color, cls: "uk-ghost" + (post ? " uk-post" : "") + (overdue ? " uk-late" : ""),
-        label: (post ? "POST" : c.tag) + (overdue ? " überfällig" : " fällig"), prog: "", tipTitle: (post ? "Community-Post" : c.tag) + (overdue ? " überfällig" : " fällig"),
-        tipMeta: post ? "Nächster Post nach deinem Rhythmus" : "Nächster Upload nach deinem Rhythmus", open: false, drag: "" };
+    // which = Kanal (naechster Upload) oder "post" (naechster Community-Post, pch = Kanal des Posts)
+    function ghostEntry(which, overdue, pch) {
+      const post = which === "post", ch = post ? (CH[pch] ? pch : "botf") : which, c = CH[ch];
+      return { key: "g:" + which + (post ? ":" + ch : ""), type: "ghost", lane: which, ch, sort: post ? "96:00" : "97:00", color: overdue ? "var(--bad)" : c.color, cls: "uk-ghost" + (post ? " uk-post" : "") + (overdue ? " uk-late" : ""),
+        label: (post ? postTag(ch) : c.tag) + (overdue ? " überfällig" : " fällig"), prog: "", tipTitle: (post ? postName(ch) : c.tag) + (overdue ? " überfällig" : " fällig"),
+        tipMeta: post ? c.name + ": nächster Post nach deinem Rhythmus" : "Nächster Upload nach deinem Rhythmus", open: false, drag: "" };
     }
     function visible(e) {
       if (e.type === "ev") return view.on[KIND[e.kind].f];
@@ -220,7 +228,7 @@
       const out = [];
       ctx.ups.forEach((u) => { if (u.day === day) out.push(upEntry(u)); });
       ctx.items.forEach((it) => { if (it.date === day && !it.matched) out.push(planEntry(it, ctx)); });
-      if (ctx.posts.includes(day)) out.push(cpostEntry(day));
+      Object.keys(CH).forEach((ch) => { if (ctx.posts[ch].includes(day)) out.push(cpostEntry(day, ch)); });
       ctx.events.forEach((ev) => { if (ev.date === day) out.push(evEntry(ev)); });
       Object.keys(CH).forEach((ch) => {
         const d = ctx.due[ch];
@@ -228,10 +236,13 @@
         const at = d < ctx.today ? ctx.today : d;
         if (at === day && !ctx.items.some((i) => !i.matched && i.kind === "video" && i.ch === ch && i.date >= ctx.today && i.date <= at)) out.push(ghostEntry(ch, d < ctx.today));
       });
-      if (ctx.dueP) {
-        const at = ctx.dueP < ctx.today ? ctx.today : ctx.dueP;
-        if (at === day && !ctx.items.some((i) => !i.matched && i.kind === "post" && i.date >= ctx.today && i.date <= at)) out.push(ghostEntry("post", ctx.dueP < ctx.today));
-      }
+      // Naechster Community-Post je Kanal (verschwindet, sobald fuer diesen Kanal bis dahin ein Post geplant ist)
+      Object.keys(CH).forEach((ch) => {
+        const d = ctx.dueP[ch];
+        if (!d) return;
+        const at = d < ctx.today ? ctx.today : d;
+        if (at === day && !ctx.items.some((i) => !i.matched && i.kind === "post" && i.ch === ch && i.date >= ctx.today && i.date <= at)) out.push(ghostEntry("post", d < ctx.today, ch));
+      });
       return out.filter(visible).sort((a, b) => (a.sort < b.sort ? -1 : a.sort > b.sort ? 1 : 0));
     }
 
@@ -261,13 +272,15 @@
           left: need ? `noch ${need}, ${per} pro Woche` : "Ziel erreicht", right: ctx.due[ch] ? "fällig " + nice(ctx.due[ch] < ctx.today ? ctx.today : ctx.due[ch]) : "",
           aria: `${g.current} von ${g.target} Videos online, ${plan} eingeplant` });
       });
-      const c = comm();
-      if (c && c.last && c.days) {
+      // Je Kanal eine Karte fuer die Community-Posts (Posts der letzten 7 Tage, Rhythmus, naechster faelliger Tag)
+      Object.keys(CH).forEach((ch) => {
+        const c = ctx.comms[ch], d = ctx.dueP[ch];
+        if (!c || !c.last || !c.days) return;
         const n7 = c.count ? c.count(7, ctx.today) : 0;
-        cards.push({ tag: "POST", color: CH.botf.color, dim: CH.botf.dim, big: String(n7), unit: "in 7 Tagen", bar: false, left: `alle ${c.days()} Tage`, right: ctx.dueP ? "fällig " + nice(ctx.dueP < ctx.today ? ctx.today : ctx.dueP) : "" });
-      }
+        cards.push({ tag: postTag(ch), color: CH[ch].color, dim: CH[ch].dim, big: String(n7), unit: "in 7 Tagen", bar: false, left: `alle ${c.days()} Tage`, right: d ? "fällig " + nice(d < ctx.today ? ctx.today : d) : "" });
+      });
       if (!cards.length) return "";
-      return `<div class="uk-goals">${cards.map((g) => `<div class="uk-goal" style="--c:${g.color}"><div class="uk-gtop"><span class="uk-tag" style="--c:${g.color}">${g.tag}</span><span class="uk-big">${esc(g.big)} <small>${esc(g.unit)}</small></span></div>` +
+      return `<div class="uk-goals uk-g${cards.length}">${cards.map((g) => `<div class="uk-goal" style="--c:${g.color}"><div class="uk-gtop"><span class="uk-tag" style="--c:${g.color}">${g.tag}</span><span class="uk-big">${esc(g.big)} <small>${esc(g.unit)}</small></span></div>` +
         (g.bar ? `<div class="uk-prog" role="img" aria-label="${esc(g.aria)}"><i style="width:${g.done}%;background:${g.color}"></i><i style="width:${g.plan}%;background:${g.dim}"></i></div>` : "") +
         `<div class="uk-gline"><span>${esc(g.left)}</span><b>${esc(g.right)}</b></div></div>`).join("")}</div>`;
     }
@@ -290,8 +303,10 @@
           return `<button type="button" class="uk-idea${view.pick === k ? " uk-picked" : ""}" draggable="true" data-uk-drag="${esc(k)}" data-uk-idea="${esc(k)}" aria-pressed="${view.pick === k}"><span class="uk-idea-t">${esc(i.text)}</span></button>`;
         }).join("") + `</div>`;
       });
-      const pk = "tmpl-post";
-      groups.push(`<div class="uk-grp"><span class="uk-tag" style="--c:${CH.botf.color}">POST</span><button type="button" class="uk-idea${view.pick === pk ? " uk-picked" : ""}" draggable="true" data-uk-drag="${pk}" data-uk-idea="${pk}" aria-pressed="${view.pick === pk}"><span class="uk-idea-t">+ Community-Post</span></button></div>`);
+      // Vorlagen fuer Community-Posts: Bricks On The Floor wie bisher, dazu The Brainwalkers
+      const tmpl = (pk, text) => `<button type="button" class="uk-idea${view.pick === pk ? " uk-picked" : ""}" draggable="true" data-uk-drag="${pk}" data-uk-idea="${pk}" aria-pressed="${view.pick === pk}"><span class="uk-idea-t">${text}</span></button>`;
+      groups.push(`<div class="uk-grp"><span class="uk-tag" style="--c:${CH.botf.color}">POST</span>${tmpl("tmpl-post", "+ Community-Post")}</div>`);
+      if (ctx.comms.bw) groups.push(`<div class="uk-grp"><span class="uk-tag" style="--c:${CH.bw.color}">BW-POST</span>${tmpl("tmpl-post-bw", "+ Brainwalkers-Post")}</div>`);
       return `<aside class="uk-pool" data-uk-pool><div class="uk-pool-head"><h3 class="uk-h">IDEEN</h3><span class="uk-n">${free}</span></div>${groups.join("")}</aside>`;
     }
 
@@ -344,7 +359,7 @@
     function dayHtml(ctx) {
       const list = entriesOn(view.sel, ctx);
       const rows = list.map((e) => {
-        const inner = `<span class="uk-tag" style="--c:${e.color}">${esc(e.type === "ev" ? KIND[e.kind].t : e.lane === "post" ? "POST" : CH[e.ch] ? CH[e.ch].tag : "")}</span><span class="uk-row-b"><b>${esc(e.tipTitle)}</b><small>${esc(e.tipMeta)}</small></span>`;
+        const inner = `<span class="uk-tag" style="--c:${e.color}">${esc(e.type === "ev" ? KIND[e.kind].t : e.lane === "post" ? postTag(e.ch) : CH[e.ch] ? CH[e.ch].tag : "")}</span><span class="uk-row-b"><b>${esc(e.tipTitle)}</b><small>${esc(e.tipMeta)}</small></span>`;
         return e.open ? `<button type="button" class="uk-row ${e.cls}" style="--c:${e.color}" data-uk-open="${esc(e.key)}">${inner}</button>` : `<div class="uk-row ${e.cls}" style="--c:${e.color}">${inner}</div>`;
       }).join("");
       return `<div class="uk-day"><h3 class="uk-h">${nice(view.sel).toUpperCase()}</h3>${rows || '<p class="uk-none">Nichts geplant</p>'}` +
@@ -364,7 +379,7 @@
 
     /* ---------- Planen, verschieben, zurueckgeben ---------- */
     function laneOfKey(k) {
-      if (k === "tmpl-post") return "post";
+      if (k === "tmpl-post" || k === "tmpl-post-bw") return "post";
       if (k.startsWith("i:")) return k.split(":")[1];
       if (k.startsWith("p:")) { const it = state.items[k.slice(2)]; return it && !it.del ? (it.kind === "post" ? "post" : it.ch) : null; }
       return null;
@@ -375,9 +390,10 @@
       if (document.body.dataset.cloud !== "ready") { toast("Die Cloud ist noch nicht geladen, gleich nochmal tippen."); return false; }
       const ctx = context();
       let msg = "";
-      if (k === "tmpl-post") {
-        put("items", newId(), { kind: "post", ch: "botf", date: day, time: "12:00", title: "", st: 0, note: "", idea: "" });
-        msg = "Post geplant";
+      if (k === "tmpl-post" || k === "tmpl-post-bw") {
+        const ch = k === "tmpl-post-bw" ? "bw" : "botf";
+        put("items", newId(), { kind: "post", ch, date: day, time: "12:00", title: "", st: 0, note: "", idea: "" });
+        msg = ch === "bw" ? "Brainwalkers-Post geplant" : "Post geplant";
       } else if (k.startsWith("i:")) {
         const [, ch, ...rest] = k.split(":"), ideaId = rest.join(":");
         const idea = (((ctx.ideas[ch] || {}).items) || []).find((i) => i && String(i.id) === ideaId);
@@ -438,14 +454,14 @@
         if (!it) return null;
         const post = it.kind === "post", c = CH[it.ch];
         const sameKind = ctx.items.filter((x) => x.id !== it.id && !x.matched && x.kind === it.kind && x.ch === it.ch && x.date < it.date).map((x) => x.date);
-        const prevDay = (post ? ctx.posts.filter((d) => d < it.date) : ctx.ups.filter((x) => x.ch === it.ch && x.day < it.date).map((x) => x.day)).concat(sameKind).sort().pop();
+        const prevDay = (post ? (ctx.posts[it.ch] || []).filter((d) => d < it.date) : ctx.ups.filter((x) => x.ch === it.ch && x.day < it.date).map((x) => x.day)).concat(sameKind).sort().pop();
         const steps = post ? "" : `<div class="uk-steps" role="group" aria-label="Status">${STEPS.map((s, i) => `<button type="button" class="uk-step${i === it.st ? " on" : i < it.st ? " pre" : ""}" style="--c:${c.color}" aria-pressed="${i === it.st}" data-uk-step="${i}">${s}</button>`).join("")}</div>`;
         const fields = `<div class="uk-fields">${field("Datum", `<input type="date" data-uk-f="date" value="${esc(it.date)}" />`)}${field("Uhrzeit", `<input type="time" data-uk-f="time" value="${esc(it.time)}" />`)}</div>` +
           (post ? field("Stichwort", `<input type="text" data-uk-f="title" maxlength="160" value="${esc(it.title)}" />`) : "") +
           field("Notiz", `<textarea data-uk-f="note" rows="3" maxlength="600">${esc(it.note)}</textarea>`);
-        const markable = post && it.date <= ctx.today && deps.community && deps.community.mark;
+        const board = post ? ctx.comms[it.ch] : null, markable = post && it.date <= ctx.today && board && board.mark;
         const acts = `<div class="uk-acts">${markable ? `<button type="button" class="cm-done" data-uk-act="posted">ALS GEPOSTET EINTRAGEN</button>` : ""}<button type="button" class="cm-done cm-alt" data-uk-act="unplan">${post ? "LÖSCHEN" : "ZURÜCK IN DIE IDEEN"}</button></div>`;
-        return { accent: c.color, tag: post ? "POST" : c.tag, title: post ? (it.title || "Community-Post") : it.title,
+        return { accent: c.color, tag: post ? postTag(it.ch) : c.tag, title: post ? (it.title || postName(it.ch)) : it.title,
           html: row("Kanal", esc(c.name)) + row("Art", post ? "Community-Post" : "Longform-Video") + (prevDay ? row("Abstand", diff(prevDay, it.date) + (diff(prevDay, it.date) === 1 ? " Tag" : " Tage") + (post ? " nach dem vorigen Post" : " nach dem vorigen Upload")) : "") + steps + fields + acts };
       }
       return null;
@@ -488,9 +504,9 @@
       if (a === "closeDlg") closeDialog();
       else if (a === "unplan" && dlgKey.startsWith("p:")) { const id = dlgKey.slice(2); closeDialog(); unplan(id); }
       else if (a === "posted" && dlgKey.startsWith("p:")) {
-        const id = dlgKey.slice(2), it = state.items[id];
-        if (!it || it.del || !deps.community) return;
-        if (deps.community.mark(it.date)) toast(`Post vom ${nice(it.date)} eingetragen`, "ok");
+        const id = dlgKey.slice(2), it = state.items[id], board = it ? comms()[it.ch] : null;
+        if (!it || it.del || !board) return;
+        if (board.mark(it.date)) toast(`${it.ch === "bw" ? "Brainwalkers-Post" : "Post"} vom ${nice(it.date)} eingetragen`, "ok");
         else toast("Dieser Tag ist schon als gepostet eingetragen.");
         drop("items", id);
         closeDialog();
@@ -545,7 +561,7 @@
       ensureDialog();
       const ctx = context(), taken = new Set(ctx.items.filter((i) => i.kind === "video" && i.idea && !i.matched).map((i) => i.idea));
       const btn = (k, tag, color, text) => `<button type="button" class="uk-sheet-b" data-uk-sheet="${esc(k)}"><span class="uk-tag" style="--c:${color}">${tag}</span><span>${esc(text)}</span></button>`;
-      let list = btn("tmpl-post", "POST", CH.botf.color, "+ Community-Post");
+      let list = btn("tmpl-post", "POST", CH.botf.color, "+ Community-Post") + (deps.communityBw ? btn("tmpl-post-bw", "BW-POST", CH.bw.color, "+ Brainwalkers-Post") : "");
       Object.keys(CH).forEach((ch) => (((ctx.ideas[ch] || {}).items) || []).forEach((i) => { if (i && ID.test(String(i.id)) && typeof i.text === "string" && !taken.has(i.id)) list += btn(`i:${ch}:${i.id}`, CH[ch].tag, CH[ch].color, i.text); }));
       dlgKey = "sheet";
       dlg.classList.add("open");

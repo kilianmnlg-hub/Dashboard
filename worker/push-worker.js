@@ -534,10 +534,11 @@ async function checkData(ctx) {
 
     if (wantUpload) {
       /* Upload-Kalender (Feld "uploadPlan" in sync-data.json, siehe uploadcal.js): am Tag eines geplanten Uploads, Posts oder Termins einmal erinnern. Ein Upload, der schon
-         online ist (in recentUploads), und ein Post, der schon eingetragen ist (community.posts), zaehlen nicht mehr. */
+         online ist (in recentUploads), und ein Post, der schon eingetragen ist (community.posts bzw. communityBw.posts fuer The Brainwalkers), zaehlen nicht mehr. */
       const s = await loadData(ctx, "sync-data.json"), plan = s.uploadPlan && typeof s.uploadPlan === "object" ? s.uploadPlan : {};
       const items = plan.items && typeof plan.items === "object" ? plan.items : {}, evs = plan.events && typeof plan.events === "object" ? plan.events : {};
       const posts = s.community && Array.isArray(s.community.posts) ? s.community.posts : [], biz = (await loadData(ctx, "data.js")).business || {};
+      const postsBw = s.communityBw && Array.isArray(s.communityBw.posts) ? s.communityBw.posts : [];
       const KEYS = { botf: "bricksOnTheFloor", bw: "brainwalkers" }, ART = { koop: "Kooperation", frist: "Frist", lego: "LEGO-Termin", mtg: "MTG-Termin" };
       const online = (ch, day) => ((biz[KEYS[ch]] || {}).recentUploads || []).some((v) => { const t = Date.parse(v && v.at); return t && berlin(t).date === day; });
       const tm = (x) => (/^\d{2}:\d{2}$/.test(x.time || "") ? x.time : "");
@@ -545,7 +546,10 @@ async function checkData(ctx) {
       Object.keys(items).forEach((id) => {
         const i = items[id];
         if (!i || i.del || i.date !== nowB.date) return;
-        if (i.kind === "post") { if (posts.indexOf(i.date) < 0) lines.push({ sort: tm(i) || "12:00", t: "Community-Post" + (tm(i) ? " um " + tm(i) : ""), b: clip(i.title || "Bricks On The Floor", 90), s: "Post" + (tm(i) ? " " + tm(i) : "") }); }
+        if (i.kind === "post") {
+          const bw = i.ch === "bw";
+          if ((bw ? postsBw : posts).indexOf(i.date) < 0) lines.push({ sort: tm(i) || "12:00", t: (bw ? "Brainwalkers-Post" : "Community-Post") + (tm(i) ? " um " + tm(i) : ""), b: clip(i.title || (bw ? "The Brainwalkers" : "Bricks On The Floor"), 90), s: (bw ? "BW-Post" : "Post") + (tm(i) ? " " + tm(i) : "") });
+        }
         else if (KEYS[i.ch] && !online(i.ch, i.date)) lines.push({ sort: tm(i) || "16:00", t: "Upload" + (tm(i) ? " um " + tm(i) : " geplant"), b: clip(i.title, 90), s: (tm(i) ? tm(i) + " " : "") + clip(i.title, 40) });
       });
       Object.keys(evs).forEach((id) => {

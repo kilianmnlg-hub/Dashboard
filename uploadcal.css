@@ -141,6 +141,7 @@ button.uk-row { cursor: pointer; }
 /* Handy: Raster mit Punkten, darunter die Tagesliste; der Ideenspeicher kommt als Blatt (IDEE PLANEN) */
 @media (max-width: 720px) {
   .uk-goals { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .uk-goals.uk-g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .uk-goal { padding: 8px; gap: 4px; box-shadow: var(--sh-s) var(--c); }
   .uk-gtop { flex-direction: column; align-items: flex-start; gap: 4px; }
   .uk-big { font-size: var(--fs-14); }
